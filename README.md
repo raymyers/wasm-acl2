@@ -107,6 +107,25 @@ make clean                   # remove .cert/.port/.fasl artifacts
 $ACL2_SYSTEM_BOOKS/build/cert.pl --acl2 $ACL2 proofs/proof-add-spec
 ```
 
+### Nix
+
+`flake.nix` builds ACL2 (from nixpkgs) together with just the community books
+this tree depends on — `kestrel/wasm`, `kestrel/bv`, `kestrel/floats`,
+`std/util`, `ihs`, `arithmetic-5` — rather than the whole community book set:
+
+```bash
+nix build            # certify everything (== make all); the build IS the proof
+nix flake check      # same, as a check
+nix develop          # shell with acl2, cert.pl, make, wabt, node + $ACL2/$CERT set
+```
+
+Inside `nix develop`, `make` / `make top` / `make proofs` / `make tests` work as
+above — `ACL2` and `CERT` are already exported, so no path arguments are needed.
+
+The first build compiles ACL2 and its book subset from source (no binary cache
+covers it, since nixpkgs marks book-carrying ACL2 unfree-redistributable), which
+takes a while; afterwards it is cached in the Nix store.
+
 Outside the dev container (e.g. a fresh Ubuntu box), build ACL2 from source
 and point `ACL2` / `CERT` at your own install:
 

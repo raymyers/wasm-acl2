@@ -13,3 +13,7 @@ Makefile-tmp
 
 # Jupyter notebook checkpoints
 .ipynb_checkpoints/
+
+# Nix build symlink
+result
+result-*
