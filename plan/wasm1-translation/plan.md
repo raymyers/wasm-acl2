@@ -396,12 +396,55 @@ instance with no memory address) can crash SBCL instead of failing cleanly.
 
 **Exit**: the oracle `.wat` programs run through instantiate + invoke and agree with Node.
 
-### T6: Typing (`gen/typing.lisp`)
+**Status (2026-11-13): blocked on T6.** `$invoke` and the alloc/init defs
+translate (except `$allocmodule`), and T4 already runs calls through a
+hand-built store. But `$instantiate` has the premise
+`Module_ok: |- module : xt_I* -> xt_E*`, where the module type is an *output*,
+so T5 cannot be completed as specified until `Module_ok` exists in an
+inference mode (T6).
+
+### T6: Typing (`gen/wasm1.lisp`) 🔶 Partial — blocked
 - [ ] All 76 typing rules as checkers or output-mode functions (§2.5)
 - [ ] `Module_ok` on the oracle corpus
 
 **Exit**: every oracle module validates, and the deliberately ill-typed
 negative tests are rejected.
+
+**Status (2026-11-13)**: the generic mode analysis translates the
+*non-instruction* typing relations: `Limits_ok`, `Functype_ok`,
+`Globaltype_ok`, `Tabletype_ok`, `Memtype_ok`, `Externtype_ok`, the `*_sub`
+relations, `Expr_ok`, `Instr_const`/`Expr_const`, `Type_ok`, `Func_ok`,
+`Global_ok`, `Table_ok`, `Mem_ok`, `Data_ok`, `Start_ok`, `Import_ok`,
+`Export_ok`, `Externidx_ok` (several of these call the stubs below, so they
+only work as far as those do). Stubs: `Instr_ok`, `Instrs_ok`, `Elem_ok`,
+`Module_ok`, `Externaddr_ok`.
+
+**Blocker**: the instruction typing rules are declarative in a way that no
+input/output mode makes deterministic:
+- `Instrs_ok/seq` splits the sequence at an unknown point *and* introduces an
+  existential intermediate stack `t_2*`;
+- `Instrs_ok/frame` adds an arbitrary common stack prefix `t*`;
+- `unreachable`, `br`, `return` (and `br_table`) have unconstrained output
+  stacks (`t_1* -> t_2*`), so in "stack in, stack out" mode their output is
+  not computable, and in checking mode the intermediate stacks are not known.
+
+A complete checker needs bidirectional mode inference with stack
+polymorphism, i.e. a validation *algorithm*. SpecTec does not derive one
+either: the AL (`--print-al`, Strategy B) calls `$Module_ok` as an opaque
+function, and SpecTec's interpreter backend validates with the hand-written
+OCaml reference validator. Options, none taken yet (each is a decision for
+the project, not a mechanical next step):
+1. Hand-write `Instr_ok`/`Instrs_ok` as a config override, i.e. a validation
+   algorithm proved equivalent to the rules later. Large, and against the
+   "only builtins are hand-written" rule.
+2. A sound-but-incomplete generic checker: a multi-mode compilation (stack in →
+   stack out, plus checking mode for the last instruction of a sequence),
+   with a cycle guard for `frame`. It would reject valid code that needs stack
+   polymorphism in the middle of a sequence (dead code after `br`). Rules
+   that cannot be compiled in a mode would be listed as incomplete.
+3. Skip validation for execution: run modules via `$allocmodule` + `$invoke`
+   without `$instantiate`'s `Module_ok` premise. That is not the spec's
+   instantiation, so it would be a test-only path.
 
 ### T7: Binary format, and conformance (stretch)
 - [ ] Grammar → parser for `A-binary.spectec` (§2.6)

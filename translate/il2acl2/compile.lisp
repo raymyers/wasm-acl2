@@ -767,6 +767,14 @@
                                            (list :choose kv 0 (list 'len s) nil))
                                  s1 s2)
                          env cx)))))))))))
+    ((nodep p "LIFT" 1)
+     ;; lift(x?) : the option as a list -- same encoding, at most one element
+     (mv-let (s pre cx) (scrutinee s cx)
+       (mv-let (steps env cx) (cpat (second p) s env cx)
+         (mv (append pre (list (list :test (list 'true-listp s))
+                               (list :test (list '<= (list 'len s) 1)))
+                     steps)
+             env cx))))
     ((and (nodep p "PROJ" 2) (eql (third p) 0) (nodep (second p) "UNCASE" 2)
           (atom-free-p (third (second p))) (= (length (third (second p))) 1))
      ;; x!%.0 on an elided newtype is x itself
