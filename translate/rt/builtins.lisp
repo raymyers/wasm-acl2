@@ -29,6 +29,26 @@
   (declare (xargs :guard (nat-listp chs)))
   (if (atom chs) nil (append (%utf8-char (car chs)) ($utf8 (cdr chs)))))
 
+; Its inverse (config :inverse "utf8"): decode a UTF-8 byte list. On invalid
+; input the result does not re-encode to the input, so the generated check
+; $utf8(x) = bytes rejects it.
+(defun %cont (b) (mod (nfix b) 64))
+(defun $inv_utf8 (bs)
+  (declare (xargs :measure (acl2::len bs)))
+  (if (atom bs) nil
+    (let ((b (nfix (car bs))))
+      (cond ((< b #x80) (cons b ($inv_utf8 (cdr bs))))
+            ((and (< b #xE0) (consp (cdr bs)))
+             (cons (+ (* 64 (- b #xC0)) (%cont (cadr bs))) ($inv_utf8 (cddr bs))))
+            ((and (< b #xF0) (consp (cdr bs)) (consp (cddr bs)))
+             (cons (+ (* 4096 (- b #xE0)) (* 64 (%cont (cadr bs))) (%cont (caddr bs)))
+                   ($inv_utf8 (cdddr bs))))
+            ((and (consp (cdr bs)) (consp (cddr bs)) (consp (cdddr bs)))
+             (cons (+ (* 262144 (- b #xF0)) (* 4096 (%cont (cadr bs)))
+                      (* 64 (%cont (caddr bs))) (%cont (cadddr bs)))
+                   ($inv_utf8 (cddddr bs))))
+            (t (list #x110000))))))                    ; not a char: rejected
+
 ; ---------------------------------------------------------------------
 ; Builtins (plan §2.4). Written from the WASM 1.0 spec text, in pure ACL2
 ; (no community books), independently of WASM1. Logic mode; guards are not

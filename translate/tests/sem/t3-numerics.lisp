@@ -95,9 +95,9 @@
        (if eofp (mv (msg "no vectors") nil state)
          (mv-let (nok bad) (check-vectors vs 0 nil)
            (prog2$ (cw "~%T3 numerics: ~x0 of ~x1 vectors agree with the WASM engine.~%"
-                       nok (len vs))
+                       nok (acl2::len vs))
                    (if bad
-                       (mv (msg "~x0 vectors disagree; first ones:~%~x1" (len bad)
-                                (take (min 12 (len bad)) bad))
+                       (mv (msg "~x0 vectors disagree; first ones:~%~x1" (acl2::len bad)
+                                (take (min 12 (acl2::len bad)) bad))
                            nil state)
                      (mv nil '(value-triple :t3-numerics-ok) state)))))))))

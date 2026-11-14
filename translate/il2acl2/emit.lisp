@@ -110,6 +110,41 @@
   (if (endp es) nil
     (append (cadr (member :pairs (car es))) (inverse-pairs (cdr es)))))
 
+(defun sized-pairs (es)
+  ;; (:sized :pairs (("Bsection_" . "len") ...))
+  (if (endp es) nil
+    (append (cadr (member :pairs (car es))) (sized-pairs (cdr es)))))
+
+(defun gram-defs (forms)
+  ;; alist grammar id -> its GRAM form (for inlining parametric grammars)
+  (cond ((endp forms) nil)
+        ((is (car forms) "REC") (append (gram-defs (cdr (car forms))) (gram-defs (cdr forms))))
+        ((is (car forms) "GRAM") (cons (cons (second (car forms)) (car forms)) (gram-defs (cdr forms))))
+        (t (gram-defs (cdr forms)))))
+
+; Config (:il-patch "Def" :old X :new Y ...): replace every subtree equal to
+; X by Y inside the top-level definition named "Def". For bugs in the
+; SpecTec source that a faithful translation would reproduce.
+(defun subst-tree (new old x)
+  (cond ((equal x old) new)
+        ((atom x) x)
+        (t (cons (subst-tree new old (car x)) (subst-tree new old (cdr x))))))
+
+(defun apply-patch (forms id old new)
+  (cond ((endp forms) nil)
+        ((and (consp (car forms)) (equal (second (car forms)) id))
+         (cons (subst-tree new old (car forms)) (apply-patch (cdr forms) id old new)))
+        ((is (car forms) "REC")
+         (cons (cons (car (car forms)) (apply-patch (cdr (car forms)) id old new))
+               (apply-patch (cdr forms) id old new)))
+        (t (cons (car forms) (apply-patch (cdr forms) id old new)))))
+
+(defun apply-patches (forms ps)
+  (if (endp ps) forms
+    (let ((p (car ps)))
+      (apply-patches (apply-patch forms (second p) (cadr (member :old p)) (cadr (member :new p)))
+                     (cdr ps)))))
+
 (defun config-overrides (config)
   ;; config: list of entries (:def "id" :reason "...")
   (cond ((endp config) nil)
@@ -134,10 +169,13 @@
         (mv-let (erp cfg state) (read-il-file config-file state)
           (if erp (mv erp state)
             (let* ((config (car cfg))
+                   (forms (apply-patches forms (config-entries config :il-patch)))
                    (cx (list (cons :tbl (mangle-table forms))
                              (cons :overrides (config-overrides config))
                              (cons :split-rules (split-rules (config-entries config :split)))
-                             (cons :inverses (inverse-pairs (config-entries config :inverse))))))
+                             (cons :inverses (inverse-pairs (config-entries config :inverse)))
+                             (cons :sized (sized-pairs (config-entries config :sized)))
+                             (cons :gram-defs (gram-defs forms)))))
               (mv-let (events builtins skipped cx) (cforms forms cx)
                 (let* ((names (prog2$ (cw "~%il2acl2: ~x0 events, ~x1 builtins/overrides, ~x2 forms not translated, stubs: ~x3~%unsupported constructs (~x4):~%~x5~%"
                                (len events) (len builtins) (len skipped)

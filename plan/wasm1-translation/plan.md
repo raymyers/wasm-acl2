@@ -446,12 +446,36 @@ the project, not a mechanical next step):
    without `$instantiate`'s `Module_ok` premise. That is not the spec's
    instantiation, so it would be a test-only path.
 
-### T7: Binary format, and conformance (stretch)
-- [ ] Grammar → parser for `A-binary.spectec` (§2.6)
-- [ ] `.wasm` bytes → `PARSE-MODULE` → instantiate → invoke, with no JS involved
-- [ ] Run a subset of `spectec/test-interpreter/spec-test-1` (the WASM 1.0 `.wast` suite)
+### T7: Binary format, and conformance (stretch) 🔶 Partial
+- [x] Grammar → parser for `A-binary.spectec` (§2.6): every grammar becomes
+      `GRAM/G(bytes, params)` → `(list value rest)` or `nil` (ordered choice,
+      greedy iteration that stops on no progress, per-element bindings
+      collected as output lists). Grammars with grammar parameters (`Blist`,
+      `Bsection_`) are inlined at each use. Needed one more generic feature,
+      list-iterated premises with outputs (which also un-stubbed `Elem_ok`
+      and `$instantiate`'s own body)
+- [ ] `.wasm` bytes → `PARSE-MODULE` → instantiate → invoke, with no JS
+      involved. Parsing is done (`GRAM/BMODULE`); instantiate is blocked on
+      `Module_ok` (T6)
+- [ ] Run a subset of `spectec/test-interpreter/spec-test-1` (the WASM 1.0 `.wast` suite).
+      Blocked on instantiate as well
 
 **Exit**: N of M spec-test-1 assertions pass (record N/M).
+
+**Result (parser)**: `tests/sem/t7-binary.lisp`: **13/13** modules of the
+shared oracle corpus (`make corpus`: `wat2wasm` of `tests/oracle/*.wat`)
+parse completely with the generated `GRAM/BMODULE`, and their exports
+(names, kinds) equal V8's `WebAssembly.Module.exports`.
+New config entries (now 6): `:sized` and `:il-patch` (below), plus
+`inv_utf8` (a hand-written UTF-8 decoder beside the `$utf8` override, used
+by `Bname`). Two problems in the SpecTec source / IL, found by translating
+faithfully:
+- `A-binary.spectec` writes the module header as `0x00 0x61 0x73 0x6D 1:Bu32`.
+  The version is the fixed 4 bytes `01 00 00 00`, not a LEB128 u32, so read
+  literally no real `.wasm` parses. Fixed by a counted `:il-patch` on `Bmodule`.
+- `Bsection_`/`Bcode` say `len = ||BX||` (byte size of the match), but the
+  IL has `len = 0`: elaboration loses `||·||`. Handled by `:sized`: the item
+  after `len` is parsed from exactly `len` bytes.
 
 ### T8: Logic mode, guards, reasoning
 - [ ] Move generated functions from `:program` to logic mode. Termination comes

@@ -3,5 +3,5 @@
 ; *acl2-exports* minus every export whose name the generated code
 ; defines or binds.
 (in-package "ACL2")
-(DEFPKG "W1T" (SET-DIFFERENCE-EQ *ACL2-EXPORTS* '(STATE-P W)))
+(DEFPKG "W1T" (SET-DIFFERENCE-EQ *ACL2-EXPORTS* '(LEN STATE-P W)))
 

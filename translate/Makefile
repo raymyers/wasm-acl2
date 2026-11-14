@@ -20,7 +20,7 @@ IL   := il/wasm-1.0.il.sexp
 GEN_FILES := package.lsp portcullis.acl2 portcullis.lisp cert.acl2 wasm1.lisp
 TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 
-.PHONY: il check-il gen check-gen test check clean translator vectors compare
+.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus
 
 il:
 	$(NIX) build ..#wasm1-il --no-link --print-out-paths > .il-out
@@ -57,6 +57,10 @@ check-gen: translator
 # Regenerate the numeric oracle vectors (Node/V8 runs the WASM ops).
 vectors:
 	node tests/oracle/gen-numeric-vectors.mjs > tests/sem/numeric-vectors.lsp
+
+# Rebuild the binary corpus (wat2wasm of ../tests/oracle/*.wat) and V8 export lists.
+corpus:
+	node tests/oracle/gen-wasm-corpus.mjs
 
 test:
 	$(CERT) --acl2 $(ACL2) -j $(JOBS) $(TEST_BOOKS)

@@ -813,7 +813,8 @@
                (mv-let (s1 env cx) (cpat (car (last args)) tv env cx)
                  (mv-let (chk cx) (cexp p env cx)
                    (mv (append pre
-                               (list (list* :bind tv (cons (fn-sym :def g cx) (append others (list s)))))
+                               (list (list* :bind tv (cons (gsym (or (tbl-name :def g cx) (concatenate (quote string) "$" (base-name g nil))))
+                                                      (append others (list s)))))
                                s1
                                (list (list :test (list 'equal chk s))))
                        env cx)))))))))
@@ -1105,7 +1106,36 @@
                                     (opt-out-binds outs 0 tv cx))
                             (env-add-out-lists outs env cx)
                             cx))))))))))
-       ((consp outs) (mv nil env (cx-err "iterated premise with output lists" pr cx)))
+       ((consp outs)
+        ;; list iteration with outputs: an aux function runs the inner premise
+        ;; on each element of the input lists (in lockstep) and collects the
+        ;; output elements into columns; nil if any element fails
+        (let* ((fvs (bound-in (set-difference-equal (fv-prem inner) (append in-names (dom-names outs))) env))
+               (fvsyms (env-terms fvs env))
+               (lsyms (gsyms-prefixed "%L" (len ins)))
+               (rv (gsym "%R")))
+          (mv-let (ds cx) (cexps (strip-thirds ins) env cx)
+            (mv-let (isteps env3 cx)
+              (cprem inner (env-add-vars in-names (env-restrict fvs env) cx) cx)
+              (let ((otms (env-terms (dom-names outs) env3)))
+                (if (member-equal nil otms)
+                    (mv nil env (cx-err "iterated premise output not bound" pr cx))
+                  (mv-let (aux-name cx) (cx-fresh (concatenate 'string (cx-get :fn cx) "/MAP") cx)
+                    (mv-let (tname cx) (cx-fresh "%T" cx)
+                      (let* ((aux (gsym aux-name)) (tv (gsym tname))
+                             (rec-call (cons aux (append (cdr-terms lsyms) fvsyms)))
+                             (def (mk-defun aux (append lsyms fvsyms)
+                                            (list 'if (cons 'or (atom-tests lsyms))
+                                                  (list 'list (cons 'list (make-list (len outs))))
+                                                  (build-steps
+                                                   (append (bind-steps (car-binds in-names lsyms cx)) isteps)
+                                                   (list 'let (list (list rv rec-call)) (ignorable-decl (list rv))
+                                                         (list 'and rv (list 'list (cons 'list (cons-cols otms 0 rv))))))))))
+                        (mv (append (list (list* :bind tv (cons aux (append ds fvsyms)))
+                                          (list :test tv))
+                                    (list-out-binds outs 0 tv cx))
+                            (env-add-out-lists outs env cx)
+                            (cx-add-aux def cx)))))))))))
        (t
         (let* ((fvs (bound-in (set-difference-equal (fv-prem inner) in-names) env))
                (fvsyms (env-terms fvs env))
@@ -1498,6 +1528,319 @@
                      (ds (append (drop-defuns-of ds names) (rel-stubs xs bad cx))))
                 (mv ds (cx-put :stubs (append (cx-get :stubs cx) names) cx))))))))))
 
+; --- Grammars (plan §2.6): binary-format parsers -----------------------
+;
+; A grammar G becomes GRAM/G(%S, params...) returning (list value rest) or
+; nil: productions in order (PEG-style ordered choice), greedy iteration
+; that stops when an iteration consumes nothing. Grammars with grammar
+; parameters (Blist, Bsection_) are inlined at each use with the argument
+; substituted (cx :gram-subst), so no higher-order functions are needed.
+; Config :sized (G . var): in G, the item after the one binding VAR is
+; parsed from exactly VAR bytes (the IL's `len = 0` stands for
+; `len = ||BX||`, which elaboration loses).
+
+(defun hex-value-cs (cs acc)
+  (if (endp cs) acc
+    (hex-value-cs (cdr cs)
+                  (+ (* 16 acc)
+                     (let ((c (car cs)))
+                       (if (char<= #\A c) (+ 10 (- (char-code c) (char-code #\A)))
+                         (- (char-code c) (char-code #\0))))))))
+
+(defun hex-value (s)
+  ;; "0X0B" -> 11
+  (let ((cs (coerce (string-upcase (subseq s 2 (length s))) 'list)))
+    (hex-value-cs cs 0)))
+
+(defun gram-def (id cx) (cdr (assoc-equal id (cx-get :gram-defs cx))))
+
+(defun gram-param-in (ps)
+  (and (consp ps) (or (is (car ps) "GRAM") (gram-param-in (cdr ps)))))
+
+(defun gram-parametric-p (x)
+  ;; has a grammar parameter
+  (mv-let (ps more) (def-parts x)
+    (declare (ignore more))
+    (gram-param-in ps)))
+
+(defun gram-prods (x) (mv-let (ps more) (def-parts x) (declare (ignore ps)) (cdr more)))
+
+(defun prod-parts (p)
+  ;; (prod params... sym exp prems...) -> (mv sym exp prems)
+  (let* ((rest (cdr p)) (ps (take-while-params rest)) (more (nthcdr (len ps) rest)))
+    (mv (first more) (second more) (cddr more))))
+
+(defun size-zero-prem-p-loose (pr var)
+  ;; compare by symbol names (the IL reader's package does not matter)
+  (and (nodep pr "IF" 1)
+       (let ((e (second pr)))
+         (and (nodep e "CMP" 4) (atom-is (second e) "EQ")
+              (nodep (fourth e) "VAR" 1) (equal (second (fourth e)) var)
+              (nodep (fifth e) "NUM" 1) (nodep (second (fifth e)) "NAT" 1)
+              (eql (second (second (fifth e))) 0)))))
+
+(defun drop-size-prems (prs var)
+  (cond ((endp prs) nil)
+        ((and var (size-zero-prem-p-loose (car prs) var)) (drop-size-prems (cdr prs) var))
+        (t (cons (car prs) (drop-size-prems (cdr prs) var)))))
+
+(defun gram-args-exps (as) (exp-args as))
+
+(defun gram-args-grams (as)
+  (cond ((endp as) nil)
+        ((is (car as) "GRAM") (cons (second (car as)) (gram-args-grams (cdr as))))
+        (t (gram-args-grams (cdr as)))))
+
+(defun gram-param-names (ps)
+  (cond ((endp ps) nil)
+        ((is (car ps) "GRAM") (cons (second (car ps)) (gram-param-names (cdr ps))))
+        (t (gram-param-names (cdr ps)))))
+
+(defun exp-param-names (ps)
+  (cond ((endp ps) nil)
+        ((is (car ps) "EXP") (cons (second (car ps)) (exp-param-names (cdr ps))))
+        (t (exp-param-names (cdr ps)))))
+
+(defun bind-names-terms (names terms cx)
+  ;; steps binding SpecTec vars NAMES to TERMS, and the env entries
+  (if (endp names) (mv nil nil)
+    (mv-let (s e) (bind-names-terms (cdr names) (cdr terms) cx)
+      (mv (cons (list* :bind (var-sym (car names) cx) (car terms)) s)
+          (acons (car names) (var-sym (car names) cx) e)))))
+
+(defun pair-subst (names syms env)
+  (if (endp names) nil
+    (acons (car names) (cons (car syms) env) (pair-subst (cdr names) (cdr syms) env))))
+
+(defun cons-cols-of (n i e rv)
+  ;; ((cons (nth i (car e)) (nth i (car rv))) ...)
+  (if (zp n) nil
+    (cons (list 'cons (nth-term i (list 'car e)) (nth-term i (list 'car rv)))
+          (cons-cols-of (1- n) (1+ i) e rv))))
+
+(defun single-cols (n i e)
+  (if (zp n) nil
+    (cons (list 'list (nth-term i (list 'car e))) (single-cols (1- n) (1+ i) e))))
+
+(defun list-out-binds-from (outs i tv cx)
+  (if (endp outs) nil
+    (cons (list* :bind (var-sym (second (third (car outs))) cx)
+                 (nth-term i (list 'car tv)))
+          (list-out-binds-from (cdr outs) (1+ i) tv cx))))
+
+(mutual-recursion
+
+ ;; (mv steps value-term pos-term env cx)
+ (defun csym (sym pos env cx)
+   (cond
+    ((atom-is sym "EPS") (mv nil nil pos env cx))
+    ((nodep sym "NUM" 1)
+     (let ((n (hex-value (symbol-name (second sym)))))
+       (mv (list (list :test (list 'consp pos)) (list :test (list 'equal (list 'car pos) n)))
+           n (list 'cdr pos) env cx)))
+    ((nodep sym "RANGE" 2)
+     (let ((a (hex-value (symbol-name (second (second sym)))))
+           (b (hex-value (symbol-name (second (third sym))))))
+       (mv (list (list :test (list 'consp pos))
+                 (list :test (list 'integerp (list 'car pos)))
+                 (list :test (list '<= a (list 'car pos)))
+                 (list :test (list '<= (list 'car pos) b)))
+           (list 'car pos) (list 'cdr pos) env cx)))
+    ((and (is sym "VAR") (true-listp sym))
+     (let* ((id (second sym)) (sub (assoc-equal id (cx-get :gram-subst cx))))
+       (cond
+        (sub ;; grammar parameter: the argument, compiled in the caller's env
+         (mv-let (steps v p env2 cx) (csym (cadr sub) pos (cddr sub) cx)
+           (declare (ignore env2))
+           (mv steps v p env cx)))
+        ((let ((d (gram-def id cx))) (and d (gram-parametric-p d)))
+         (cinline-gram (gram-def id cx) (cddr sym) pos env cx))
+        (t
+         (mv-let (as cx) (cexps (gram-args-exps (cddr sym)) env cx)
+           (mv-let (tname cx) (cx-fresh "%T" cx)
+             (let ((tv (gsym tname)))
+               (mv (list (list* :bind tv (list* (fn-sym :gram id cx) pos as))
+                         (list :test tv))
+                   (list 'car tv) (list 'cadr tv) env cx))))))))
+    ((nodep sym "ATTR" 2)
+     (mv-let (steps v p env cx) (csym (third sym) pos env cx)
+       (mv-let (vname cx) (cx-fresh "%T" cx)
+         (let ((vv (gsym vname)))
+           (mv-let (s2 env cx) (cpat (second sym) vv env cx)
+             (mv (append steps (list (list* :bind vv v)) s2) vv p env cx))))))
+    ((and (is sym "SEQ") (true-listp sym))
+     (cseq (cdr sym) pos env nil cx))
+    ((and (is sym "ALT") (true-listp sym))
+     (mv-let (alts cx) (calts (cdr sym) pos env cx)
+       (mv-let (tname cx) (cx-fresh "%T" cx)
+         (let ((tv (gsym tname)))
+           (mv (list (list* :bind tv (cons 'or alts)) (list :test tv))
+               (list 'car tv) (list 'cadr tv) env cx)))))
+    ((and (is sym "ITER") (true-listp sym) (>= (len sym) 3))
+     (citer-sym (second sym) (third sym) (cdddr sym) pos env cx))
+    (t (mv nil nil pos env (cx-err "grammar symbol" sym cx)))))
+
+ ;; sequence; SIZED-NEXT is the var whose value bounds the next item
+ (defun cseq (syms pos env sized-next cx)
+   (if (endp syms) (mv nil nil pos env cx)
+     (let ((svar (cdr (assoc-equal (cx-get :gram-name cx) (cx-get :sized cx)))))
+       (if sized-next
+           (let ((lenv (cdr (assoc-equal sized-next env))))
+             (mv-let (bname cx) (cx-fresh "%T" cx)
+               (let ((bv (gsym bname)))
+                 (mv-let (s1 v1 p1 env cx) (csym (car syms) bv env cx)
+                   (declare (ignore v1))
+                   (mv-let (s2 v2 p2 env cx)
+                     (cseq (cdr syms) (list 'nthcdr lenv pos) env nil cx)
+                     (mv (append (list (list :test (list 'natp lenv))
+                                       (list :test (list '<= lenv (list 'len pos)))
+                                       (list* :bind bv (list 'take lenv pos)))
+                                 s1
+                                 (list (list :test (list 'null p1)))
+                                 s2)
+                         v2 p2 env cx))))))
+         (mv-let (s1 v1 p1 env1 cx) (csym (car syms) pos env cx)
+           (mv-let (pname cx) (cx-fresh "%T" cx)
+             (let* ((pv (gsym pname))
+                    (next-sized (and svar (assoc-equal svar env1) (not (assoc-equal svar env)) svar)))
+               (mv-let (s2 v2 p2 env cx) (cseq (cdr syms) pv env1 next-sized cx)
+                 (mv (append s1 (list (list* :bind pv p1)) s2)
+                     (if (endp (cdr syms)) v1 v2) p2 env cx)))))))))
+
+ (defun calts (syms pos env cx)
+   (if (endp syms) (mv nil cx)
+     (mv-let (s v p env2 cx) (csym (car syms) pos env cx)
+       (declare (ignore env2))
+       (mv-let (rest cx) (calts (cdr syms) pos env cx)
+         (mv (cons (build-steps s (list 'list v p)) rest) cx)))))
+
+ ;; sym*{x <- xs ...} / sym^n / sym?: greedy loop in an aux function.
+ ;; Columns: element values, then each output dom.
+ (defun citer-sym (body it doms pos env cx)
+   (let* ((outs (doms-bound doms env nil)) (out-names (dom-names outs))
+          (sv (gsym "%S")) (kv (gsym "%K")) (nv (gsym "%N")) (rv (gsym "%R"))
+          (counted (is it "LISTN")) (opt (atom-is it "OPT")))
+     (mv-let (bsteps bval bpos env3 cx) (csym body sv env cx)
+       (let* ((otms (env-terms out-names env3))
+              (elem (build-steps (append bsteps (list (list* :bind (gsym "%P") bpos)))
+                                 (list 'list (cons 'list (cons bval otms)) (gsym "%P"))))
+              (fvs (set-difference-equal (term-fv elem nil nil) (list sv (gsym "%P"))))
+              (ncols (1+ (len outs)))
+              (empty (cons 'list (make-list ncols))))
+         (mv-let (aux-name cx) (cx-fresh (concatenate 'string (cx-get :fn cx) "/REP") cx)
+           (let* ((aux (gsym aux-name))
+                  (e (gsym "%E"))
+                  (cols (cons 'list (cons-cols-of ncols 0 e rv)))
+                  (def
+                   (cond
+                    (opt (mk-defun aux (cons sv fvs)
+                                   (list 'let (list (list e elem)) (ignorable-decl (list e))
+                                         (list 'if e
+                                               (list 'list (cons 'list (single-cols ncols 0 e)) (list 'cadr e))
+                                               (list 'list empty sv)))))
+                    (counted
+                     (mk-defun-measure aux (list* kv nv sv fvs) (list 'nfix (list '- nv kv))
+                       (list 'if (list 'not (list 'and (list 'natp kv) (list 'natp nv) (list '< kv nv)))
+                             (list 'list empty sv)
+                             (list 'let (list (list e elem)) (ignorable-decl (list e))
+                                   (list 'and e
+                                         (list 'let (list (list rv (list* aux (list '1+ kv) nv (list 'cadr e) fvs)))
+                                               (ignorable-decl (list rv))
+                                               (list 'and rv (list 'list cols (list 'cadr rv)))))))))
+                    (t
+                     (mk-defun-measure aux (cons sv fvs) (list 'len sv)
+                       (list 'let (list (list e elem)) (ignorable-decl (list e))
+                             (list 'if (list 'and e (list '< (list 'len (list 'cadr e)) (list 'len sv)))
+                                   (list 'let (list (list rv (list* aux (list 'cadr e) fvs)))
+                                         (ignorable-decl (list rv))
+                                         (list 'and rv (list 'list cols (list 'cadr rv))))
+                                   (list 'list empty sv))))))))
+             (mv-let (cnt cx) (if counted (cexp (second it) env cx) (mv nil cx))
+               (mv-let (tname cx) (cx-fresh "%T" cx)
+                 (let ((tv (gsym tname)))
+                   (mv (append (list (list* :bind tv (if counted (list* aux 0 cnt pos fvs) (list* aux pos fvs)))
+                                     (list :test tv))
+                               (list-out-binds-from outs 1 tv cx))
+                       (list 'car (list 'car tv))
+                       (list 'cadr tv)
+                       (env-add-out-lists outs env cx)
+                       (cx-add-aux def cx)))))))))))
+
+ ;; inline a grammar with grammar parameters at a use site
+ (defun cinline-gram (g args pos env cx)
+   (mv-let (ps more) (def-parts g)
+     (declare (ignore more))
+     (mv-let (as cx) (cexps (gram-args-exps args) env cx)
+       (mv-let (bsteps benv) (bind-names-terms (exp-param-names ps) as cx)
+         (let* ((saved-subst (cx-get :gram-subst cx)) (saved-name (cx-get :gram-name cx))
+                (cx (cx-put :gram-subst (append (pair-subst (gram-param-names ps) (gram-args-grams args) env)
+                                                saved-subst)
+                            cx))
+                (cx (cx-put :gram-name (second g) cx)))
+           (mv-let (pname cx) (cx-fresh "%T" cx)
+             (let ((pv (gsym pname)))
+               (mv-let (terms cx) (cprods (gram-prods g) pv benv cx)
+                 (let* ((cx (cx-put :gram-subst saved-subst cx))
+                        (cx (cx-put :gram-name saved-name cx)))
+                   (mv-let (tname cx) (cx-fresh "%T" cx)
+                     (let ((tv (gsym tname)))
+                       (mv (append (list (list* :bind pv pos))
+                                   bsteps
+                                   (list (list* :bind tv (chain-results terms)) (list :test tv)))
+                           (list 'car tv) (list 'cadr tv) env cx))))))))))))
+
+ (defun cprods (prods pos env cx)
+   (if (endp prods) (mv nil cx)
+     (mv-let (term cx) (cprod (car prods) pos env cx)
+       (mv-let (rest cx) (cprods (cdr prods) pos env cx)
+         (mv (cons term rest) cx)))))
+
+ ;; one production: (list (list result rest)) or nil
+ (defun cprod (p pos env cx)
+   (mv-let (sym e prems) (prod-parts p)
+     (let* ((svar (cdr (assoc-equal (cx-get :gram-name cx) (cx-get :sized cx))))
+            (prems (if svar (drop-size-prems prems svar) prems)))
+       (mv-let (s1 v p1 env cx) (csym sym pos env cx)
+         (declare (ignore v))
+         (mv-let (pname cx) (cx-fresh "%T" cx)
+           (let ((pv (gsym pname)))
+             (mv-let (s2 env cx) (cprems prems env cx)
+               (mv-let (r cx) (cexp e env cx)
+                 (mv (build-steps (append s1 (list (list* :bind pv p1)) s2)
+                                  (list 'list r pv))
+                     cx)))))))))
+ )
+
+; (mv defun cx) for a non-parametric grammar
+(defun cgram (x cx)
+  (mv-let (ps more) (def-parts x)
+    (declare (ignore more))
+    (let* ((sv (gsym "%S"))
+           (cx (cx-put :gram-name (second x) cx)) (cx (cx-put :gram-subst nil cx))
+           (names (exp-param-names ps))
+           (formals (gsyms-prefixed "%A" (len names))))
+      (mv-let (bsteps benv) (bind-names-terms names formals cx)
+        (mv-let (terms cx) (cprods (gram-prods x) sv benv cx)
+          (mv (mk-defun (fn-sym :gram (second x) cx) (cons sv formals)
+                        (build-steps bsteps (chain-results terms)))
+              cx))))))
+
+(defun cgram-members (xs cx)
+  ;; (mv defuns cx); parametric grammars are inlined, not emitted
+  (if (endp xs) (mv nil cx)
+    (if (gram-parametric-p (car xs))
+        (cgram-members (cdr xs) cx)
+      (let* ((cx (cx-put :fn (tbl-name :gram (second (car xs)) cx) cx))
+             (cx (cx-put :n 0 cx)) (cx (cx-put :aux nil cx)) (cx (cx-put :tparams nil cx))
+             (nerr (len (cx-get :errs cx))))
+        (mv-let (d cx) (cgram (car xs) cx)
+          (let* ((ok (equal (len (cx-get :errs cx)) nerr))
+                 (mine (if ok (append (reverse (cx-get :aux cx)) (list d))
+                         (list (stub-defun (second d) (third d)))))
+                 (cx (if ok cx (cx-put :stubs (cons (cdr (second d)) (cx-get :stubs cx)) cx))))
+            (mv-let (rest cx) (cgram-members (cdr xs) cx)
+              (mv (append mine rest) cx))))))))
+
 ; --- Top-level forms ---------------------------------------------------
 
 (defun form-base (x cx)
@@ -1542,7 +1885,9 @@
 ; (mv events builtins skipped cx)
 (defun cform (x cx)
   (cond ((or (is x "GRAM") (and (is x "REC") (is (cadr x) "GRAM")))
-         (mv nil nil (list x) cx))
+         (mv-let (ds cx) (cgram-members (rel-members x) cx)
+           (mv (if (and (is x "REC") (consp (cdr ds))) (list (cons 'mutual-recursion ds)) ds)
+               nil nil cx)))
         ((or (is x "REL") (and (is x "REC") (is (cadr x) "REL")))
          (mv-let (ds cx) (crel-form x cx)
            (mv (if (and (is x "REC") (consp (cdr ds))) (list (cons 'mutual-recursion ds)) ds)
