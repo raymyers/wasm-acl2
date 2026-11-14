@@ -9,6 +9,7 @@
 (in-package "IL2ACL2")
 (include-book "top")
 (include-book "compile")
+(include-book "specialize")
 (program)
 (set-state-ok t)
 
@@ -503,6 +504,8 @@
                 (mv (msg "Config entries that do not match the IL, or unclassified builtins (~s0):~|~x1" config-file cerrs) state)
             (let* ((config (car cfg))
                    (forms (apply-patches forms (config-entries config :il-patch)))
+                   (spec (mv-list 3 (specialize-fn-args forms)))
+                   (forms (first spec))
                    (cx (list (cons :tbl (mangle-table forms))
                              (cons :overrides (config-overrides config))
                              (cons :split-rules (split-rules (config-entries config :split)))
@@ -534,6 +537,8 @@
                                                   :config config
                                                   :target target
                                                   :parts parts
+                                                  :specialized (second spec)
+                                                  :ho-dropped (third spec)
                                                   :builtin-classes (classify-builtins forms hints config)
                                                   :rt-missing (missing-in-rt (ids-of-category (classify-builtins forms hints config) :numeric)
                                                                              rt-names (cx-get :tbl cx)))
@@ -611,6 +616,8 @@
          (parts (cadr (member :parts g)))
          (classes (cadr (member :builtin-classes g)))
          (rt-missing (cadr (member :rt-missing g)))
+         (specialized (cadr (member :specialized g)))
+         (ho-dropped (cadr (member :ho-dropped g)))
          (pkg (tgt :pkg target))
          (header
           (append
@@ -625,6 +632,12 @@
                  "; Builtins and overrides (hand-written in translate/rt/builtins.lisp),"
                  "; as (name . arity):")
            (comment-lines ";   " (builtin-strings builtins))
+           (if ho-dropped
+               (append (list ";" "; Defs with function parameters, replaced by specializations (G1):")
+                       (comment-lines ";   " (list (join-words ho-dropped)))
+                       (list (concatenate 'string "; Specializations (" (nat-str (len specialized)) "):"))
+                       (comment-lines ";   " (list (join-words specialized))))
+             nil)
            (if (or (ids-of-category classes :choice) (ids-of-category classes :host)
                    (ids-of-category classes :notation))
                (append (list ";" "; Builtins that are not numeric functions (config :builtins):")

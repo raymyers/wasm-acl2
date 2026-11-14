@@ -75,3 +75,4 @@ says `yes` or `dropped` in the last column.
 | [P3-builtin-inventory.md](P3-builtin-inventory.md) | P3 (items 3-4: builtin classification, inventory) | final | builtin inventory, config budget, decisions | no |
 | [P5-conformance.md](P5-conformance.md) | P5 (spec-test-1 result, 3.0 data, dry run partial) | draft | milestones, risks, probe table | no |
 | [P6-runtime-baseline.md](P6-runtime-baseline.md) | P6 (all items: step cost, 3.0 approach, crash sites, spec-test-3 estimate) | final | risks, milestones, scheme delta | no |
+| [P4-generic-gaps.md](P4-generic-gaps.md) | P4 (G1 done; G3-G5, G8, G9 open) | draft | scheme delta, gap list, config budget | no |

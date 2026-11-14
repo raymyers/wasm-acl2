@@ -27,8 +27,8 @@ A new session starts here.
 - **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅. P5 🔶: items 1 (spec-test-1:
   10,848 of 11,606 commands reached pass) and 2 done; item 3 half done
   (wast2json counts), its decode count blocked on the `rt/` decision.
-  P6 ✅ (runtime baseline). P4, P7 not started
-- **Next action**: P4 (needs the mode table design: a Fable session, and
+  P6 ✅ (runtime baseline). P4 🔶: G1 done (53 specializations). P7 not started
+- **Next action**: P4 G5/G3/G4 (small, Opus); the mode table (W1/G2) needs a Fable session;
   for the 2.0 gate the `rt/` decision). P7 needs P4 and D1-D6
 - **In progress / uncommitted**: nothing for this plan. The old single-book
   driver `translate/tests/spec/t7-spec.lisp` (untracked, the user's) is
@@ -337,8 +337,11 @@ code is unchanged. The 3.0 probe shows no "pattern" errors caused by a
 missing inverse pair. *Met 2026-11-14: the 17 remaining "pattern" errors are S5, S4,
 `:fun` typing artifacts and text grammars ([P3-hints](notes/P3-hints.md))*
 
-### P4: Generic translator gaps, gated on 2.0 (G1-G5, D1)
-- [ ] G1 function arguments by specialization
+### P4: Generic translator gaps, gated on 2.0 (G1-G5, D1) 🔶
+- [x] G1 function arguments by specialization. *Done 2026-11-14
+      ([P4-generic-gaps](notes/P4-generic-gaps.md)): IL pre-pass; 16 defs
+      replaced by 53 specializations; 3.0 (D3 scope) stubs 16 → 8. Found:
+      the 16 defs had compiled silently wrong (calls to `%UNKNOWN-f_`)*
 - [ ] W1/G2: explicit mode table per relation (input and output positions),
       inferred where the current heuristic works, overridable by a counted
       config entry; modes solved per relation, not per attempt per group

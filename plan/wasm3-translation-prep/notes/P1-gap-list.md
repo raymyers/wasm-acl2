@@ -130,3 +130,10 @@ declared `inv_*` defs; only the pairs were missing). Remaining in the D3
 scope: 16 stubs, and the reduction rules `Step_pure/vsplat`,
 `vreplace_lane` (G9), `Step_read/array.new_data-num` (G3),
 `vload-pack-val` (G4). Data: `data/probe-P3-2026-11-14/`.
+
+## 2026-11-14 update after P4 G1 (specialization)
+
+Resolved: the 8 G1 defs (`$vunop_` ... `$vextbinop__`). D3-scope stubs: 8
+(`Module_ok`, `Deftype_sub`, `Deftype_ok`, `Subtype_ok2`, `Resulttype_ok`,
+`$evalexprs`, `$evalglobals`, `$utf8single`). See
+[P4-generic-gaps.md](P4-generic-gaps.md).
