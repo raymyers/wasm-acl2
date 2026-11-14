@@ -86,15 +86,27 @@
                    T)))
 
 
+(%TRY-GUARDS MUT^UUU-P)
+
 (%TRY-LOGIC (DEFUN N^U-P (%X) (DECLARE (IGNORABLE %X)) (NATP %X)))
+
+(%TRY-GUARDS N^U-P)
 
 (%TRY-LOGIC (DEFUN M^U-P (%X) (DECLARE (IGNORABLE %X)) (NATP %X)))
 
+(%TRY-GUARDS M^U-P)
+
 (%TRY-LOGIC (DEFUN N-P (%X) (DECLARE (IGNORABLE %X)) (NATP %X)))
+
+(%TRY-GUARDS N-P)
 
 (%TRY-LOGIC (DEFUN M-P (%X) (DECLARE (IGNORABLE %X)) (NATP %X)))
 
+(%TRY-GUARDS M-P)
+
 (%TRY-LOGIC (DEFUN $KI NIL (DECLARE (IGNORABLE)) 1024))
+
+(%TRY-GUARDS $KI)
 
 (%TRY-LOGIC (DEFUN $MIN (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
@@ -109,6 +121,8 @@
                     (DECLARE (IGNORABLE %R))
                     (IF %R (CAR %R) NIL))))))
 
+
+(%TRY-GUARDS $MIN)
 
 (%TRY-LOGIC
      (DEFUN $SUM (%A0)
@@ -129,6 +143,8 @@
              (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $SUM)
+
 (%TRY-LOGIC (DEFUN $OPT_ (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (AND (TRUE-LISTP %A0)
@@ -145,6 +161,8 @@
                     (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $OPT_)
+
 (%TRY-LOGIC (DEFUN $LIST_ (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (AND (NULL %A0) (LIST NIL))))
@@ -157,6 +175,8 @@
                     (DECLARE (IGNORABLE %R))
                     (IF %R (CAR %R) NIL))))))
 
+
+(%TRY-GUARDS $LIST_)
 
 (%TRY-LOGIC
  (MUTUAL-RECURSION
@@ -197,6 +217,8 @@
       (IF %R (CAR %R) NIL)))))))
 
 
+(%TRY-GUARDS $CONCAT_/ITER2)
+
 (%TRY-LOGIC
  (DEFUN $DISJOINT_ (%A0)
   (DECLARE (IGNORABLE %A0))
@@ -219,6 +241,8 @@
      (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $DISJOINT_)
+
 (%TRY-LOGIC (DEFUN LIST-P (%X)
               (DECLARE (IGNORABLE %X))
               (LET* ((X-STAR^U %X))
@@ -228,12 +252,16 @@
                      T))))
 
 
+(%TRY-GUARDS LIST-P)
+
 (%TRY-LOGIC (DEFUN BYTE-P (%X)
               (DECLARE (IGNORABLE %X))
               (LET* ((I %X))
                 (DECLARE (IGNORABLE I))
                 (AND (NATP I) (>= I 0) (<= I 255) T))))
 
+
+(%TRY-GUARDS BYTE-P)
 
 (%TRY-LOGIC (DEFUN UN-P (%X %A0)
               (DECLARE (IGNORABLE %X %A0))
@@ -246,6 +274,8 @@
                        (<= I (- (EXPT 2 N^U) 1))
                        T)))))
 
+
+(%TRY-GUARDS UN-P)
 
 (%TRY-LOGIC (DEFUN SN-P (%X %A0)
               (DECLARE (IGNORABLE %X %A0))
@@ -262,6 +292,8 @@
                        T)))))
 
 
+(%TRY-GUARDS SN-P)
+
 (%TRY-LOGIC (DEFUN IN-P (%X %A0)
               (DECLARE (IGNORABLE %X %A0))
               (LET* ((N^U %A0))
@@ -269,15 +301,27 @@
                 (UN-P %X N^U))))
 
 
+(%TRY-GUARDS IN-P)
+
 (%TRY-LOGIC (DEFUN U31-P (%X) (DECLARE (IGNORABLE %X)) (UN-P %X 31)))
+
+(%TRY-GUARDS U31-P)
 
 (%TRY-LOGIC (DEFUN U32-P (%X) (DECLARE (IGNORABLE %X)) (UN-P %X 32)))
 
+(%TRY-GUARDS U32-P)
+
 (%TRY-LOGIC (DEFUN U64-P (%X) (DECLARE (IGNORABLE %X)) (UN-P %X 64)))
+
+(%TRY-GUARDS U64-P)
 
 (%TRY-LOGIC (DEFUN I32-P (%X) (DECLARE (IGNORABLE %X)) (IN-P %X 32)))
 
+(%TRY-GUARDS I32-P)
+
 (%TRY-LOGIC (DEFUN I64-P (%X) (DECLARE (IGNORABLE %X)) (IN-P %X 64)))
+
+(%TRY-GUARDS I64-P)
 
 (%TRY-LOGIC (DEFUN $SIGNIF (%A0)
               (DECLARE (IGNORABLE %A0))
@@ -289,6 +333,8 @@
                     (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $SIGNIF)
+
 (%TRY-LOGIC (DEFUN $EXPON (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (AND (EQUAL %A0 32) (LIST 8))))
@@ -299,6 +345,8 @@
                     (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $EXPON)
+
 (%TRY-LOGIC (DEFUN $M (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (LET* ((N^U %A0))
@@ -307,6 +355,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $M)
 
 (%TRY-LOGIC (DEFUN $E (%A0)
               (DECLARE (IGNORABLE %A0))
@@ -317,7 +367,11 @@
                 (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $E)
+
 (%TRY-LOGIC (DEFUN EXP-P (%X) (DECLARE (IGNORABLE %X)) (INTEGERP %X)))
+
+(%TRY-GUARDS EXP-P)
 
 (%TRY-LOGIC (DEFUN FNMAG-P (%X %A0)
               (DECLARE (IGNORABLE %X %A0))
@@ -365,6 +419,8 @@
                                 T)))))))
 
 
+(%TRY-GUARDS FNMAG-P)
+
 (%TRY-LOGIC (DEFUN FN-P (%X %A0)
               (DECLARE (IGNORABLE %X %A0))
               (LET* ((N^U %A0))
@@ -383,9 +439,15 @@
                          T)))))
 
 
+(%TRY-GUARDS FN-P)
+
 (%TRY-LOGIC (DEFUN F32-P (%X) (DECLARE (IGNORABLE %X)) (FN-P %X 32)))
 
+(%TRY-GUARDS F32-P)
+
 (%TRY-LOGIC (DEFUN F64-P (%X) (DECLARE (IGNORABLE %X)) (FN-P %X 64)))
+
+(%TRY-GUARDS F64-P)
 
 (%TRY-LOGIC (DEFUN $FZERO (%A0)
               (DECLARE (IGNORABLE %A0))
@@ -396,6 +458,8 @@
                 (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $FZERO)
+
 (%TRY-LOGIC (DEFUN $FONE (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (LET* ((N^U %A0))
@@ -405,6 +469,8 @@
                 (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $FONE)
+
 (%TRY-LOGIC (DEFUN $CANON_ (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (LET* ((N^U %A0))
@@ -413,6 +479,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $CANON_)
 
 (%TRY-LOGIC (DEFUN CHAR-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -424,6 +492,8 @@
                      T))))
 
 
+(%TRY-GUARDS CHAR-P)
+
 (%TRY-LOGIC (DEFUN NAME-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -431,6 +501,8 @@
                 (AND (CHAR-P (CAR %X))
                      (NAME-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS NAME-P/ITER0)
 
 (%TRY-LOGIC (DEFUN NAME-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -442,21 +514,39 @@
                      T))))
 
 
+(%TRY-GUARDS NAME-P)
+
 (%TRY-LOGIC (DEFUN IDX-P (%X) (DECLARE (IGNORABLE %X)) (U32-P %X)))
+
+(%TRY-GUARDS IDX-P)
 
 (%TRY-LOGIC (DEFUN TYPEIDX-P (%X) (DECLARE (IGNORABLE %X)) (IDX-P %X)))
 
+(%TRY-GUARDS TYPEIDX-P)
+
 (%TRY-LOGIC (DEFUN FUNCIDX-P (%X) (DECLARE (IGNORABLE %X)) (IDX-P %X)))
+
+(%TRY-GUARDS FUNCIDX-P)
 
 (%TRY-LOGIC (DEFUN GLOBALIDX-P (%X) (DECLARE (IGNORABLE %X)) (IDX-P %X)))
 
+(%TRY-GUARDS GLOBALIDX-P)
+
 (%TRY-LOGIC (DEFUN TABLEIDX-P (%X) (DECLARE (IGNORABLE %X)) (IDX-P %X)))
+
+(%TRY-GUARDS TABLEIDX-P)
 
 (%TRY-LOGIC (DEFUN MEMIDX-P (%X) (DECLARE (IGNORABLE %X)) (IDX-P %X)))
 
+(%TRY-GUARDS MEMIDX-P)
+
 (%TRY-LOGIC (DEFUN LABELIDX-P (%X) (DECLARE (IGNORABLE %X)) (IDX-P %X)))
 
+(%TRY-GUARDS LABELIDX-P)
+
 (%TRY-LOGIC (DEFUN LOCALIDX-P (%X) (DECLARE (IGNORABLE %X)) (IDX-P %X)))
+
+(%TRY-GUARDS LOCALIDX-P)
 
 (%TRY-LOGIC (DEFUN VALTYPE-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -482,6 +572,8 @@
                        T))))
 
 
+(%TRY-GUARDS VALTYPE-P)
+
 (%TRY-LOGIC (DEFUN INN-P (%X)
               (DECLARE (IGNORABLE %X))
               (OR (AND (CONSP %X)
@@ -495,6 +587,8 @@
                        (EQUAL (ACL2::LEN (CDR %X)) 0)
                        T))))
 
+
+(%TRY-GUARDS INN-P)
 
 (%TRY-LOGIC (DEFUN FNN-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -510,6 +604,8 @@
                        T))))
 
 
+(%TRY-GUARDS FNN-P)
+
 (%TRY-LOGIC (DEFUN RESULTTYPE-P (%X)
               (DECLARE (IGNORABLE %X))
               (OR (NULL %X)
@@ -518,6 +614,8 @@
                        (VALTYPE-P (CAR %X))))))
 
 
+(%TRY-GUARDS RESULTTYPE-P)
+
 (%TRY-LOGIC (DEFUN MUT-P (%X)
               (DECLARE (IGNORABLE %X))
               (OR (NULL %X)
@@ -525,6 +623,8 @@
                        (NULL (CDR %X))
                        (MUT^UUU-P (CAR %X))))))
 
+
+(%TRY-GUARDS MUT-P)
 
 (%TRY-LOGIC (DEFUN LIMITS-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -544,6 +644,8 @@
                                  T)))))))
 
 
+(%TRY-GUARDS LIMITS-P)
+
 (%TRY-LOGIC (DEFUN GLOBALTYPE-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (TRUE-LISTP %X)
@@ -556,6 +658,8 @@
                             (AND (VALTYPE-P VALTYPE) T)))))))
 
 
+(%TRY-GUARDS GLOBALTYPE-P)
+
 (%TRY-LOGIC (DEFUN FUNCTYPE-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -564,6 +668,8 @@
                      (FUNCTYPE-P/ITER0 (CDR %X))))))
 
 
+(%TRY-GUARDS FUNCTYPE-P/ITER0)
+
 (%TRY-LOGIC (DEFUN FUNCTYPE-P/ITER1 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -571,6 +677,8 @@
                 (AND (VALTYPE-P (CAR %X))
                      (FUNCTYPE-P/ITER1 (CDR %X))))))
 
+
+(%TRY-GUARDS FUNCTYPE-P/ITER1)
 
 (%TRY-LOGIC (DEFUN FUNCTYPE-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -587,9 +695,15 @@
                                  T)))))))
 
 
+(%TRY-GUARDS FUNCTYPE-P)
+
 (%TRY-LOGIC (DEFUN TABLETYPE-P (%X) (DECLARE (IGNORABLE %X)) (LIMITS-P %X)))
 
+(%TRY-GUARDS TABLETYPE-P)
+
 (%TRY-LOGIC (DEFUN MEMTYPE-P (%X) (DECLARE (IGNORABLE %X)) (LIMITS-P %X)))
+
+(%TRY-GUARDS MEMTYPE-P)
 
 (%TRY-LOGIC (DEFUN EXTERNTYPE-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -619,6 +733,8 @@
                        T))))
 
 
+(%TRY-GUARDS EXTERNTYPE-P)
+
 (%TRY-LOGIC (DEFUN MODULETYPE-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -627,6 +743,8 @@
                      (MODULETYPE-P/ITER0 (CDR %X))))))
 
 
+(%TRY-GUARDS MODULETYPE-P/ITER0)
+
 (%TRY-LOGIC (DEFUN MODULETYPE-P/ITER1 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -634,6 +752,8 @@
                 (AND (EXTERNTYPE-P (CAR %X))
                      (MODULETYPE-P/ITER1 (CDR %X))))))
 
+
+(%TRY-GUARDS MODULETYPE-P/ITER1)
 
 (%TRY-LOGIC (DEFUN MODULETYPE-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -649,6 +769,8 @@
                             (AND (MODULETYPE-P/ITER1 EXTERNTYPE-STAR)
                                  T)))))))
 
+
+(%TRY-GUARDS MODULETYPE-P)
 
 (%TRY-LOGIC (DEFUN $SIZE (%A0)
               (DECLARE (IGNORABLE %A0))
@@ -682,6 +804,8 @@
                             (IF %R (CAR %R) NIL))))))))))
 
 
+(%TRY-GUARDS $SIZE)
+
 (%TRY-LOGIC (DEFUN VAL_-P (%X %A0)
               (DECLARE (IGNORABLE %X %A0))
               (OR (AND (INN-P %A0)
@@ -693,6 +817,8 @@
                          (DECLARE (IGNORABLE FNN))
                          (FN-P %X ($SIZE FNN)))))))
 
+
+(%TRY-GUARDS VAL_-P)
 
 (%TRY-LOGIC (DEFUN SX-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -708,6 +834,8 @@
                        T))))
 
 
+(%TRY-GUARDS SX-P)
+
 (%TRY-LOGIC (DEFUN SZ-P (%X)
               (DECLARE (IGNORABLE %X))
               (LET* ((I %X))
@@ -718,6 +846,8 @@
                          (EQUAL I 64))
                      T))))
 
+
+(%TRY-GUARDS SZ-P)
 
 (%TRY-LOGIC (DEFUN UNOP_-P (%X %A0)
               (DECLARE (IGNORABLE %X %A0))
@@ -778,6 +908,8 @@
                                   (EQUAL (ACL2::LEN (CDR %X)) 0)
                                   T)))))))
 
+
+(%TRY-GUARDS UNOP_-P)
 
 (%TRY-LOGIC (DEFUN BINOP_-P (%X %A0)
               (DECLARE (IGNORABLE %X %A0))
@@ -887,6 +1019,8 @@
                                   T)))))))
 
 
+(%TRY-GUARDS BINOP_-P)
+
 (%TRY-LOGIC (DEFUN TESTOP_-P (%X %A0)
               (DECLARE (IGNORABLE %X %A0))
               (AND (INN-P %A0)
@@ -898,6 +1032,8 @@
                           (EQUAL (ACL2::LEN (CDR %X)) 0)
                           T)))))
 
+
+(%TRY-GUARDS TESTOP_-P)
 
 (%TRY-LOGIC (DEFUN RELOP_-P (%X %A0)
               (DECLARE (IGNORABLE %X %A0))
@@ -973,6 +1109,8 @@
                                   T)))))))
 
 
+(%TRY-GUARDS RELOP_-P)
+
 (%TRY-LOGIC (DEFUN CVTOP-P (%X)
               (DECLARE (IGNORABLE %X))
               (OR (AND (CONSP %X)
@@ -1015,6 +1153,8 @@
                        T))))
 
 
+(%TRY-GUARDS CVTOP-P)
+
 (%TRY-LOGIC (DEFUN MEMARG-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (CONSP %X)
@@ -1029,6 +1169,8 @@
                    (U32-P (CDR (CAR (CDR (CDR %X)))))
                    T)))
 
+
+(%TRY-GUARDS MEMARG-P)
 
 (%TRY-LOGIC (DEFUN LOADOP_-P (%X %A0)
               (DECLARE (IGNORABLE %X %A0))
@@ -1049,6 +1191,8 @@
                                         T)))))))))
 
 
+(%TRY-GUARDS LOADOP_-P)
+
 (%TRY-LOGIC (DEFUN BLOCKTYPE-P (%X)
               (DECLARE (IGNORABLE %X))
               (OR (NULL %X)
@@ -1056,6 +1200,8 @@
                        (NULL (CDR %X))
                        (VALTYPE-P (CAR %X))))))
 
+
+(%TRY-GUARDS BLOCKTYPE-P)
 
 (%TRY-LOGIC
  (MUTUAL-RECURSION
@@ -1335,6 +1481,8 @@
          T)))))
 
 
+(%TRY-GUARDS INSTR-P/ITER0)
+
 (%TRY-LOGIC (DEFUN EXPR-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -1343,7 +1491,11 @@
                      (EXPR-P/ITER0 (CDR %X))))))
 
 
+(%TRY-GUARDS EXPR-P/ITER0)
+
 (%TRY-LOGIC (DEFUN EXPR-P (%X) (DECLARE (IGNORABLE %X)) (EXPR-P/ITER0 %X)))
+
+(%TRY-GUARDS EXPR-P)
 
 (%TRY-LOGIC (DEFUN TYPE-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -1355,6 +1507,8 @@
                    T)))
 
 
+(%TRY-GUARDS TYPE-P)
+
 (%TRY-LOGIC (DEFUN LOCAL-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (CONSP %X)
@@ -1365,6 +1519,8 @@
                    T)))
 
 
+(%TRY-GUARDS LOCAL-P)
+
 (%TRY-LOGIC (DEFUN FUNC-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -1372,6 +1528,8 @@
                 (AND (LOCAL-P (CAR %X))
                      (FUNC-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS FUNC-P/ITER0)
 
 (%TRY-LOGIC (DEFUN FUNC-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -1390,6 +1548,8 @@
                                    (AND (EXPR-P EXPR) T)))))))))
 
 
+(%TRY-GUARDS FUNC-P)
+
 (%TRY-LOGIC (DEFUN GLOBAL-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (CONSP %X)
@@ -1404,6 +1564,8 @@
                             (AND (EXPR-P EXPR) T)))))))
 
 
+(%TRY-GUARDS GLOBAL-P)
+
 (%TRY-LOGIC (DEFUN TABLE-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (CONSP %X)
@@ -1413,6 +1575,8 @@
                    (TABLETYPE-P (CAR (CDR %X)))
                    T)))
 
+
+(%TRY-GUARDS TABLE-P)
 
 (%TRY-LOGIC (DEFUN MEM-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -1424,6 +1588,8 @@
                    T)))
 
 
+(%TRY-GUARDS MEM-P)
+
 (%TRY-LOGIC (DEFUN ELEM-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -1431,6 +1597,8 @@
                 (AND (FUNCIDX-P (CAR %X))
                      (ELEM-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS ELEM-P/ITER0)
 
 (%TRY-LOGIC (DEFUN ELEM-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -1447,6 +1615,8 @@
                                  T)))))))
 
 
+(%TRY-GUARDS ELEM-P)
+
 (%TRY-LOGIC (DEFUN DATA-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -1454,6 +1624,8 @@
                 (AND (BYTE-P (CAR %X))
                      (DATA-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS DATA-P/ITER0)
 
 (%TRY-LOGIC (DEFUN DATA-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -1469,6 +1641,8 @@
                             (AND (DATA-P/ITER0 BYTE-STAR) T)))))))
 
 
+(%TRY-GUARDS DATA-P)
+
 (%TRY-LOGIC (DEFUN START-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (CONSP %X)
@@ -1478,6 +1652,8 @@
                    (FUNCIDX-P (CAR (CDR %X)))
                    T)))
 
+
+(%TRY-GUARDS START-P)
 
 (%TRY-LOGIC (DEFUN EXTERNIDX-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -1507,6 +1683,8 @@
                        T))))
 
 
+(%TRY-GUARDS EXTERNIDX-P)
+
 (%TRY-LOGIC (DEFUN EXPORT-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (CONSP %X)
@@ -1520,6 +1698,8 @@
                             (DECLARE (IGNORABLE EXTERNIDX))
                             (AND (EXTERNIDX-P EXTERNIDX) T)))))))
 
+
+(%TRY-GUARDS EXPORT-P)
 
 (%TRY-LOGIC
      (DEFUN IMPORT-P (%X)
@@ -1540,6 +1720,8 @@
                                  T)))))))))
 
 
+(%TRY-GUARDS IMPORT-P)
+
 (%TRY-LOGIC (DEFUN MODULE-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -1547,6 +1729,8 @@
                 (AND (TYPE-P (CAR %X))
                      (MODULE-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS MODULE-P/ITER0)
 
 (%TRY-LOGIC (DEFUN MODULE-P/ITER1 (%X)
               (DECLARE (IGNORABLE %X))
@@ -1556,6 +1740,8 @@
                      (MODULE-P/ITER1 (CDR %X))))))
 
 
+(%TRY-GUARDS MODULE-P/ITER1)
+
 (%TRY-LOGIC (DEFUN MODULE-P/ITER2 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -1563,6 +1749,8 @@
                 (AND (FUNC-P (CAR %X))
                      (MODULE-P/ITER2 (CDR %X))))))
 
+
+(%TRY-GUARDS MODULE-P/ITER2)
 
 (%TRY-LOGIC (DEFUN MODULE-P/ITER3 (%X)
               (DECLARE (IGNORABLE %X))
@@ -1572,6 +1760,8 @@
                      (MODULE-P/ITER3 (CDR %X))))))
 
 
+(%TRY-GUARDS MODULE-P/ITER3)
+
 (%TRY-LOGIC (DEFUN MODULE-P/ITER4 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -1579,6 +1769,8 @@
                 (AND (TABLE-P (CAR %X))
                      (MODULE-P/ITER4 (CDR %X))))))
 
+
+(%TRY-GUARDS MODULE-P/ITER4)
 
 (%TRY-LOGIC (DEFUN MODULE-P/ITER5 (%X)
               (DECLARE (IGNORABLE %X))
@@ -1588,6 +1780,8 @@
                      (MODULE-P/ITER5 (CDR %X))))))
 
 
+(%TRY-GUARDS MODULE-P/ITER5)
+
 (%TRY-LOGIC (DEFUN MODULE-P/ITER6 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -1595,6 +1789,8 @@
                 (AND (ELEM-P (CAR %X))
                      (MODULE-P/ITER6 (CDR %X))))))
 
+
+(%TRY-GUARDS MODULE-P/ITER6)
 
 (%TRY-LOGIC (DEFUN MODULE-P/ITER7 (%X)
               (DECLARE (IGNORABLE %X))
@@ -1604,6 +1800,8 @@
                      (MODULE-P/ITER7 (CDR %X))))))
 
 
+(%TRY-GUARDS MODULE-P/ITER7)
+
 (%TRY-LOGIC (DEFUN MODULE-P/ITER8 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -1611,6 +1809,8 @@
                 (AND (EXPORT-P (CAR %X))
                      (MODULE-P/ITER8 (CDR %X))))))
 
+
+(%TRY-GUARDS MODULE-P/ITER8)
 
 (%TRY-LOGIC
  (DEFUN MODULE-P (%X)
@@ -1682,6 +1882,8 @@
                            T)))))))))))))))))))))))
 
 
+(%TRY-GUARDS MODULE-P)
+
 (%TRY-LOGIC
  (DEFUN $FUNCSXT (%A0)
   (DECLARE (IGNORABLE %A0))
@@ -1716,6 +1918,8 @@
           (DECLARE (IGNORABLE %R))
           (IF %R (CAR %R) NIL))))))))
 
+
+(%TRY-GUARDS $FUNCSXT)
 
 (%TRY-LOGIC
  (DEFUN $GLOBALSXT (%A0)
@@ -1753,6 +1957,8 @@
            (IF %R (CAR %R) NIL))))))))
 
 
+(%TRY-GUARDS $GLOBALSXT)
+
 (%TRY-LOGIC
  (DEFUN $TABLESXT (%A0)
   (DECLARE (IGNORABLE %A0))
@@ -1789,6 +1995,8 @@
            (IF %R (CAR %R) NIL))))))))
 
 
+(%TRY-GUARDS $TABLESXT)
+
 (%TRY-LOGIC
  (DEFUN $MEMSXT (%A0)
   (DECLARE (IGNORABLE %A0))
@@ -1824,11 +2032,15 @@
            (IF %R (CAR %R) NIL))))))))
 
 
+(%TRY-GUARDS $MEMSXT)
+
 (%TRY-LOGIC (DEFUN $MEMARG0 NIL
               (DECLARE (IGNORABLE))
               (LIST :%REC (CONS :ALIGN 0)
                     (CONS :OFFSET 0))))
 
+
+(%TRY-GUARDS $MEMARG0)
 
 (%TRY-LOGIC (DEFUN $BOOL (%A0)
               (DECLARE (IGNORABLE %A0))
@@ -1839,6 +2051,8 @@
                     (DECLARE (IGNORABLE %R))
                     (IF %R (CAR %R) NIL))))))
 
+
+(%TRY-GUARDS $BOOL)
 
 (%TRY-LOGIC (DEFUN $SIGNED_ (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
@@ -1857,6 +2071,8 @@
                     (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $SIGNED_)
+
 (%TRY-LOGIC (DEFUN $INV_SIGNED_ (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
               (LET ((%R (LET* ((N^U %A0) (I %A1))
@@ -1874,6 +2090,8 @@
                     (DECLARE (IGNORABLE %R))
                     (IF %R (CAR %R) NIL))))))
 
+
+(%TRY-GUARDS $INV_SIGNED_)
 
 (%TRY-LOGIC
  (DEFUN $UNOP_ (%A0 %A1 %A2)
@@ -2006,6 +2224,8 @@
                        NIL))))))))))))))))))))))
 
 
+(%TRY-GUARDS $UNOP_)
+
 (%TRY-LOGIC (DEFUN $IADD_ (%A0 %A1 %A2)
               (DECLARE (IGNORABLE %A0 %A1 %A2))
               (LET ((%R (LET* ((N^U %A0) (I_1 %A1) (I_2 %A2))
@@ -2014,6 +2234,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $IADD_)
 
 (%TRY-LOGIC
  (DEFUN $IDIV_ (%A0 %A1 %A2 %A3)
@@ -2084,6 +2306,8 @@
            (IF %R (CAR %R) NIL))))))))))))
 
 
+(%TRY-GUARDS $IDIV_)
+
 (%TRY-LOGIC (DEFUN $IMUL_ (%A0 %A1 %A2)
               (DECLARE (IGNORABLE %A0 %A1 %A2))
               (LET ((%R (LET* ((N^U %A0) (I_1 %A1) (I_2 %A2))
@@ -2092,6 +2316,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $IMUL_)
 
 (%TRY-LOGIC
  (DEFUN $IREM_ (%A0 %A1 %A2 %A3)
@@ -2152,6 +2378,8 @@
          (IF %R (CAR %R) NIL))))))))))
 
 
+(%TRY-GUARDS $IREM_)
+
 (%TRY-LOGIC (DEFUN $ISUB_ (%A0 %A1 %A2)
               (DECLARE (IGNORABLE %A0 %A1 %A2))
               (LET ((%R (LET* ((N^U %A0) (I_1 %A1) (I_2 %A2))
@@ -2161,6 +2389,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $ISUB_)
 
 (%TRY-LOGIC
  (DEFUN $BINOP_ (%A0 %A1 %A2 %A3)
@@ -2470,6 +2700,8 @@
                                         NIL))))))))))))))))))))))))))))))))))))))))
 
 
+(%TRY-GUARDS $BINOP_)
+
 (%TRY-LOGIC (DEFUN $IEQZ_ (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
               (LET ((%R (LET* ((N^U %A0) (I_1 %A1))
@@ -2478,6 +2710,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $IEQZ_)
 
 (%TRY-LOGIC (DEFUN $TESTOP_ (%A0 %A1 %A2)
               (DECLARE (IGNORABLE %A0 %A1 %A2))
@@ -2495,6 +2729,8 @@
                 (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $TESTOP_)
+
 (%TRY-LOGIC (DEFUN $IEQ_ (%A0 %A1 %A2)
               (DECLARE (IGNORABLE %A0 %A1 %A2))
               (LET ((%R (LET* ((N^U %A0) (I_1 %A1) (I_2 %A2))
@@ -2503,6 +2739,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $IEQ_)
 
 (%TRY-LOGIC
      (DEFUN $IGE_ (%A0 %A1 %A2 %A3)
@@ -2532,6 +2770,8 @@
              (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $IGE_)
+
 (%TRY-LOGIC
      (DEFUN $IGT_ (%A0 %A1 %A2 %A3)
        (DECLARE (IGNORABLE %A0 %A1 %A2 %A3))
@@ -2559,6 +2799,8 @@
              (DECLARE (IGNORABLE %R))
              (IF %R (CAR %R) NIL))))))
 
+
+(%TRY-GUARDS $IGT_)
 
 (%TRY-LOGIC
      (DEFUN $ILE_ (%A0 %A1 %A2 %A3)
@@ -2588,6 +2830,8 @@
              (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $ILE_)
+
 (%TRY-LOGIC
      (DEFUN $ILT_ (%A0 %A1 %A2 %A3)
        (DECLARE (IGNORABLE %A0 %A1 %A2 %A3))
@@ -2616,6 +2860,8 @@
              (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $ILT_)
+
 (%TRY-LOGIC (DEFUN $INE_ (%A0 %A1 %A2)
               (DECLARE (IGNORABLE %A0 %A1 %A2))
               (LET ((%R (LET* ((N^U %A0) (I_1 %A1) (I_2 %A2))
@@ -2624,6 +2870,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $INE_)
 
 (%TRY-LOGIC
  (DEFUN $RELOP_ (%A0 %A1 %A2 %A3)
@@ -2804,6 +3052,8 @@
                            NIL))))))))))))))))))))))))))
 
 
+(%TRY-GUARDS $RELOP_)
+
 (%TRY-LOGIC
  (DEFUN $CVTOP__ (%A0 %A1 %A2 %A3)
   (DECLARE (IGNORABLE %A0 %A1 %A2 %A3))
@@ -2958,6 +3208,8 @@
                  (IF %R (CAR %R) NIL))))))))))))))))))
 
 
+(%TRY-GUARDS $CVTOP__)
+
 (%TRY-LOGIC (DEFUN $INEZ_ (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
               (LET ((%R (LET* ((N^U %A0) (I_1 %A1))
@@ -2967,15 +3219,27 @@
                 (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $INEZ_)
+
 (%TRY-LOGIC (DEFUN ADDR-P (%X) (DECLARE (IGNORABLE %X)) (NATP %X)))
+
+(%TRY-GUARDS ADDR-P)
 
 (%TRY-LOGIC (DEFUN FUNCADDR-P (%X) (DECLARE (IGNORABLE %X)) (ADDR-P %X)))
 
+(%TRY-GUARDS FUNCADDR-P)
+
 (%TRY-LOGIC (DEFUN GLOBALADDR-P (%X) (DECLARE (IGNORABLE %X)) (ADDR-P %X)))
+
+(%TRY-GUARDS GLOBALADDR-P)
 
 (%TRY-LOGIC (DEFUN TABLEADDR-P (%X) (DECLARE (IGNORABLE %X)) (ADDR-P %X)))
 
+(%TRY-GUARDS TABLEADDR-P)
+
 (%TRY-LOGIC (DEFUN MEMADDR-P (%X) (DECLARE (IGNORABLE %X)) (ADDR-P %X)))
+
+(%TRY-GUARDS MEMADDR-P)
 
 (%TRY-LOGIC (DEFUN EXTERNADDR-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -3005,6 +3269,8 @@
                        T))))
 
 
+(%TRY-GUARDS EXTERNADDR-P)
+
 (%TRY-LOGIC (DEFUN VAL-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (CONSP %X)
@@ -3018,6 +3284,8 @@
                           T)))))
 
 
+(%TRY-GUARDS VAL-P)
+
 (%TRY-LOGIC (DEFUN RESULT-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3025,6 +3293,8 @@
                 (AND (VAL-P (CAR %X))
                      (RESULT-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS RESULT-P/ITER0)
 
 (%TRY-LOGIC (DEFUN RESULT-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -3041,6 +3311,8 @@
                        T))))
 
 
+(%TRY-GUARDS RESULT-P)
+
 (%TRY-LOGIC (DEFUN EXPORTINST-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (CONSP %X)
@@ -3056,6 +3328,8 @@
                    T)))
 
 
+(%TRY-GUARDS EXPORTINST-P)
+
 (%TRY-LOGIC (DEFUN MODULEINST-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3063,6 +3337,8 @@
                 (AND (FUNCTYPE-P (CAR %X))
                      (MODULEINST-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS MODULEINST-P/ITER0)
 
 (%TRY-LOGIC (DEFUN MODULEINST-P/ITER1 (%X)
               (DECLARE (IGNORABLE %X))
@@ -3072,6 +3348,8 @@
                      (MODULEINST-P/ITER1 (CDR %X))))))
 
 
+(%TRY-GUARDS MODULEINST-P/ITER1)
+
 (%TRY-LOGIC (DEFUN MODULEINST-P/ITER2 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3079,6 +3357,8 @@
                 (AND (GLOBALADDR-P (CAR %X))
                      (MODULEINST-P/ITER2 (CDR %X))))))
 
+
+(%TRY-GUARDS MODULEINST-P/ITER2)
 
 (%TRY-LOGIC (DEFUN MODULEINST-P/ITER3 (%X)
               (DECLARE (IGNORABLE %X))
@@ -3088,6 +3368,8 @@
                      (MODULEINST-P/ITER3 (CDR %X))))))
 
 
+(%TRY-GUARDS MODULEINST-P/ITER3)
+
 (%TRY-LOGIC (DEFUN MODULEINST-P/ITER4 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3096,6 +3378,8 @@
                      (MODULEINST-P/ITER4 (CDR %X))))))
 
 
+(%TRY-GUARDS MODULEINST-P/ITER4)
+
 (%TRY-LOGIC (DEFUN MODULEINST-P/ITER5 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3103,6 +3387,8 @@
                 (AND (EXPORTINST-P (CAR %X))
                      (MODULEINST-P/ITER5 (CDR %X))))))
 
+
+(%TRY-GUARDS MODULEINST-P/ITER5)
 
 (%TRY-LOGIC
  (DEFUN MODULEINST-P (%X)
@@ -3137,6 +3423,8 @@
       T)))
 
 
+(%TRY-GUARDS MODULEINST-P)
+
 (%TRY-LOGIC (DEFUN FUNCINST-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (CONSP %X)
@@ -3156,6 +3444,8 @@
                    T)))
 
 
+(%TRY-GUARDS FUNCINST-P)
+
 (%TRY-LOGIC (DEFUN GLOBALINST-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (CONSP %X)
@@ -3171,6 +3461,8 @@
                    T)))
 
 
+(%TRY-GUARDS GLOBALINST-P)
+
 (%TRY-LOGIC (DEFUN TABLEINST-P/ITER1 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3183,6 +3475,8 @@
                                 (FUNCADDR-P (CAR %T0)))))
                      (TABLEINST-P/ITER1 (CDR %X))))))
 
+
+(%TRY-GUARDS TABLEINST-P/ITER1)
 
 (%TRY-LOGIC (DEFUN TABLEINST-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -3199,6 +3493,8 @@
                    T)))
 
 
+(%TRY-GUARDS TABLEINST-P)
+
 (%TRY-LOGIC (DEFUN MEMINST-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3206,6 +3502,8 @@
                 (AND (BYTE-P (CAR %X))
                      (MEMINST-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS MEMINST-P/ITER0)
 
 (%TRY-LOGIC (DEFUN MEMINST-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -3222,6 +3520,8 @@
                    T)))
 
 
+(%TRY-GUARDS MEMINST-P)
+
 (%TRY-LOGIC (DEFUN STORE-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3229,6 +3529,8 @@
                 (AND (FUNCINST-P (CAR %X))
                      (STORE-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS STORE-P/ITER0)
 
 (%TRY-LOGIC (DEFUN STORE-P/ITER1 (%X)
               (DECLARE (IGNORABLE %X))
@@ -3238,6 +3540,8 @@
                      (STORE-P/ITER1 (CDR %X))))))
 
 
+(%TRY-GUARDS STORE-P/ITER1)
+
 (%TRY-LOGIC (DEFUN STORE-P/ITER2 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3246,6 +3550,8 @@
                      (STORE-P/ITER2 (CDR %X))))))
 
 
+(%TRY-GUARDS STORE-P/ITER2)
+
 (%TRY-LOGIC (DEFUN STORE-P/ITER3 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3253,6 +3559,8 @@
                 (AND (MEMINST-P (CAR %X))
                      (STORE-P/ITER3 (CDR %X))))))
 
+
+(%TRY-GUARDS STORE-P/ITER3)
 
 (%TRY-LOGIC (DEFUN STORE-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -3277,6 +3585,8 @@
                    T)))
 
 
+(%TRY-GUARDS STORE-P)
+
 (%TRY-LOGIC (DEFUN FRAME-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3284,6 +3594,8 @@
                 (AND (VAL-P (CAR %X))
                      (FRAME-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS FRAME-P/ITER0)
 
 (%TRY-LOGIC (DEFUN FRAME-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -3300,6 +3612,8 @@
                    T)))
 
 
+(%TRY-GUARDS FRAME-P)
+
 (%TRY-LOGIC (DEFUN STATE-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (CONSP %X)
@@ -3313,6 +3627,8 @@
                             (DECLARE (IGNORABLE FRAME))
                             (AND (FRAME-P FRAME) T)))))))
 
+
+(%TRY-GUARDS STATE-P)
 
 (%TRY-LOGIC
  (MUTUAL-RECURSION
@@ -3652,6 +3968,8 @@
          T)))))
 
 
+(%TRY-GUARDS ADMININSTR-P/ITER0)
+
 (%TRY-LOGIC (DEFUN CONFIG-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -3659,6 +3977,8 @@
                 (AND (ADMININSTR-P (CAR %X))
                      (CONFIG-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS CONFIG-P/ITER0)
 
 (%TRY-LOGIC (DEFUN CONFIG-P (%X)
               (DECLARE (IGNORABLE %X))
@@ -3674,6 +3994,8 @@
                             (AND (CONFIG-P/ITER0 ADMININSTR-STAR)
                                  T)))))))
 
+
+(%TRY-GUARDS CONFIG-P)
 
 (%TRY-LOGIC (DEFUN $DEFAULT_ (%A0)
               (DECLARE (IGNORABLE %A0))
@@ -3709,6 +4031,8 @@
                             (IF %R (CAR %R) NIL))))))))))
 
 
+(%TRY-GUARDS $DEFAULT_)
+
 (%TRY-LOGIC
  (DEFUN $FUNCSXA (%A0)
   (DECLARE (IGNORABLE %A0))
@@ -3743,6 +4067,8 @@
           (DECLARE (IGNORABLE %R))
           (IF %R (CAR %R) NIL))))))))
 
+
+(%TRY-GUARDS $FUNCSXA)
 
 (%TRY-LOGIC
  (DEFUN $GLOBALSXA (%A0)
@@ -3780,6 +4106,8 @@
            (IF %R (CAR %R) NIL))))))))
 
 
+(%TRY-GUARDS $GLOBALSXA)
+
 (%TRY-LOGIC
  (DEFUN $TABLESXA (%A0)
   (DECLARE (IGNORABLE %A0))
@@ -3816,6 +4144,8 @@
            (IF %R (CAR %R) NIL))))))))
 
 
+(%TRY-GUARDS $TABLESXA)
+
 (%TRY-LOGIC
  (DEFUN $MEMSXA (%A0)
   (DECLARE (IGNORABLE %A0))
@@ -3851,6 +4181,8 @@
            (IF %R (CAR %R) NIL))))))))
 
 
+(%TRY-GUARDS $MEMSXA)
+
 (%TRY-LOGIC (DEFUN $STORE (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (AND (CONSP %A0)
@@ -3865,6 +4197,8 @@
                 (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $STORE)
+
 (%TRY-LOGIC (DEFUN $FRAME (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (AND (CONSP %A0)
@@ -3878,6 +4212,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $FRAME)
 
 (%TRY-LOGIC (DEFUN $FUNCADDR (%A0)
               (DECLARE (IGNORABLE %A0))
@@ -3894,6 +4230,8 @@
                 (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $FUNCADDR)
+
 (%TRY-LOGIC (DEFUN $FUNCINST (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (AND (CONSP %A0)
@@ -3907,6 +4245,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $FUNCINST)
 
 (%TRY-LOGIC (DEFUN $GLOBALINST (%A0)
               (DECLARE (IGNORABLE %A0))
@@ -3922,6 +4262,8 @@
                 (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $GLOBALINST)
+
 (%TRY-LOGIC (DEFUN $TABLEINST (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (AND (CONSP %A0)
@@ -3935,6 +4277,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $TABLEINST)
 
 (%TRY-LOGIC (DEFUN $MEMINST (%A0)
               (DECLARE (IGNORABLE %A0))
@@ -3950,6 +4294,8 @@
                 (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $MEMINST)
+
 (%TRY-LOGIC (DEFUN $MODULEINST (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (AND (CONSP %A0)
@@ -3963,6 +4309,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $MODULEINST)
 
 (%TRY-LOGIC (DEFUN $TYPE (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
@@ -3980,6 +4328,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $TYPE)
 
 (%TRY-LOGIC
      (DEFUN $FUNC (%A0 %A1)
@@ -4000,6 +4350,8 @@
          (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $FUNC)
+
 (%TRY-LOGIC
      (DEFUN $GLOBAL (%A0 %A1)
        (DECLARE (IGNORABLE %A0 %A1))
@@ -4018,6 +4370,8 @@
          (DECLARE (IGNORABLE %R))
          (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $GLOBAL)
 
 (%TRY-LOGIC
      (DEFUN $TABLE (%A0 %A1)
@@ -4038,6 +4392,8 @@
          (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $TABLE)
+
 (%TRY-LOGIC
      (DEFUN $MEM (%A0 %A1)
        (DECLARE (IGNORABLE %A0 %A1))
@@ -4057,6 +4413,8 @@
          (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $MEM)
+
 (%TRY-LOGIC (DEFUN $LOCAL (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
               (LET ((%R (AND (CONSP %A0)
@@ -4071,6 +4429,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $LOCAL)
 
 (%TRY-LOGIC
  (DEFUN $WITH_LOCAL (%A0 %A1 %A2)
@@ -4095,6 +4455,8 @@
    (DECLARE (IGNORABLE %R))
    (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $WITH_LOCAL)
 
 (%TRY-LOGIC
  (DEFUN $WITH_GLOBAL (%A0 %A1 %A2)
@@ -4131,6 +4493,8 @@
    (DECLARE (IGNORABLE %R))
    (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $WITH_GLOBAL)
 
 (%TRY-LOGIC
  (DEFUN $WITH_TABLE (%A0 %A1 %A2 %A3)
@@ -4177,6 +4541,8 @@
    (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $WITH_TABLE)
+
 (%TRY-LOGIC
  (DEFUN $WITH_TABLEINST (%A0 %A1 %A2)
   (DECLARE (IGNORABLE %A0 %A1 %A2))
@@ -4205,6 +4571,8 @@
    (DECLARE (IGNORABLE %R))
    (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $WITH_TABLEINST)
 
 (%TRY-LOGIC
  (DEFUN $WITH_MEM (%A0 %A1 %A2 %A3 %A4)
@@ -4263,6 +4631,8 @@
    (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $WITH_MEM)
+
 (%TRY-LOGIC
  (DEFUN $WITH_MEMINST (%A0 %A1 %A2)
   (DECLARE (IGNORABLE %A0 %A1 %A2))
@@ -4291,6 +4661,8 @@
    (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $WITH_MEMINST)
+
 (%TRY-LOGIC (DEFUN $GROWTABLE/MATCH4 (%S)
               (DECLARE (IGNORABLE %S))
               (IF (ATOM %S)
@@ -4306,6 +4678,8 @@
                                 (LIST (LIST (CONS A (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS $GROWTABLE/MATCH4)
+
 (%TRY-LOGIC (DEFUN $GROWTABLE/ITER6 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -4316,6 +4690,8 @@
                         ($GROWTABLE/ITER6 (CDR %L0)))))))
 
 
+(%TRY-GUARDS $GROWTABLE/ITER6)
+
 (%TRY-LOGIC (DEFUN $GROWTABLE/ITER7 (%K %N)
               (DECLARE (IGNORABLE %K %N))
               (DECLARE (XARGS :MEASURE (NFIX (- %N %K))))
@@ -4323,6 +4699,8 @@
                   (CONS NIL ($GROWTABLE/ITER7 (+ 1 %K) %N))
                 NIL)))
 
+
+(%TRY-GUARDS $GROWTABLE/ITER7)
 
 (%TRY-LOGIC
  (DEFUN $GROWTABLE (%A0 %A1)
@@ -4388,6 +4766,8 @@
        (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $GROWTABLE)
+
 (%TRY-LOGIC (DEFUN $GROWMEMORY/ITER3 (%K %N)
               (DECLARE (IGNORABLE %K %N))
               (DECLARE (XARGS :MEASURE (NFIX (- %N %K))))
@@ -4395,6 +4775,8 @@
                   (CONS 0 ($GROWMEMORY/ITER3 (+ 1 %K) %N))
                 NIL)))
 
+
+(%TRY-GUARDS $GROWMEMORY/ITER3)
 
 (%TRY-LOGIC
  (DEFUN $GROWMEMORY (%A0 %A1)
@@ -4460,6 +4842,8 @@
        (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $GROWMEMORY)
+
 (%TRY-LOGIC (DEFUN CONTEXT-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -4467,6 +4851,8 @@
                 (AND (FUNCTYPE-P (CAR %X))
                      (CONTEXT-P/ITER0 (CDR %X))))))
 
+
+(%TRY-GUARDS CONTEXT-P/ITER0)
 
 (%TRY-LOGIC (DEFUN CONTEXT-P/ITER1 (%X)
               (DECLARE (IGNORABLE %X))
@@ -4476,6 +4862,8 @@
                      (CONTEXT-P/ITER1 (CDR %X))))))
 
 
+(%TRY-GUARDS CONTEXT-P/ITER1)
+
 (%TRY-LOGIC (DEFUN CONTEXT-P/ITER2 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -4483,6 +4871,8 @@
                 (AND (GLOBALTYPE-P (CAR %X))
                      (CONTEXT-P/ITER2 (CDR %X))))))
 
+
+(%TRY-GUARDS CONTEXT-P/ITER2)
 
 (%TRY-LOGIC (DEFUN CONTEXT-P/ITER3 (%X)
               (DECLARE (IGNORABLE %X))
@@ -4492,6 +4882,8 @@
                      (CONTEXT-P/ITER3 (CDR %X))))))
 
 
+(%TRY-GUARDS CONTEXT-P/ITER3)
+
 (%TRY-LOGIC (DEFUN CONTEXT-P/ITER4 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -4499,6 +4891,8 @@
                 (AND (MEMTYPE-P (CAR %X))
                      (CONTEXT-P/ITER4 (CDR %X))))))
 
+
+(%TRY-GUARDS CONTEXT-P/ITER4)
 
 (%TRY-LOGIC (DEFUN CONTEXT-P/ITER5 (%X)
               (DECLARE (IGNORABLE %X))
@@ -4508,6 +4902,8 @@
                      (CONTEXT-P/ITER5 (CDR %X))))))
 
 
+(%TRY-GUARDS CONTEXT-P/ITER5)
+
 (%TRY-LOGIC (DEFUN CONTEXT-P/ITER6 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -4515,6 +4911,8 @@
                 (AND (RESULTTYPE-P (CAR %X))
                      (CONTEXT-P/ITER6 (CDR %X))))))
 
+
+(%TRY-GUARDS CONTEXT-P/ITER6)
 
 (%TRY-LOGIC
  (DEFUN CONTEXT-P (%X)
@@ -4563,6 +4961,8 @@
    T)))
 
 
+(%TRY-GUARDS CONTEXT-P)
+
 (%TRY-LOGIC
  (DEFUN LIMITS_OK (%A0 %A1)
    (DECLARE (IGNORABLE %A0 %A1))
@@ -4600,6 +5000,8 @@
     NIL)))
 
 
+(%TRY-GUARDS LIMITS_OK)
+
 (%TRY-LOGIC
    (DEFUN FUNCTYPE_OK (%A0)
      (DECLARE (IGNORABLE %A0))
@@ -4626,6 +5028,8 @@
        NIL)))
 
 
+(%TRY-GUARDS FUNCTYPE_OK)
+
 (%TRY-LOGIC (DEFUN GLOBALTYPE_OK (%A0)
               (DECLARE (IGNORABLE %A0))
               (IF (LET ((%R (AND (TRUE-LISTP %A0)
@@ -4641,6 +5045,8 @@
                 NIL)))
 
 
+(%TRY-GUARDS GLOBALTYPE_OK)
+
 (%TRY-LOGIC (DEFUN TABLETYPE_OK (%A0)
               (DECLARE (IGNORABLE %A0))
               (IF (LET ((%R (LET* ((LIMITS %A0))
@@ -4653,6 +5059,8 @@
                 NIL)))
 
 
+(%TRY-GUARDS TABLETYPE_OK)
+
 (%TRY-LOGIC (DEFUN MEMTYPE_OK (%A0)
               (DECLARE (IGNORABLE %A0))
               (IF (LET ((%R (LET* ((LIMITS %A0))
@@ -4664,6 +5072,8 @@
                   T
                 NIL)))
 
+
+(%TRY-GUARDS MEMTYPE_OK)
 
 (%TRY-LOGIC
    (DEFUN EXTERNTYPE_OK (%A0)
@@ -4710,6 +5120,8 @@
          T
        NIL)))
 
+
+(%TRY-GUARDS EXTERNTYPE_OK)
 
 (%TRY-LOGIC
  (DEFUN LIMITS_SUB (%A0 %A1)
@@ -4780,6 +5192,8 @@
    NIL)))
 
 
+(%TRY-GUARDS LIMITS_SUB)
+
 (%TRY-LOGIC (DEFUN FUNCTYPE_SUB (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (LET* ((FT %A0))
@@ -4789,6 +5203,8 @@
                 (IF %R %R NIL))))
 
 
+(%TRY-GUARDS FUNCTYPE_SUB)
+
 (%TRY-LOGIC (DEFUN GLOBALTYPE_SUB (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (LET* ((GT %A0))
@@ -4797,6 +5213,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GLOBALTYPE_SUB)
 
 (%TRY-LOGIC (DEFUN TABLETYPE_SUB (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
@@ -4810,6 +5228,8 @@
                 NIL)))
 
 
+(%TRY-GUARDS TABLETYPE_SUB)
+
 (%TRY-LOGIC (DEFUN MEMTYPE_SUB (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
               (IF (LET ((%R (LET* ((LIM_1 %A0) (LIM_2 %A1))
@@ -4821,6 +5241,8 @@
                   T
                 NIL)))
 
+
+(%TRY-GUARDS MEMTYPE_SUB)
 
 (%TRY-LOGIC
      (DEFUN EXTERNTYPE_SUB (%A0 %A1)
@@ -4895,6 +5317,8 @@
          NIL)))
 
 
+(%TRY-GUARDS EXTERNTYPE_SUB)
+
 (%TRY-LOGIC
     (MUTUAL-RECURSION
       (DEFUN INSTR_OK (%A0 %A1)
@@ -4908,6 +5332,8 @@
                     "Not translated (see the stub list in the file header).")
                 NIL))))
 
+
+(%TRY-GUARDS INSTR_OK)
 
 (%TRY-LOGIC
  (DEFUN EXPR_OK (%A0 %A1)
@@ -4944,6 +5370,8 @@
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
+
+(%TRY-GUARDS EXPR_OK)
 
 (%TRY-LOGIC
  (DEFUN INSTR_CONST (%A0 %A1)
@@ -4984,6 +5412,8 @@
    NIL)))
 
 
+(%TRY-GUARDS INSTR_CONST)
+
 (%TRY-LOGIC (DEFUN EXPR_CONST/ALL0 (%L0 C^U)
               (DECLARE (IGNORABLE %L0 C^U))
               (IF (OR (ATOM %L0))
@@ -4993,6 +5423,8 @@
                   (AND (INSTR_CONST C^U INSTR)
                        (EXPR_CONST/ALL0 (CDR %L0) C^U))))))
 
+
+(%TRY-GUARDS EXPR_CONST/ALL0)
 
 (%TRY-LOGIC (DEFUN EXPR_CONST (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
@@ -5008,6 +5440,8 @@
                   T
                 NIL)))
 
+
+(%TRY-GUARDS EXPR_CONST)
 
 (%TRY-LOGIC (DEFUN EXPR_OK_CONST (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
@@ -5028,6 +5462,8 @@
                 (IF %R %R NIL))))
 
 
+(%TRY-GUARDS EXPR_OK_CONST)
+
 (%TRY-LOGIC (DEFUN TYPE_OK (%A0)
               (DECLARE (IGNORABLE %A0))
               (LET ((%R (AND (CONSP %A0)
@@ -5040,6 +5476,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS TYPE_OK)
 
 (%TRY-LOGIC
      (DEFUN FUNC_OK/MATCH2 (%S)
@@ -5059,6 +5497,8 @@
                          (DECLARE (IGNORABLE T^R))
                          (LIST (LIST (CONS T^R (CAR (CAR %R)))))))))))))
 
+
+(%TRY-GUARDS FUNC_OK/MATCH2)
 
 (%TRY-LOGIC
  (DEFUN FUNC_OK (%A0 %A1)
@@ -5133,6 +5573,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS FUNC_OK)
+
 (%TRY-LOGIC
      (DEFUN GLOBAL_OK (%A0 %A1)
        (DECLARE (IGNORABLE %A0 %A1))
@@ -5162,6 +5604,8 @@
          (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GLOBAL_OK)
+
 (%TRY-LOGIC (DEFUN TABLE_OK (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
               (LET ((%R (LET* ((C^U %A0))
@@ -5176,6 +5620,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS TABLE_OK)
 
 (%TRY-LOGIC (DEFUN MEM_OK (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
@@ -5192,6 +5638,8 @@
                 (IF %R %R NIL))))
 
 
+(%TRY-GUARDS MEM_OK)
+
 (%TRY-LOGIC (DEFUN ELEM_OK/ALL1 (%L0 C^U)
               (DECLARE (IGNORABLE %L0 C^U))
               (IF (OR (ATOM %L0))
@@ -5201,6 +5649,8 @@
                   (AND (< X (ACL2::LEN (%GET-FIELD C^U :FUNCS)))
                        (ELEM_OK/ALL1 (CDR %L0) C^U))))))
 
+
+(%TRY-GUARDS ELEM_OK/ALL1)
 
 (%TRY-LOGIC (DEFUN ELEM_OK/MAP2 (%L0 C^U)
               (DECLARE (IGNORABLE %L0 C^U))
@@ -5214,6 +5664,8 @@
                     (AND %R
                          (LIST (LIST (CONS FT (CAR (CAR %R)))))))))))
 
+
+(%TRY-GUARDS ELEM_OK/MAP2)
 
 (%TRY-LOGIC
  (DEFUN ELEM_OK (%A0 %A1)
@@ -5268,6 +5720,8 @@
    NIL)))
 
 
+(%TRY-GUARDS ELEM_OK)
+
 (%TRY-LOGIC
  (DEFUN DATA_OK (%A0 %A1)
   (DECLARE (IGNORABLE %A0 %A1))
@@ -5308,6 +5762,8 @@
    NIL)))
 
 
+(%TRY-GUARDS DATA_OK)
+
 (%TRY-LOGIC
      (DEFUN START_OK (%A0 %A1)
        (DECLARE (IGNORABLE %A0 %A1))
@@ -5329,6 +5785,8 @@
          NIL)))
 
 
+(%TRY-GUARDS START_OK)
+
 (%TRY-LOGIC (DEFUN IMPORT_OK (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
               (LET ((%R (LET* ((C^U %A0))
@@ -5345,6 +5803,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS IMPORT_OK)
 
 (%TRY-LOGIC
  (DEFUN EXTERNIDX_OK (%A0 %A1)
@@ -5407,6 +5867,8 @@
             (IF %R %R NIL))))))))))
 
 
+(%TRY-GUARDS EXTERNIDX_OK)
+
 (%TRY-LOGIC
      (DEFUN EXPORT_OK (%A0 %A1 %A2)
        (DECLARE (IGNORABLE %A0 %A1 %A2))
@@ -5430,6 +5892,8 @@
          (IF %R %R NIL))))
 
 
+(%TRY-GUARDS EXPORT_OK)
+
 (%TRY-LOGIC
      (DEFUN MODULE_OK (%A0)
        (DECLARE (IGNORABLE %A0))
@@ -5437,6 +5901,8 @@
                    "Not translated (see the stub list in the file header).")
                NIL)))
 
+
+(%TRY-GUARDS MODULE_OK)
 
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH30 (%S)
@@ -5454,6 +5920,8 @@
                          (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS STEP_PURE/MATCH30)
+
 (%TRY-LOGIC (DEFUN STEP_PURE/ITER32 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -5462,6 +5930,8 @@
                   (DECLARE (IGNORABLE VAL))
                   (CONS VAL (STEP_PURE/ITER32 (CDR %L0)))))))
 
+
+(%TRY-GUARDS STEP_PURE/ITER32)
 
 (%TRY-LOGIC
     (DEFUN STEP_PURE/MATCH41 (%S)
@@ -5479,6 +5949,8 @@
                         (LIST (LIST (CONS VAL-PRIME (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS STEP_PURE/MATCH41)
+
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH45 (%S)
        (DECLARE (IGNORABLE %S))
@@ -5494,6 +5966,8 @@
                          (DECLARE (IGNORABLE VAL))
                          (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))
 
+
+(%TRY-GUARDS STEP_PURE/MATCH45)
 
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH52 (%S)
@@ -5511,6 +5985,8 @@
                          (LIST (LIST (CONS INSTR (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS STEP_PURE/MATCH52)
+
 (%TRY-LOGIC (DEFUN STEP_PURE/ITER54 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -5519,6 +5995,8 @@
                   (DECLARE (IGNORABLE VAL))
                   (CONS VAL (STEP_PURE/ITER54 (CDR %L0)))))))
 
+
+(%TRY-GUARDS STEP_PURE/ITER54)
 
 (%TRY-LOGIC (DEFUN STEP_PURE/ITER55 (%L0)
               (DECLARE (IGNORABLE %L0))
@@ -5529,6 +6007,8 @@
                   (CONS INSTR-PRIME
                         (STEP_PURE/ITER55 (CDR %L0)))))))
 
+
+(%TRY-GUARDS STEP_PURE/ITER55)
 
 (%TRY-LOGIC
  (DEFUN STEP_PURE/SEARCH56 (%K %LO %HI %T35 N INSTR-PRIME-STAR)
@@ -5613,6 +6093,8 @@
    NIL)))
 
 
+(%TRY-GUARDS STEP_PURE/SEARCH56)
+
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH64 (%S)
        (DECLARE (IGNORABLE %S))
@@ -5628,6 +6110,8 @@
                          (DECLARE (IGNORABLE VAL))
                          (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))
 
+
+(%TRY-GUARDS STEP_PURE/MATCH64)
 
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH71 (%S)
@@ -5645,6 +6129,8 @@
                          (LIST (LIST (CONS INSTR (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS STEP_PURE/MATCH71)
+
 (%TRY-LOGIC (DEFUN STEP_PURE/ITER73 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -5653,6 +6139,8 @@
                   (DECLARE (IGNORABLE VAL))
                   (CONS VAL (STEP_PURE/ITER73 (CDR %L0)))))))
 
+
+(%TRY-GUARDS STEP_PURE/ITER73)
 
 (%TRY-LOGIC
  (DEFUN STEP_PURE/SEARCH74 (%K %LO %HI %T59)
@@ -5719,6 +6207,8 @@
    NIL)))
 
 
+(%TRY-GUARDS STEP_PURE/SEARCH74)
+
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH92 (%S)
        (DECLARE (IGNORABLE %S))
@@ -5735,6 +6225,8 @@
                          (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS STEP_PURE/MATCH92)
+
 (%TRY-LOGIC (DEFUN STEP_PURE/ITER94 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -5743,6 +6235,8 @@
                   (DECLARE (IGNORABLE VAL))
                   (CONS VAL (STEP_PURE/ITER94 (CDR %L0)))))))
 
+
+(%TRY-GUARDS STEP_PURE/ITER94)
 
 (%TRY-LOGIC
     (DEFUN STEP_PURE/MATCH102 (%S)
@@ -5760,6 +6254,8 @@
                         (LIST (LIST (CONS VAL-PRIME (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS STEP_PURE/MATCH102)
+
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH106 (%S)
        (DECLARE (IGNORABLE %S))
@@ -5775,6 +6271,8 @@
                          (DECLARE (IGNORABLE VAL))
                          (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))
 
+
+(%TRY-GUARDS STEP_PURE/MATCH106)
 
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH112 (%S)
@@ -5792,6 +6290,8 @@
                          (LIST (LIST (CONS INSTR (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS STEP_PURE/MATCH112)
+
 (%TRY-LOGIC (DEFUN STEP_PURE/ITER114 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -5800,6 +6300,8 @@
                   (DECLARE (IGNORABLE VAL))
                   (CONS VAL (STEP_PURE/ITER114 (CDR %L0)))))))
 
+
+(%TRY-GUARDS STEP_PURE/ITER114)
 
 (%TRY-LOGIC
  (DEFUN STEP_PURE/SEARCH115 (%K %LO %HI %T96 N)
@@ -5877,6 +6379,8 @@
    NIL)))
 
 
+(%TRY-GUARDS STEP_PURE/SEARCH115)
+
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH123 (%S)
        (DECLARE (IGNORABLE %S))
@@ -5892,6 +6396,8 @@
                          (DECLARE (IGNORABLE VAL))
                          (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))
 
+
+(%TRY-GUARDS STEP_PURE/MATCH123)
 
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH129 (%S)
@@ -5909,6 +6415,8 @@
                          (LIST (LIST (CONS INSTR (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS STEP_PURE/MATCH129)
+
 (%TRY-LOGIC (DEFUN STEP_PURE/ITER131 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -5917,6 +6425,8 @@
                   (DECLARE (IGNORABLE VAL))
                   (CONS VAL (STEP_PURE/ITER131 (CDR %L0)))))))
 
+
+(%TRY-GUARDS STEP_PURE/ITER131)
 
 (%TRY-LOGIC
  (DEFUN STEP_PURE/SEARCH132 (%K %LO %HI %T118)
@@ -5977,6 +6487,8 @@
    NIL)))
 
 
+(%TRY-GUARDS STEP_PURE/SEARCH132)
+
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH136 (%S)
        (DECLARE (IGNORABLE %S))
@@ -5993,6 +6505,8 @@
                          (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS STEP_PURE/MATCH136)
+
 (%TRY-LOGIC
      (DEFUN STEP_PURE/MATCH142 (%S)
        (DECLARE (IGNORABLE %S))
@@ -6008,6 +6522,8 @@
                          (DECLARE (IGNORABLE INSTR))
                          (LIST (LIST (CONS INSTR (CAR (CAR %R)))))))))))))
 
+
+(%TRY-GUARDS STEP_PURE/MATCH142)
 
 (%TRY-LOGIC
  (DEFUN STEP_PURE/SEARCH144 (%K %LO %HI %A0)
@@ -6061,6 +6577,8 @@
                            %LO %HI %A0)))
    NIL)))
 
+
+(%TRY-GUARDS STEP_PURE/SEARCH144)
 
 (%TRY-LOGIC
  (DEFUN STEP_PURE (%A0)
@@ -7398,6 +7916,8 @@
                                                             NIL))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
 
+(%TRY-GUARDS STEP_PURE)
+
 (%TRY-LOGIC (DEFUN STEP_READ/ITER5 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -7407,6 +7927,8 @@
                   (CONS INSTR (STEP_READ/ITER5 (CDR %L0)))))))
 
 
+(%TRY-GUARDS STEP_READ/ITER5)
+
 (%TRY-LOGIC (DEFUN STEP_READ/ITER10 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -7415,6 +7937,8 @@
                   (DECLARE (IGNORABLE INSTR))
                   (CONS INSTR (STEP_READ/ITER10 (CDR %L0)))))))
 
+
+(%TRY-GUARDS STEP_READ/ITER10)
 
 (%TRY-LOGIC
      (DEFUN STEP_READ/MATCH25 (%S)
@@ -7431,6 +7955,8 @@
                          (DECLARE (IGNORABLE VAL))
                          (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))
 
+
+(%TRY-GUARDS STEP_READ/MATCH25)
 
 (%TRY-LOGIC
      (DEFUN STEP_READ/MATCH35 (%S)
@@ -7451,6 +7977,8 @@
                          (LIST (LIST (CONS T^R (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS STEP_READ/MATCH35)
+
 (%TRY-LOGIC (DEFUN STEP_READ/ITER38 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -7459,6 +7987,8 @@
                   (DECLARE (IGNORABLE VAL))
                   (CONS VAL (STEP_READ/ITER38 (CDR %L0)))))))
 
+
+(%TRY-GUARDS STEP_READ/ITER38)
 
 (%TRY-LOGIC (DEFUN STEP_READ/ITER39 (%L0)
               (DECLARE (IGNORABLE %L0))
@@ -7470,6 +8000,8 @@
                         (STEP_READ/ITER39 (CDR %L0)))))))
 
 
+(%TRY-GUARDS STEP_READ/ITER39)
+
 (%TRY-LOGIC (DEFUN STEP_READ/ITER40 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -7478,6 +8010,8 @@
                   (DECLARE (IGNORABLE INSTR))
                   (CONS INSTR (STEP_READ/ITER40 (CDR %L0)))))))
 
+
+(%TRY-GUARDS STEP_READ/ITER40)
 
 (%TRY-LOGIC
  (DEFUN STEP_READ (%A0)
@@ -8163,6 +8697,8 @@
                            (IF %R %R
                              NIL))))))))))))))))))))))))))))
 
+
+(%TRY-GUARDS STEP_READ)
 
 (%TRY-LOGIC
  (MUTUAL-RECURSION
@@ -8901,6 +9437,8 @@
                               NIL)))))))))))))))))))))))))))))
 
 
+(%TRY-GUARDS STEP/PREFIX22)
+
 (%TRY-LOGIC (MUTUAL-RECURSION
               (DEFUN STEPS/%FUEL (%FUEL %A0)
                 (DECLARE (IGNORABLE %FUEL %A0))
@@ -8916,6 +9454,8 @@
                 (STEPS/%FUEL (%FUEL) %A0))))
 
 
+(%TRY-GUARDS STEPS/%FUEL)
+
 (%TRY-LOGIC (DEFUN EVAL_EXPR/ITER0 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -8924,6 +9464,8 @@
                   (DECLARE (IGNORABLE INSTR))
                   (CONS INSTR (EVAL_EXPR/ITER0 (CDR %L0)))))))
 
+
+(%TRY-GUARDS EVAL_EXPR/ITER0)
 
 (%TRY-LOGIC
      (DEFUN EVAL_EXPR/MATCH5 (%S)
@@ -8940,6 +9482,8 @@
                          (DECLARE (IGNORABLE VAL))
                          (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))
 
+
+(%TRY-GUARDS EVAL_EXPR/MATCH5)
 
 (%TRY-LOGIC
  (DEFUN EVAL_EXPR (%A0 %A1 %A2)
@@ -8974,6 +9518,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS EVAL_EXPR)
+
 (%TRY-LOGIC
      (DEFUN EXTERNADDR_OK (%A0 %A1)
        (DECLARE (IGNORABLE %A0 %A1))
@@ -8981,6 +9527,8 @@
                    "Not translated (see the stub list in the file header).")
                NIL)))
 
+
+(%TRY-GUARDS EXTERNADDR_OK)
 
 (%TRY-LOGIC
  (DEFUN $FUNCS (%A0)
@@ -9019,6 +9567,8 @@
          (DECLARE (IGNORABLE %R))
          (IF %R (CAR %R) NIL))))))))
 
+
+(%TRY-GUARDS $FUNCS)
 
 (%TRY-LOGIC
  (DEFUN $GLOBALS (%A0)
@@ -9059,6 +9609,8 @@
          (IF %R (CAR %R) NIL))))))))
 
 
+(%TRY-GUARDS $GLOBALS)
+
 (%TRY-LOGIC
  (DEFUN $TABLES (%A0)
   (DECLARE (IGNORABLE %A0))
@@ -9098,6 +9650,8 @@
          (IF %R (CAR %R) NIL))))))))
 
 
+(%TRY-GUARDS $TABLES)
+
 (%TRY-LOGIC
  (DEFUN $MEMS (%A0)
   (DECLARE (IGNORABLE %A0))
@@ -9136,6 +9690,8 @@
          (IF %R (CAR %R) NIL))))))))
 
 
+(%TRY-GUARDS $MEMS)
+
 (%TRY-LOGIC
  (DEFUN $ALLOCFUNC (%A0 %A1 %A2)
   (DECLARE (IGNORABLE %A0 %A1 %A2))
@@ -9167,6 +9723,8 @@
    (DECLARE (IGNORABLE %R))
    (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $ALLOCFUNC)
 
 (%TRY-LOGIC
  (DEFUN $ALLOCFUNCS (%A0 %A1 %A2)
@@ -9212,6 +9770,8 @@
      (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $ALLOCFUNCS)
+
 (%TRY-LOGIC
  (DEFUN $ALLOCGLOBAL (%A0 %A1 %A2)
    (DECLARE (IGNORABLE %A0 %A1 %A2))
@@ -9229,6 +9789,8 @@
      (DECLARE (IGNORABLE %R))
      (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $ALLOCGLOBAL)
 
 (%TRY-LOGIC
  (DEFUN $ALLOCGLOBALS (%A0 %A1 %A2)
@@ -9289,6 +9851,8 @@
      (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $ALLOCGLOBALS)
+
 (%TRY-LOGIC (DEFUN $ALLOCTABLE/ITER1 (%K %N)
               (DECLARE (IGNORABLE %K %N))
               (DECLARE (XARGS :MEASURE (NFIX (- %N %K))))
@@ -9296,6 +9860,8 @@
                   (CONS NIL ($ALLOCTABLE/ITER1 (+ 1 %K) %N))
                 NIL)))
 
+
+(%TRY-GUARDS $ALLOCTABLE/ITER1)
 
 (%TRY-LOGIC
  (DEFUN $ALLOCTABLE (%A0 %A1)
@@ -9326,6 +9892,8 @@
    (DECLARE (IGNORABLE %R))
    (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $ALLOCTABLE)
 
 (%TRY-LOGIC
  (DEFUN $ALLOCTABLES (%A0 %A1)
@@ -9371,6 +9939,8 @@
      (IF %R (CAR %R) NIL))))))
 
 
+(%TRY-GUARDS $ALLOCTABLES)
+
 (%TRY-LOGIC (DEFUN $ALLOCMEM/ITER1 (%K %N)
               (DECLARE (IGNORABLE %K %N))
               (DECLARE (XARGS :MEASURE (NFIX (- %N %K))))
@@ -9378,6 +9948,8 @@
                   (CONS 0 ($ALLOCMEM/ITER1 (+ 1 %K) %N))
                 NIL)))
 
+
+(%TRY-GUARDS $ALLOCMEM/ITER1)
 
 (%TRY-LOGIC
  (DEFUN $ALLOCMEM (%A0 %A1)
@@ -9410,6 +9982,8 @@
    (DECLARE (IGNORABLE %R))
    (IF %R (CAR %R) NIL))))
 
+
+(%TRY-GUARDS $ALLOCMEM)
 
 (%TRY-LOGIC
  (DEFUN $ALLOCMEMS (%A0 %A1)
@@ -9454,6 +10028,8 @@
      (DECLARE (IGNORABLE %R))
      (IF %R (CAR %R) NIL))))))
 
+
+(%TRY-GUARDS $ALLOCMEMS)
 
 (%TRY-LOGIC
  (DEFUN $INSTEXPORT (%A0 %A1 %A2 %A3 %A4)
@@ -9619,6 +10195,8 @@
          (IF %R (CAR %R) NIL))))))))))
 
 
+(%TRY-GUARDS $INSTEXPORT)
+
 (%TRY-LOGIC
      (DEFUN $ALLOCMODULE/MATCH2 (%S)
        (DECLARE (IGNORABLE %S))
@@ -9637,6 +10215,8 @@
                          (DECLARE (IGNORABLE FT))
                          (LIST (LIST (CONS FT (CAR (CAR %R)))))))))))))
 
+
+(%TRY-GUARDS $ALLOCMODULE/MATCH2)
 
 (%TRY-LOGIC
      (DEFUN $ALLOCMODULE/MATCH8 (%S)
@@ -9660,6 +10240,8 @@
                                            (CAR (CDR (CAR %R))))))))))))))
 
 
+(%TRY-GUARDS $ALLOCMODULE/MATCH8)
+
 (%TRY-LOGIC
     (DEFUN $ALLOCMODULE/MATCH12 (%S)
       (DECLARE (IGNORABLE %S))
@@ -9678,6 +10260,8 @@
                         (DECLARE (IGNORABLE TABLETYPE))
                         (LIST (LIST (CONS TABLETYPE (CAR (CAR %R)))))))))))))
 
+
+(%TRY-GUARDS $ALLOCMODULE/MATCH12)
 
 (%TRY-LOGIC
      (DEFUN $ALLOCMODULE/MATCH16 (%S)
@@ -9698,6 +10282,8 @@
                          (LIST (LIST (CONS MEMTYPE (CAR (CAR %R)))))))))))))
 
 
+(%TRY-GUARDS $ALLOCMODULE/MATCH16)
+
 (%TRY-LOGIC (DEFUN $ALLOCMODULE/ITER26 (%K %N S)
               (DECLARE (IGNORABLE %K %N S))
               (DECLARE (XARGS :MEASURE (NFIX (- %N %K))))
@@ -9709,6 +10295,8 @@
                           ($ALLOCMODULE/ITER26 (+ 1 %K) %N S)))
                 NIL)))
 
+
+(%TRY-GUARDS $ALLOCMODULE/ITER26)
 
 (%TRY-LOGIC (DEFUN $ALLOCMODULE/ITER28 (%K %N S)
               (DECLARE (IGNORABLE %K %N S))
@@ -9722,6 +10310,8 @@
                 NIL)))
 
 
+(%TRY-GUARDS $ALLOCMODULE/ITER28)
+
 (%TRY-LOGIC (DEFUN $ALLOCMODULE/ITER30 (%K %N S)
               (DECLARE (IGNORABLE %K %N S))
               (DECLARE (XARGS :MEASURE (NFIX (- %N %K))))
@@ -9734,6 +10324,8 @@
                 NIL)))
 
 
+(%TRY-GUARDS $ALLOCMODULE/ITER30)
+
 (%TRY-LOGIC (DEFUN $ALLOCMODULE/ITER32 (%K %N S)
               (DECLARE (IGNORABLE %K %N S))
               (DECLARE (XARGS :MEASURE (NFIX (- %N %K))))
@@ -9745,6 +10337,8 @@
                           ($ALLOCMODULE/ITER32 (+ 1 %K) %N S)))
                 NIL)))
 
+
+(%TRY-GUARDS $ALLOCMODULE/ITER32)
 
 (%TRY-LOGIC
      (DEFUN $ALLOCMODULE/ITER34 (%L0 FA_EX-STAR FA-STAR GA_EX-STAR GA-STAR
@@ -9767,6 +10361,8 @@
                                       TA-STAR MA_EX-STAR MA-STAR))))))
 
 
+(%TRY-GUARDS $ALLOCMODULE/ITER34)
+
 (%TRY-LOGIC (DEFUN $ALLOCMODULE/ITER36 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -9776,6 +10372,8 @@
                   (CONS FUNC
                         ($ALLOCMODULE/ITER36 (CDR %L0)))))))
 
+
+(%TRY-GUARDS $ALLOCMODULE/ITER36)
 
 (%TRY-LOGIC (DEFUN $ALLOCMODULE/ITER39 (%L0)
               (DECLARE (IGNORABLE %L0))
@@ -9787,6 +10385,8 @@
                         ($ALLOCMODULE/ITER39 (CDR %L0)))))))
 
 
+(%TRY-GUARDS $ALLOCMODULE/ITER39)
+
 (%TRY-LOGIC (DEFUN $ALLOCMODULE/ITER42 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -9797,6 +10397,8 @@
                         ($ALLOCMODULE/ITER42 (CDR %L0)))))))
 
 
+(%TRY-GUARDS $ALLOCMODULE/ITER42)
+
 (%TRY-LOGIC (DEFUN $ALLOCMODULE/ITER45 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -9806,6 +10408,8 @@
                   (CONS MEMTYPE
                         ($ALLOCMODULE/ITER45 (CDR %L0)))))))
 
+
+(%TRY-GUARDS $ALLOCMODULE/ITER45)
 
 (%TRY-LOGIC
  (DEFUN $ALLOCMODULE (%A0 %A1 %A2 %A3)
@@ -10186,6 +10790,8 @@
    (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $ALLOCMODULE)
+
 (%TRY-LOGIC
  (MUTUAL-RECURSION
   (DEFUN $INITELEM/ITER3 (%L0)
@@ -10272,6 +10878,8 @@
       (IF %R (CAR %R) NIL)))))))
 
 
+(%TRY-GUARDS $INITELEM/ITER3)
+
 (%TRY-LOGIC
  (MUTUAL-RECURSION
   (DEFUN $INITDATA/ITER3 (%L0)
@@ -10350,6 +10958,8 @@
       (IF %R (CAR %R) NIL)))))))
 
 
+(%TRY-GUARDS $INITDATA/ITER3)
+
 (%TRY-LOGIC
      (DEFUN $INSTANTIATE/MATCH11 (%S)
        (DECLARE (IGNORABLE %S))
@@ -10368,6 +10978,8 @@
                          (DECLARE (IGNORABLE FUNCTYPE))
                          (LIST (LIST (CONS FUNCTYPE (CAR (CAR %R)))))))))))))
 
+
+(%TRY-GUARDS $INSTANTIATE/MATCH11)
 
 (%TRY-LOGIC
      (DEFUN $INSTANTIATE/MATCH14 (%S)
@@ -10390,6 +11002,8 @@
                                      (CONS GLOBALTYPE
                                            (CAR (CDR (CAR %R))))))))))))))
 
+
+(%TRY-GUARDS $INSTANTIATE/MATCH14)
 
 (%TRY-LOGIC
  (DEFUN $INSTANTIATE/MATCH17 (%S)
@@ -10417,6 +11031,8 @@
                                (CONS X-STAR (CAR (CDR (CAR %R))))))))))))))))
 
 
+(%TRY-GUARDS $INSTANTIATE/MATCH17)
+
 (%TRY-LOGIC
  (DEFUN $INSTANTIATE/MATCH21 (%S)
   (DECLARE (IGNORABLE %S))
@@ -10443,6 +11059,8 @@
                                (CONS EXPR_D (CAR (CDR (CAR %R))))))))))))))))
 
 
+(%TRY-GUARDS $INSTANTIATE/MATCH21)
+
 (%TRY-LOGIC (DEFUN $INSTANTIATE/ITER26 (%K %N S)
               (DECLARE (IGNORABLE %K %N S))
               (DECLARE (XARGS :MEASURE (NFIX (- %N %K))))
@@ -10454,6 +11072,8 @@
                           ($INSTANTIATE/ITER26 (+ 1 %K) %N S)))
                 NIL)))
 
+
+(%TRY-GUARDS $INSTANTIATE/ITER26)
 
 (%TRY-LOGIC (DEFUN $INSTANTIATE/ALL32 (%L0 %L1 S)
               (DECLARE (IGNORABLE %L0 %L1 S))
@@ -10468,6 +11088,8 @@
                                            (CDR %L1)
                                            S))))))
 
+
+(%TRY-GUARDS $INSTANTIATE/ALL32)
 
 (%TRY-LOGIC
  (DEFUN $INSTANTIATE/MAP35 (%L0 Z)
@@ -10489,6 +11111,8 @@
                        (AND %R
                             (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))))
 
+
+(%TRY-GUARDS $INSTANTIATE/MAP35)
 
 (%TRY-LOGIC
  (DEFUN $INSTANTIATE/MAP42 (%L0 Z)
@@ -10526,6 +11150,8 @@
                         (LIST (LIST (CONS I_E (CAR (CAR %R)))))))))))))))))))
 
 
+(%TRY-GUARDS $INSTANTIATE/MAP42)
+
 (%TRY-LOGIC (DEFUN $INSTANTIATE/ITER45 (%L0 MODULEINST)
               (DECLARE (IGNORABLE %L0 MODULEINST))
               (IF (OR (ATOM %L0))
@@ -10537,6 +11163,8 @@
                                              MODULEINST))))))
 
 
+(%TRY-GUARDS $INSTANTIATE/ITER45)
+
 (%TRY-LOGIC (DEFUN $INSTANTIATE/ITER44 (%L0 MODULEINST)
               (DECLARE (IGNORABLE %L0 MODULEINST))
               (IF (OR (ATOM %L0))
@@ -10547,6 +11175,8 @@
                         ($INSTANTIATE/ITER44 (CDR %L0)
                                              MODULEINST))))))
 
+
+(%TRY-GUARDS $INSTANTIATE/ITER44)
 
 (%TRY-LOGIC
  (DEFUN $INSTANTIATE/MAP50 (%L0 Z)
@@ -10584,6 +11214,8 @@
                         (LIST (LIST (CONS I_D (CAR (CAR %R)))))))))))))))))))
 
 
+(%TRY-GUARDS $INSTANTIATE/MAP50)
+
 (%TRY-LOGIC (DEFUN $INSTANTIATE/ITER52 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -10593,6 +11225,8 @@
                   (CONS B-STAR
                         ($INSTANTIATE/ITER52 (CDR %L0)))))))
 
+
+(%TRY-GUARDS $INSTANTIATE/ITER52)
 
 (%TRY-LOGIC
  (DEFUN $INSTANTIATE (%A0 %A1 %A2)
@@ -10969,6 +11603,8 @@
    (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $INSTANTIATE)
+
 (%TRY-LOGIC (DEFUN $INVOKE/ITER3 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -10977,6 +11613,8 @@
                   (DECLARE (IGNORABLE VAL))
                   (CONS VAL ($INVOKE/ITER3 (CDR %L0)))))))
 
+
+(%TRY-GUARDS $INVOKE/ITER3)
 
 (%TRY-LOGIC
  (DEFUN $INVOKE (%A0 %A1 %A2)
@@ -11023,6 +11661,8 @@
    (IF %R (CAR %R) NIL))))
 
 
+(%TRY-GUARDS $INVOKE)
+
 (%TRY-LOGIC (DEFUN STARTOPT-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
               (IF (ATOM %X)
@@ -11031,10 +11671,14 @@
                      (STARTOPT-P/ITER0 (CDR %X))))))
 
 
+(%TRY-GUARDS STARTOPT-P/ITER0)
+
 (%TRY-LOGIC (DEFUN STARTOPT-P (%X)
               (DECLARE (IGNORABLE %X))
               (STARTOPT-P/ITER0 %X)))
 
+
+(%TRY-GUARDS STARTOPT-P)
 
 (%TRY-LOGIC (DEFUN CODE-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
@@ -11044,6 +11688,8 @@
                      (CODE-P/ITER0 (CDR %X))))))
 
 
+(%TRY-GUARDS CODE-P/ITER0)
+
 (%TRY-LOGIC (DEFUN CODE-P (%X)
               (DECLARE (IGNORABLE %X))
               (AND (TRUE-LISTP %X)
@@ -11052,6 +11698,8 @@
                    (EXPR-P (CAR (CDR %X)))
                    T)))
 
+
+(%TRY-GUARDS CODE-P)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BBYTE (%S)
@@ -11071,6 +11719,8 @@
     (DECLARE (IGNORABLE %R))
     (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BBYTE)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BUN (%S %A0)
@@ -11114,6 +11764,8 @@
         (IF %R %R NIL)))))))
 
 
+(%TRY-GUARDS GRAM/BUN)
+
 (%TRY-LOGIC
  (DEFUN GRAM/BU32 (%S)
    (DECLARE (IGNORABLE %S))
@@ -11132,6 +11784,8 @@
      (DECLARE (IGNORABLE %R))
      (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BU32)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BSN (%S %A0)
@@ -11188,6 +11842,8 @@
         (IF %R %R NIL)))))))))
 
 
+(%TRY-GUARDS GRAM/BSN)
+
 (%TRY-LOGIC (DEFUN GRAM/BIN (%S %A0)
               (DECLARE (IGNORABLE %S %A0))
               (LET* ((N^U %A0))
@@ -11203,6 +11859,8 @@
                   (DECLARE (IGNORABLE %R))
                   (IF %R %R NIL)))))
 
+
+(%TRY-GUARDS GRAM/BIN)
 
 (%TRY-LOGIC
      (DEFUN GRAM/BFN/REP1 (%K %N %S)
@@ -11225,6 +11883,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BFN/REP1)
+
 (%TRY-LOGIC (DEFUN GRAM/BFN (%S %A0)
               (DECLARE (IGNORABLE %S %A0))
               (LET* ((N^U %A0))
@@ -11242,6 +11902,8 @@
                   (DECLARE (IGNORABLE %R))
                   (IF %R %R NIL)))))
 
+
+(%TRY-GUARDS GRAM/BFN)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BU64 (%S)
@@ -11262,6 +11924,8 @@
      (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BU64)
+
 (%TRY-LOGIC
  (DEFUN GRAM/BI32 (%S)
    (DECLARE (IGNORABLE %S))
@@ -11280,6 +11944,8 @@
      (DECLARE (IGNORABLE %R))
      (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BI32)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BI64 (%S)
@@ -11300,6 +11966,8 @@
      (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BI64)
+
 (%TRY-LOGIC
  (DEFUN GRAM/BF32 (%S)
    (DECLARE (IGNORABLE %S))
@@ -11319,6 +11987,8 @@
      (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BF32)
+
 (%TRY-LOGIC
  (DEFUN GRAM/BF64 (%S)
    (DECLARE (IGNORABLE %S))
@@ -11337,6 +12007,8 @@
      (DECLARE (IGNORABLE %R))
      (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BF64)
 
 (%TRY-LOGIC
      (DEFUN GRAM/BNAME/REP7 (%K %N %S)
@@ -11363,6 +12035,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BNAME/REP7)
+
 (%TRY-LOGIC (DEFUN GRAM/BNAME/ITER12 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -11371,6 +12045,8 @@
                   (DECLARE (IGNORABLE EL))
                   (CONS EL (GRAM/BNAME/ITER12 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BNAME/ITER12)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BNAME (%S)
@@ -11415,6 +12091,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BNAME)
+
 (%TRY-LOGIC (DEFUN GRAM/BTYPEIDX (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
@@ -11428,6 +12106,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BTYPEIDX)
 
 (%TRY-LOGIC (DEFUN GRAM/BFUNCIDX (%S)
               (DECLARE (IGNORABLE %S))
@@ -11443,6 +12123,8 @@
                 (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BFUNCIDX)
+
 (%TRY-LOGIC (DEFUN GRAM/BGLOBALIDX (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
@@ -11456,6 +12138,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BGLOBALIDX)
 
 (%TRY-LOGIC (DEFUN GRAM/BTABLEIDX (%S)
               (DECLARE (IGNORABLE %S))
@@ -11471,6 +12155,8 @@
                 (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BTABLEIDX)
+
 (%TRY-LOGIC (DEFUN GRAM/BMEMIDX (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
@@ -11484,6 +12170,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BMEMIDX)
 
 (%TRY-LOGIC (DEFUN GRAM/BLOCALIDX (%S)
               (DECLARE (IGNORABLE %S))
@@ -11499,6 +12187,8 @@
                 (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BLOCALIDX)
+
 (%TRY-LOGIC (DEFUN GRAM/BLABELIDX (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
@@ -11512,6 +12202,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BLABELIDX)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BEXTERNIDX (%S)
@@ -11582,6 +12274,8 @@
             (IF %R %R NIL))))))))))
 
 
+(%TRY-GUARDS GRAM/BEXTERNIDX)
+
 (%TRY-LOGIC (DEFUN GRAM/BVALTYPE (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (AND (CONSP %S)
@@ -11614,6 +12308,8 @@
                             (IF %R %R NIL))))))))))
 
 
+(%TRY-GUARDS GRAM/BVALTYPE)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BRESULTTYPE/REP7 (%K %N %S)
        (DECLARE (IGNORABLE %K %N %S))
@@ -11640,6 +12336,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BRESULTTYPE/REP7)
+
 (%TRY-LOGIC (DEFUN GRAM/BRESULTTYPE/ITER12 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -11649,6 +12347,8 @@
                   (CONS EL
                         (GRAM/BRESULTTYPE/ITER12 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BRESULTTYPE/ITER12)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BRESULTTYPE (%S)
@@ -11689,6 +12389,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BRESULTTYPE)
+
 (%TRY-LOGIC
  (DEFUN GRAM/BFUNCTYPE (%S)
   (DECLARE (IGNORABLE %S))
@@ -11726,6 +12428,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BFUNCTYPE)
+
 (%TRY-LOGIC (DEFUN GRAM/BMUT (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (AND (CONSP %S)
@@ -11743,6 +12447,8 @@
                     (DECLARE (IGNORABLE %R))
                     (IF %R %R NIL))))))
 
+
+(%TRY-GUARDS GRAM/BMUT)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BLIMITS (%S)
@@ -11790,6 +12496,8 @@
        (IF %R %R NIL))))))
 
 
+(%TRY-GUARDS GRAM/BLIMITS)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BGLOBALTYPE (%S)
        (DECLARE (IGNORABLE %S))
@@ -11814,6 +12522,8 @@
          (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BGLOBALTYPE)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BTABLETYPE (%S)
        (DECLARE (IGNORABLE %S))
@@ -11835,6 +12545,8 @@
          (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BTABLETYPE)
+
 (%TRY-LOGIC (DEFUN GRAM/BMEMTYPE (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (LET* ((%T0 (GRAM/BLIMITS %S)))
@@ -11848,6 +12560,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BMEMTYPE)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BEXTERNTYPE (%S)
@@ -11918,6 +12632,8 @@
            (IF %R %R NIL))))))))))
 
 
+(%TRY-GUARDS GRAM/BEXTERNTYPE)
+
 (%TRY-LOGIC (DEFUN GRAM/BBLOCKTYPE (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (AND (CONSP %S)
@@ -11938,6 +12654,8 @@
                     (DECLARE (IGNORABLE %R))
                     (IF %R %R NIL))))))
 
+
+(%TRY-GUARDS GRAM/BBLOCKTYPE)
 
 (%TRY-LOGIC
      (DEFUN GRAM/BMEMARG (%S)
@@ -11964,6 +12682,8 @@
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BMEMARG)
 
 (%TRY-LOGIC
  (MUTUAL-RECURSION
@@ -27856,6 +28576,8 @@
                                  NIL)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
 
+(%TRY-GUARDS GRAM/BINSTR/REP10)
+
 (%TRY-LOGIC (DEFUN GRAM/BEXPR/REP2 (%S)
               (DECLARE (IGNORABLE %S))
               (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
@@ -27881,6 +28603,8 @@
                   (LIST (LIST NIL NIL) %S)))))
 
 
+(%TRY-GUARDS GRAM/BEXPR/REP2)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BEXPR (%S)
        (DECLARE (IGNORABLE %S))
@@ -27899,6 +28623,8 @@
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BEXPR)
 
 (%TRY-LOGIC (DEFUN GRAM/BCUSTOM/REP4 (%S)
               (DECLARE (IGNORABLE %S))
@@ -27921,6 +28647,8 @@
                   (LIST (LIST NIL) %S)))))
 
 
+(%TRY-GUARDS GRAM/BCUSTOM/REP4)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BCUSTOM (%S)
        (DECLARE (IGNORABLE %S))
@@ -27938,6 +28666,8 @@
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BCUSTOM)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BCUSTOMSEC (%S)
@@ -28002,6 +28732,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BCUSTOMSEC)
+
 (%TRY-LOGIC (DEFUN GRAM/BTYPE (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (LET* ((%T0 (GRAM/BFUNCTYPE %S)))
@@ -28015,6 +28747,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BTYPE)
 
 (%TRY-LOGIC
      (DEFUN GRAM/BTYPESEC/REP17 (%K %N %S)
@@ -28042,6 +28776,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BTYPESEC/REP17)
+
 (%TRY-LOGIC (DEFUN GRAM/BTYPESEC/ITER22 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -28050,6 +28786,8 @@
                   (DECLARE (IGNORABLE EL))
                   (CONS EL (GRAM/BTYPESEC/ITER22 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BTYPESEC/ITER22)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BTYPESEC (%S)
@@ -28141,6 +28879,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BTYPESEC)
+
 (%TRY-LOGIC
  (DEFUN GRAM/BIMPORT (%S)
    (DECLARE (IGNORABLE %S))
@@ -28174,6 +28914,8 @@
      (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BIMPORT)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BIMPORTSEC/REP17 (%K %N %S)
        (DECLARE (IGNORABLE %K %N %S))
@@ -28200,6 +28942,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BIMPORTSEC/REP17)
+
 (%TRY-LOGIC (DEFUN GRAM/BIMPORTSEC/ITER22 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -28209,6 +28953,8 @@
                   (CONS EL
                         (GRAM/BIMPORTSEC/ITER22 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BIMPORTSEC/ITER22)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BIMPORTSEC (%S)
@@ -28300,6 +29046,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BIMPORTSEC)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BFUNCSEC/REP17 (%K %N %S)
        (DECLARE (IGNORABLE %K %N %S))
@@ -28326,6 +29074,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BFUNCSEC/REP17)
+
 (%TRY-LOGIC (DEFUN GRAM/BFUNCSEC/ITER22 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -28334,6 +29084,8 @@
                   (DECLARE (IGNORABLE EL))
                   (CONS EL (GRAM/BFUNCSEC/ITER22 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BFUNCSEC/ITER22)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BFUNCSEC (%S)
@@ -28425,6 +29177,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BFUNCSEC)
+
 (%TRY-LOGIC (DEFUN GRAM/BTABLE (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (LET* ((%T0 (GRAM/BTABLETYPE %S)))
@@ -28438,6 +29192,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BTABLE)
 
 (%TRY-LOGIC
      (DEFUN GRAM/BTABLESEC/REP17 (%K %N %S)
@@ -28465,6 +29221,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BTABLESEC/REP17)
+
 (%TRY-LOGIC (DEFUN GRAM/BTABLESEC/ITER22 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -28474,6 +29232,8 @@
                   (CONS EL
                         (GRAM/BTABLESEC/ITER22 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BTABLESEC/ITER22)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BTABLESEC (%S)
@@ -28565,6 +29325,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BTABLESEC)
+
 (%TRY-LOGIC (DEFUN GRAM/BMEM (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (LET* ((%T0 (GRAM/BMEMTYPE %S)))
@@ -28578,6 +29340,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BMEM)
 
 (%TRY-LOGIC
      (DEFUN GRAM/BMEMSEC/REP17 (%K %N %S)
@@ -28605,6 +29369,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BMEMSEC/REP17)
+
 (%TRY-LOGIC (DEFUN GRAM/BMEMSEC/ITER22 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -28613,6 +29379,8 @@
                   (DECLARE (IGNORABLE EL))
                   (CONS EL (GRAM/BMEMSEC/ITER22 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BMEMSEC/ITER22)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BMEMSEC (%S)
@@ -28704,6 +29472,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BMEMSEC)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BGLOBAL (%S)
        (DECLARE (IGNORABLE %S))
@@ -28727,6 +29497,8 @@
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BGLOBAL)
 
 (%TRY-LOGIC
      (DEFUN GRAM/BGLOBALSEC/REP17 (%K %N %S)
@@ -28754,6 +29526,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BGLOBALSEC/REP17)
+
 (%TRY-LOGIC (DEFUN GRAM/BGLOBALSEC/ITER22 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -28763,6 +29537,8 @@
                   (CONS EL
                         (GRAM/BGLOBALSEC/ITER22 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BGLOBALSEC/ITER22)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BGLOBALSEC (%S)
@@ -28854,6 +29630,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BGLOBALSEC)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BEXPORT (%S)
        (DECLARE (IGNORABLE %S))
@@ -28877,6 +29655,8 @@
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BEXPORT)
 
 (%TRY-LOGIC
      (DEFUN GRAM/BEXPORTSEC/REP17 (%K %N %S)
@@ -28904,6 +29684,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BEXPORTSEC/REP17)
+
 (%TRY-LOGIC (DEFUN GRAM/BEXPORTSEC/ITER22 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -28913,6 +29695,8 @@
                   (CONS EL
                         (GRAM/BEXPORTSEC/ITER22 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BEXPORTSEC/ITER22)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BEXPORTSEC (%S)
@@ -29004,6 +29788,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BEXPORTSEC)
+
 (%TRY-LOGIC (DEFUN GRAM/BSTART (%S)
               (DECLARE (IGNORABLE %S))
               (LET ((%R (LET* ((%T0 (GRAM/BFUNCIDX %S)))
@@ -29017,6 +29803,8 @@
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BSTART)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BSTARTSEC (%S)
@@ -29082,6 +29870,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BSTARTSEC)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BELEM/REP13 (%K %N %S)
        (DECLARE (IGNORABLE %K %N %S))
@@ -29108,6 +29898,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BELEM/REP13)
+
 (%TRY-LOGIC (DEFUN GRAM/BELEM/ITER18 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -29116,6 +29908,8 @@
                   (DECLARE (IGNORABLE EL))
                   (CONS EL (GRAM/BELEM/ITER18 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BELEM/ITER18)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BELEM (%S)
@@ -29174,6 +29968,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BELEM)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BELEMSEC/REP17 (%K %N %S)
        (DECLARE (IGNORABLE %K %N %S))
@@ -29200,6 +29996,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BELEMSEC/REP17)
+
 (%TRY-LOGIC (DEFUN GRAM/BELEMSEC/ITER22 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -29208,6 +30006,8 @@
                   (DECLARE (IGNORABLE EL))
                   (CONS EL (GRAM/BELEMSEC/ITER22 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BELEMSEC/ITER22)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BELEMSEC (%S)
@@ -29299,6 +30099,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BELEMSEC)
+
 (%TRY-LOGIC (DEFUN GRAM/BLOCALS/ITER9 (%K %N T^R)
               (DECLARE (IGNORABLE %K %N T^R))
               (DECLARE (XARGS :MEASURE (NFIX (- %N %K))))
@@ -29307,6 +30109,8 @@
                         (GRAM/BLOCALS/ITER9 (+ 1 %K) %N T^R))
                 NIL)))
 
+
+(%TRY-GUARDS GRAM/BLOCALS/ITER9)
 
 (%TRY-LOGIC
      (DEFUN GRAM/BLOCALS (%S)
@@ -29333,6 +30137,8 @@
          (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BLOCALS)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BFUNC/REP7 (%K %N %S)
        (DECLARE (IGNORABLE %K %N %S))
@@ -29358,6 +30164,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BFUNC/REP7)
+
 (%TRY-LOGIC (DEFUN GRAM/BFUNC/ITER12 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -29366,6 +30174,8 @@
                   (DECLARE (IGNORABLE EL))
                   (CONS EL (GRAM/BFUNC/ITER12 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BFUNC/ITER12)
 
 (%TRY-LOGIC (DEFUN GRAM/BFUNC/ITER22 (%L0)
               (DECLARE (IGNORABLE %L0))
@@ -29376,6 +30186,8 @@
                   (CONS LOCAL-STAR
                         (GRAM/BFUNC/ITER22 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BFUNC/ITER22)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BFUNC (%S)
@@ -29430,6 +30242,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BFUNC)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BCODE (%S)
        (DECLARE (IGNORABLE %S))
@@ -29459,6 +30273,8 @@
          (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BCODE)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BCODESEC/REP17 (%K %N %S)
        (DECLARE (IGNORABLE %K %N %S))
@@ -29485,6 +30301,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BCODESEC/REP17)
+
 (%TRY-LOGIC (DEFUN GRAM/BCODESEC/ITER22 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -29493,6 +30311,8 @@
                   (DECLARE (IGNORABLE EL))
                   (CONS EL (GRAM/BCODESEC/ITER22 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BCODESEC/ITER22)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BCODESEC (%S)
@@ -29584,6 +30404,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BCODESEC)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BDATA/REP13 (%K %N %S)
        (DECLARE (IGNORABLE %K %N %S))
@@ -29610,6 +30432,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BDATA/REP13)
+
 (%TRY-LOGIC (DEFUN GRAM/BDATA/ITER18 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -29618,6 +30442,8 @@
                   (DECLARE (IGNORABLE EL))
                   (CONS EL (GRAM/BDATA/ITER18 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BDATA/ITER18)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BDATA (%S)
@@ -29676,6 +30502,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BDATA)
+
 (%TRY-LOGIC
      (DEFUN GRAM/BDATASEC/REP17 (%K %N %S)
        (DECLARE (IGNORABLE %K %N %S))
@@ -29702,6 +30530,8 @@
                              (CADR %R)))))))))
 
 
+(%TRY-GUARDS GRAM/BDATASEC/REP17)
+
 (%TRY-LOGIC (DEFUN GRAM/BDATASEC/ITER22 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
@@ -29710,6 +30540,8 @@
                   (DECLARE (IGNORABLE EL))
                   (CONS EL (GRAM/BDATASEC/ITER22 (CDR %L0)))))))
 
+
+(%TRY-GUARDS GRAM/BDATASEC/ITER22)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BDATASEC (%S)
@@ -29801,6 +30633,8 @@
    (IF %R %R NIL))))
 
 
+(%TRY-GUARDS GRAM/BDATASEC)
+
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP14 (%S)
               (DECLARE (IGNORABLE %S))
               (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
@@ -29821,6 +30655,8 @@
                                  (CADR %R))))
                   (LIST (LIST NIL) %S)))))
 
+
+(%TRY-GUARDS GRAM/BMODULE/REP14)
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP23 (%S)
               (DECLARE (IGNORABLE %S))
@@ -29843,6 +30679,8 @@
                   (LIST (LIST NIL) %S)))))
 
 
+(%TRY-GUARDS GRAM/BMODULE/REP23)
+
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP32 (%S)
               (DECLARE (IGNORABLE %S))
               (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
@@ -29863,6 +30701,8 @@
                                  (CADR %R))))
                   (LIST (LIST NIL) %S)))))
 
+
+(%TRY-GUARDS GRAM/BMODULE/REP32)
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP41 (%S)
               (DECLARE (IGNORABLE %S))
@@ -29885,6 +30725,8 @@
                   (LIST (LIST NIL) %S)))))
 
 
+(%TRY-GUARDS GRAM/BMODULE/REP41)
+
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP50 (%S)
               (DECLARE (IGNORABLE %S))
               (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
@@ -29905,6 +30747,8 @@
                                  (CADR %R))))
                   (LIST (LIST NIL) %S)))))
 
+
+(%TRY-GUARDS GRAM/BMODULE/REP50)
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP59 (%S)
               (DECLARE (IGNORABLE %S))
@@ -29927,6 +30771,8 @@
                   (LIST (LIST NIL) %S)))))
 
 
+(%TRY-GUARDS GRAM/BMODULE/REP59)
+
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP68 (%S)
               (DECLARE (IGNORABLE %S))
               (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
@@ -29947,6 +30793,8 @@
                                  (CADR %R))))
                   (LIST (LIST NIL) %S)))))
 
+
+(%TRY-GUARDS GRAM/BMODULE/REP68)
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP77 (%S)
               (DECLARE (IGNORABLE %S))
@@ -29969,6 +30817,8 @@
                   (LIST (LIST NIL) %S)))))
 
 
+(%TRY-GUARDS GRAM/BMODULE/REP77)
+
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP86 (%S)
               (DECLARE (IGNORABLE %S))
               (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
@@ -29990,6 +30840,8 @@
                   (LIST (LIST NIL) %S)))))
 
 
+(%TRY-GUARDS GRAM/BMODULE/REP86)
+
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP95 (%S)
               (DECLARE (IGNORABLE %S))
               (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
@@ -30010,6 +30862,8 @@
                                  (CADR %R))))
                   (LIST (LIST NIL) %S)))))
 
+
+(%TRY-GUARDS GRAM/BMODULE/REP95)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BMODULE/MATCH102 (%S)
@@ -30034,6 +30888,8 @@
                                             (CAR (CDR (CAR %R))))))))))))))))
 
 
+(%TRY-GUARDS GRAM/BMODULE/MATCH102)
+
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP108 (%S)
               (DECLARE (IGNORABLE %S))
               (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
@@ -30054,6 +30910,8 @@
                                  (CADR %R))))
                   (LIST (LIST NIL) %S)))))
 
+
+(%TRY-GUARDS GRAM/BMODULE/REP108)
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP117 (%S)
               (DECLARE (IGNORABLE %S))
@@ -30076,6 +30934,8 @@
                   (LIST (LIST NIL) %S)))))
 
 
+(%TRY-GUARDS GRAM/BMODULE/REP117)
+
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/MAP122 (%L0 %L1 %L2)
               (DECLARE (IGNORABLE %L0 %L1 %L2))
               (IF (OR (ATOM %L0) (ATOM %L1) (ATOM %L2))
@@ -30092,6 +30952,8 @@
                     (AND %R
                          (LIST (LIST (CONS FUNC (CAR (CAR %R)))))))))))
 
+
+(%TRY-GUARDS GRAM/BMODULE/MAP122)
 
 (%TRY-LOGIC
  (DEFUN GRAM/BMODULE (%S)
@@ -30694,4 +31556,6 @@
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
+
+(%TRY-GUARDS GRAM/BMODULE)
 

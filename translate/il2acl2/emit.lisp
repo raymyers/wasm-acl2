@@ -32,9 +32,17 @@
         ((consp x) (foreign-symbols (cdr x) (foreign-symbols (car x) acc)))
         (t acc)))
 
+(defun event-first-name (ev)
+  (cond ((and (consp ev) (eq (car ev) 'defun)) (cadr ev))
+        ((and (consp ev) (eq (car ev) 'mutual-recursion)) (cadr (cadr ev)))
+        (t nil)))
+
+; each event: (%TRY-LOGIC ev) then (%TRY-GUARDS name)
 (defun wrap-try-logic (evs)
   (if (endp evs) nil
-    (cons (list (intern$ "%TRY-LOGIC" "W1T") (car evs)) (wrap-try-logic (cdr evs)))))
+    (list* (list (intern$ "%TRY-LOGIC" "W1T") (car evs))
+           (list (intern$ "%TRY-GUARDS" "W1T") (event-first-name (car evs)))
+           (wrap-try-logic (cdr evs)))))
 
 (defun clashing-exports (syms names)
   (cond ((endp syms) nil)

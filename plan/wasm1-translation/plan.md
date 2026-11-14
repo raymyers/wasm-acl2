@@ -494,7 +494,13 @@ faithfully:
       function, plus the fact that the `ctxt-instrs` side condition makes the
       inner instruction list strictly shorter. That is proof work for config
       measures, not done yet
-- [ ] Guard verification wherever it is achievable (not attempted)
+- [x] Guard verification wherever it is achievable: each event is followed
+      by `(%try-guards f)`, a step-bounded `verify-guards` that falls back
+      silently. Result (with parsers): **157** functions guard-verified
+      (`:common-lisp-compliant`), 255 logic-only, 50 `:program` of 462. The
+      `:program` ones: the `STEP` group and callers, `$concat_`, alloc/init and
+      `$instantiate`, and the recursive instruction parser `GRAM/BINSTR` with
+      the grammars above it (same byte-length-measure issue as `STEP`)
 - [x] Generated or hand-written proofs over the generated defs: the analogs of
       WASM1's `add-correct` and `div-by-zero-traps`. `tests/sem/t8-proofs.lisp`,
       all for all inputs: `$idiv_`/`$irem_` by zero have no result; the
@@ -533,7 +539,7 @@ still `:program`, so no `run`-level theorem yet.
 | Execution rules covered | 170/170 instructions | all 58 reduction rules (Step_pure/read/Step) |
 | Validation | hand-written type checker | blocked (T6): non-instruction typing only |
 | Spec rules traceable to ACL2 defs | informal | 1:1 by name (`STEP_PURE/BINOP-VAL` ...) |
-| Logic-mode share | 100% | 312 / 332 functions (20 `:program`: `STEP` group + callers) |
+| Logic-mode share | 100% | 412 / 462 functions (incl. parsers); 157 guard-verified |
 | Numeric oracle agreement (8015 V8 vectors) | **6975** (all integer ops agree; floats disagree) | **8015** |
 | Effort to absorb a SpecTec update | manual | regenerate + review diff (`make check`) |
 

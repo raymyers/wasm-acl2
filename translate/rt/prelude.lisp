@@ -89,3 +89,9 @@
 ; Step bound for closure relations (Steps): R(x) iterates the step relation
 ; at most (%FUEL) times and has no result if the bound is reached.
 (defun %fuel () (declare (xargs :guard t)) 1000000)
+
+; (%try-guards f): verify the guards of F (and its clique) if ACL2 can, within
+; a prover step limit; otherwise leave them unverified. Deterministic.
+(defmacro %try-guards (name)
+  `(make-event '(:or (with-prover-step-limit 100000 (verify-guards ,name))
+                     (value-triple :guards-not-verified))))
