@@ -24,11 +24,13 @@ Update this block at the end of every session, in the same commit as the work.
 A new session starts here.
 
 - **Last updated**: 2026-11-14
-- **Milestones**: P0-P7 not started. The baseline probe is done and stored
-- **Next action**: P0, first item (`make probe`), porting the scripts in
-  `notes/data/probe-2026-11-14/`
+- **Milestones**: P0 ✅ (probe as `make probe`, G7 fixed, wide grammar
+  literals accepted). P1-P7 not started
+- **Next action**: P1, first item (every logged error carries relation, rule
+  id and attempted mode). P2 can start in parallel (it depends only on P0)
 - **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
-  files in `translate/tests/spec/` and `flake.nix` are uncommitted; P5 picks them up)
+  files in `translate/tests/spec/`, `flake.nix` and the `spec`/`spec-data`
+  targets in `translate/Makefile` are uncommitted; P5 picks them up)
 - **Decisions D1-D6**: none confirmed by the user yet; §4 holds recommendations only
 - **Blocked on**: nothing
 - **Next Fable session needed for**: after P1, the typing triage and the mode table design (model-choice items 1 and 2)
@@ -59,18 +61,18 @@ the 2.0 and 3.0 sources. The scripts and raw outputs are in
 
 | | WASM 1.0 | WASM 2.0 | WASM 3.0 |
 |---|---|---|---|
-| `.spectec` files / lines | 10 / 2,353 | 4,175 lines | 39 / 9,353 |
+| `.spectec` files / lines | 10 / 2,353 | 10 / 4,175 | 37 / 9,353 |
 | IL (`--ast --all-passes`) lines / bytes | 13,309 / 315 KB | 34,341 / 798 KB | 66,179 / 1.57 MB |
 | Top-level IL forms | 318 | 470 | 974 |
 | `typ` / `def` / `rel` / `gram` (rec members counted) | 90 / 132 / 36 / 61 | 145 / 214 / 41 / 71 | 208 / 462 / 125 / 232 |
 | Rules | 137 | 265 | 567 |
-| `Step_pure` / `Step_read` / `Step` rules | 29 / 13 / 13 | | 79 / 103 / 36 |
-| `Instr_ok` rules | 31 | | 110 |
-| Clause-less defs (builtins) | 45 | (63 `hint(builtin)`) | 93 (88 `hint(builtin)`) |
+| `Step_pure` / `Step_read` / `Step` rules | 29 / 13 / 13 | 56 / 47 / 23 | 79 / 103 / 36 |
+| `Instr_ok` rules | 31 | 74 | 110 |
+| Clause-less defs (builtins) | 45 | 64 (63 `hint(builtin)`) | 93 (88 `hint(builtin)`) |
 | `hint(inverse)` in source | 4 | 12 | 16 |
-| Defs taking `def` (function) parameters | 0 | | 16 |
-| Defs taking type parameters | 4 | | 17 |
-| Largest `rec` group | 2 relations | | 19 relations |
+| Defs taking `def` (function) parameters | 0 | 0 | 16 |
+| Defs taking type parameters | 4 | 8 | 17 |
+| Largest `rec` group | 2 relations | 2 relations | 19 relations |
 | Grammars: binary `B*` / text `T*` | 61 / 0 | 71 / 0 | 90 / 142 |
 | Official test suite (`spectec/test-interpreter`) | spec-test-1: 75 files | spec-test-2 | spec-test-3: 259 `.wast` |
 
@@ -78,13 +80,19 @@ the 2.0 and 3.0 sources. The scripts and raw outputs are in
 
 | Stage | 2.0 | 3.0 |
 |---|---|---|
-| Stock `spectec --ast --all-passes` | ✅ | ✅ (all 39 files; also works with the `X.*`, `6.*`, `7.*` files left out) |
+| Stock `spectec --ast --all-passes` | ✅ | ✅ (all 37 files; also works with the `X.*`, `6.*`, `7.*` files left out) |
 | ACL2 reader on the IL | ✅ | ✅ (strings now contain `\"` and `\\`; both read correctly) |
 | T1 schema check (`il-check`) | ✅ 0 errors | ❌ 3 errors, all in `Tchar` (see §2) |
 | Mangling | ✅ injective, 19 renames | ✅ injective, 27 renames, no tag collisions |
 | New IL node kinds vs 1.0 | none | `alt` and `text` terminals (grammars), `equiv`, `list1` |
 | Translator phase 1 (compile), 1.0 config minus the `Module_ok` override and the `Bmodule` patch | 631 events, **10 stubs** | **crashes** (control stack exhausted) on one form. With that form skipped: 1,268 events, **110 stubs**, 1,079 logged errors, 0.5 s |
 | Phase 2, certification, any test | not run | not run |
+
+**After P0** (`make probe`, [P0-probe-tool](notes/P0-probe-tool.md)): 3.0
+schema ✅ 0 errors; phase 1 no longer crashes: 1,269 events, **111 stubs**
+(the extra one is the zero-arity notation relation, now a clean stub), 1,080
+errors. With the D3 scope (`EXCLUDE='X.* 6.* 7.*'`): 993 events, **35 stubs**,
+249 errors. 1.0 and 2.0 are unchanged.
 
 "0 stubs" for a form means only that the compiler accepted it. Nothing from
 2.0 or 3.0 has been certified or executed.
@@ -200,16 +208,22 @@ and in "Current state".
 Each milestone ends with 1.0 still passing `make -C translate check`
 byte-identically, unless the milestone says the output changes.
 
-### P0: Probe as a tool
-- [ ] `make -C translate probe SPEC=3.0`: builds the IL into a scratch
+### P0: Probe as a tool ✅ (2026-11-14, [P0-probe-tool](notes/P0-probe-tool.md))
+- [x] `make -C translate probe SPEC=3.0`: builds the IL into a scratch
       directory and prints the §1.2 table (schema errors, mangle report,
-      events, stubs by cluster, error kinds). No files under `gen/` change
-- [ ] Fix G7 so the probe needs no skip list: zero-rule relations compile to a
-      clean error, never a crash
-- [ ] Schema: accept grammar character codes wider than one byte (G6, schema
-      part only)
+      events, stubs by cluster, error kinds). No files under `gen/` change.
+      *Done: `.probe/<v>/report.txt`, stubs grouped by source file, plus the
+      §1.1 IL statistics; `EXCLUDE='X.* 6.*'` leaves files out. 13 s for 3.0*
+- [x] Fix G7 so the probe needs no skip list: zero-rule relations compile to a
+      clean error, never a crash. *Done: arity 0 is a logged error and a stub
+      (cause: `gsyms-prefixed` called with -1)*
+- [x] Schema: accept grammar character codes wider than one byte (G6, schema
+      part only). *Done: 3.0 schema errors 3 → 0*
 
-**Exit**: the probe reproduces the §1 numbers for 1.0, 2.0 and 3.0 in one command each.
+**Exit** ✅: the probe reproduces the §1 numbers for 1.0, 2.0 and 3.0 in one
+command each (except the `hint(inverse)` counts, which are not in the IL: P3).
+It found one miscount (3.0 has 37 files, not 39). 1.0 `make check` passes
+byte-identically.
 **Notes**: probe output per spec version stored under `notes/data/`, and re-stored after every later milestone that changes it.
 
 ### P1: Diagnostics and granularity (W2, W3)
@@ -364,22 +378,15 @@ P5, P6 need only P2 and can run alongside P3/P4.
 
 ## 8. Reproducing the probe
 
-Run from `translate/` inside `nix develop ..`.
+Run from `translate/` inside `nix develop ..`:
 
 ```bash
-S=$(nix build ..#spectec --no-link --print-out-paths)/bin/spectec
-SRC=$(nix eval --raw --impure --expr \
-  '(builtins.getFlake (toString ./..)).inputs.wasm-spec.outPath')
-$S --ast --all-passes $SRC/specification/wasm-3.0/*.spectec > /tmp/wasm-3.0.il.sexp
+make probe SPEC=1.0      # or 2.0, 3.0; EXCLUDE='X.* 6.* 7.*' leaves files out
 ```
 
-Schema and mangling: in ACL2, `(ld "package.lsp")`,
-`(include-book "il2acl2/top")`, then call `check-il-forms` and `mangle-table`
-on the forms from `read-il-file` (`il-check` stops at the first failure, so
-call the parts directly).
-
-Translator: `(include-book "il2acl2/emit")`, build the context as
-`gen-phase1` does but with the `:rel-override` and `:il-patch` entries
-removed from the config, and call `cform` on each top-level form in order,
-skipping `NotationTypingPremisedots`. Then read `:stubs`, `:errs` and
-`:incomplete` from the context. P0 turns this into `make probe`.
+The report is `.probe/<v>/report.txt`, every logged error is in
+`.probe/<v>/errors.lsp`. The probe ignores the 1.0-only config entries
+(`:rel-override`, `:il-patch`) for every version except 1.0; set
+`PROBE_DROP=` to keep them. The scripts are `il2acl2/probe.lsp` and
+`il2acl2/probe-names.sh`. The hand-run procedure of the baseline is in
+[notes/P0-probe-2026-11-14.md](notes/P0-probe-2026-11-14.md).

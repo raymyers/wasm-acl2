@@ -22,4 +22,5 @@ result-*
 translate/gen.log
 translate/.check-gen-*/
 translate/.il-out
+translate/.probe/
 workxxx.*

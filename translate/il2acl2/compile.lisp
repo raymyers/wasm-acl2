@@ -1594,7 +1594,12 @@
     (let* ((name (if (eq mode :split) (split-name (second x) cx) (fn-sym :rel (second x) cx)))
            (cx (cx-put :fn (cdr name) cx)) (cx (cx-put :n 0 cx)) (cx (cx-put :aux nil cx))
            (cx (cx-put :tparams nil cx)))
-      (if (eq mode :closure)
+      (cond
+       ((zerop n)
+        ;; arity 0 (e.g. the notation relation `relation R: ...` with the
+        ;; empty tuple): no input/output mode exists, so fail cleanly (G7)
+        (mv nil (cx-err "relation with an empty tuple (arity 0)" (second x) cx)))
+       ((eq mode :closure)
           (let* ((step (fn-sym :rel (closure-step x) cx))
                  (fuel (gsym "%FUEL")) (a (gsym "%A0")) (r (gsym "%R"))
                  (aux (gsym (concatenate 'string (cdr name) "/%FUEL"))))
@@ -1605,7 +1610,8 @@
                                                     (list 'if r (list aux (list '1- fuel) (list 'car r))
                                                           (list 'list a)))))
                       (mk-defun name (list a) (list aux (list (gsym "%FUEL")) a)))
-                cx))
+                cx)))
+       (t
         (let* ((formals (gsyms-prefixed "%A" (if (or (eq mode :fun) (and (eq mode :split) (not (rules-split-p rules))))
                                                  (1- n) n)))
                (cx (cx-put :rel-formals (and (member-equal (second x) (cx-get :rec-rels cx)) formals) cx))
@@ -1621,7 +1627,7 @@
                                                             0)
                                                       body)
                                   (mk-defun name formals body))))
-                  cx))))))))
+                  cx)))))))))
 
 (defun crel (x mode cx)
   (if (eq mode :multi)
@@ -1665,7 +1671,7 @@
     (append (if (member-equal (second (car xs)) bad)
                 (mv-let (n rules) (rel-parts (car xs))
                   (declare (ignore rules))
-                  (let ((k (if (eq (mode-of (second (car xs)) cx) :check) n (1- n))))
+                  (let ((k (if (eq (mode-of (second (car xs)) cx) :check) n (nfix (1- n)))))
                     (list (stub-defun (fn-sym :rel (second (car xs)) cx) (gsyms-prefixed "%A" k)))))
               nil)
             (rel-stubs (cdr xs) bad cx))))

@@ -41,11 +41,20 @@
         ((nodep x "RAT" 1) (rationalp (second x)))
         (t nil)))  ; (real r) cannot be read by ACL2; none occur in WASM 1.0
 
-; Grammar byte literal: (num 0xNN) reads as a symbol named "0XNN".
-(defun hexbyte-p (x)
+; Grammar literal: (num 0xNN) reads as a symbol named "0XNN". Binary
+; grammars use bytes (two digits); text grammars (WASM 3.0 `6.*`) use
+; Unicode code points up to 0x10FFFF (up to six digits).
+(defun hex-digits-p (cs)
+  (or (endp cs)
+      (and (or (and (char<= #\0 (car cs)) (char<= (car cs) #\9))
+               (and (char<= #\A (car cs)) (char<= (car cs) #\F)))
+           (hex-digits-p (cdr cs)))))
+
+(defun hexcode-p (x)
   (let ((s (sym-name x)))
-    (and (stringp s) (= (length s) 4)
-         (equal (subseq s 0 2) "0X"))))
+    (and (stringp s) (<= 4 (length s)) (<= (length s) 8)
+         (equal (subseq s 0 2) "0X")
+         (hex-digits-p (coerce (subseq s 2 (length s)) 'list)))))
 
 ; Parameters (binders) vs arguments, distinguished by shape.
 (defun param-p (x)
@@ -201,7 +210,7 @@
    (cond ((atom-is x "EPS") acc)
          ((and (is x "VAR") (true-listp x) (stringp (second x)))
           (chk-args (cddr x) ctx b (ref :gram (second x) b acc)))
-         ((nodep x "NUM" 1) (if (hexbyte-p (second x)) acc
+         ((nodep x "NUM" 1) (if (hexcode-p (second x)) acc
                               (err ctx "sym num" x acc)))
          ((nodep x "TEXT" 1) (if (stringp (second x)) acc
                                (err ctx "sym text" x acc)))

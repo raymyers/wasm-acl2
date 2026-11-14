@@ -11,6 +11,7 @@
 #   make invoke-vectors  regenerate tests/sem/invoke-vectors.lsp (V8 runs the corpus exports)
 #   make test        certify the translator, gen/, rt/ and every test book
 #   make compare     T9 reports: run the WASM1 tree on the same oracle vectors
+#   make probe SPEC=3.0  probe table for one spec version (plan/wasm3-translation-prep P0)
 #   make check       check-il + check-gen + test
 
 NIX  ?= nix
@@ -21,7 +22,7 @@ IL   := il/wasm-1.0.il.sexp
 GEN_FILES := package.lsp portcullis.acl2 portcullis.lisp cert.acl2 wasm1.lisp
 TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 
-.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors
+.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors probe
 
 il:
 	$(NIX) build ..#wasm1-il --no-link --print-out-paths > .il-out
@@ -74,6 +75,43 @@ test:
 compare:
 	$(CERT) --acl2 $(ACL2) -j $(JOBS) $(patsubst %.lisp,%,$(wildcard compare/*.lisp))
 	grep -h -A3 "T9 " compare/*.cert.out
+
+# Probe (plan/wasm3-translation-prep P0): elaborate spec version SPEC with the
+# pinned SpecTec into .probe/<SPEC>/ and print the probe table (schema errors,
+# mangling, events, stubs by source file, error kinds). Writes nothing under
+# gen/. EXCLUDE is a list of file globs to leave out, e.g. EXCLUDE='X.* 6.*'.
+# For 2.0/3.0 the 1.0-specific config entries (PROBE_DROP) are ignored.
+SPEC ?= 3.0
+EXCLUDE ?=
+PROBE_DIR := .probe/$(SPEC)
+PROBE_CONFIG ?= il2acl2-config.lsp
+PROBE_DROP ?= $(if $(filter 1.0,$(SPEC)),,:rel-override :il-patch)
+
+probe: translator
+	@set -e; d=$(PROBE_DIR); mkdir -p $$d; \
+	sp=$$($(NIX) build ..#spectec --no-link --print-out-paths 2> /dev/null); \
+	src=$$($(NIX) eval --raw --impure --expr \
+	  '(builtins.getFlake (toString ./..)).inputs.wasm-spec.outPath' 2> /dev/null)/specification/wasm-$(SPEC); \
+	test -d $$src || { echo "no spec sources for SPEC=$(SPEC)"; exit 1; }; \
+	files=; for f in $$src/*.spectec; do keep=1; \
+	  for p in $(EXCLUDE); do case $$(basename $$f) in $$p) keep=;; esac; done; \
+	  if test -n "$$keep"; then files="$$files $$f"; fi; done; \
+	"$$sp/bin/spectec" --ast --all-passes $$files > $$d/wasm-$(SPEC).il.sexp; \
+	sh il2acl2/probe-names.sh $$files > $$d/names.lsp; \
+	{ echo '(assign probe-il "'$$d/wasm-$(SPEC).il.sexp'")'; \
+	  echo '(assign probe-config "$(PROBE_CONFIG)")'; \
+	  echo '(defconst *probe-names* (quote'; cat $$d/names.lsp; echo '))'; \
+	  echo '(assign probe-names *probe-names*)'; \
+	  echo '(assign probe-drop (quote ($(PROBE_DROP))))'; \
+	  echo '(assign probe-errors "'$$d/errors.lsp'")'; \
+	  cat il2acl2/probe.lsp; } > $$d/run.lsp; \
+	$(ACL2) < $$d/run.lsp > $$d/acl2.log 2>&1 || { tail -40 $$d/acl2.log; exit 1; }; \
+	{ echo "Probe of WASM $(SPEC) (SpecTec $$(cut -c1-7 $$sp/share/spectec/REV))"; \
+	  echo "Excluded: $(if $(EXCLUDE),$(EXCLUDE),none)"; \
+	  echo "Spec files: $$(echo $$files | wc -w | tr -d ' '), lines: $$(cat $$files | wc -l | tr -d ' ')"; \
+	  echo "IL lines: $$(wc -l < $$d/wasm-$(SPEC).il.sexp | tr -d ' '), bytes: $$(wc -c < $$d/wasm-$(SPEC).il.sexp | tr -d ' ')"; \
+	  sed -n '/^PROBE-REPORT-BEGIN/,/^PROBE-REPORT-END/p' $$d/acl2.log | sed '1d;$$d'; } > $$d/report.txt; \
+	cat $$d/report.txt; echo "(report: $$d/report.txt, errors: $$d/errors.lsp, log: $$d/acl2.log)"
 
 check: check-il check-gen test
 
