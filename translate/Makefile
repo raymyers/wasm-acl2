@@ -111,7 +111,9 @@ probe: translator
 	  echo "Spec files: $$(echo $$files | wc -w | tr -d ' '), lines: $$(cat $$files | wc -l | tr -d ' ')"; \
 	  echo "IL lines: $$(wc -l < $$d/wasm-$(SPEC).il.sexp | tr -d ' '), bytes: $$(wc -c < $$d/wasm-$(SPEC).il.sexp | tr -d ' ')"; \
 	  sed -n '/^PROBE-REPORT-BEGIN/,/^PROBE-REPORT-END/p' $$d/acl2.log | sed '1d;$$d'; } > $$d/report.txt; \
-	cat $$d/report.txt; echo "(report: $$d/report.txt, errors: $$d/errors.lsp, log: $$d/acl2.log)"
+	{ echo "; Failing rules of WASM $(SPEC): rule, mode, error kinds, first error detail"; \
+	  sed -n '/^PROBE-RULES-BEGIN/,/^PROBE-RULES-END/p' $$d/acl2.log | sed '1d;$$d'; } > $$d/rules.txt; \
+	cat $$d/report.txt; echo "(report: $$d/report.txt, rules: $$d/rules.txt, errors: $$d/errors.lsp, log: $$d/acl2.log)"
 
 check: check-il check-gen test
 

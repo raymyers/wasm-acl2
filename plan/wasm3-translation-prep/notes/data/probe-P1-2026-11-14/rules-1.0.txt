@@ -1,0 +1,1 @@
+; Failing rules of WASM 1.0: rule, mode, error kinds, first error detail

@@ -68,3 +68,5 @@ says `yes` or `dropped` in the last column.
 | [P0-probe-2026-11-14.md](P0-probe-2026-11-14.md) | P0 (baseline, before any change) | final | probe table, gap list | no |
 | [P0-confidence-assessment.md](P0-confidence-assessment.md) | P0 (assessment) | draft | risks, milestone order | no |
 | [P0-probe-tool.md](P0-probe-tool.md) | P0 (all three items: `make probe`, G7, schema) | final | probe table, gap list | no |
+| [P1-gap-list.md](P1-gap-list.md) | P1 (per-rule gap list) | draft | gap list, milestones, config budget | no |
+| [P1-typing-root-causes.md](P1-typing-root-causes.md) | P1 (S2 root causes) | draft | gap list, risks, scheme delta | no |

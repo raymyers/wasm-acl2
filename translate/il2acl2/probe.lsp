@@ -218,6 +218,38 @@
         :gram (len (cdr (assoc :gram tbl))) :var (len (cdr (assoc :var tbl)))
         :atom (len (cdr (assoc :atom tbl)))))
 
+(defun probe-print-lines (l)
+  (if (endp l) nil (prog2$ (cw "  ~x0~%" (car l)) (probe-print-lines (cdr l)))))
+
+(defun probe-partial-dropped (ps)
+  (if (endp ps) 0 (+ (len (third (car ps))) (probe-partial-dropped (cdr ps)))))
+
+(defun probe-print-partial (ps)
+  (if (endp ps) nil
+    (let ((p (car ps)))
+      (prog2$ (cw "  ~s0 (~x4): ~x1/~x2 translated; dropped: ~s3~%" (first p)
+                  (- (second p) (len (third p))) (second p) (join-words (third p)) (fourth p))
+              (probe-print-partial (cdr ps))))))
+
+; failing rules: ((rule mode) . errors), in order of first error
+(defun probe-rule-errs (errs acc)
+  (if (endp errs) acc
+    (let* ((ctx (cdddr (car errs))) (r (member :rule ctx)))
+      (probe-rule-errs (cdr errs)
+                       (if r
+                           (let* ((k (list (cadr r) (cadr (member :mode ctx))))
+                                  (old (cdr (assoc-equal k acc))))
+                             (put-assoc-equal k (append old (list (car errs))) acc))
+                         acc)))))
+
+(defun probe-print-rule-errs (l)
+  ;; rule  mode  kinds  first error detail
+  (if (endp l) nil
+    (let ((es (cdr (car l))))
+      (prog2$ (cw "~s0 ~x1 ~x2 ~x3~%" (first (car (car l))) (second (car (car l)))
+                  (probe-tally (probe-err-kinds es) nil) (third (car es)))
+              (probe-print-rule-errs (cdr l))))))
+
 (defun probe-run (il-file config-file names drop errors-file state)
   (mv-let (erp forms state) (read-il-file il-file state)
     (if erp (mv erp state)
@@ -260,16 +292,25 @@
                       (cw "~%Stubs: ~x0~%" (len stubs))
                       (cw "Stubs by source file:~%")
                       (probe-print-groups groups)
+                      (cw "~%Relations emitted without some rules (per-rule stubs): ~x0, rules dropped: ~x1~%"
+                          (len (cx-get :partial cx)) (probe-partial-dropped (cx-get :partial cx)))
+                      (probe-print-partial (cx-get :partial cx))
+                      (cw "~%Relation groups where no mode compiles every rule: ~x0~%" (len (cx-get :attempt-log cx)))
+                      (cw "  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):~%")
+                      (probe-print-lines (cx-get :attempt-log cx))
                       (cw "~%Logged errors: ~x0, in ~x1 functions~%" (len errs) (len (probe-tally (probe-err-fns errs) nil)))
                       (cw "Errors by kind:~%")
                       (probe-print-tally-sorted (probe-tally (probe-err-kinds errs) nil))
                       (cw "~%Rules dropped from split variants (all attempts, including discarded ones): ~x0~%" (len incomplete))
                       (probe-print-groups (probe-group (probe-rule-pairs incomplete) nil))
-                      (cw "PROBE-REPORT-END~%"))
+                      (cw "PROBE-REPORT-END~%")
+                      (cw "PROBE-RULES-BEGIN~%")
+                      (probe-print-rule-errs (probe-rule-errs errs nil))
+                      (cw "PROBE-RULES-END~%"))
                      (write-file errors-file
                                  (list "; Every error logged by translator phase 1 (make probe)."
-                                       "; (function kind detail); see the probe report for counts.")
-                                 (list errs) state))))))))))))
+                                       "; One per line: (function kind detail [:rule \"Rel/id\" :pos k] [:mode m]).")
+                                 errs state))))))))))))
 
 (mv-let (erp state)
   (probe-run (@ acl2::probe-il) (@ acl2::probe-config) (@ acl2::probe-names)

@@ -112,6 +112,15 @@
         ((endp (cdr l)) (car l))
         (t (concatenate 'string (car l) " " (join-words (cdr l))))))
 
+(defun partial-strings (ps)
+  ;; ("Rel" total (dropped ...) mode) -> "Rel (mode) k/total: dropped ..."
+  (if (endp ps) nil
+    (let ((p (car ps)))
+      (cons (concatenate (quote string) (first p) " (" (string-downcase (symbol-name (fourth p))) ") "
+                         (nat-str (- (second p) (len (third p))))
+                         "/" (nat-str (second p)) ": " (join-words (third p)))
+            (partial-strings (cdr ps))))))
+
 ; --- Phase 1 -----------------------------------------------------------
 
 (defun config-entries (config kind)
@@ -225,6 +234,7 @@
                                                   :skipped skipped
                                                   :stubs (reverse (cx-get :stubs cx))
                                                   :incomplete (reverse (cx-get :incomplete cx))
+                                                  :partial (cx-get :partial cx)
                                                   :errs (reverse (cx-get :errs cx))
                                                   :config config)
                                             state)))
@@ -267,6 +277,7 @@
          (skipped (cadr (member :skipped g)))
          (stubs (cadr (member :stubs g)))
          (incomplete (cadr (member :incomplete g)))
+         (partial (cadr (member :partial g)))
          (config (cadr (member :config g)))
          (header
           (append
@@ -285,6 +296,11 @@
            (comment-lines ";   " (config-strings config))
            (list ";" "; Stubs (an unsupported construct; body signals an error):")
            (comment-lines ";   " stubs)
+           (if partial
+               (append (list ";" "; Rules not translated (each relation is emitted without them; sound"
+                             "; but incomplete), as relation translated/total: dropped rules:")
+                       (comment-lines ";   " (partial-strings partial)))
+             nil)
            (list ";" "; Rules dropped from the R/SPLIT variants of multi-mode relations (their"
                  "; output is not computable from the inputs; the R check variants keep them):")
            (comment-lines ";   " incomplete)

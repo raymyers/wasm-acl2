@@ -24,16 +24,20 @@ Update this block at the end of every session, in the same commit as the work.
 A new session starts here.
 
 - **Last updated**: 2026-11-14
-- **Milestones**: P0 ✅ (probe as `make probe`, G7 fixed, wide grammar
-  literals accepted). P1-P7 not started
-- **Next action**: P1, first item (every logged error carries relation, rule
-  id and attempted mode). P2 can start in parallel (it depends only on P0)
+- **Milestones**: P0 ✅, P1 ✅ (errors carry rule and mode; per-rule stubs;
+  per-rule gap list; typing root causes). P2-P7 not started
+- **Next action**: P2, first item (spec target as a parameter). P4 needs the
+  mode table design first (a Fable session, see below)
 - **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
   files in `translate/tests/spec/`, `flake.nix` and the `spec`/`spec-data`
   targets in `translate/Makefile` are uncommitted; P5 picks them up)
-- **Decisions D1-D6**: none confirmed by the user yet; §4 holds recommendations only
+- **Decisions D1-D6**: none confirmed by the user yet; §4 holds recommendations only.
+  P1 decided (translator-internal, reversible): per-rule stubs keep the `:fun`
+  interface when it can be saved; modes are P4's
 - **Blocked on**: nothing
-- **Next Fable session needed for**: after P1, the typing triage and the mode table design (model-choice items 1 and 2)
+- **Next Fable session needed for**: now that P1 is done, the typing triage
+  (input: [P1-typing-root-causes](notes/P1-typing-root-causes.md), incl. whether
+  `Heaptype_sub/trans` can be dropped) and the mode table design (model-choice items 1 and 2)
 
 ### Where things are written down
 
@@ -135,13 +139,15 @@ counts overstate the number of distinct problems.
 | G5 | **Disjunction whose branches bind a variable differently** | 3 sites in `Instr_ok` (`t' = numtype \/ t' = vectype`, `select`) | "disjuncts bind different variables" | Treat as a membership test after `t'` is bound, or enumerate branches |
 | G6 | **Text grammar**: `text` terminals, character-code literals above `0xFF`, `alt` | 736 sites, 67 grammars | "grammar symbol"; the schema also rejects `(num 0xD7FF)` because `hexbyte-p` wants exactly two digits | Only if the text format is in scope (D3). The schema fix is needed regardless, or the `6.*` files must be left out |
 | G7 | **Relation with zero rules and an empty tuple** (`NotationTypingPremisedots`) | 1 (in `X.2`) | Translator **crashes** with stack exhaustion | Exclude `X.*` from the input, and make the compiler fail cleanly on this shape |
+| G8 | **Existentially quantified index** (found in P1): a variable bound only by `i < \|l\|`, used as `l[i]` (`Deftype_sub/super`, `Heaptype_sub/rec-sub`; `ImmutReachable` in `7.*`) | 2 rules in `0.*`-`5.*`, 3 in `7.*` | "condition with unbound variables" | Bounded existential search over `0..\|l\|-1`. See [P1-typing-root-causes](notes/P1-typing-root-causes.md) |
+| G9 | **Binding order inside a list pattern** (found in P1; mechanism probable): `CONST $lunpack(Lnn) c_1` is matched before the later element `VSPLAT (Lnn X M)` binds `Lnn` | 2 rules (`Step_pure/vsplat`, `vreplace_lane`) | "unbound variable" | Defer call patterns inside list patterns, as `cpat-args-defer` does for arguments |
 
 ### 2.2 Soft gaps (supported in 1.0, but the mechanism does not stretch)
 
 | # | Area | What 3.0 does | Why today's mechanism falls short |
 |---|---|---|---|
 | S1 | **Inverse functions** | 16 `hint(inverse)` pairs; `Step_read` load rules solve `$nbytes_(nt, c) = bytes`, `$vbytes_`, `$zbytes_`, `$concatn_`, and SIMD rules solve `N = $jsize(Jnn)` for `Jnn` and `$ibits_(32, c) = ...` for `c` | `--ast` drops hints, so pairs are copied by hand into the config (5 today). Two inverses are also *used directly* in the spec (`$inv_lanes_`, `$inv_concat_`) and are builtins. Inverses of non-builtins (`$isize`, `$jsize`: finite functions) must be generated, not hand-written |
-| S2 | **Mode inference for relations** | 125 relations; many `... : OK` judgements with extra index arguments (`C \|- subtype : OK(x, i)`), existential intermediates (`Heaptype_sub/trans`), premises that look up `C.TYPES[typeidx]` with the index bound late | See W1. Root causes inside the type-validation and subtyping groups are **not yet isolated**: the log reports the `:fun` attempt's errors even when the real failure was in `:check` or `:multi` |
+| S2 | **Mode inference for relations** | 125 relations; `: OK` and `<:` judgements whose last component is the subject, not an output | **Root causes isolated in P1** ([P1-typing-root-causes](notes/P1-typing-root-causes.md)): mode selection, not missing constructs. Failing rules for `:fun` / `:check` / `:multi`: type group 22 / 9 / **2** (both G8), `Instr_ok` 15 / 9 / **3** (all G5). An all-`:check` assignment is never tried. Some rules compile and are still incomplete: `Heaptype_sub/trans` picks a single witness `ht'` from `Heaptype_ok`'s split variant |
 | S3 | **Instruction typing** | 110 rules. New stack-polymorphic rules (`return_call*`, `throw`, `throw_ref`), subsumption through `Instrtype_sub`, local-initialization tracking in the instruction type (`t_1* ->_(x*) t_2*`) | The `R` / `R/SPLIT` multi-mode trick assumed the last component splits as `c(a, b)`. With the `x*` component and subtyping it needs re-validation. In the probe's attempt 14 `Instr_ok` rules were dropped from the split variant, including non-polymorphic ones (`array.new_data`, `extern.convert_any`) |
 | S4 | **`Module_ok`** | Different shape from 1.0: tags, recursive types, staged contexts `C'`, `Globals_ok`/`Types_ok` as separate relations | The 75-line hand-written `:rel-override` is 1.0-specific and must be redone. Since 3.0 sequentializes more, check first whether generic modes now cover it |
 | S5 | **Equations defining a result arithmetically** | `$utf8single` (the 1.0 `$utf8` problem, renamed) | Config `:def` override + hand-written inverse. Carry over |
@@ -171,8 +177,8 @@ Weaknesses in how the pipeline is built, independent of any single construct.
 | # | Weakness | Evidence | Consequence for 3.0 |
 |---|---|---|---|
 | W1 | **Modes are guessed, three shots per `rec` group** (`:fun` = last component is the output, then `:check` for members that failed, then `:multi` for the whole group). There is no per-relation mode table and no way to state a mode | `crel-form-1` | In the 19-relation type group one unresolvable member stubs every member that failed the `:fun` shot, which is every `: OK` judgement. No relation can have two outputs (G2) |
-| W2 | **Stub granularity is the whole relation** (or `rec` member) | 3 `Step*` stubs for roughly 10 failing rules out of 218 | Cannot report "N of M rules translated", cannot run a partial semantics, cannot bring up features one proposal at a time |
-| W3 | **Misleading diagnostics**: after all modes fail, the log holds the `:fun` attempt's errors; errors carry the function name but not the rule id | The 3.0 log blames `Valtype_ok` for "unbound variable numtype", a `:fun`-mode artifact | Root-causing S2 from the log is guesswork. This is the first thing to fix |
+| W2 | **Stub granularity is the whole relation** (or `rec` member). *Fixed for relations in P1* | 3 `Step*` stubs for roughly 10 failing rules out of 218 | Cannot report "N of M rules translated", cannot run a partial semantics, cannot bring up features one proposal at a time |
+| W3 | **Misleading diagnostics** (*fixed in P1*): after all modes fail, the log holds the `:fun` attempt's errors; errors carry the function name but not the rule id | The 3.0 log blames `Valtype_ok` for "unbound variable numtype", a `:fun`-mode artifact | Root-causing S2 from the log is guesswork. This is the first thing to fix |
 | W4 | **Single-spec hard-coding**: `il/wasm-1.0.il.sexp`, `gen/wasm1.lisp`, package `W1T`, flake outputs `wasm1-il` / `wasm1-spec-tests`, header text, the count `318` in `t1-il` | `run.lsp`, `emit.lisp`, `Makefile`, `flake.nix` | No second target without copying the tree. The spec file list is a glob over one directory, with no way to leave out `X.*`, `6.*`, `7.*` |
 | W5 | **Config references are unchecked and version-specific** | Running with the 1.0 config on 3.0 raised no complaint, although `$utf8`, the `Module_ok` override and the patch target do not apply | A stale or misspelled entry silently does nothing. Entries must fail when their target is missing, and config must be per spec version |
 | W6 | **Hints are lost at the hand-off** (`backend-ast/print.ml` ignores `HintD` and case/field hints) | `hint(inverse)`, `hint(builtin)`, `hint(partial)` | Hand-copied inverse table (5 → 16+ pairs), and no way to tell `hint(builtin)` from "declared, defined nowhere" (S7) |
@@ -226,22 +232,34 @@ It found one miscount (3.0 has 37 files, not 39). 1.0 `make check` passes
 byte-identically.
 **Notes**: probe output per spec version stored under `notes/data/`, and re-stored after every later milestone that changes it.
 
-### P1: Diagnostics and granularity (W2, W3)
-- [ ] Every logged error carries relation, rule id and attempted mode
-- [ ] On total failure, report the errors of the attempt that got furthest
-      (fewest failing rules), not always `:fun`
-- [ ] Per-rule stubs: a rule that does not compile is dropped and listed; the
+### P1: Diagnostics and granularity (W2, W3) ✅ (2026-11-14, [P1-gap-list](notes/P1-gap-list.md), [P1-typing-root-causes](notes/P1-typing-root-causes.md))
+- [x] Every logged error carries relation, rule id and attempted mode.
+      *Done: `(fn what x :rule "Rel/id" :pos k :mode m)`; `:pos` because rule
+      ids need not be unique*
+- [x] On total failure, report the errors of the attempt that got furthest
+      (fewest failing rules), not always `:fun`. *Done; the probe also prints
+      every group's scores per attempt*
+- [x] Per-rule stubs: a rule that does not compile is dropped and listed; the
       relation is still emitted. The generated header and the probe report
-      "rules translated / rules total" per relation
-- [ ] Re-run the probe and replace the S2 row with real root causes for the
-      type-validation and subtyping groups
+      "rules translated / rules total" per relation. *Done for relations
+      (defs and grammars stay whole-unit stubs). Header and probe list the
+      partial relations only, so 1.0's header is unchanged. A relation that
+      would lose every rule stays a stub. Decision: the emitted mode is
+      `:fun` whenever dropping rules saves it, the interface the old stub
+      had, so this milestone changes granularity, not modes (P4 owns modes).
+      3.0 D3 scope: stubs 35 → 21, 14 relations emitted without 42 rules;
+      2.0: stubs 10 → 5, 5 relations without 20 rules*
+- [x] Re-run the probe and replace the S2 row with real root causes for the
+      type-validation and subtyping groups. *Done: mode selection; in
+      `:multi` only 2 type-group rules (G8, new) and 3 `Instr_ok` rules (G5)
+      fail; `Heaptype_sub/trans` compiles with a single witness (incomplete)*
 
 **Notes**: `notes/P1-gap-list.md` (the per-rule list: rule id, cause, gap id
 from §2, proposal) and `notes/P1-typing-root-causes.md`.
 
-**Exit**: a per-rule gap list for 3.0 exists, each entry with a rule id and
-one cause. 1.0 output is unchanged (it has no dropped rules outside the known
-split-variant list).
+**Exit** ✅: a per-rule gap list for 3.0 exists, each entry with a rule id
+and one cause (14 rules in the best attempt, D3 scope, plus 16 defs). 1.0
+output is unchanged: `make check` passes, `gen/` byte-identical.
 
 ### P2: Multi-spec plumbing (W4, W5, W7, W8, W12)
 - [ ] Spec target as a parameter: `SPEC=1.0|2.0|3.0` selects the source file
@@ -356,11 +374,13 @@ P5, P6 need only P2 and can run alongside P3/P4.
   schema need no redesign.
 - Syntax recognizers, plain defs and the binary grammar are close: no stubs
   among the 208 types or the 90 binary grammars, and 16 stubs among 462 defs.
-- Execution is closer than typing: about 10 of 218 reduction rules fail, from
-  S1, G3 or G4.
-- Typing is the open question: 16 of the 41 non-text stubs are type
-  validation, subtyping or instruction typing, and their causes are not yet
-  isolated (P1).
+- Execution is closer than typing: 10 of 218 reduction rules fail in `:fun`
+  (measured in P1): S1 inverses 6, G9 2, G3 1, G4 1. Since P1 the rest of
+  `Step`, `Step_read`, `Step_pure` is emitted.
+- Typing is mostly a mode problem (P1): in `:multi` the type-validation and
+  subtyping group fails 2 rules (G8) and instruction typing 3 (G5). The
+  risk moves from "does it compile" to "is it complete": `Heaptype_sub/trans`
+  compiles with a single witness.
 
 ---
 

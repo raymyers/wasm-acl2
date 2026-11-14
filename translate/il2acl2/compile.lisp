@@ -20,8 +20,16 @@
 (defun cx-get (k cx) (cdr (assoc-eq k cx)))
 (defun cx-put (k v cx) (put-assoc-eq k v cx))
 
+; An error is (fn what x . context): fn the function being compiled; inside a
+; relation rule the context is (:rule "Rel/id" :pos k :mode m), k the rule's
+; position in the relation (ids need not be unique), m the attempted mode.
 (defun cx-err (what x cx)
-  (cx-put :errs (cons (list (cx-get :fn cx) what x) (cx-get :errs cx)) cx))
+  (cx-put :errs (cons (append (list (cx-get :fn cx) what x)
+                              (and (cx-get :err-rule cx)
+                                   (list :rule (cx-get :err-rule cx) :pos (cx-get :err-pos cx)))
+                              (and (cx-get :err-mode cx) (list :mode (cx-get :err-mode cx))))
+                      (cx-get :errs cx))
+          cx))
 
 (defun gsym (name) (cons :%w1t-sym name))
 (defun gsym-p (x) (and (consp x) (eq (car x) :%w1t-sym)))
@@ -1559,17 +1567,25 @@
   ;; in :split mode a rule whose output cannot be computed (e.g. unreachable:
   ;; t_1* -> t_2*) is dropped and recorded in :incomplete; the :check variant
   ;; keeps it
-  (if (endp rs) (mv nil cx)
-    (let ((errs0 (cx-get :errs cx)) (aux0 (cx-get :aux cx)))
-      (mv-let (c cx) (crule (car rs) mode formals rel cx)
-        (let* ((dropped (and (eq mode :split) (not (equal (len (cx-get :errs cx)) (len errs0)))))
+  ;;
+  ;; Rules are numbered from 0 in :err-pos (error context); a rule whose
+  ;; ("Rel/id" . pos) is in :drop-rules is skipped (per-rule stubs, crel-partial).
+  (if (endp rs) (mv nil (cx-put :err-rule nil cx))
+    (let* ((pos (or (cx-get :err-pos cx) 0))
+           (rid (concatenate (quote string) rel "/" (second (car rs))))
+           (skip (member-equal (cons rid pos) (cx-get :drop-rules cx)))
+           (cx (cx-put :err-rule rid cx))
+           (errs0 (cx-get :errs cx)) (aux0 (cx-get :aux cx)))
+      (mv-let (c cx) (if skip (mv nil cx) (crule (car rs) mode formals rel cx))
+        (let* ((cx (cx-put :err-pos (1+ pos) cx))
+               (dropped (and (not skip) (eq mode :split) (not (equal (len (cx-get :errs cx)) (len errs0)))))
                (cx (if dropped
                        (cx-put :incomplete (cons (concatenate 'string rel "/" (second (car rs)))
                                                  (cx-get :incomplete cx))
                                (cx-put :aux aux0 (cx-put :errs errs0 cx)))
                      cx)))
           (mv-let (rest cx) (crules (cdr rs) mode formals rel cx)
-            (mv (if dropped rest (cons c rest)) cx)))))))
+            (mv (if (or skip dropped) rest (cons c rest)) cx)))))))
 
 (defun chain-results (cs)
   ;; first non-nil of the rule results, still wrapped: (list output) or nil,
@@ -1589,7 +1605,7 @@
          (mv-let (sa sb) (split-last comps) (declare (ignore sb)) (and sa t)))))
 
 ; (mv defuns cx) for one relation in the given mode
-(defun crel-1 (x mode cx)
+(defun crel-1-body (x mode cx)
   (mv-let (n rules) (rel-parts x)
     (let* ((name (if (eq mode :split) (split-name (second x) cx) (fn-sym :rel (second x) cx)))
            (cx (cx-put :fn (cdr name) cx)) (cx (cx-put :n 0 cx)) (cx (cx-put :aux nil cx))
@@ -1628,6 +1644,12 @@
                                                       body)
                                   (mk-defun name formals body))))
                   cx)))))))))
+
+(defun crel-1 (x mode cx)
+  ;; errors logged while compiling carry the attempted mode
+  (mv-let (ds cx)
+    (crel-1-body x mode (cx-put :err-pos 0 (cx-put :err-rule nil (cx-put :err-mode mode cx))))
+    (mv ds (cx-put :err-pos nil (cx-put :err-rule nil (cx-put :err-mode nil cx))))))
 
 (defun crel (x mode cx)
   (if (eq mode :multi)
@@ -1705,6 +1727,143 @@
         ((and (is x "RULE") (stringp (second x)) (eq (mode-of (second x) cx) :multi)) t)
         (t (or (calls-multi (car x) cx) (calls-multi (cdr x) cx)))))
 
+; --- Per-rule stubs (wasm3 prep P1) -----------------------------------
+;
+; When no mode compiles every rule of a relation group, the attempt with the
+; fewest failing rules wins: its failing rules are dropped (:drop-rules) and
+; the group is compiled again in that attempt's modes. Dropping a rule is
+; sound (every result still has a derivation) but incomplete; the dropped
+; rules are listed in :partial and in the generated header. Errors that no
+; rule carries (relation-level) cannot be dropped: such members, or a group
+; that still fails, are stubbed as before.
+
+(defun new-errs (errs errs0) (take (- (len errs) (len errs0)) errs))
+
+(defun err-rule-keys (errs acc)
+  ;; distinct ("Rel/id" . pos) of the errors that carry a rule
+  (if (endp errs) acc
+    (let* ((ctx (cdddr (car errs))) (r (member :rule ctx)))
+      (err-rule-keys (cdr errs)
+                     (if r
+                         (let ((k (cons (cadr r) (cadr (member :pos ctx)))))
+                           (if (member-equal k acc) acc (append acc (list k))))
+                       acc)))))
+
+(defun count-unattributed (errs)
+  (cond ((endp errs) 0)
+        ((member :rule (cdddr (car errs))) (count-unattributed (cdr errs)))
+        (t (1+ (count-unattributed (cdr errs))))))
+
+(defun attempt-score (errs)
+  ;; failing rules, with relation-level errors counted as unrecoverable
+  (+ (len (err-rule-keys errs nil)) (* 100000 (count-unattributed errs))))
+
+(defun attempt-scores (attempts)
+  ;; (failing-rules . unattributed-errors) per attempt
+  (if (endp attempts) nil
+    (cons (cons (len (err-rule-keys (car (car attempts)) nil)) (count-unattributed (car (car attempts))))
+          (attempt-scores (cdr attempts)))))
+
+(defun best-attempt (attempts best)
+  ;; attempts: list of (new-errs . modes); earliest wins a tie
+  (cond ((endp attempts) best)
+        ((or (null best) (< (attempt-score (car (car attempts))) (attempt-score (car best))))
+         (best-attempt (cdr attempts) (car attempts)))
+        (t (best-attempt (cdr attempts) best))))
+
+(defun keys-of-rel (keys rel)
+  ;; rule ids of the keys that belong to relation rel
+  (cond ((endp keys) nil)
+        ((let ((s (car (car keys))))
+           (and (< (length rel) (length s))
+                (equal (subseq s 0 (1+ (length rel))) (concatenate 'string rel "/"))))
+         (cons (car (car keys)) (keys-of-rel (cdr keys) rel)))
+        (t (keys-of-rel (cdr keys) rel))))
+
+(defun partial-entries (xs keys modes)
+  ;; (("Rel" total (dropped "Rel/id" ...) mode) ...) for members that keep
+  ;; some rules; a member that would lose every rule is stubbed instead
+  (if (endp xs) nil
+    (let ((d (keys-of-rel keys (second (car xs)))))
+      (mv-let (n rules) (rel-parts (car xs))
+        (declare (ignore n))
+        (if (and d (< (len d) (len rules)))
+            (cons (list (second (car xs)) (len rules) d
+                        (cdr (cdr (assoc-equal (second (car xs)) modes))))
+                  (partial-entries (cdr xs) keys modes))
+          (partial-entries (cdr xs) keys modes))))))
+
+(defun fully-dropped (xs keys)
+  ;; ids of the members whose every rule is dropped
+  (if (endp xs) nil
+    (let ((d (keys-of-rel keys (second (car xs)))))
+      (mv-let (n rules) (rel-parts (car xs))
+        (declare (ignore n))
+        (if (and d (>= (len d) (len rules)))
+            (cons (second (car xs)) (fully-dropped (cdr xs) keys))
+          (fully-dropped (cdr xs) keys))))))
+
+(defun rel-fn-names (ids cx)
+  ;; main and split function names of relations ids
+  (if (endp ids) nil
+    (list* (tbl-name :rel (car ids) cx) (cdr (split-name (car ids) cx))
+           (rel-fn-names (cdr ids) cx))))
+
+(defun stub-named-defuns (ds names)
+  ;; replace each defun named in names by a stub with the same formals
+  (cond ((endp ds) nil)
+        ((and (consp (car ds)) (eq (car (car ds)) 'defun) (member-equal (cdr (second (car ds))) names))
+         (cons (stub-defun (second (car ds)) (third (car ds))) (stub-named-defuns (cdr ds) names)))
+        (t (cons (car ds) (stub-named-defuns (cdr ds) names)))))
+
+(defun salvageable (attempt)
+  ;; some rule fails, and every error belongs to a rule (so dropping helps)
+  (and (err-rule-keys (car attempt) nil) (equal (count-unattributed (car attempt)) 0)))
+
+(defun attempt-index (a attempts) (- (len attempts) (len (member-equal a attempts))))
+
+; (mv defuns cx). ds/bad/errs1: the :fun attempt; attempts: (new-errs . modes)
+; for :fun, :check, :multi.
+;  - reported: the errors of the attempt with the fewest failing rules (the
+;    one that got furthest), plus those of the emitted attempt if different;
+;    every error carries its :mode
+;  - emitted: the :fun attempt when dropping rules saves it (the interface the
+;    old whole-relation stub had: per-rule stubs change granularity, not
+;    modes), else the best salvageable attempt. Choosing better modes is the
+;    mode table's job (wasm3 prep P4)
+(defun crel-partial (xs ds bad errs0 errs1 attempts cx)
+  (let* ((best (best-attempt attempts nil))
+         (emit (cond ((salvageable (car attempts)) (car attempts))
+                     ((salvageable best) best)
+                     (t nil)))
+         (keys (and emit (err-rule-keys (car emit) nil)))
+         (reported (append (car best) (if (and emit (not (equal emit best))) (car emit) nil)))
+         (drop0 (cx-get :drop-rules cx))
+         (cx (cx-put :attempt-log
+                     (append (cx-get :attempt-log cx)
+                             (list (list (strip-seconds xs) (attempt-scores attempts)
+                                         :best (attempt-index best attempts)
+                                         :emitted (and emit (attempt-index emit attempts)))))
+                     cx)))
+    (mv-let (dsr badr cxr)
+      (if emit
+          (crel-members xs (cx-put :drop-rules (append keys drop0)
+                                   (cx-put :modes (cdr emit) (cx-put :errs errs0 cx))))
+        (mv nil t cx))
+      (if (null badr)
+          (let* ((cxr (cx-put :drop-rules drop0 cxr))
+                 (cxr (cx-put :errs (append reported errs0) cxr))
+                 (full (fully-dropped xs keys))
+                 (cxr (cx-put :stubs (append (cx-get :stubs cxr) (rel-mangled full cxr)) cxr)))
+            (mv (stub-named-defuns dsr (rel-fn-names full cxr))
+                (cx-put :partial (append (cx-get :partial cxr) (partial-entries xs keys (cdr emit))) cxr)))
+        ;; still failing: report the best attempt's errors, stub in :fun mode
+        (let* ((cx (cx-put :errs (if (car best) (append (car best) errs0) errs1) cx))
+               (cx (set-modes xs :fun cx))
+               (names (rel-mangled bad cx))
+               (ds (append (drop-defuns-of ds names) (rel-stubs xs bad cx))))
+          (mv ds (cx-put :stubs (append (cx-get :stubs cx) names) cx)))))))
+
 (defun crel-form-1 (x cx)
   (let* ((xs (rel-members x))
          (cx (set-modes xs :fun cx))
@@ -1721,22 +1880,26 @@
                 (if (null badm) (mv dsm cxm) (mv ds cx)))
             (mv ds cx))
         (let* ((errs1 (cx-get :errs cx))          ; errors of the :fun attempt
+               (modes1 (cx-get :modes cx))
                (cx (cx-put :errs errs0 cx))
-               (cx (set-mode-ids bad :check cx)))
+               (cx (set-mode-ids bad :check cx))
+               (modes2 (cx-get :modes cx)))
           (mv-let (ds2 bad2 cx) (crel-members xs cx)
             (if (null bad2)
                 (mv ds2 cx)
               ;; third attempt: :multi (check variant + split variant)
-              (mv-let (ds3 bad3 cx)
-                (crel-members xs (set-mode-ids (strip-seconds xs) :multi (cx-put :errs errs0 cx)))
-                (if (null bad3)
-                    (mv ds3 cx)
-                  ;; no mode works: report the :fun errors, stub in :fun mode
-                  (let* ((cx (cx-put :errs errs1 cx))
-                         (cx (set-modes xs :fun cx))
-                         (names (rel-mangled bad cx))
-                         (ds (append (drop-defuns-of ds names) (rel-stubs xs bad cx))))
-                    (mv ds (cx-put :stubs (append (cx-get :stubs cx) names) cx))))))))))))
+              (let* ((errs2 (cx-get :errs cx))
+                     (cx (set-mode-ids (strip-seconds xs) :multi (cx-put :errs errs0 cx)))
+                     (modes3 (cx-get :modes cx)))
+                (mv-let (ds3 bad3 cx) (crel-members xs cx)
+                  (if (null bad3)
+                      (mv ds3 cx)
+                    ;; no mode works for every rule: per-rule stubs
+                    (crel-partial xs ds bad errs0 errs1
+                                  (list (cons (new-errs errs1 errs0) modes1)
+                                        (cons (new-errs errs2 errs0) modes2)
+                                        (cons (new-errs (cx-get :errs cx) errs0) modes3))
+                                  cx)))))))))))
 
 ; --- Grammars (plan §2.6): binary-format parsers -----------------------
 ;
