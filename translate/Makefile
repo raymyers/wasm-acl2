@@ -8,6 +8,7 @@
 #   make gen         run the translator: il/ + il2acl2-config.lsp -> gen/
 #   make check-gen   fail unless two fresh translator runs agree with gen/
 #   make vectors     regenerate tests/sem/numeric-vectors.lsp (WASM engine oracle)
+#   make invoke-vectors  regenerate tests/sem/invoke-vectors.lsp (V8 runs the corpus exports)
 #   make test        certify the translator, gen/, rt/ and every test book
 #   make compare     T9 reports: run the WASM1 tree on the same oracle vectors
 #   make check       check-il + check-gen + test
@@ -20,7 +21,7 @@ IL   := il/wasm-1.0.il.sexp
 GEN_FILES := package.lsp portcullis.acl2 portcullis.lisp cert.acl2 wasm1.lisp
 TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 
-.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus
+.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors
 
 il:
 	$(NIX) build ..#wasm1-il --no-link --print-out-paths > .il-out
@@ -61,6 +62,10 @@ vectors:
 # Rebuild the binary corpus (wat2wasm of ../tests/oracle/*.wat) and V8 export lists.
 corpus:
 	node tests/oracle/gen-wasm-corpus.mjs
+
+# Regenerate tests/sem/invoke-vectors.lsp (V8 invokes every export of the corpus).
+invoke-vectors:
+	node tests/oracle/gen-invoke-vectors.mjs
 
 test:
 	$(CERT) --acl2 $(ACL2) -j $(JOBS) $(TEST_BOOKS)

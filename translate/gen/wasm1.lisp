@@ -61,11 +61,12 @@
 ;   INVERSE hint(inverse): SpecTec hint(inverse ...) annotations in 3-numerics.spectec; spectec --ast does not print hints. Used to solve f(a.., x) = v for x (load rules; Bname). inv_utf8 is the hand-written partner of the utf8 override.
 ;   IL-PATCH Bmodule: Bug in the SpecTec WASM 1.0 source (A-binary.spectec: `0x00 0x61 0x73 0x6D 1:Bu32`): the binary-format version is the fixed 4 bytes 0x01 0x00 0x00 0x00, not a LEB128 u32 (which encodes 1 as the single byte 0x01). Taken literally, no real .wasm file parses.
 ;   DECREASING termination order: Instruction typing recurses into sub-instructions under an EXTENDED context (block/loop/if add a label), so the size of all inputs can grow. The instruction component (index 1) decreases, or stays equal with a smaller stack (frame). Recursive premise calls are ordered lexicographically by (size of component 1, size of all inputs).
+;   MEMOIZE search memo: Performance only (memoization is semantically the identity). Instrs_ok/seq splits instr_1* instr_2* at every point and recurses on both halves, so REJECTING an ill-typed sequence explores exponentially many derivations (17 instructions: ~60 s). Memoizing the typing functions on hons-copied arguments makes the search polynomial (sub-sequences x stacks).
+;   REL-OVERRIDE Module_ok: Module_ok's context C = {TYPES ft'*, FUNCS ift* ft*, ...} contains ft*, the OUTPUT of the premises (Func_ok: C |- func : ft)*, which take C as input: a cycle no input/output mode can schedule. This override follows the rule premise by premise, calling the GENERATED relations (Type_ok, Import_ok, Global_ok, Table_ok, Mem_ok, Func_ok, Elem_ok, Data_ok, Start_ok, Export_ok, $disjoint_, $funcsxt ...). The cycle is broken with Func_ok's own output premise `C.TYPES[x] = ft`: ft is read from the type section, and every function is then CHECKED by the generated FUNC_OK against the full C.
 ;   SIZED ||BX||: The source premise `len = ||BX||` (byte length of what BX matched) elaborates to `len = 0` in the IL, which would reject every non-empty section. In these grammars the item after `len` is parsed from exactly `len` bytes instead, and the `len = 0` premise is dropped.
 ;
 ; Stubs (an unsupported construct; body signals an error):
 ;   EXTERNADDR_OK
-;   MODULE_OK
 ;
 ; Rules dropped from the R/SPLIT variants of multi-mode relations (their
 ; output is not computable from the inputs; the R check variants keep them):
@@ -73,7 +74,6 @@
 ;   Instr_ok/br
 ;   Instr_ok/br_table
 ;   Instr_ok/return
-;   Module_ok/
 ;   Externaddr_ok/global
 ;   Externaddr_ok/mem
 ;   Externaddr_ok/table
@@ -5536,6 +5536,14 @@
 (%TRY-LOGIC
  (MUTUAL-RECURSION
   (DEFUN INSTR_OK (%A0 %A1 %A2)
+    (DECLARE (IGNORABLE %A0 %A1 %A2))
+    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                   (1+ (%SIZE (LIST %A0 %A1 %A2)))
+                                   1)))
+    (INSTR_OK/%M (HONS-COPY %A0)
+                 (HONS-COPY %A1)
+                 (HONS-COPY %A2)))
+  (DEFUN INSTR_OK/%M (%A0 %A1 %A2)
    (DECLARE (IGNORABLE %A0 %A1 %A2))
    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
                                   (1+ (%SIZE (LIST %A0 %A1 %A2)))
@@ -7826,6 +7834,14 @@
     T
     NIL))
   (DEFUN INSTR_OK/SPLIT (%A0 %A1 %A2)
+    (DECLARE (IGNORABLE %A0 %A1 %A2))
+    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                   (1+ (%SIZE (LIST %A0 %A1 %A2)))
+                                   1)))
+    (INSTR_OK/SPLIT/%M (HONS-COPY %A0)
+                       (HONS-COPY %A1)
+                       (HONS-COPY %A2)))
+  (DEFUN INSTR_OK/SPLIT/%M (%A0 %A1 %A2)
    (DECLARE (IGNORABLE %A0 %A1 %A2))
    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
                                   (1+ (%SIZE (LIST %A0 %A1 %A2)))
@@ -9140,6 +9156,14 @@
                            %HI %T12 %A2 INSTR-STAR %A1 C^U %A0)))
     NIL))
   (DEFUN INSTRS_OK (%A0 %A1 %A2)
+    (DECLARE (IGNORABLE %A0 %A1 %A2))
+    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                   (1+ (%SIZE (LIST %A0 %A1 %A2)))
+                                   1)))
+    (INSTRS_OK/%M (HONS-COPY %A0)
+                  (HONS-COPY %A1)
+                  (HONS-COPY %A2)))
+  (DEFUN INSTRS_OK/%M (%A0 %A1 %A2)
    (DECLARE (IGNORABLE %A0 %A1 %A2))
    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
                                   (1+ (%SIZE (LIST %A0 %A1 %A2)))
@@ -9341,6 +9365,14 @@
                                  %LO %HI %A2 INSTR-STAR %A1 C^U %A0)))
     NIL))
   (DEFUN INSTRS_OK/SPLIT (%A0 %A1 %A2)
+    (DECLARE (IGNORABLE %A0 %A1 %A2))
+    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                   (1+ (%SIZE (LIST %A0 %A1 %A2)))
+                                   1)))
+    (INSTRS_OK/SPLIT/%M (HONS-COPY %A0)
+                        (HONS-COPY %A1)
+                        (HONS-COPY %A2)))
+  (DEFUN INSTRS_OK/SPLIT/%M (%A0 %A1 %A2)
    (DECLARE (IGNORABLE %A0 %A1 %A2))
    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
                                   (1+ (%SIZE (LIST %A0 %A1 %A2)))
@@ -9404,6 +9436,14 @@
 
 
 (%TRY-GUARDS INSTR_OK)
+
+(MEMOIZE 'INSTR_OK/%M)
+
+(MEMOIZE 'INSTR_OK/SPLIT/%M)
+
+(MEMOIZE 'INSTRS_OK/%M)
+
+(MEMOIZE 'INSTRS_OK/SPLIT/%M)
 
 (%TRY-LOGIC
      (DEFUN EXPR_OK (%A0 %A1)
@@ -9951,12 +9991,197 @@
 
 (%TRY-GUARDS EXPORT_OK)
 
+(%TRY-LOGIC (DEFUN MODULE_OK/%TYPES (TS)
+              (IF (ATOM TS)
+                  (LIST NIL)
+                (LET ((R (TYPE_OK (CAR TS)))
+                      (REST (MODULE_OK/%TYPES (CDR TS))))
+                  (AND R REST
+                       (LIST (CONS (CAR R) (CAR REST))))))))
+
+
+(%TRY-GUARDS MODULE_OK/%TYPES)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%IMPORTS (C IMS)
+              (IF (ATOM IMS)
+                  (LIST NIL)
+                (LET ((R (IMPORT_OK C (CAR IMS)))
+                      (REST (MODULE_OK/%IMPORTS C (CDR IMS))))
+                  (AND R REST
+                       (LIST (CONS (CAR R) (CAR REST))))))))
+
+
+(%TRY-GUARDS MODULE_OK/%IMPORTS)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%GLOBALS (C GS)
+              (IF (ATOM GS)
+                  (LIST NIL)
+                (LET ((R (GLOBAL_OK C (CAR GS)))
+                      (REST (MODULE_OK/%GLOBALS C (CDR GS))))
+                  (AND R REST
+                       (LIST (CONS (CAR R) (CAR REST))))))))
+
+
+(%TRY-GUARDS MODULE_OK/%GLOBALS)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%TABLES (C TS)
+              (IF (ATOM TS)
+                  (LIST NIL)
+                (LET ((R (TABLE_OK C (CAR TS)))
+                      (REST (MODULE_OK/%TABLES C (CDR TS))))
+                  (AND R REST
+                       (LIST (CONS (CAR R) (CAR REST))))))))
+
+
+(%TRY-GUARDS MODULE_OK/%TABLES)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%MEMS (C MS)
+              (IF (ATOM MS)
+                  (LIST NIL)
+                (LET ((R (MEM_OK C (CAR MS)))
+                      (REST (MODULE_OK/%MEMS C (CDR MS))))
+                  (AND R REST
+                       (LIST (CONS (CAR R) (CAR REST))))))))
+
+
+(%TRY-GUARDS MODULE_OK/%MEMS)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%FUNC-TYPES (FTS1 FS)
+              (IF (ATOM FS)
+                  (LIST NIL)
+                (LET ((X (CADR (CAR FS)))
+                      (REST (MODULE_OK/%FUNC-TYPES FTS1 (CDR FS))))
+                  (AND (NATP X)
+                       (< X (ACL2::LEN FTS1))
+                       REST
+                       (LIST (CONS (NTH X FTS1) (CAR REST))))))))
+
+
+(%TRY-GUARDS MODULE_OK/%FUNC-TYPES)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%FUNCS-OK (C FS FTS)
+              (IF (ATOM FS)
+                  T
+                (AND (EQUAL (FUNC_OK C (CAR FS))
+                            (LIST (CAR FTS)))
+                     (MODULE_OK/%FUNCS-OK C (CDR FS)
+                                          (CDR FTS))))))
+
+
+(%TRY-GUARDS MODULE_OK/%FUNCS-OK)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%ELEMS-OK (C ES)
+              (IF (ATOM ES)
+                  T
+                (AND (ELEM_OK C (CAR ES))
+                     (MODULE_OK/%ELEMS-OK C (CDR ES))))))
+
+
+(%TRY-GUARDS MODULE_OK/%ELEMS-OK)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%DATAS-OK (C DS)
+              (IF (ATOM DS)
+                  T
+                (AND (DATA_OK C (CAR DS))
+                     (MODULE_OK/%DATAS-OK C (CDR DS))))))
+
+
+(%TRY-GUARDS MODULE_OK/%DATAS-OK)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%STARTS-OK (C SS)
+              (IF (ATOM SS)
+                  T
+                (AND (START_OK C (CAR SS))
+                     (MODULE_OK/%STARTS-OK C (CDR SS))))))
+
+
+(%TRY-GUARDS MODULE_OK/%STARTS-OK)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%EXPORTS (C ES)
+              (IF (ATOM ES)
+                  (LIST NIL)
+                (LET ((R (EXPORT_OK C (CAR ES) (CADR (CAR ES))))
+                      (REST (MODULE_OK/%EXPORTS C (CDR ES))))
+                  (AND R REST
+                       (LIST (CONS (CAR R) (CAR REST))))))))
+
+
+(%TRY-GUARDS MODULE_OK/%EXPORTS)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%NAMES (ES)
+              (IF (ATOM ES)
+                  NIL
+                (CONS (CADR (CAR ES))
+                      (MODULE_OK/%NAMES (CDR ES))))))
+
+
+(%TRY-GUARDS MODULE_OK/%NAMES)
+
+(%TRY-LOGIC (DEFUN MODULE_OK/%CTX (TYPES FUNCS GLOBALS TABLES MEMS)
+              (LIST :%REC (CONS :TYPES TYPES)
+                    (CONS :FUNCS FUNCS)
+                    (CONS :GLOBALS GLOBALS)
+                    (CONS :TABLES TABLES)
+                    (CONS :MEMS MEMS)
+                    (CONS :LOCALS NIL)
+                    (CONS :LABELS NIL)
+                    (CONS :RETURN NIL))))
+
+
+(%TRY-GUARDS MODULE_OK/%CTX)
+
 (%TRY-LOGIC
-     (DEFUN MODULE_OK (%A0)
-       (DECLARE (IGNORABLE %A0))
-       (PROG2$ (ER ACL2::HARD? 'MODULE_OK
-                   "Not translated (see the stub list in the file header).")
-               NIL)))
+ (DEFUN MODULE_OK (%A0)
+  (IF (NOT (AND (CONSP %A0)
+                (EQ (CAR %A0) :MODULE)
+                (TRUE-LISTP %A0)
+                (EQUAL (ACL2::LEN %A0) 11)))
+      NIL
+    (LET* ((TYPES (NTH 1 %A0))
+           (IMPORTS (NTH 2 %A0))
+           (FUNCS (NTH 3 %A0))
+           (GLOBALS (NTH 4 %A0))
+           (TABLES (NTH 5 %A0))
+           (MEMS (NTH 6 %A0))
+           (ELEMS (NTH 7 %A0))
+           (DATAS (NTH 8 %A0))
+           (START (NTH 9 %A0))
+           (EXPORTS (NTH 10 %A0))
+           (R1 (MODULE_OK/%TYPES TYPES))
+           (FTS1 (CAR R1))
+           (R2 (AND R1
+                    (MODULE_OK/%IMPORTS (MODULE_OK/%CTX FTS1 NIL NIL NIL NIL)
+                                        IMPORTS)))
+           (IXTS (CAR R2))
+           (R3 (AND R2 (MODULE_OK/%FUNC-TYPES FTS1 FUNCS)))
+           (FTS (CAR R3))
+           (CP (MODULE_OK/%CTX FTS1 (APPEND ($FUNCSXT IXTS) FTS)
+                               ($GLOBALSXT IXTS)
+                               NIL NIL))
+           (R4 (AND R3 (MODULE_OK/%GLOBALS CP GLOBALS)))
+           (GTS (CAR R4))
+           (C0 (MODULE_OK/%CTX FTS1 (APPEND ($FUNCSXT IXTS) FTS)
+                               (APPEND ($GLOBALSXT IXTS) GTS)
+                               ($TABLESXT IXTS)
+                               ($MEMSXT IXTS)))
+           (R5 (AND R4 (MODULE_OK/%TABLES C0 TABLES)))
+           (TTS (CAR R5))
+           (R6 (AND R5 (MODULE_OK/%MEMS C0 MEMS)))
+           (MTS (CAR R6))
+           (C (MODULE_OK/%CTX FTS1 (APPEND ($FUNCSXT IXTS) FTS)
+                              (APPEND ($GLOBALSXT IXTS) GTS)
+                              (APPEND ($TABLESXT IXTS) TTS)
+                              (APPEND ($MEMSXT IXTS) MTS)))
+           (R7 (AND R6 (MODULE_OK/%EXPORTS C EXPORTS)))
+           (XTS (CAR R7)))
+      (AND R7 (MODULE_OK/%FUNCS-OK C FUNCS FTS)
+           (MODULE_OK/%ELEMS-OK C ELEMS)
+           (MODULE_OK/%DATAS-OK C DATAS)
+           (MODULE_OK/%STARTS-OK C START)
+           (<= (ACL2::LEN TTS) 1)
+           (<= (ACL2::LEN MTS) 1)
+           ($DISJOINT_ (MODULE_OK/%NAMES EXPORTS))
+           (LIST (LIST :%->% IXTS XTS)))))))
 
 
 (%TRY-GUARDS MODULE_OK)

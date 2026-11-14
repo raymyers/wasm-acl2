@@ -388,22 +388,32 @@ since `NOP ~> ε` has an empty output. Note: `:program` code runs without
 safety checks, so feeding it an ill-formed configuration (e.g. a module
 instance with no memory address) can crash SBCL instead of failing cleanly.
 
-### T5: Module instantiation and invocation (`gen/module.lisp`)
-- [ ] `9-module.spectec`: alloc*, instantiate, invoke (5 rules plus defs)
-- [ ] A test harness that builds IL-encoded modules from the existing
-      `tests/oracle/*.wat` corpus. The *inputs* are shared; no WASM1 code is used
-- [ ] Results checked against Node.js, as the existing oracle does
+### T5: Module instantiation and invocation (`gen/wasm1.lisp`) ✅ (2026-11-14)
+- [x] `9-module.spectec`: alloc*, instantiate, invoke (5 rules plus defs), all
+      generated; `$instantiate`'s `Module_ok` premise is the T6 override below
+- [x] A test harness over the existing `tests/oracle/*.wat` corpus. The *inputs*
+      are shared; no WASM1 code is used. Modules come in as `.wasm` bytes
+      (`make corpus`) and are decoded by the generated `GRAM/BMODULE` (T7), so
+      no JS is involved on the ACL2 side
+- [x] Results checked against Node.js: `make invoke-vectors`
+      (`tests/oracle/gen-invoke-vectors.mjs`) has V8 invoke every exported
+      function on deterministic argument sets and records results, traps and NaNs
 
 **Exit**: the oracle `.wat` programs run through instantiate + invoke and agree with Node.
 
-**Status (2026-11-13): blocked on T6.** `$invoke` and the alloc/init defs
-translate (except `$allocmodule`), and T4 already runs calls through a
-hand-built store. But `$instantiate` has the premise
-`Module_ok: |- module : xt_I* -> xt_E*`, where the module type is an *output*,
-so T5 cannot be completed as specified until `Module_ok` exists in an
-inference mode (T6).
+**Result**: `tests/sem/t5-invoke.lisp`: **515/515** vectors agree with V8, and
+**13/13** corpus modules instantiate. The path is `.wasm` bytes →
+`GRAM/BMODULE` → `$instantiate` (`Module_ok` validation, allocation, data/elem
+init, start) → `STEPS` → `$invoke` + `STEPS`, covering traps (div by zero,
+out-of-bounds loads at the memory edge, `call_indirect` type mismatch and
+undefined element), NaN results and packed memory access. Three loop programs
+(`djb2`, `sum_array`, `is_prime`) get explicit argument sets in the
+generator. The generic ones would ask for ~2^16 iterations (e.g.
+`djb2(0, 2^32-1)` traps only at the end of memory), which exceeds the 10^6-step
+fuel, and each step is O(memory) because memory is a byte list. The slowest
+vector (40 iterations with loads) takes ~8 s; the whole book ~26 s.
 
-### T6: Typing (`gen/wasm1.lisp`) 🔶 Partial (instruction typing done; `Module_ok` blocked)
+### T6: Typing (`gen/wasm1.lisp`) ✅ exit met (2026-11-14; `Externaddr_ok` still a stub)
 - [~] All 76 typing rules as checkers or output-mode functions (§2.5).
       Every typing relation translates except `Module_ok` and
       `Externaddr_ok`. Instruction typing uses option 2 below, now
@@ -424,7 +434,31 @@ inference mode (T6).
       `Func_ok` on factorial plus an ill-typed variant. The typing clique (15 functions) is
       still `:program`: termination of its list-split searches needs more
       measure work
-- [ ] `Module_ok` on the oracle corpus: blocked by the context cycle below
+- [x] `Module_ok` on the oracle corpus, via config `:rel-override` (the
+      context cycle below). The override follows the rule premise by premise
+      and calls only generated relations (`Type_ok`, `Import_ok`, `Global_ok`,
+      `Func_ok`, `Table_ok`, `Mem_ok`, `Elem_ok`, `Data_ok`, `Start_ok`,
+      `Export_ok`, `$funcsxt`..., `$disjoint_`). The cycle is broken with
+      `Func_ok`'s own premise `C.TYPES[x] = ft`: `C.TYPES = ft'*` does not depend
+      on `ft*`, so `ft*` is read from the type section and every function is
+      then *checked* by the generated `FUNC_OK` against the full `C`. That is
+      the rule's unique solution. `tests/sem/t6-module.lisp`: all 13 corpus modules
+      validate (one external type per export, exact type for `hash.wasm`), and
+      14 ill-typed variants are rejected: result type mismatch, local and type index
+      out of range, wrong function type, alignment too large, two memories,
+      memory over 2^16 pages, load/data without memory, duplicate export names,
+      export index out of range, non-i32 and non-constant data offsets, start
+      function of the wrong type
+- [x] Rejection is polynomial: `Instrs_ok/seq` splits a sequence at every point
+      and recurses on both halves, so rejecting ill-typed code explored
+      exponentially many derivations (17 instructions: 63 s; a 20-instruction
+      loop body with a bad alignment did not finish). The translator now
+      supports config `:memoize` (performance only; memoization is semantically
+      the identity). A memoized relation `R` becomes an entry that `hons-copy`s
+      its arguments and calls the memoized body `R/%M`. The copy is needed
+      because memo tables key unnormed conses by address, and the split
+      searches build sub-lists with `TAKE` (before: 0 hits in 70K calls).
+      With `Instr_ok`/`Instrs_ok` memoized, 60 instructions take 0.1 s and 200 take 11 s
 
 **Exit**: every oracle module validates, and the deliberately ill-typed
 negative tests are rejected.
@@ -458,8 +492,9 @@ insight that `Func_ok`'s output `C.TYPES[x]` depends only on `C.TYPES`, i.e.
 partial evaluation or laziness, not a mode. SpecTec does not derive one
 either: the AL (`--print-al`, Strategy B) calls `$Module_ok` as an opaque
 function, and SpecTec's interpreter backend validates with the hand-written
-OCaml reference validator. Options, none taken yet (each is a decision for
-the project, not a mechanical next step):
+OCaml reference validator. Options considered (taken: 2 for instruction typing;
+for `Module_ok`, a counted `:rel-override` that keeps the rule's premises and
+breaks the cycle via `C.TYPES[x] = ft`, see the checked item above):
 1. Hand-write `Instr_ok`/`Instrs_ok` as a config override, i.e. a validation
    algorithm proved equivalent to the rules later. Large, and against the
    "only builtins are hand-written" rule.
@@ -480,11 +515,11 @@ the project, not a mechanical next step):
       `Bsection_`) are inlined at each use. Needed one more generic feature,
       list-iterated premises with outputs (which also un-stubbed `Elem_ok`
       and `$instantiate`'s own body)
-- [ ] `.wasm` bytes → `PARSE-MODULE` → instantiate → invoke, with no JS
-      involved. Parsing is done (`GRAM/BMODULE`); instantiate is blocked on
-      `Module_ok` (T6)
+- [x] `.wasm` bytes → `PARSE-MODULE` → instantiate → invoke, with no JS
+      involved: done by T5 (`tests/sem/t5-invoke.lisp`, 515/515 vectors)
 - [ ] Run a subset of `spectec/test-interpreter/spec-test-1` (the WASM 1.0 `.wast` suite).
-      Blocked on instantiate as well
+      Unblocked since T5. Needs a `.wast` driver (module definitions,
+      `assert_return`/`assert_trap`, registered imports, so `Externaddr_ok` too)
 
 **Exit**: N of M spec-test-1 assertions pass (record N/M).
 
@@ -506,9 +541,12 @@ faithfully:
 ### T8: Logic mode, guards, reasoning 🔶 Partial
 - [x] Move generated functions from `:program` to logic mode: **all 462** of
       the execution, numerics, parsers and module functions. With the T6
-      multi-mode typing functions the total is 474: 459 in logic mode, and
-      the 15 of the instruction-typing clique stay `:program` (their split
-      searches inside the multi-mode clique need further measure work).
+      multi-mode typing functions and the `Module_ok` override the total is
+      491 (2026-11-14): 466 in logic mode and 25 `:program`. The 25 are the
+      instruction-typing clique (13 incl. the `:memoize` entries; its split
+      searches need further measure work) and its callers (`Expr_ok`,
+      `Expr_ok_const`, `Func_ok`, `Global_ok`, `Elem_ok`, `Data_ok`, the 5
+      `Module_ok` override functions, `$instantiate`).
       Termination comes from generic translator mechanisms (no config
       measures): (1) `mutual-recursion` holds only the functions that really
       recurse (aux functions that never call back are emitted first);
@@ -547,7 +585,7 @@ stuck, and the opening lemmas of the generated fuel loop.
       semantics and diff the results. *Numeric level done*
       (`compare/c1-numerics-diff.lisp`, `make -C translate compare`): WASM1
       runs the same 8015 V8 vectors as single-instruction programs. The
-      module-level corpus waits on T5
+      module-level corpus is unblocked: T5 runs `invoke-vectors.lsp` on W1T
 - [~] **Equivalence theorems** for numerics, e.g.
       `(equal (W1T::$IADD_ 32 a b) (WASM::...i32.add... a b))`, plus the
       float ops, modulo the encoding map between the two float representations.
@@ -559,14 +597,15 @@ stuck, and the opening lemmas of the generated fuel loop.
 
 | Metric | WASM1 (agentic) | W1T (translated) |
 |---|---|---|
-| Hand-written ACL2 lines | ~4,300 (`execution.lisp` 3717 + `validation.lisp` 594) | 390 (`rt/builtins.lisp` 299 + `rt/prelude.lisp` 91) + 16-line config |
-| Translator lines | n/a | ~2,550 (`il2acl2/`), WASM-agnostic |
+| Hand-written ACL2 lines | ~4,300 (`execution.lisp` 3717 + `validation.lisp` 594) | 502 (`rt/builtins.lisp` 319 + `rt/prelude.lisp` 183) + 110-line config (of which ~75 are the `Module_ok` override) |
+| Translator lines | n/a | ~3,200 (`il2acl2/`), WASM-agnostic |
 | Generated lines | 0 | 10,396 (`gen/wasm1.lisp`, 310 events) |
-| Config overrides | n/a | 7 (`$utf8`, `ctxt-instrs` split, `hint(inverse)` pairs, `:il-patch` version bug, `:sized` section lengths, `:decreasing` typing order) |
+| Config overrides | n/a | 9 (`$utf8`, `ctxt-instrs` split, `hint(inverse)` pairs, `:il-patch` version bug, `:sized` section lengths, `:decreasing` typing order, `:rel-override` `Module_ok` (context cycle), `:memoize` typing search (performance only)) |
 | Execution rules covered | 170/170 instructions | all 58 reduction rules (Step_pure/read/Step) |
-| Validation | hand-written type checker | generated: all typing relations except `Module_ok`, `Externaddr_ok`; instruction typing via multi-mode (sound, incomplete only for mid-sequence dead code) |
+| Validation | hand-written type checker | generated: all typing relations except `Externaddr_ok` (stub) and `Module_ok` (config override calling the generated relations); instruction typing via multi-mode (sound, incomplete only for mid-sequence dead code) |
 | Spec rules traceable to ACL2 defs | informal | 1:1 by name (`STEP_PURE/BINOP-VAL` ...) |
-| Logic-mode share | 100% | 459 / 474 (all but the instruction-typing clique); 161 guard-verified |
+| Logic-mode share | 100% | 466 / 491 (all but the instruction-typing clique and its callers); 162 guard-verified |
+| Module-level oracle agreement (corpus exports, V8) | (T9, pending) | **515 / 515** (13/13 modules instantiate) |
 | Numeric oracle agreement (8015 V8 vectors) | **6975** (all integer ops agree; floats disagree) | **8015** |
 | Effort to absorb a SpecTec update | manual | regenerate + review diff (`make check`) |
 

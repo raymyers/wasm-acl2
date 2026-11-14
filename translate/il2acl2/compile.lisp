@@ -2056,20 +2056,64 @@
 (defun suffix-all (l s)
   (if (endp l) nil (cons (concatenate (quote string) (car l) s) (suffix-all (cdr l) s))))
 
+;; config :memoize. A memoized relation R (and R/SPLIT) becomes an entry R that
+;; HONS-COPYs its arguments and calls R/%M, the original body, which is
+;; memoized after the clique. Semantically the identity (hons-copy x = x); the
+;; copy makes equal arguments EQ, so the memo table hits for the sub-lists the
+;; split searches build with TAKE (memoize keys unnormed conses by address).
+(defun rel-mangled-memo (ids cx)
+  (if (endp ids) nil (cons (tbl-name :rel (car ids) cx) (rel-mangled-memo (cdr ids) cx))))
+
+(defun memo-measure (d)
+  ;; d's (declare (xargs :measure (%OM3 a b 0))) with the last component 1
+  (let ((m (and (consp (fifth d)) (consp (cdr (fifth d))) (consp (cadr (fifth d)))
+                (cadr (member :measure (cdr (cadr (fifth d))))))))
+    (and (consp m) (append (butlast m 1) (list 1)))))
+
+(defun hons-copy-args (fs)
+  (if (endp fs) nil (cons (list (quote acl2::hons-copy) (car fs)) (hons-copy-args (cdr fs)))))
+
+(defun memo-wrap (ds names)
+  ;; (mv defuns memoize-events)
+  (if (endp ds) (mv nil nil)
+    (mv-let (rest mems) (memo-wrap (cdr ds) names)
+      (let ((d (car ds)))
+        (if (and (member-equal (defun-name d) names) (memo-measure d))
+            (let* ((inner (gsym (concatenate 'string (defun-name d) "/%M")))
+                   (formals (third d))
+                   (entry (mk-defun-measure (second d) formals (memo-measure d)
+                                            (cons inner (hons-copy-args formals)))))
+              (mv (list* entry (list* 'defun inner (cddr d)) rest)
+                  (cons (list (quote acl2::memoize) (list 'quote inner)) mems)))
+          (mv (cons d rest) mems))))))
+
 (defun clique-events (x ds cx)
   (if (not (is x "REC")) ds
     (let* ((mains0 (member-main-names (cdr x) cx))
            ;; multi-mode relations also have an R/SPLIT variant
            (mains (append mains0 (suffix-all mains0 "/SPLIT")))
-           (in (reaching ds (intersection-equal mains (strip-defun-names ds)) (1+ (len ds)))))
+           (in (reaching ds (intersection-equal mains (strip-defun-names ds)) (1+ (len ds))))
+           (memo0 (rel-mangled-memo (cx-get :memo cx) cx))
+           (memo (append memo0 (suffix-all memo0 "/SPLIT"))))
       (mv-let (outside inside) (split-clique ds in)
-        (append outside
-                (if (consp (cdr inside)) (list (cons 'mutual-recursion inside)) inside))))))
+        (mv-let (inside mems) (memo-wrap inside memo)
+          (append outside
+                  (if (consp (cdr inside)) (list (cons 'mutual-recursion inside)) inside)
+                  mems))))))
+
+(defun override-events (ds)
+  (if (endp ds) nil (cons (cons :%w1t-override (car ds)) (override-events (cdr ds)))))
 
 (defun cform (x cx)
   (cond ((or (is x "GRAM") (and (is x "REC") (is (cadr x) "GRAM")))
          (mv-let (ds cx) (cgram-members (rel-members x) (cx-put :gram-rec (is x "REC") cx))
            (mv (clique-events x ds cx) nil nil (cx-put :gram-rec nil cx))))
+        ((and (is x "REL") (assoc-equal (second x) (cx-get :rel-overrides cx)))
+         ;; config :rel-override: hand-written defuns, emitted in place; the
+         ;; relation keeps its :fun interface for callers
+         (mv (override-events (cdr (assoc-equal (second x) (cx-get :rel-overrides cx))))
+             nil nil
+             (cx-put :modes (put-assoc-equal (second x) (cons :fun :fun) (cx-get :modes cx)) cx)))
         ((or (is x "REL") (and (is x "REC") (is (cadr x) "REL")))
          (mv-let (ds cx) (crel-form x cx)
            (mv (clique-events x ds cx) nil nil cx)))

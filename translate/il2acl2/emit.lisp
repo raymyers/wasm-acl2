@@ -19,8 +19,16 @@
         ((consp x) (collect-gsyms (cdr x) (collect-gsyms (car x) acc)))
         (t acc)))
 
+; Config override code (:%w1t-override . forms) is written with translator-package
+; symbols; they become W1T symbols here. Elsewhere such symbols are an error.
+(defun override-syms (x)
+  (cond ((and (symbolp x) x (equal (symbol-package-name x) "IL2ACL2")) (intern$ (symbol-name x) "W1T"))
+        ((consp x) (cons (override-syms (car x)) (override-syms (cdr x))))
+        (t x)))
+
 (defun convert-gsyms (x)
   (cond ((gsym-p x) (intern$ (cdr x) "W1T"))
+        ((and (consp x) (eq (car x) :%w1t-override)) (override-syms (cdr x)))
         ((consp x) (cons (convert-gsyms (car x)) (convert-gsyms (cdr x))))
         (t x)))
 
@@ -33,16 +41,19 @@
         (t acc)))
 
 (defun event-first-name (ev)
-  (cond ((and (consp ev) (eq (car ev) 'defun)) (cadr ev))
+  (cond ((and (consp ev) (eq (car ev) :%w1t-override)) (event-first-name (cdr ev))) ((and (consp ev) (eq (car ev) 'defun)) (cadr ev))
         ((and (consp ev) (eq (car ev) 'mutual-recursion)) (cadr (cadr ev)))
         (t nil)))
 
 ; each event: (%TRY-LOGIC ev) then (%TRY-GUARDS name)
 (defun wrap-try-logic (evs)
-  (if (endp evs) nil
-    (list* (list (intern$ "%TRY-LOGIC" "W1T") (car evs))
+  (cond ((endp evs) nil)
+        ;; config :memoize events go out as they are
+        ((and (consp (car evs)) (eq (car (car evs)) (quote acl2::memoize)))
+         (cons (car evs) (wrap-try-logic (cdr evs))))
+        (t (list* (list (intern$ "%TRY-LOGIC" "W1T") (car evs))
            (list (intern$ "%TRY-GUARDS" "W1T") (event-first-name (car evs)))
-           (wrap-try-logic (cdr evs)))))
+           (wrap-try-logic (cdr evs))))))
 
 (defun clashing-exports (syms names)
   (cond ((endp syms) nil)
@@ -158,6 +169,15 @@
       (apply-patches (apply-patch forms (second p) (cadr (member :old p)) (cadr (member :new p)))
                      (cdr ps)))))
 
+(defun memo-rels (es)
+  ;; (:memoize "label" :rels ("Rel" ...) ...)
+  (if (endp es) nil (append (cadr (member :rels (car es))) (memo-rels (cdr es)))))
+
+(defun rel-override-alist (es)
+  ;; (:rel-override "Rel" :defuns (...) ...) -> ("Rel" . defuns)
+  (if (endp es) nil
+    (cons (cons (second (car es)) (cadr (member :defuns (car es)))) (rel-override-alist (cdr es)))))
+
 (defun config-overrides (config)
   ;; config: list of entries (:def "id" :reason "...")
   (cond ((endp config) nil)
@@ -189,6 +209,8 @@
                              (cons :inverses (inverse-pairs (config-entries config :inverse)))
                              (cons :sized (sized-pairs (config-entries config :sized)))
                              (cons :decreasing (decreasing-pairs (config-entries config :decreasing)))
+                             (cons :rel-overrides (rel-override-alist (config-entries config :rel-override)))
+                             (cons :memo (memo-rels (config-entries config :memoize)))
                              (cons :gram-defs (gram-defs forms)))))
               (mv-let (events builtins skipped cx) (cforms forms cx)
                 (let* ((names (prog2$ (cw "~%il2acl2: ~x0 events, ~x1 builtins/overrides, ~x2 forms not translated, stubs: ~x3~%unsupported constructs (~x4):~%~x5~%"
