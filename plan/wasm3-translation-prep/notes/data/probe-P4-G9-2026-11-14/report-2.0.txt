@@ -1,0 +1,56 @@
+Probe of WASM 2.0 (SpecTec 943c5df)
+Excluded: none
+Spec files: 10, lines: 4175
+IL lines: 34707, bytes: 814842
+IL forms (top level): 470, hint forms: 366
+IL forms by kind (rec members counted): (("TYP" . 145) ("DEF" . 214) ("REC" . 37) ("REL" . 41) ("GRAM" . 71))
+IL names: (:TYP 145 :DEF 214 :REL 41 :RULE 265 :GRAM 71 :VAR 521 :ATOM 196)
+Rules: 265, in 41 relations; relations with no rules: NIL
+Relations with the most rules: (("Instr_ok" . 74) ("Step_pure" . 56) ("Step_read" . 47) ("Step" . 23) ("Instrs_ok" . 5) ("Instr_const" . 5) ("Externaddr_ok" . 5) ("Externtype_ok" . 4))
+Clause-less defs: 64
+Defs taking def (function) parameters: 0: 
+Defs taking type parameters: 8
+Largest rec group: 2 members (first: Instr_ok)
+Grammars: 71, binary B*: 71, text T*: 0
+Config entries used: 6 (ignored kinds: NIL)
+Config entries that do not match the IL: 0
+
+Schema errors: 0
+
+Mangling: collisions 0, renamed 19, atom collisions 0
+
+Phase 1: events 728, defuns 740, builtins/overrides 65, forms skipped 0
+
+Builtins (clause-less defs): 64; numeric 64 (no definition in rt/: 21), choice 0, host 0, notation 0, unclassified 0
+  missing in rt/: inv_concat_ s33_to_u32 trunc_sat__ narrow__ ibits_ fbits_ nbytes_ vbytes_ inv_ibits_ inv_fbits_ inv_nbytes_ inv_vbytes_ irev_ iandnot_ ibitselect_ iavgr_ iq15mulr_sat_ fpmin_ fpmax_ lanes_ inv_lanes_
+
+Specialized defs with function parameters (G1): 0 dropped, 0 specializations
+
+Stubs: 2
+Stubs by source file:
+  6-typing: 1: MODULE_OK
+  A-binary: 1: GRAM/BINSTR
+
+Relations emitted without some rules (per-rule stubs): 2, rules dropped: 9
+  Instr_ok (:FUN): 67/74 translated; dropped: Instr_ok/ref.is_null Instr_ok/return Instr_ok/br_table Instr_ok/br Instr_ok/select-impl Instr_ok/drop Instr_ok/unreachable
+  Instrs_ok (:FUN): 3/5 translated; dropped: Instrs_ok/frame Instrs_ok/sub
+
+Relation groups where no mode compiles every rule: 2
+  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):
+  (("Instr_ok" "Instrs_ok") ((9 . 0) (3 . 0) (2 . 0)) :BEST 2 :EMITTED 0)
+  (("Module_ok") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+
+Logged errors: 60, in 4 functions
+Errors by kind:
+  21: "unbound variable"
+  10: "checker relation with unbound arguments"
+  9: "condition with unbound variables"
+  7: "relation inputs unbound"
+  7: "pattern"
+  6: "iterated premise output not bound"
+
+Rules dropped from split variants (all attempts, including discarded ones): 8
+  Instr_ok: 5: unreachable select-impl br br_table return
+  Instrs_ok: 1: sub
+  Module_ok: 1: (unnamed)
+  Externaddr_ok: 1: sub

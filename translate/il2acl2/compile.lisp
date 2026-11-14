@@ -1005,11 +1005,30 @@
                        s1 s2)
                env cx))))))
 
+ ;; Elements of a fixed-length sequence are independent positions, so an
+ ;; element that cannot be matched yet (e.g. CONST $lunpack(Lnn) c_1 before
+ ;; VSPLAT (Lnn X M) binds Lnn; G9, wasm3 prep P4) is retried once after the
+ ;; others. When every element matches in order, nothing changes.
  (defun cpat-elems (ps i s env cx)
-   (if (endp ps) (mv nil env cx)
-     (mv-let (s1 env cx) (cpat (car ps) (nth-term i s) env cx)
-       (mv-let (s2 env cx) (cpat-elems (cdr ps) (1+ i) s env cx)
-         (mv (append s1 s2) env cx)))))
+   (mv-let (steps env dfr cx) (cpat-elems-1 ps i s env cx)
+     (cpat-elems-retry dfr s env steps cx)))
+
+ (defun cpat-elems-1 (ps i s env cx)
+   ;; (mv steps env deferred cx), deferred = ((pattern . index) ...) in order
+   (if (endp ps) (mv nil env nil cx)
+     (let ((errs0 (cx-get :errs cx)) (aux0 (cx-get :aux cx)))
+       (mv-let (s1 env1 cx1) (cpat (car ps) (nth-term i s) env cx)
+         (if (equal (len (cx-get :errs cx1)) (len errs0))
+             (mv-let (s2 env dfr cx) (cpat-elems-1 (cdr ps) (1+ i) s env1 cx1)
+               (mv (append s1 s2) env dfr cx))
+           (let ((cx (cx-put :aux aux0 (cx-put :errs errs0 cx1))))
+             (mv-let (s2 env dfr cx) (cpat-elems-1 (cdr ps) (1+ i) s env cx)
+               (mv s2 env (cons (cons (car ps) i) dfr) cx))))))))
+
+ (defun cpat-elems-retry (dfr s env steps cx)
+   (if (endp dfr) (mv steps env cx)
+     (mv-let (s1 env cx) (cpat (car (car dfr)) (nth-term (cdr (car dfr)) s) env cx)
+       (cpat-elems-retry (cdr dfr) s env (append steps s1) cx))))
  )
 
 ; --- Premises ----------------------------------------------------------

@@ -4,7 +4,7 @@
   iterated premises; G5 disjunctions; and the P1-found G8, G9)
 - Date: 2026-11-14
 - Repo commit: 3d79703 plus this note's commit
-- Status: draft (G1, G3, G4 done; G5 reassigned to the mode table; G8, G9 open)
+- Status: draft (G1, G3, G4, G9 done; G5 and G8 go with the mode table)
 - Feeds wasm3 plan: scheme delta (function arguments), gap list, config budget
 - Incorporated in wasm3 plan: no
 
@@ -105,3 +105,33 @@ not with G5's mechanical fix.
   in 3.0: **3 of 218** (`Step_pure/vsplat`, `vreplace_lane`: G9;
   `Step_read/array.new_data-num`: nested inverse).
 - 1.0 unchanged; `make check` passes.
+
+## 2026-11-14: G9 (binding order inside a fixed-length sequence pattern)
+
+- Cause confirmed: in `Step_pure/vsplat` the instruction list pattern is
+  `[CONST $lunpack(Lnn) c_1, VSPLAT (Lnn X M)]`. Element 1 needs `Lnn`,
+  which only element 2 binds, and `$lunpack` has no inverse.
+- `compile.lisp` `cpat-elems`: the elements of a fixed-length sequence are
+  independent positions. An element that fails to compile is rolled back
+  (errors and aux functions) and retried once after the others, with the
+  larger environment, the same way `cpat-args-defer` handles arguments.
+  When every element matches in order, nothing changes. Spot check of
+  the generated `vsplat` code: `:VSPLAT` is matched and `LNN` bound
+  first, then the `:CONST` element is tested against `($LUNPACK LNN)`.
+- Effect: 3.0 `Step_pure` 79/79 (was 77/79); **1 of 218** 3.0 reduction rules
+  still fails (`Step_read/array.new_data-num`, the nested inverse). D3-scope
+  errors 170 → 156. 2.0: `Step`, `Step_read`, `Step_pure` all complete; 2.0
+  is left with 2 stubs (`Module_ok`, `GRAM/Binstr`) and instruction typing
+  in `:fun` (`Instr_ok` 67/74, `Instrs_ok` 3/5).
+- 1.0 unchanged; `make check` passes.
+- Data: `data/probe-P4-G9-2026-11-14/` (`report-3.0.txt`,
+  `report-3.0-core.txt`, `rules-3.0-core.txt`, `report-2.0.txt`).
+
+## 2026-11-14: G8 deferred to the mode-table work
+
+G8 (`Deftype_sub/super`, `Heaptype_sub/rec-sub`; `ImmutReachable` in
+`7.*`) needs a bounded search over `i` that runs the *rest* of the rule for
+each candidate: continuation-style compilation like the existing split
+searches (`/SEARCHn`). Its rules fail only in `:multi`. The emitted mode for
+typing is `:fun` until the mode table exists, so fixing G8 now changes no
+emitted code. Do it together with the mode table.
