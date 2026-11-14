@@ -60,13 +60,25 @@
 ;   SPLIT Step: The generic split search of val* ++ admininstr* ++ admininstr_1* is exponential when it fails. Strategy: admininstr* ends right after the first non-value; val* is searched from longest to shortest. Completeness vs. the generic search: T8 obligation.
 ;   INVERSE hint(inverse): SpecTec hint(inverse ...) annotations in 3-numerics.spectec; spectec --ast does not print hints. Used to solve f(a.., x) = v for x (load rules; Bname). inv_utf8 is the hand-written partner of the utf8 override.
 ;   IL-PATCH Bmodule: Bug in the SpecTec WASM 1.0 source (A-binary.spectec: `0x00 0x61 0x73 0x6D 1:Bu32`): the binary-format version is the fixed 4 bytes 0x01 0x00 0x00 0x00, not a LEB128 u32 (which encodes 1 as the single byte 0x01). Taken literally, no real .wasm file parses.
+;   DECREASING termination order: Instruction typing recurses into sub-instructions under an EXTENDED context (block/loop/if add a label), so the size of all inputs can grow. The instruction component (index 1) decreases, or stays equal with a smaller stack (frame). Recursive premise calls are ordered lexicographically by (size of component 1, size of all inputs).
 ;   SIZED ||BX||: The source premise `len = ||BX||` (byte length of what BX matched) elaborates to `len = 0` in the IL, which would reject every non-empty section. In these grammars the item after `len` is parsed from exactly `len` bytes instead, and the `len = 0` premise is dropped.
 ;
 ; Stubs (an unsupported construct; body signals an error):
 ;   EXTERNADDR_OK
 ;   MODULE_OK
-;   INSTRS_OK
-;   INSTR_OK
+;
+; Rules dropped from the R/SPLIT variants of multi-mode relations (their
+; output is not computable from the inputs; the R check variants keep them):
+;   Instr_ok/unreachable
+;   Instr_ok/br
+;   Instr_ok/br_table
+;   Instr_ok/return
+;   Module_ok/
+;   Externaddr_ok/global
+;   Externaddr_ok/mem
+;   Externaddr_ok/table
+;   Externaddr_ok/func
+;   Externaddr_ok/sub
 ;
 ; Not translated yet:
 
@@ -5350,55 +5362,4070 @@
 (%TRY-GUARDS EXTERNTYPE_SUB)
 
 (%TRY-LOGIC
-    (MUTUAL-RECURSION
-      (DEFUN INSTR_OK (%A0 %A1)
-        (DECLARE (IGNORABLE %A0 %A1))
-        (PROG2$ (ER ACL2::HARD? 'INSTR_OK
-                    "Not translated (see the stub list in the file header).")
-                NIL))
-      (DEFUN INSTRS_OK (%A0 %A1)
-        (DECLARE (IGNORABLE %A0 %A1))
-        (PROG2$ (ER ACL2::HARD? 'INSTRS_OK
-                    "Not translated (see the stub list in the file header).")
-                NIL))))
+ (DEFUN INSTR_OK/SEARCH28 (%K %LO %HI %T23 %A2 L C^U)
+  (DECLARE (IGNORABLE %K %LO %HI %T23 %A2 L C^U))
+  (DECLARE (XARGS :MEASURE (NFIX (- (1+ %HI) %K))))
+  (IF
+   (AND (NATP %K)
+        (NATP %LO)
+        (NATP %HI)
+        (<= %LO %K)
+        (<= %K %HI))
+   (LET
+    ((%R
+      (LET ((%T24 %K))
+       (DECLARE (IGNORABLE %T24))
+       (LET* ((%T25 (TAKE %T24 %T23)))
+         (DECLARE (IGNORABLE %T25))
+         (AND (TRUE-LISTP %T25)
+              (LET* ((T_1-STAR %T25)
+                     (%T26 (NTHCDR %T24 %T23)))
+                (DECLARE (IGNORABLE T_1-STAR %T26))
+                (AND (TRUE-LISTP %T26)
+                     (<= (ACL2::LEN %T26) 1)
+                     (OR (NULL %T26)
+                         (AND (CONSP %T26) (NULL (CDR %T26))))
+                     (LET* ((T-OPT %T26)
+                            (%T27 (CAR (CDR (CDR %A2)))))
+                       (DECLARE (IGNORABLE T-OPT %T27))
+                       (AND (TRUE-LISTP %T27)
+                            (LET* ((T_2-STAR %T27))
+                              (DECLARE (IGNORABLE T_2-STAR))
+                              (AND (< L (ACL2::LEN (%GET-FIELD C^U :LABELS)))
+                                   (EQUAL (NTH L (%GET-FIELD C^U :LABELS))
+                                          T-OPT)
+                                   (LIST T))))))))))))
+    (DECLARE (IGNORABLE %R))
+    (IF %R %R
+      (INSTR_OK/SEARCH28 (1+ %K)
+                         %LO %HI %T23 %A2 L C^U)))
+   NIL)))
+
+
+(%TRY-GUARDS INSTR_OK/SEARCH28)
+
+(%TRY-LOGIC (DEFUN INSTR_OK/ALL43 (%L0 C^U)
+              (DECLARE (IGNORABLE %L0 C^U))
+              (IF (OR (ATOM %L0))
+                  T
+                (LET* ((L (CAR %L0)))
+                  (DECLARE (IGNORABLE L))
+                  (AND (< L (ACL2::LEN (%GET-FIELD C^U :LABELS)))
+                       (INSTR_OK/ALL43 (CDR %L0) C^U))))))
+
+
+(%TRY-GUARDS INSTR_OK/ALL43)
+
+(%TRY-LOGIC (DEFUN INSTR_OK/ALL44 (%L0 T-OPT C^U)
+              (DECLARE (IGNORABLE %L0 T-OPT C^U))
+              (IF (OR (ATOM %L0))
+                  T
+                (LET* ((L (CAR %L0)))
+                  (DECLARE (IGNORABLE L))
+                  (AND (EQUAL T-OPT (NTH L (%GET-FIELD C^U :LABELS)))
+                       (INSTR_OK/ALL44 (CDR %L0)
+                                       T-OPT C^U))))))
+
+
+(%TRY-GUARDS INSTR_OK/ALL44)
+
+(%TRY-LOGIC
+ (DEFUN INSTR_OK/SEARCH45 (%K %LO %HI %T35 %A2 L-PRIME C^U L-STAR)
+  (DECLARE (IGNORABLE %K %LO %HI %T35 %A2 L-PRIME C^U L-STAR))
+  (DECLARE (XARGS :MEASURE (NFIX (- (1+ %HI) %K))))
+  (IF
+   (AND (NATP %K)
+        (NATP %LO)
+        (NATP %HI)
+        (<= %LO %K)
+        (<= %K %HI))
+   (LET
+    ((%R
+      (LET ((%T36 %K))
+       (DECLARE (IGNORABLE %T36))
+       (LET* ((%T37 (TAKE %T36 %T35)))
+        (DECLARE (IGNORABLE %T37))
+        (AND
+         (TRUE-LISTP %T37)
+         (LET* ((T_1-STAR %T37)
+                (%T38 (NTHCDR %T36 %T35)))
+          (DECLARE (IGNORABLE T_1-STAR %T38))
+          (AND
+           (TRUE-LISTP %T38)
+           (<= 1 (ACL2::LEN %T38))
+           (LET* ((%T39 (TAKE (- (ACL2::LEN %T38) 1) %T38)))
+            (DECLARE (IGNORABLE %T39))
+            (AND
+             (TRUE-LISTP %T39)
+             (<= (ACL2::LEN %T39) 1)
+             (OR (NULL %T39)
+                 (AND (CONSP %T39) (NULL (CDR %T39))))
+             (LET* ((T-OPT %T39)
+                    (%T40 (NTHCDR (- (ACL2::LEN %T38) 1) %T38)))
+              (DECLARE (IGNORABLE T-OPT %T40))
+              (AND
+               (TRUE-LISTP %T40)
+               (EQUAL (ACL2::LEN %T40) 1)
+               (LET* ((%T41 (CAR %T40)))
+                (DECLARE (IGNORABLE %T41))
+                (AND
+                 (CONSP %T41)
+                 (EQ (CAR %T41) :I32)
+                 (TRUE-LISTP (CDR %T41))
+                 (EQUAL (ACL2::LEN (CDR %T41)) 0)
+                 (LET* ((%T42 (CAR (CDR (CDR %A2)))))
+                   (DECLARE (IGNORABLE %T42))
+                   (AND (TRUE-LISTP %T42)
+                        (LET* ((T_2-STAR %T42))
+                          (DECLARE (IGNORABLE T_2-STAR))
+                          (AND (< L-PRIME
+                                  (ACL2::LEN (%GET-FIELD C^U :LABELS)))
+                               (EQUAL T-OPT
+                                      (NTH L-PRIME (%GET-FIELD C^U :LABELS)))
+                               (INSTR_OK/ALL43 L-STAR C^U)
+                               (INSTR_OK/ALL44 L-STAR T-OPT C^U)
+                               (LIST T))))))))))))))))))
+    (DECLARE (IGNORABLE %R))
+    (IF %R %R
+      (INSTR_OK/SEARCH45 (1+ %K)
+                         %LO %HI %T35 %A2 L-PRIME C^U L-STAR)))
+   NIL)))
+
+
+(%TRY-GUARDS INSTR_OK/SEARCH45)
+
+(%TRY-LOGIC
+ (DEFUN INSTR_OK/SEARCH58 (%K %LO %HI %T53 %A2 C^U)
+  (DECLARE (IGNORABLE %K %LO %HI %T53 %A2 C^U))
+  (DECLARE (XARGS :MEASURE (NFIX (- (1+ %HI) %K))))
+  (IF (AND (NATP %K)
+           (NATP %LO)
+           (NATP %HI)
+           (<= %LO %K)
+           (<= %K %HI))
+      (LET ((%R (LET ((%T54 %K))
+                  (DECLARE (IGNORABLE %T54))
+                  (LET* ((%T55 (TAKE %T54 %T53)))
+                    (DECLARE (IGNORABLE %T55))
+                    (AND (TRUE-LISTP %T55)
+                         (LET* ((T_1-STAR %T55)
+                                (%T56 (NTHCDR %T54 %T53)))
+                           (DECLARE (IGNORABLE T_1-STAR %T56))
+                           (AND (TRUE-LISTP %T56)
+                                (<= (ACL2::LEN %T56) 1)
+                                (OR (NULL %T56)
+                                    (AND (CONSP %T56) (NULL (CDR %T56))))
+                                (LET* ((T-OPT %T56)
+                                       (%T57 (CAR (CDR (CDR %A2)))))
+                                  (DECLARE (IGNORABLE T-OPT %T57))
+                                  (AND (TRUE-LISTP %T57)
+                                       (LET* ((T_2-STAR %T57))
+                                         (DECLARE (IGNORABLE T_2-STAR))
+                                         (AND (EQUAL (%GET-FIELD C^U :RETURN)
+                                                     (LIST T-OPT))
+                                              (LIST T))))))))))))
+        (DECLARE (IGNORABLE %R))
+        (IF %R %R
+          (INSTR_OK/SEARCH58 (1+ %K)
+                             %LO %HI %T53 %A2 C^U)))
+    NIL)))
+
+
+(%TRY-GUARDS INSTR_OK/SEARCH58)
+
+(%TRY-LOGIC
+ (MUTUAL-RECURSION
+  (DEFUN INSTR_OK (%A0 %A1 %A2)
+   (DECLARE (IGNORABLE %A0 %A1 %A2))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (1+ (%SIZE (LIST %A0 %A1 %A2)))
+                                  0)))
+   (IF
+    (LET ((%R (LET* ((C^U %A0))
+                (DECLARE (IGNORABLE C^U))
+                (AND (CONSP %A1)
+                     (EQ (CAR %A1) :NOP)
+                     (TRUE-LISTP (CDR %A1))
+                     (EQUAL (ACL2::LEN (CDR %A1)) 0)
+                     (CONSP %A2)
+                     (EQ (CAR %A2) :%->%)
+                     (TRUE-LISTP (CDR %A2))
+                     (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                     (LET* ((%T0 (CAR (CDR %A2))))
+                       (DECLARE (IGNORABLE %T0))
+                       (AND (TRUE-LISTP %T0)
+                            (EQUAL (ACL2::LEN %T0) 0)
+                            (LET* ((%T1 (CAR (CDR (CDR %A2)))))
+                              (DECLARE (IGNORABLE %T1))
+                              (AND (TRUE-LISTP %T1)
+                                   (EQUAL (ACL2::LEN %T1) 0)
+                                   (LIST T)))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+      (LET ((%R (LET* ((C^U %A0))
+                  (DECLARE (IGNORABLE C^U))
+                  (AND (CONSP %A1)
+                       (EQ (CAR %A1) :UNREACHABLE)
+                       (TRUE-LISTP (CDR %A1))
+                       (EQUAL (ACL2::LEN (CDR %A1)) 0)
+                       (CONSP %A2)
+                       (EQ (CAR %A2) :%->%)
+                       (TRUE-LISTP (CDR %A2))
+                       (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                       (LET* ((%T2 (CAR (CDR %A2))))
+                         (DECLARE (IGNORABLE %T2))
+                         (AND (TRUE-LISTP %T2)
+                              (LET* ((T_1-STAR %T2)
+                                     (%T3 (CAR (CDR (CDR %A2)))))
+                                (DECLARE (IGNORABLE T_1-STAR %T3))
+                                (AND (TRUE-LISTP %T3)
+                                     (LET* ((T_2-STAR %T3))
+                                       (DECLARE (IGNORABLE T_2-STAR))
+                                       (LIST T))))))))))
+       (DECLARE (IGNORABLE %R))
+       (IF %R %R
+        (LET ((%R (LET* ((C^U %A0))
+                    (DECLARE (IGNORABLE C^U))
+                    (AND (CONSP %A1)
+                         (EQ (CAR %A1) :DROP)
+                         (TRUE-LISTP (CDR %A1))
+                         (EQUAL (ACL2::LEN (CDR %A1)) 0)
+                         (CONSP %A2)
+                         (EQ (CAR %A2) :%->%)
+                         (TRUE-LISTP (CDR %A2))
+                         (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                         (LET* ((%T4 (CAR (CDR %A2))))
+                           (DECLARE (IGNORABLE %T4))
+                           (AND (TRUE-LISTP %T4)
+                                (EQUAL (ACL2::LEN %T4) 1)
+                                (LET* ((T^R (CAR %T4))
+                                       (%T5 (CAR (CDR (CDR %A2)))))
+                                  (DECLARE (IGNORABLE T^R %T5))
+                                  (AND (TRUE-LISTP %T5)
+                                       (EQUAL (ACL2::LEN %T5) 0)
+                                       (LIST T)))))))))
+         (DECLARE (IGNORABLE %R))
+         (IF %R %R
+          (LET
+           ((%R
+              (LET* ((C^U %A0))
+                (DECLARE (IGNORABLE C^U))
+                (AND (CONSP %A1)
+                     (EQ (CAR %A1) :SELECT)
+                     (TRUE-LISTP (CDR %A1))
+                     (EQUAL (ACL2::LEN (CDR %A1)) 0)
+                     (CONSP %A2)
+                     (EQ (CAR %A2) :%->%)
+                     (TRUE-LISTP (CDR %A2))
+                     (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                     (LET* ((%T6 (CAR (CDR %A2))))
+                       (DECLARE (IGNORABLE %T6))
+                       (AND (TRUE-LISTP %T6)
+                            (EQUAL (ACL2::LEN %T6) 3)
+                            (LET* ((T^R (CAR %T6)))
+                              (DECLARE (IGNORABLE T^R))
+                              (AND (EQUAL (CAR (CDR %T6)) T^R)
+                                   (LET* ((%T7 (CAR (CDR (CDR %T6)))))
+                                     (DECLARE (IGNORABLE %T7))
+                                     (AND (CONSP %T7)
+                                          (EQ (CAR %T7) :I32)
+                                          (TRUE-LISTP (CDR %T7))
+                                          (EQUAL (ACL2::LEN (CDR %T7)) 0)
+                                          (LET* ((%T8 (CAR (CDR (CDR %A2)))))
+                                            (DECLARE (IGNORABLE %T8))
+                                            (AND (TRUE-LISTP %T8)
+                                                 (EQUAL (ACL2::LEN %T8) 1)
+                                                 (EQUAL (CAR %T8) T^R)
+                                                 (LIST T)))))))))))))
+           (DECLARE (IGNORABLE %R))
+           (IF %R %R
+            (LET
+             ((%R
+               (LET* ((C^U %A0))
+                (DECLARE (IGNORABLE C^U))
+                (AND
+                 (CONSP %A1)
+                 (EQ (CAR %A1) :BLOCK)
+                 (TRUE-LISTP (CDR %A1))
+                 (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                 (LET* ((%T9 (CAR (CDR %A1))))
+                  (DECLARE (IGNORABLE %T9))
+                  (AND
+                   (OR (NULL %T9)
+                       (AND (CONSP %T9) (NULL (CDR %T9))))
+                   (LET* ((T-OPT %T9)
+                          (%T10 (CAR (CDR (CDR %A1)))))
+                    (DECLARE (IGNORABLE T-OPT %T10))
+                    (AND
+                     (TRUE-LISTP %T10)
+                     (LET* ((INSTR-STAR %T10))
+                      (DECLARE (IGNORABLE INSTR-STAR))
+                      (AND
+                       (CONSP %A2)
+                       (EQ (CAR %A2) :%->%)
+                       (TRUE-LISTP (CDR %A2))
+                       (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                       (LET* ((%T11 (CAR (CDR %A2))))
+                        (DECLARE (IGNORABLE %T11))
+                        (AND
+                         (TRUE-LISTP %T11)
+                         (EQUAL (ACL2::LEN %T11) 0)
+                         (LET* ((%T12 (CAR (CDR (CDR %A2)))))
+                          (DECLARE (IGNORABLE %T12))
+                          (AND
+                           (TRUE-LISTP %T12)
+                           (<= (ACL2::LEN %T12) 1)
+                           (OR (NULL %T12)
+                               (AND (CONSP %T12) (NULL (CDR %T12))))
+                           (EQUAL %T12 T-OPT)
+                           (OR
+                            (< (%SIZE INSTR-STAR) (%SIZE %A1))
+                            (AND
+                             (EQUAL (%SIZE INSTR-STAR) (%SIZE %A1))
+                             (<
+                              (%SIZE
+                               (LIST (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                                  (CONS :FUNCS NIL)
+                                                  (CONS :GLOBALS NIL)
+                                                  (CONS :TABLES NIL)
+                                                  (CONS :MEMS NIL)
+                                                  (CONS :LOCALS NIL)
+                                                  (CONS :LABELS (LIST T-OPT))
+                                                  (CONS :RETURN NIL))
+                                            C^U)
+                                     INSTR-STAR (LIST :%->% NIL T-OPT)))
+                              (%SIZE (LIST %A0 %A1 %A2)))))
+                           (INSTRS_OK
+                                (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                             (CONS :FUNCS NIL)
+                                             (CONS :GLOBALS NIL)
+                                             (CONS :TABLES NIL)
+                                             (CONS :MEMS NIL)
+                                             (CONS :LOCALS NIL)
+                                             (CONS :LABELS (LIST T-OPT))
+                                             (CONS :RETURN NIL))
+                                       C^U)
+                                INSTR-STAR (LIST :%->% NIL T-OPT))
+                           (LIST T)))))))))))))))
+             (DECLARE (IGNORABLE %R))
+             (IF %R %R
+              (LET
+               ((%R
+                 (LET* ((C^U %A0))
+                  (DECLARE (IGNORABLE C^U))
+                  (AND
+                   (CONSP %A1)
+                   (EQ (CAR %A1) :LOOP)
+                   (TRUE-LISTP (CDR %A1))
+                   (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                   (LET* ((%T13 (CAR (CDR %A1))))
+                    (DECLARE (IGNORABLE %T13))
+                    (AND
+                     (OR (NULL %T13)
+                         (AND (CONSP %T13) (NULL (CDR %T13))))
+                     (LET* ((T-OPT %T13)
+                            (%T14 (CAR (CDR (CDR %A1)))))
+                      (DECLARE (IGNORABLE T-OPT %T14))
+                      (AND
+                       (TRUE-LISTP %T14)
+                       (LET* ((INSTR-STAR %T14))
+                        (DECLARE (IGNORABLE INSTR-STAR))
+                        (AND
+                         (CONSP %A2)
+                         (EQ (CAR %A2) :%->%)
+                         (TRUE-LISTP (CDR %A2))
+                         (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                         (LET* ((%T15 (CAR (CDR %A2))))
+                          (DECLARE (IGNORABLE %T15))
+                          (AND
+                           (TRUE-LISTP %T15)
+                           (EQUAL (ACL2::LEN %T15) 0)
+                           (LET* ((%T16 (CAR (CDR (CDR %A2)))))
+                            (DECLARE (IGNORABLE %T16))
+                            (AND
+                             (TRUE-LISTP %T16)
+                             (<= (ACL2::LEN %T16) 1)
+                             (OR (NULL %T16)
+                                 (AND (CONSP %T16) (NULL (CDR %T16))))
+                             (EQUAL %T16 T-OPT)
+                             (OR
+                              (< (%SIZE INSTR-STAR) (%SIZE %A1))
+                              (AND
+                               (EQUAL (%SIZE INSTR-STAR) (%SIZE %A1))
+                               (<
+                                (%SIZE
+                                 (LIST (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                                    (CONS :FUNCS NIL)
+                                                    (CONS :GLOBALS NIL)
+                                                    (CONS :TABLES NIL)
+                                                    (CONS :MEMS NIL)
+                                                    (CONS :LOCALS NIL)
+                                                    (CONS :LABELS (LIST NIL))
+                                                    (CONS :RETURN NIL))
+                                              C^U)
+                                       INSTR-STAR (LIST :%->% NIL T-OPT)))
+                                (%SIZE (LIST %A0 %A1 %A2)))))
+                             (INSTRS_OK
+                                  (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                               (CONS :FUNCS NIL)
+                                               (CONS :GLOBALS NIL)
+                                               (CONS :TABLES NIL)
+                                               (CONS :MEMS NIL)
+                                               (CONS :LOCALS NIL)
+                                               (CONS :LABELS (LIST NIL))
+                                               (CONS :RETURN NIL))
+                                         C^U)
+                                  INSTR-STAR (LIST :%->% NIL T-OPT))
+                             (LIST T)))))))))))))))
+               (DECLARE (IGNORABLE %R))
+               (IF %R %R
+                (LET
+                 ((%R
+                   (LET* ((C^U %A0))
+                    (DECLARE (IGNORABLE C^U))
+                    (AND
+                     (CONSP %A1)
+                     (EQ (CAR %A1) :IFELSE)
+                     (TRUE-LISTP (CDR %A1))
+                     (EQUAL (ACL2::LEN (CDR %A1)) 3)
+                     (LET* ((%T17 (CAR (CDR %A1))))
+                      (DECLARE (IGNORABLE %T17))
+                      (AND
+                       (OR (NULL %T17)
+                           (AND (CONSP %T17) (NULL (CDR %T17))))
+                       (LET* ((T-OPT %T17)
+                              (%T18 (CAR (CDR (CDR %A1)))))
+                        (DECLARE (IGNORABLE T-OPT %T18))
+                        (AND
+                         (TRUE-LISTP %T18)
+                         (LET* ((INSTR_1-STAR %T18)
+                                (%T19 (CAR (CDR (CDR (CDR %A1))))))
+                          (DECLARE (IGNORABLE INSTR_1-STAR %T19))
+                          (AND
+                           (TRUE-LISTP %T19)
+                           (LET* ((INSTR_2-STAR %T19))
+                            (DECLARE (IGNORABLE INSTR_2-STAR))
+                            (AND
+                             (CONSP %A2)
+                             (EQ (CAR %A2) :%->%)
+                             (TRUE-LISTP (CDR %A2))
+                             (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                             (LET* ((%T20 (CAR (CDR %A2))))
+                              (DECLARE (IGNORABLE %T20))
+                              (AND
+                               (TRUE-LISTP %T20)
+                               (EQUAL (ACL2::LEN %T20) 1)
+                               (LET* ((%T21 (CAR %T20)))
+                                (DECLARE (IGNORABLE %T21))
+                                (AND
+                                 (CONSP %T21)
+                                 (EQ (CAR %T21) :I32)
+                                 (TRUE-LISTP (CDR %T21))
+                                 (EQUAL (ACL2::LEN (CDR %T21)) 0)
+                                 (LET* ((%T22 (CAR (CDR (CDR %A2)))))
+                                  (DECLARE (IGNORABLE %T22))
+                                  (AND
+                                   (TRUE-LISTP %T22)
+                                   (<= (ACL2::LEN %T22) 1)
+                                   (OR (NULL %T22)
+                                       (AND (CONSP %T22) (NULL (CDR %T22))))
+                                   (EQUAL %T22 T-OPT)
+                                   (OR
+                                    (< (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                                    (AND
+                                     (EQUAL (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                                     (<
+                                      (%SIZE
+                                       (LIST
+                                        (%COMP
+                                            (LIST :%REC (CONS :TYPES NIL)
+                                                  (CONS :FUNCS NIL)
+                                                  (CONS :GLOBALS NIL)
+                                                  (CONS :TABLES NIL)
+                                                  (CONS :MEMS NIL)
+                                                  (CONS :LOCALS NIL)
+                                                  (CONS :LABELS (LIST T-OPT))
+                                                  (CONS :RETURN NIL))
+                                            C^U)
+                                        INSTR_1-STAR (LIST :%->% NIL T-OPT)))
+                                      (%SIZE (LIST %A0 %A1 %A2)))))
+                                   (INSTRS_OK
+                                     (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                                  (CONS :FUNCS NIL)
+                                                  (CONS :GLOBALS NIL)
+                                                  (CONS :TABLES NIL)
+                                                  (CONS :MEMS NIL)
+                                                  (CONS :LOCALS NIL)
+                                                  (CONS :LABELS (LIST T-OPT))
+                                                  (CONS :RETURN NIL))
+                                            C^U)
+                                     INSTR_1-STAR (LIST :%->% NIL T-OPT))
+                                   (OR
+                                    (< (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                                    (AND
+                                     (EQUAL (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                                     (<
+                                      (%SIZE
+                                       (LIST
+                                        (%COMP
+                                            (LIST :%REC (CONS :TYPES NIL)
+                                                  (CONS :FUNCS NIL)
+                                                  (CONS :GLOBALS NIL)
+                                                  (CONS :TABLES NIL)
+                                                  (CONS :MEMS NIL)
+                                                  (CONS :LOCALS NIL)
+                                                  (CONS :LABELS (LIST T-OPT))
+                                                  (CONS :RETURN NIL))
+                                            C^U)
+                                        INSTR_2-STAR (LIST :%->% NIL T-OPT)))
+                                      (%SIZE (LIST %A0 %A1 %A2)))))
+                                   (INSTRS_OK
+                                     (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                                  (CONS :FUNCS NIL)
+                                                  (CONS :GLOBALS NIL)
+                                                  (CONS :TABLES NIL)
+                                                  (CONS :MEMS NIL)
+                                                  (CONS :LOCALS NIL)
+                                                  (CONS :LABELS (LIST T-OPT))
+                                                  (CONS :RETURN NIL))
+                                            C^U)
+                                     INSTR_2-STAR (LIST :%->% NIL T-OPT))
+                                   (LIST T)))))))))))))))))))
+                 (DECLARE (IGNORABLE %R))
+                 (IF %R %R
+                  (LET
+                   ((%R
+                     (LET* ((C^U %A0))
+                      (DECLARE (IGNORABLE C^U))
+                      (AND
+                       (CONSP %A1)
+                       (EQ (CAR %A1) :BR)
+                       (TRUE-LISTP (CDR %A1))
+                       (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                       (LET* ((L (CAR (CDR %A1))))
+                        (DECLARE (IGNORABLE L))
+                        (AND
+                            (CONSP %A2)
+                            (EQ (CAR %A2) :%->%)
+                            (TRUE-LISTP (CDR %A2))
+                            (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                            (LET* ((%T23 (CAR (CDR %A2))))
+                              (DECLARE (IGNORABLE %T23))
+                              (AND (TRUE-LISTP %T23)
+                                   (INSTR_OK/SEARCH28 0 0 (ACL2::LEN %T23)
+                                                      %T23 %A2 L C^U)))))))))
+                   (DECLARE (IGNORABLE %R))
+                   (IF %R %R
+                    (LET
+                     ((%R
+                       (LET* ((C^U %A0))
+                        (DECLARE (IGNORABLE C^U))
+                        (AND
+                         (CONSP %A1)
+                         (EQ (CAR %A1) :BR_IF)
+                         (TRUE-LISTP (CDR %A1))
+                         (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                         (LET* ((L (CAR (CDR %A1))))
+                          (DECLARE (IGNORABLE L))
+                          (AND
+                           (CONSP %A2)
+                           (EQ (CAR %A2) :%->%)
+                           (TRUE-LISTP (CDR %A2))
+                           (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                           (LET* ((%T29 (CAR (CDR %A2))))
+                            (DECLARE (IGNORABLE %T29))
+                            (AND
+                             (TRUE-LISTP %T29)
+                             (<= 1 (ACL2::LEN %T29))
+                             (LET*
+                                 ((%T30 (TAKE (- (ACL2::LEN %T29) 1) %T29)))
+                              (DECLARE (IGNORABLE %T30))
+                              (AND
+                               (TRUE-LISTP %T30)
+                               (<= (ACL2::LEN %T30) 1)
+                               (OR (NULL %T30)
+                                   (AND (CONSP %T30) (NULL (CDR %T30))))
+                               (LET*
+                                ((T-OPT %T30)
+                                 (%T31 (NTHCDR (- (ACL2::LEN %T29) 1) %T29)))
+                                (DECLARE (IGNORABLE T-OPT %T31))
+                                (AND
+                                 (TRUE-LISTP %T31)
+                                 (EQUAL (ACL2::LEN %T31) 1)
+                                 (LET* ((%T32 (CAR %T31)))
+                                  (DECLARE (IGNORABLE %T32))
+                                  (AND
+                                   (CONSP %T32)
+                                   (EQ (CAR %T32) :I32)
+                                   (TRUE-LISTP (CDR %T32))
+                                   (EQUAL (ACL2::LEN (CDR %T32)) 0)
+                                   (LET* ((%T33 (CAR (CDR (CDR %A2)))))
+                                    (DECLARE (IGNORABLE %T33))
+                                    (AND
+                                     (TRUE-LISTP %T33)
+                                     (<= (ACL2::LEN %T33) 1)
+                                     (OR
+                                        (NULL %T33)
+                                        (AND (CONSP %T33) (NULL (CDR %T33))))
+                                     (EQUAL %T33 T-OPT)
+                                     (<
+                                      L (ACL2::LEN (%GET-FIELD C^U :LABELS)))
+                                     (EQUAL (NTH L (%GET-FIELD C^U :LABELS))
+                                            T-OPT)
+                                     (LIST T)))))))))))))))))
+                     (DECLARE (IGNORABLE %R))
+                     (IF %R %R
+                      (LET
+                       ((%R
+                         (LET* ((C^U %A0))
+                          (DECLARE (IGNORABLE C^U))
+                          (AND
+                           (CONSP %A1)
+                           (EQ (CAR %A1) :BR_TABLE)
+                           (TRUE-LISTP (CDR %A1))
+                           (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                           (LET* ((%T34 (CAR (CDR %A1))))
+                            (DECLARE (IGNORABLE %T34))
+                            (AND
+                             (TRUE-LISTP %T34)
+                             (LET* ((L-STAR %T34)
+                                    (L-PRIME (CAR (CDR (CDR %A1)))))
+                              (DECLARE (IGNORABLE L-STAR L-PRIME))
+                              (AND
+                               (CONSP %A2)
+                               (EQ (CAR %A2) :%->%)
+                               (TRUE-LISTP (CDR %A2))
+                               (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                               (LET* ((%T35 (CAR (CDR %A2))))
+                                (DECLARE (IGNORABLE %T35))
+                                (AND
+                                  (TRUE-LISTP %T35)
+                                  (INSTR_OK/SEARCH45
+                                       0 0 (ACL2::LEN %T35)
+                                       %T35 %A2 L-PRIME C^U L-STAR)))))))))))
+                       (DECLARE (IGNORABLE %R))
+                       (IF %R %R
+                        (LET
+                         ((%R
+                           (LET* ((C^U %A0))
+                            (DECLARE (IGNORABLE C^U))
+                            (AND
+                             (CONSP %A1)
+                             (EQ (CAR %A1) :CALL)
+                             (TRUE-LISTP (CDR %A1))
+                             (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                             (LET* ((X (CAR (CDR %A1))))
+                              (DECLARE (IGNORABLE X))
+                              (AND
+                               (CONSP %A2)
+                               (EQ (CAR %A2) :%->%)
+                               (TRUE-LISTP (CDR %A2))
+                               (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                               (LET* ((%T46 (CAR (CDR %A2))))
+                                (DECLARE (IGNORABLE %T46))
+                                (AND
+                                 (TRUE-LISTP %T46)
+                                 (LET* ((T_1-STAR %T46)
+                                        (%T47 (CAR (CDR (CDR %A2)))))
+                                  (DECLARE (IGNORABLE T_1-STAR %T47))
+                                  (AND
+                                   (TRUE-LISTP %T47)
+                                   (<= (ACL2::LEN %T47) 1)
+                                   (OR (NULL %T47)
+                                       (AND (CONSP %T47) (NULL (CDR %T47))))
+                                   (LET* ((T_2-OPT %T47))
+                                    (DECLARE (IGNORABLE T_2-OPT))
+                                    (AND
+                                     (<
+                                       X (ACL2::LEN (%GET-FIELD C^U :FUNCS)))
+                                     (EQUAL (NTH X (%GET-FIELD C^U :FUNCS))
+                                            (LIST :%->% T_1-STAR T_2-OPT))
+                                     (LIST T)))))))))))))
+                         (DECLARE (IGNORABLE %R))
+                         (IF %R %R
+                          (LET
+                           ((%R
+                             (LET* ((C^U %A0))
+                              (DECLARE (IGNORABLE C^U))
+                              (AND
+                               (CONSP %A1)
+                               (EQ (CAR %A1) :CALL_INDIRECT)
+                               (TRUE-LISTP (CDR %A1))
+                               (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                               (LET* ((X (CAR (CDR %A1))))
+                                (DECLARE (IGNORABLE X))
+                                (AND
+                                 (CONSP %A2)
+                                 (EQ (CAR %A2) :%->%)
+                                 (TRUE-LISTP (CDR %A2))
+                                 (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                                 (LET* ((%T48 (CAR (CDR %A2))))
+                                  (DECLARE (IGNORABLE %T48))
+                                  (AND
+                                   (TRUE-LISTP %T48)
+                                   (<= 1 (ACL2::LEN %T48))
+                                   (LET*
+                                    ((%T49
+                                         (TAKE (- (ACL2::LEN %T48) 1) %T48)))
+                                    (DECLARE (IGNORABLE %T49))
+                                    (AND
+                                     (TRUE-LISTP %T49)
+                                     (LET*
+                                       ((T_1-STAR %T49)
+                                        (%T50 (NTHCDR (- (ACL2::LEN %T48) 1)
+                                                      %T48)))
+                                      (DECLARE (IGNORABLE T_1-STAR %T50))
+                                      (AND
+                                       (TRUE-LISTP %T50)
+                                       (EQUAL (ACL2::LEN %T50) 1)
+                                       (LET* ((%T51 (CAR %T50)))
+                                        (DECLARE (IGNORABLE %T51))
+                                        (AND
+                                         (CONSP %T51)
+                                         (EQ (CAR %T51) :I32)
+                                         (TRUE-LISTP (CDR %T51))
+                                         (EQUAL (ACL2::LEN (CDR %T51)) 0)
+                                         (LET* ((%T52 (CAR (CDR (CDR %A2)))))
+                                          (DECLARE (IGNORABLE %T52))
+                                          (AND
+                                           (TRUE-LISTP %T52)
+                                           (<= (ACL2::LEN %T52) 1)
+                                           (OR (NULL %T52)
+                                               (AND (CONSP %T52)
+                                                    (NULL (CDR %T52))))
+                                           (LET* ((T_2-OPT %T52))
+                                            (DECLARE (IGNORABLE T_2-OPT))
+                                            (AND
+                                             (<
+                                              0
+                                              (ACL2::LEN
+                                                   (%GET-FIELD C^U :TABLES)))
+                                             (LET*
+                                              ((TT
+                                                (NTH
+                                                  0
+                                                  (%GET-FIELD C^U :TABLES))))
+                                              (DECLARE (IGNORABLE TT))
+                                              (AND
+                                               (<
+                                                X
+                                                (ACL2::LEN
+                                                    (%GET-FIELD C^U :TYPES)))
+                                               (EQUAL
+                                                (NTH
+                                                   X (%GET-FIELD C^U :TYPES))
+                                                (LIST
+                                                     :%->% T_1-STAR T_2-OPT))
+                                               (LIST T)))))))))))))))))))))
+                           (DECLARE (IGNORABLE %R))
+                           (IF %R %R
+                            (LET
+                             ((%R
+                               (LET* ((C^U %A0))
+                                (DECLARE (IGNORABLE C^U))
+                                (AND
+                                 (CONSP %A1)
+                                 (EQ (CAR %A1) :RETURN)
+                                 (TRUE-LISTP (CDR %A1))
+                                 (EQUAL (ACL2::LEN (CDR %A1)) 0)
+                                 (CONSP %A2)
+                                 (EQ (CAR %A2) :%->%)
+                                 (TRUE-LISTP (CDR %A2))
+                                 (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                                 (LET* ((%T53 (CAR (CDR %A2))))
+                                  (DECLARE (IGNORABLE %T53))
+                                  (AND
+                                      (TRUE-LISTP %T53)
+                                      (INSTR_OK/SEARCH58 0 0 (ACL2::LEN %T53)
+                                                         %T53 %A2 C^U)))))))
+                             (DECLARE (IGNORABLE %R))
+                             (IF %R %R
+                              (LET
+                               ((%R
+                                 (LET* ((C^U %A0))
+                                  (DECLARE (IGNORABLE C^U))
+                                  (AND
+                                   (CONSP %A1)
+                                   (EQ (CAR %A1) :CONST)
+                                   (TRUE-LISTP (CDR %A1))
+                                   (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                                   (LET* ((T^R (CAR (CDR %A1)))
+                                          (C_T (CAR (CDR (CDR %A1)))))
+                                    (DECLARE (IGNORABLE T^R C_T))
+                                    (AND
+                                     (CONSP %A2)
+                                     (EQ (CAR %A2) :%->%)
+                                     (TRUE-LISTP (CDR %A2))
+                                     (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                                     (LET* ((%T59 (CAR (CDR %A2))))
+                                      (DECLARE (IGNORABLE %T59))
+                                      (AND
+                                         (TRUE-LISTP %T59)
+                                         (EQUAL (ACL2::LEN %T59) 0)
+                                         (LET* ((%T60 (CAR (CDR (CDR %A2)))))
+                                           (DECLARE (IGNORABLE %T60))
+                                           (AND (TRUE-LISTP %T60)
+                                                (EQUAL (ACL2::LEN %T60) 1)
+                                                (EQUAL (CAR %T60) T^R)
+                                                (LIST T)))))))))))
+                               (DECLARE (IGNORABLE %R))
+                               (IF %R %R
+                                (LET
+                                 ((%R
+                                   (LET* ((C^U %A0))
+                                    (DECLARE (IGNORABLE C^U))
+                                    (AND
+                                     (CONSP %A1)
+                                     (EQ (CAR %A1) :UNOP)
+                                     (TRUE-LISTP (CDR %A1))
+                                     (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                                     (LET* ((T^R (CAR (CDR %A1)))
+                                            (UNOP_T (CAR (CDR (CDR %A1)))))
+                                      (DECLARE (IGNORABLE T^R UNOP_T))
+                                      (AND
+                                       (CONSP %A2)
+                                       (EQ (CAR %A2) :%->%)
+                                       (TRUE-LISTP (CDR %A2))
+                                       (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                                       (LET* ((%T61 (CAR (CDR %A2))))
+                                        (DECLARE (IGNORABLE %T61))
+                                        (AND
+                                         (TRUE-LISTP %T61)
+                                         (EQUAL (ACL2::LEN %T61) 1)
+                                         (EQUAL (CAR %T61) T^R)
+                                         (LET* ((%T62 (CAR (CDR (CDR %A2)))))
+                                           (DECLARE (IGNORABLE %T62))
+                                           (AND (TRUE-LISTP %T62)
+                                                (EQUAL (ACL2::LEN %T62) 1)
+                                                (EQUAL (CAR %T62) T^R)
+                                                (LIST T)))))))))))
+                                 (DECLARE (IGNORABLE %R))
+                                 (IF %R %R
+                                  (LET
+                                   ((%R
+                                     (LET* ((C^U %A0))
+                                      (DECLARE (IGNORABLE C^U))
+                                      (AND
+                                       (CONSP %A1)
+                                       (EQ (CAR %A1) :BINOP)
+                                       (TRUE-LISTP (CDR %A1))
+                                       (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                                       (LET*
+                                           ((T^R (CAR (CDR %A1)))
+                                            (BINOP_T (CAR (CDR (CDR %A1)))))
+                                        (DECLARE (IGNORABLE T^R BINOP_T))
+                                        (AND
+                                         (CONSP %A2)
+                                         (EQ (CAR %A2) :%->%)
+                                         (TRUE-LISTP (CDR %A2))
+                                         (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                                         (LET* ((%T63 (CAR (CDR %A2))))
+                                          (DECLARE (IGNORABLE %T63))
+                                          (AND
+                                            (TRUE-LISTP %T63)
+                                            (EQUAL (ACL2::LEN %T63) 2)
+                                            (EQUAL (CAR %T63) T^R)
+                                            (EQUAL (CAR (CDR %T63)) T^R)
+                                            (LET*
+                                               ((%T64 (CAR (CDR (CDR %A2)))))
+                                              (DECLARE (IGNORABLE %T64))
+                                              (AND (TRUE-LISTP %T64)
+                                                   (EQUAL (ACL2::LEN %T64) 1)
+                                                   (EQUAL (CAR %T64) T^R)
+                                                   (LIST T)))))))))))
+                                   (DECLARE (IGNORABLE %R))
+                                   (IF %R %R
+                                    (LET
+                                     ((%R
+                                       (LET* ((C^U %A0))
+                                        (DECLARE (IGNORABLE C^U))
+                                        (AND
+                                         (CONSP %A1)
+                                         (EQ (CAR %A1) :TESTOP)
+                                         (TRUE-LISTP (CDR %A1))
+                                         (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                                         (LET*
+                                          ((T^R (CAR (CDR %A1)))
+                                           (TESTOP_T (CAR (CDR (CDR %A1)))))
+                                          (DECLARE (IGNORABLE T^R TESTOP_T))
+                                          (AND
+                                           (CONSP %A2)
+                                           (EQ (CAR %A2) :%->%)
+                                           (TRUE-LISTP (CDR %A2))
+                                           (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                                           (LET* ((%T65 (CAR (CDR %A2))))
+                                            (DECLARE (IGNORABLE %T65))
+                                            (AND
+                                             (TRUE-LISTP %T65)
+                                             (EQUAL (ACL2::LEN %T65) 1)
+                                             (EQUAL (CAR %T65) T^R)
+                                             (LET*
+                                              ((%T66 (CAR (CDR (CDR %A2)))))
+                                              (DECLARE (IGNORABLE %T66))
+                                              (AND
+                                               (TRUE-LISTP %T66)
+                                               (EQUAL (ACL2::LEN %T66) 1)
+                                               (LET* ((%T67 (CAR %T66)))
+                                                (DECLARE (IGNORABLE %T67))
+                                                (AND
+                                                  (CONSP %T67)
+                                                  (EQ (CAR %T67) :I32)
+                                                  (TRUE-LISTP (CDR %T67))
+                                                  (EQUAL
+                                                       (ACL2::LEN (CDR %T67))
+                                                       0)
+                                                  (LIST T)))))))))))))
+                                     (DECLARE (IGNORABLE %R))
+                                     (IF %R %R
+                                      (LET
+                                       ((%R
+                                         (LET* ((C^U %A0))
+                                          (DECLARE (IGNORABLE C^U))
+                                          (AND
+                                           (CONSP %A1)
+                                           (EQ (CAR %A1) :RELOP)
+                                           (TRUE-LISTP (CDR %A1))
+                                           (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                                           (LET*
+                                            ((T^R (CAR (CDR %A1)))
+                                             (RELOP_T (CAR (CDR (CDR %A1)))))
+                                            (DECLARE (IGNORABLE T^R RELOP_T))
+                                            (AND
+                                             (CONSP %A2)
+                                             (EQ (CAR %A2) :%->%)
+                                             (TRUE-LISTP (CDR %A2))
+                                             (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                                             (LET* ((%T68 (CAR (CDR %A2))))
+                                              (DECLARE (IGNORABLE %T68))
+                                              (AND
+                                               (TRUE-LISTP %T68)
+                                               (EQUAL (ACL2::LEN %T68) 2)
+                                               (EQUAL (CAR %T68) T^R)
+                                               (EQUAL (CAR (CDR %T68)) T^R)
+                                               (LET*
+                                                ((%T69
+                                                      (CAR (CDR (CDR %A2)))))
+                                                (DECLARE (IGNORABLE %T69))
+                                                (AND
+                                                 (TRUE-LISTP %T69)
+                                                 (EQUAL (ACL2::LEN %T69) 1)
+                                                 (LET* ((%T70 (CAR %T69)))
+                                                  (DECLARE (IGNORABLE %T70))
+                                                  (AND
+                                                   (CONSP %T70)
+                                                   (EQ (CAR %T70) :I32)
+                                                   (TRUE-LISTP (CDR %T70))
+                                                   (EQUAL
+                                                       (ACL2::LEN (CDR %T70))
+                                                       0)
+                                                   (LIST T)))))))))))))
+                                       (DECLARE (IGNORABLE %R))
+                                       (IF %R %R
+                                        (LET
+                                         ((%R
+                                           (LET* ((C^U %A0))
+                                            (DECLARE (IGNORABLE C^U))
+                                            (AND
+                                             (CONSP %A1)
+                                             (EQ (CAR %A1) :CVTOP)
+                                             (TRUE-LISTP (CDR %A1))
+                                             (EQUAL (ACL2::LEN (CDR %A1)) 3)
+                                             (LET*
+                                              ((NT_1 (CAR (CDR %A1)))
+                                               (NT_2 (CAR (CDR (CDR %A1))))
+                                               (%T71
+                                                (CAR (CDR (CDR (CDR %A1))))))
+                                              (DECLARE
+                                                  (IGNORABLE NT_1 NT_2 %T71))
+                                              (AND
+                                               (CONSP %T71)
+                                               (EQ (CAR %T71) :REINTERPRET)
+                                               (TRUE-LISTP (CDR %T71))
+                                               (EQUAL (ACL2::LEN (CDR %T71))
+                                                      0)
+                                               (CONSP %A2)
+                                               (EQ (CAR %A2) :%->%)
+                                               (TRUE-LISTP (CDR %A2))
+                                               (EQUAL (ACL2::LEN (CDR %A2))
+                                                      2)
+                                               (LET* ((%T72 (CAR (CDR %A2))))
+                                                (DECLARE (IGNORABLE %T72))
+                                                (AND
+                                                 (TRUE-LISTP %T72)
+                                                 (EQUAL (ACL2::LEN %T72) 1)
+                                                 (EQUAL (CAR %T72) NT_2)
+                                                 (LET*
+                                                  ((%T73
+                                                      (CAR (CDR (CDR %A2)))))
+                                                  (DECLARE (IGNORABLE %T73))
+                                                  (AND
+                                                   (TRUE-LISTP %T73)
+                                                   (EQUAL (ACL2::LEN %T73) 1)
+                                                   (EQUAL (CAR %T73) NT_1)
+                                                   (EQUAL ($SIZE NT_1)
+                                                          ($SIZE NT_2))
+                                                   (LIST T)))))))))))
+                                         (DECLARE (IGNORABLE %R))
+                                         (IF %R %R
+                                          (LET
+                                           ((%R
+                                             (LET* ((C^U %A0))
+                                              (DECLARE (IGNORABLE C^U))
+                                              (AND
+                                               (CONSP %A1)
+                                               (EQ (CAR %A1) :CVTOP)
+                                               (TRUE-LISTP (CDR %A1))
+                                               (EQUAL (ACL2::LEN (CDR %A1))
+                                                      3)
+                                               (LET*
+                                                ((NT_1 (CAR (CDR %A1)))
+                                                 (NT_2 (CAR (CDR (CDR %A1))))
+                                                 (CVTOP
+                                                  (CAR
+                                                     (CDR (CDR (CDR %A1))))))
+                                                (DECLARE
+                                                 (IGNORABLE NT_1 NT_2 CVTOP))
+                                                (AND
+                                                 (CONSP %A2)
+                                                 (EQ (CAR %A2) :%->%)
+                                                 (TRUE-LISTP (CDR %A2))
+                                                 (EQUAL (ACL2::LEN (CDR %A2))
+                                                        2)
+                                                 (LET*
+                                                    ((%T74 (CAR (CDR %A2))))
+                                                  (DECLARE (IGNORABLE %T74))
+                                                  (AND
+                                                   (TRUE-LISTP %T74)
+                                                   (EQUAL (ACL2::LEN %T74) 1)
+                                                   (EQUAL (CAR %T74) NT_2)
+                                                   (LET*
+                                                    ((%T75
+                                                      (CAR (CDR (CDR %A2)))))
+                                                    (DECLARE
+                                                         (IGNORABLE %T75))
+                                                    (AND
+                                                      (TRUE-LISTP %T75)
+                                                      (EQUAL (ACL2::LEN %T75)
+                                                             1)
+                                                      (EQUAL (CAR %T75) NT_1)
+                                                      (LIST T)))))))))))
+                                           (DECLARE (IGNORABLE %R))
+                                           (IF %R %R
+                                            (LET
+                                             ((%R
+                                               (LET* ((C^U %A0))
+                                                (DECLARE (IGNORABLE C^U))
+                                                (AND
+                                                 (CONSP %A1)
+                                                 (EQ (CAR %A1) :LOCAL.GET)
+                                                 (TRUE-LISTP (CDR %A1))
+                                                 (EQUAL (ACL2::LEN (CDR %A1))
+                                                        1)
+                                                 (LET* ((X (CAR (CDR %A1))))
+                                                  (DECLARE (IGNORABLE X))
+                                                  (AND
+                                                   (CONSP %A2)
+                                                   (EQ (CAR %A2) :%->%)
+                                                   (TRUE-LISTP (CDR %A2))
+                                                   (EQUAL
+                                                        (ACL2::LEN (CDR %A2))
+                                                        2)
+                                                   (LET*
+                                                    ((%T76 (CAR (CDR %A2))))
+                                                    (DECLARE
+                                                         (IGNORABLE %T76))
+                                                    (AND
+                                                     (TRUE-LISTP %T76)
+                                                     (EQUAL (ACL2::LEN %T76)
+                                                            0)
+                                                     (LET*
+                                                      ((%T77
+                                                        (CAR
+                                                           (CDR (CDR %A2)))))
+                                                      (DECLARE
+                                                           (IGNORABLE %T77))
+                                                      (AND
+                                                       (TRUE-LISTP %T77)
+                                                       (EQUAL
+                                                            (ACL2::LEN %T77)
+                                                            1)
+                                                       (LET*
+                                                          ((T^R (CAR %T77)))
+                                                        (DECLARE
+                                                             (IGNORABLE T^R))
+                                                        (AND
+                                                         (<
+                                                          X
+                                                          (ACL2::LEN
+                                                           (%GET-FIELD
+                                                               C^U :LOCALS)))
+                                                         (EQUAL
+                                                          (NTH
+                                                           X
+                                                           (%GET-FIELD
+                                                                C^U :LOCALS))
+                                                          T^R)
+                                                         (LIST T)))))))))))))
+                                             (DECLARE (IGNORABLE %R))
+                                             (IF %R %R
+                                              (LET
+                                               ((%R
+                                                 (LET* ((C^U %A0))
+                                                  (DECLARE (IGNORABLE C^U))
+                                                  (AND
+                                                   (CONSP %A1)
+                                                   (EQ (CAR %A1) :LOCAL.SET)
+                                                   (TRUE-LISTP (CDR %A1))
+                                                   (EQUAL
+                                                        (ACL2::LEN (CDR %A1))
+                                                        1)
+                                                   (LET*
+                                                       ((X (CAR (CDR %A1))))
+                                                    (DECLARE (IGNORABLE X))
+                                                    (AND
+                                                     (CONSP %A2)
+                                                     (EQ (CAR %A2) :%->%)
+                                                     (TRUE-LISTP (CDR %A2))
+                                                     (EQUAL
+                                                        (ACL2::LEN (CDR %A2))
+                                                        2)
+                                                     (LET*
+                                                      ((%T78
+                                                            (CAR (CDR %A2))))
+                                                      (DECLARE
+                                                           (IGNORABLE %T78))
+                                                      (AND
+                                                       (TRUE-LISTP %T78)
+                                                       (EQUAL
+                                                            (ACL2::LEN %T78)
+                                                            1)
+                                                       (LET*
+                                                        ((T^R (CAR %T78))
+                                                         (%T79
+                                                          (CAR
+                                                           (CDR (CDR %A2)))))
+                                                        (DECLARE
+                                                             (IGNORABLE
+                                                                  T^R %T79))
+                                                        (AND
+                                                         (TRUE-LISTP %T79)
+                                                         (EQUAL
+                                                             (ACL2::LEN %T79)
+                                                             0)
+                                                         (<
+                                                          X
+                                                          (ACL2::LEN
+                                                           (%GET-FIELD
+                                                               C^U :LOCALS)))
+                                                         (EQUAL
+                                                          (NTH
+                                                           X
+                                                           (%GET-FIELD
+                                                                C^U :LOCALS))
+                                                          T^R)
+                                                         (LIST T)))))))))))
+                                               (DECLARE (IGNORABLE %R))
+                                               (IF %R %R
+                                                (LET
+                                                 ((%R
+                                                   (LET* ((C^U %A0))
+                                                    (DECLARE (IGNORABLE C^U))
+                                                    (AND
+                                                     (CONSP %A1)
+                                                     (EQ (CAR %A1)
+                                                         :LOCAL.TEE)
+                                                     (TRUE-LISTP (CDR %A1))
+                                                     (EQUAL
+                                                        (ACL2::LEN (CDR %A1))
+                                                        1)
+                                                     (LET*
+                                                       ((X (CAR (CDR %A1))))
+                                                      (DECLARE (IGNORABLE X))
+                                                      (AND
+                                                       (CONSP %A2)
+                                                       (EQ (CAR %A2) :%->%)
+                                                       (TRUE-LISTP (CDR %A2))
+                                                       (EQUAL
+                                                        (ACL2::LEN (CDR %A2))
+                                                        2)
+                                                       (LET*
+                                                        ((%T80
+                                                            (CAR (CDR %A2))))
+                                                        (DECLARE
+                                                            (IGNORABLE %T80))
+                                                        (AND
+                                                         (TRUE-LISTP %T80)
+                                                         (EQUAL
+                                                             (ACL2::LEN %T80)
+                                                             1)
+                                                         (LET*
+                                                          ((T^R (CAR %T80))
+                                                           (%T81
+                                                            (CAR
+                                                             (CDR
+                                                                (CDR %A2)))))
+                                                          (DECLARE
+                                                              (IGNORABLE
+                                                                   T^R %T81))
+                                                          (AND
+                                                           (TRUE-LISTP %T81)
+                                                           (EQUAL
+                                                             (ACL2::LEN %T81)
+                                                             1)
+                                                           (EQUAL (CAR %T81)
+                                                                  T^R)
+                                                           (<
+                                                            X
+                                                            (ACL2::LEN
+                                                             (%GET-FIELD
+                                                               C^U :LOCALS)))
+                                                           (EQUAL
+                                                            (NTH
+                                                             X
+                                                             (%GET-FIELD
+                                                                C^U :LOCALS))
+                                                            T^R)
+                                                           (LIST T)))))))))))
+                                                 (DECLARE (IGNORABLE %R))
+                                                 (IF %R %R
+                                                  (LET
+                                                   ((%R
+                                                     (LET* ((C^U %A0))
+                                                      (DECLARE
+                                                           (IGNORABLE C^U))
+                                                      (AND
+                                                       (CONSP %A1)
+                                                       (EQ (CAR %A1)
+                                                           :GLOBAL.GET)
+                                                       (TRUE-LISTP (CDR %A1))
+                                                       (EQUAL
+                                                        (ACL2::LEN (CDR %A1))
+                                                        1)
+                                                       (LET*
+                                                        ((X (CAR (CDR %A1))))
+                                                        (DECLARE
+                                                             (IGNORABLE X))
+                                                        (AND
+                                                         (CONSP %A2)
+                                                         (EQ (CAR %A2) :%->%)
+                                                         (TRUE-LISTP
+                                                              (CDR %A2))
+                                                         (EQUAL
+                                                              (ACL2::LEN
+                                                                   (CDR %A2))
+                                                              2)
+                                                         (LET*
+                                                          ((%T82
+                                                            (CAR (CDR %A2))))
+                                                          (DECLARE
+                                                            (IGNORABLE %T82))
+                                                          (AND
+                                                           (TRUE-LISTP %T82)
+                                                           (EQUAL
+                                                             (ACL2::LEN %T82)
+                                                             0)
+                                                           (LET*
+                                                            ((%T83
+                                                              (CAR
+                                                               (CDR
+                                                                (CDR %A2)))))
+                                                            (DECLARE
+                                                                 (IGNORABLE
+                                                                      %T83))
+                                                            (AND
+                                                             (TRUE-LISTP
+                                                                  %T83)
+                                                             (EQUAL
+                                                                  (ACL2::LEN
+                                                                       %T83)
+                                                                  1)
+                                                             (LET*
+                                                              ((T^R
+                                                                 (CAR %T83)))
+                                                              (DECLARE
+                                                                   (IGNORABLE
+                                                                        T^R))
+                                                              (AND
+                                                               (<
+                                                                X
+                                                                (ACL2::LEN
+                                                                 (%GET-FIELD
+                                                                  C^U
+                                                                  :GLOBALS)))
+                                                               (LET*
+                                                                ((%T84
+                                                                  (NTH
+                                                                   X
+                                                                   (%GET-FIELD
+                                                                    C^U
+                                                                    :GLOBALS))))
+                                                                (DECLARE
+                                                                  (IGNORABLE
+                                                                       %T84))
+                                                                (AND
+                                                                 (TRUE-LISTP
+                                                                      %T84)
+                                                                 (EQUAL
+                                                                   (ACL2::LEN
+                                                                        %T84)
+                                                                   2)
+                                                                 (LET*
+                                                                  ((MUT
+                                                                    (CAR
+                                                                      %T84)))
+                                                                  (DECLARE
+                                                                   (IGNORABLE
+                                                                        MUT))
+                                                                  (AND
+                                                                   (EQUAL
+                                                                    (CAR
+                                                                     (CDR
+                                                                       %T84))
+                                                                    T^R)
+                                                                   (LIST
+                                                                    T)))))))))))))))))
+                                                   (DECLARE (IGNORABLE %R))
+                                                   (IF %R %R
+                                                    (LET
+                                                     ((%R
+                                                       (LET* ((C^U %A0))
+                                                        (DECLARE
+                                                             (IGNORABLE C^U))
+                                                        (AND
+                                                         (CONSP %A1)
+                                                         (EQ (CAR %A1)
+                                                             :GLOBAL.SET)
+                                                         (TRUE-LISTP
+                                                              (CDR %A1))
+                                                         (EQUAL
+                                                              (ACL2::LEN
+                                                                   (CDR %A1))
+                                                              1)
+                                                         (LET*
+                                                          ((X
+                                                            (CAR (CDR %A1))))
+                                                          (DECLARE
+                                                               (IGNORABLE X))
+                                                          (AND
+                                                           (CONSP %A2)
+                                                           (EQ (CAR %A2)
+                                                               :%->%)
+                                                           (TRUE-LISTP
+                                                                (CDR %A2))
+                                                           (EQUAL
+                                                              (ACL2::LEN
+                                                                   (CDR %A2))
+                                                              2)
+                                                           (LET*
+                                                            ((%T85
+                                                              (CAR
+                                                                 (CDR %A2))))
+                                                            (DECLARE
+                                                                 (IGNORABLE
+                                                                      %T85))
+                                                            (AND
+                                                             (TRUE-LISTP
+                                                                  %T85)
+                                                             (EQUAL
+                                                                  (ACL2::LEN
+                                                                       %T85)
+                                                                  1)
+                                                             (LET*
+                                                              ((T^R
+                                                                  (CAR %T85))
+                                                               (%T86
+                                                                (CAR
+                                                                 (CDR
+                                                                  (CDR
+                                                                     %A2)))))
+                                                              (DECLARE
+                                                               (IGNORABLE
+                                                                   T^R %T86))
+                                                              (AND
+                                                               (TRUE-LISTP
+                                                                    %T86)
+                                                               (EQUAL
+                                                                   (ACL2::LEN
+                                                                        %T86)
+                                                                   0)
+                                                               (<
+                                                                X
+                                                                (ACL2::LEN
+                                                                 (%GET-FIELD
+                                                                  C^U
+                                                                  :GLOBALS)))
+                                                               (EQUAL
+                                                                (NTH
+                                                                 X
+                                                                 (%GET-FIELD
+                                                                   C^U
+                                                                   :GLOBALS))
+                                                                (LIST
+                                                                 (LIST
+                                                                  (LIST
+                                                                       :MUT))
+                                                                 T^R))
+                                                               (LIST
+                                                                 T)))))))))))
+                                                     (DECLARE (IGNORABLE %R))
+                                                     (IF %R %R
+                                                      (LET
+                                                       ((%R
+                                                         (LET* ((C^U %A0))
+                                                          (DECLARE
+                                                             (IGNORABLE C^U))
+                                                          (AND
+                                                           (CONSP %A1)
+                                                           (EQ (CAR %A1)
+                                                               :MEMORY.SIZE)
+                                                           (TRUE-LISTP
+                                                                (CDR %A1))
+                                                           (EQUAL
+                                                              (ACL2::LEN
+                                                                   (CDR %A1))
+                                                              0)
+                                                           (CONSP %A2)
+                                                           (EQ (CAR %A2)
+                                                               :%->%)
+                                                           (TRUE-LISTP
+                                                                (CDR %A2))
+                                                           (EQUAL
+                                                              (ACL2::LEN
+                                                                   (CDR %A2))
+                                                              2)
+                                                           (LET*
+                                                            ((%T87
+                                                              (CAR
+                                                                 (CDR %A2))))
+                                                            (DECLARE
+                                                                 (IGNORABLE
+                                                                      %T87))
+                                                            (AND
+                                                             (TRUE-LISTP
+                                                                  %T87)
+                                                             (EQUAL
+                                                                  (ACL2::LEN
+                                                                       %T87)
+                                                                  0)
+                                                             (LET*
+                                                              ((%T88
+                                                                (CAR
+                                                                 (CDR
+                                                                  (CDR
+                                                                     %A2)))))
+                                                              (DECLARE
+                                                                  (IGNORABLE
+                                                                       %T88))
+                                                              (AND
+                                                               (TRUE-LISTP
+                                                                    %T88)
+                                                               (EQUAL
+                                                                   (ACL2::LEN
+                                                                        %T88)
+                                                                   1)
+                                                               (LET*
+                                                                ((%T89
+                                                                  (CAR
+                                                                      %T88)))
+                                                                (DECLARE
+                                                                  (IGNORABLE
+                                                                       %T89))
+                                                                (AND
+                                                                 (CONSP %T89)
+                                                                 (EQ
+                                                                   (CAR %T89)
+                                                                   :I32)
+                                                                 (TRUE-LISTP
+                                                                  (CDR %T89))
+                                                                 (EQUAL
+                                                                  (ACL2::LEN
+                                                                   (CDR
+                                                                       %T89))
+                                                                  0)
+                                                                 (<
+                                                                  0
+                                                                  (ACL2::LEN
+                                                                   (%GET-FIELD
+                                                                     C^U
+                                                                     :MEMS)))
+                                                                 (LET*
+                                                                  ((MT
+                                                                    (NTH
+                                                                     0
+                                                                     (%GET-FIELD
+                                                                      C^U
+                                                                      :MEMS))))
+                                                                  (DECLARE
+                                                                    (IGNORABLE
+                                                                         MT))
+                                                                  (LIST
+                                                                   T))))))))))))
+                                                       (DECLARE
+                                                            (IGNORABLE %R))
+                                                       (IF %R %R
+                                                        (LET
+                                                         ((%R
+                                                           (LET* ((C^U %A0))
+                                                            (DECLARE
+                                                             (IGNORABLE C^U))
+                                                            (AND
+                                                             (CONSP %A1)
+                                                             (EQ
+                                                                (CAR %A1)
+                                                                :MEMORY.GROW)
+                                                             (TRUE-LISTP
+                                                                  (CDR %A1))
+                                                             (EQUAL
+                                                              (ACL2::LEN
+                                                                   (CDR %A1))
+                                                              0)
+                                                             (CONSP %A2)
+                                                             (EQ (CAR %A2)
+                                                                 :%->%)
+                                                             (TRUE-LISTP
+                                                                  (CDR %A2))
+                                                             (EQUAL
+                                                              (ACL2::LEN
+                                                                   (CDR %A2))
+                                                              2)
+                                                             (LET*
+                                                              ((%T90
+                                                                (CAR
+                                                                 (CDR %A2))))
+                                                              (DECLARE
+                                                                  (IGNORABLE
+                                                                       %T90))
+                                                              (AND
+                                                               (TRUE-LISTP
+                                                                    %T90)
+                                                               (EQUAL
+                                                                   (ACL2::LEN
+                                                                        %T90)
+                                                                   1)
+                                                               (LET*
+                                                                ((%T91
+                                                                  (CAR
+                                                                      %T90)))
+                                                                (DECLARE
+                                                                  (IGNORABLE
+                                                                       %T91))
+                                                                (AND
+                                                                 (CONSP %T91)
+                                                                 (EQ
+                                                                   (CAR %T91)
+                                                                   :I32)
+                                                                 (TRUE-LISTP
+                                                                  (CDR %T91))
+                                                                 (EQUAL
+                                                                  (ACL2::LEN
+                                                                   (CDR
+                                                                       %T91))
+                                                                  0)
+                                                                 (LET*
+                                                                  ((%T92
+                                                                    (CAR
+                                                                     (CDR
+                                                                      (CDR
+                                                                       %A2)))))
+                                                                  (DECLARE
+                                                                   (IGNORABLE
+                                                                       %T92))
+                                                                  (AND
+                                                                   (TRUE-LISTP
+                                                                        %T92)
+                                                                   (EQUAL
+                                                                    (ACL2::LEN
+                                                                        %T92)
+                                                                    1)
+                                                                   (LET*
+                                                                    ((%T93
+                                                                      (CAR
+                                                                       %T92)))
+                                                                    (DECLARE
+                                                                     (IGNORABLE
+                                                                       %T93))
+                                                                    (AND
+                                                                     (CONSP
+                                                                        %T93)
+                                                                     (EQ
+                                                                      (CAR
+                                                                        %T93)
+                                                                      :I32)
+                                                                     (TRUE-LISTP
+                                                                      (CDR
+                                                                       %T93))
+                                                                     (EQUAL
+                                                                      (ACL2::LEN
+                                                                       (CDR
+                                                                        %T93))
+                                                                      0)
+                                                                     (<
+                                                                      0
+                                                                      (ACL2::LEN
+                                                                       (%GET-FIELD
+                                                                        C^U
+                                                                        :MEMS)))
+                                                                     (LET*
+                                                                      ((MT
+                                                                        (NTH
+                                                                         0
+                                                                         (%GET-FIELD
+                                                                          C^U
+                                                                          :MEMS))))
+                                                                      (DECLARE
+                                                                       (IGNORABLE
+                                                                         MT))
+                                                                      (LIST
+                                                                       T))))))))))))))
+                                                         (DECLARE
+                                                              (IGNORABLE %R))
+                                                         (IF %R %R
+                                                          (LET
+                                                           ((%R
+                                                             (LET*
+                                                                 ((C^U %A0))
+                                                              (DECLARE
+                                                                   (IGNORABLE
+                                                                        C^U))
+                                                              (AND
+                                                               (CONSP %A1)
+                                                               (EQ (CAR %A1)
+                                                                   :LOAD)
+                                                               (TRUE-LISTP
+                                                                   (CDR %A1))
+                                                               (EQUAL
+                                                                (ACL2::LEN
+                                                                   (CDR %A1))
+                                                                3)
+                                                               (LET*
+                                                                ((T^R
+                                                                  (CAR
+                                                                   (CDR
+                                                                      %A1))))
+                                                                (DECLARE
+                                                                   (IGNORABLE
+                                                                        T^R))
+                                                                (AND
+                                                                 (NULL
+                                                                  (CAR
+                                                                   (CDR
+                                                                    (CDR
+                                                                      %A1))))
+                                                                 (LET*
+                                                                  ((MEMARG
+                                                                    (CAR
+                                                                     (CDR
+                                                                      (CDR
+                                                                       (CDR
+                                                                        %A1))))))
+                                                                  (DECLARE
+                                                                   (IGNORABLE
+                                                                     MEMARG))
+                                                                  (AND
+                                                                   (CONSP
+                                                                        %A2)
+                                                                   (EQ
+                                                                    (CAR %A2)
+                                                                    :%->%)
+                                                                   (TRUE-LISTP
+                                                                    (CDR
+                                                                        %A2))
+                                                                   (EQUAL
+                                                                    (ACL2::LEN
+                                                                     (CDR
+                                                                        %A2))
+                                                                    2)
+                                                                   (LET*
+                                                                    ((%T94
+                                                                      (CAR
+                                                                       (CDR
+                                                                        %A2))))
+                                                                    (DECLARE
+                                                                     (IGNORABLE
+                                                                       %T94))
+                                                                    (AND
+                                                                     (TRUE-LISTP
+                                                                        %T94)
+                                                                     (EQUAL
+                                                                      (ACL2::LEN
+                                                                        %T94)
+                                                                      1)
+                                                                     (LET*
+                                                                      ((%T95
+                                                                        (CAR
+                                                                         %T94)))
+                                                                      (DECLARE
+                                                                       (IGNORABLE
+                                                                        %T95))
+                                                                      (AND
+                                                                       (CONSP
+                                                                        %T95)
+                                                                       (EQ
+                                                                        (CAR
+                                                                         %T95)
+                                                                        :I32)
+                                                                       (TRUE-LISTP
+                                                                        (CDR
+                                                                         %T95))
+                                                                       (EQUAL
+                                                                        (ACL2::LEN
+                                                                         (CDR
+                                                                          %T95))
+                                                                        0)
+                                                                       (LET*
+                                                                        ((%T96
+                                                                          (CAR
+                                                                           (CDR
+                                                                            (CDR
+                                                                             %A2)))))
+                                                                        (DECLARE
+                                                                         (IGNORABLE
+                                                                          %T96))
+                                                                        (AND
+                                                                         (TRUE-LISTP
+                                                                          %T96)
+                                                                         (EQUAL
+                                                                          (ACL2::LEN
+                                                                           %T96)
+                                                                          1)
+                                                                         (EQUAL
+                                                                          (CAR
+                                                                           %T96)
+                                                                          T^R)
+                                                                         (<
+                                                                          0
+                                                                          (ACL2::LEN
+                                                                           (%GET-FIELD
+                                                                            C^U
+                                                                            :MEMS)))
+                                                                         (LET*
+                                                                          ((MT
+                                                                            (NTH
+                                                                             0
+                                                                             (%GET-FIELD
+                                                                              C^U
+                                                                              :MEMS))))
+                                                                          (DECLARE
+                                                                           (IGNORABLE
+                                                                            MT))
+                                                                          (AND
+                                                                           (<=
+                                                                            (EXPT
+                                                                             2
+                                                                             (%GET-FIELD
+                                                                              MEMARG
+                                                                              :ALIGN))
+                                                                            (/
+                                                                             ($SIZE
+                                                                              T^R)
+                                                                             8))
+                                                                           (LIST
+                                                                            T)))))))))))))))))
+                                                           (DECLARE
+                                                              (IGNORABLE %R))
+                                                           (IF %R %R
+                                                            (LET
+                                                             ((%R
+                                                               (LET*
+                                                                 ((C^U %A0))
+                                                                (DECLARE
+                                                                   (IGNORABLE
+                                                                        C^U))
+                                                                (AND
+                                                                 (CONSP %A1)
+                                                                 (EQ
+                                                                    (CAR %A1)
+                                                                    :LOAD)
+                                                                 (TRUE-LISTP
+                                                                   (CDR %A1))
+                                                                 (EQUAL
+                                                                  (ACL2::LEN
+                                                                   (CDR %A1))
+                                                                  3)
+                                                                 (LET*
+                                                                  ((%T97
+                                                                    (CAR
+                                                                     (CDR
+                                                                      %A1))))
+                                                                  (DECLARE
+                                                                   (IGNORABLE
+                                                                       %T97))
+                                                                  (AND
+                                                                   (INN-P
+                                                                        %T97)
+                                                                   (LET*
+                                                                    ((INN
+                                                                        %T97)
+                                                                     (%T98
+                                                                      (CAR
+                                                                       (CDR
+                                                                        (CDR
+                                                                         %A1)))))
+                                                                    (DECLARE
+                                                                     (IGNORABLE
+                                                                       INN
+                                                                       %T98))
+                                                                    (AND
+                                                                     (CONSP
+                                                                        %T98)
+                                                                     (LET*
+                                                                      ((%T99
+                                                                        (CAR
+                                                                         %T98)))
+                                                                      (DECLARE
+                                                                       (IGNORABLE
+                                                                        %T99))
+                                                                      (AND
+                                                                       (CONSP
+                                                                        %T99)
+                                                                       (EQ
+                                                                        (CAR
+                                                                         %T99)
+                                                                        :_)
+                                                                       (TRUE-LISTP
+                                                                        (CDR
+                                                                         %T99))
+                                                                       (EQUAL
+                                                                        (ACL2::LEN
+                                                                         (CDR
+                                                                          %T99))
+                                                                        2)
+                                                                       (LET*
+                                                                        ((%T100
+                                                                          (CAR
+                                                                           (CDR
+                                                                            %T99)))
+                                                                         (M^U
+                                                                          %T100)
+                                                                         (SX
+                                                                          (CAR
+                                                                           (CDR
+                                                                            (CDR
+                                                                             %T99))))
+                                                                         (MEMARG
+                                                                          (CAR
+                                                                           (CDR
+                                                                            (CDR
+                                                                             (CDR
+                                                                              %A1))))))
+                                                                        (DECLARE
+                                                                         (IGNORABLE
+                                                                          %T100
+                                                                          M^U
+                                                                          SX
+                                                                          MEMARG))
+                                                                        (AND
+                                                                         (CONSP
+                                                                          %A2)
+                                                                         (EQ
+                                                                          (CAR
+                                                                           %A2)
+                                                                          :%->%)
+                                                                         (TRUE-LISTP
+                                                                          (CDR
+                                                                           %A2))
+                                                                         (EQUAL
+                                                                          (ACL2::LEN
+                                                                           (CDR
+                                                                            %A2))
+                                                                          2)
+                                                                         (LET*
+                                                                          ((%T101
+                                                                            (CAR
+                                                                             (CDR
+                                                                              %A2))))
+                                                                          (DECLARE
+                                                                           (IGNORABLE
+                                                                            %T101))
+                                                                          (AND
+                                                                           (TRUE-LISTP
+                                                                            %T101)
+                                                                           (EQUAL
+                                                                            (ACL2::LEN
+                                                                             %T101)
+                                                                            1)
+                                                                           (LET*
+                                                                            ((%T102
+                                                                              (CAR
+                                                                              
+ %T101)))
+                                                                            (DECLARE
+                                                                             (IGNORABLE
+                                                                              %T102))
+                                                                            (AND
+                                                                             (CONSP
+                                                                              %T102)
+                                                                             (EQ
+                                                                              (CAR
+                                                                              
+ %T102)
+                                                                              :I32)
+                                                                             (TRUE-LISTP
+                                                                              (CDR
+                                                                              
+ %T102))
+                                                                             (EQUAL
+                                                                              (ACL2::LEN
+                                                                              
+ (CDR
+                                                                              
+  %T102))
+                                                                              0)
+                                                                             (LET*
+                                                                              ((%T103
+                                                                              
+  (CAR
+                                                                              
+   (CDR
+                                                                              
+    (CDR
+                                                                              
+     %A2)))))
+                                                                              (DECLARE
+                                                                              
+ (IGNORABLE
+                                                                              
+  %T103))
+                                                                              (AND
+                                                                              
+ (TRUE-LISTP
+                                                                              
+  %T103)
+                                                                              
+ (EQUAL
+                                                                              
+  (ACL2::LEN
+                                                                              
+   %T103)
+                                                                              
+  1)
+                                                                              
+ (LET*
+                                                                              
+  ((%T104
+                                                                              
+    (CAR
+                                                                              
+     %T103)))
+                                                                              
+  (DECLARE
+                                                                              
+   (IGNORABLE
+                                                                              
+    %T104))
+                                                                              
+  (AND
+                                                                              
+   (INN-P
+                                                                              
+    %T104)
+                                                                              
+   (EQUAL
+                                                                              
+    %T104
+                                                                              
+    INN)
+                                                                              
+   (<
+                                                                              
+    0
+                                                                              
+    (ACL2::LEN
+                                                                              
+     (%GET-FIELD
+                                                                              
+      C^U
+                                                                              
+      :MEMS)))
+                                                                              
+   (LET*
+                                                                              
+    ((MT
+                                                                              
+      (NTH
+                                                                              
+       0
+                                                                              
+       (%GET-FIELD
+                                                                              
+        C^U
+                                                                              
+        :MEMS))))
+                                                                              
+    (DECLARE
+                                                                              
+     (IGNORABLE
+                                                                              
+      MT))
+                                                                              
+    (AND
+                                                                              
+     (<=
+                                                                              
+      (EXPT
+                                                                              
+       2
+                                                                              
+       (%GET-FIELD
+                                                                              
+        MEMARG
+                                                                              
+        :ALIGN))
+                                                                              
+      (/
+                                                                              
+       M^U
+                                                                              
+       8))
+                                                                              
+     (LIST
+                                                                              
+      T)))))))))))))))))))))))
+                                                             (DECLARE
+                                                              (IGNORABLE %R))
+                                                             (IF %R %R
+                                                              (LET
+                                                               ((%R
+                                                                 (LET*
+                                                                  ((C^U %A0))
+                                                                  (DECLARE
+                                                                   (IGNORABLE
+                                                                        C^U))
+                                                                  (AND
+                                                                   (CONSP
+                                                                        %A1)
+                                                                   (EQ
+                                                                    (CAR %A1)
+                                                                    :STORE)
+                                                                   (TRUE-LISTP
+                                                                    (CDR
+                                                                        %A1))
+                                                                   (EQUAL
+                                                                    (ACL2::LEN
+                                                                     (CDR
+                                                                        %A1))
+                                                                    3)
+                                                                   (LET*
+                                                                    ((T^R
+                                                                      (CAR
+                                                                       (CDR
+                                                                        %A1))))
+                                                                    (DECLARE
+                                                                     (IGNORABLE
+                                                                        T^R))
+                                                                    (AND
+                                                                     (NULL
+                                                                      (CAR
+                                                                       (CDR
+                                                                        (CDR
+                                                                         %A1))))
+                                                                     (LET*
+                                                                      ((MEMARG
+                                                                        (CAR
+                                                                         (CDR
+                                                                          (CDR
+                                                                           (CDR
+                                                                            %A1))))))
+                                                                      (DECLARE
+                                                                       (IGNORABLE
+                                                                        MEMARG))
+                                                                      (AND
+                                                                       (CONSP
+                                                                         %A2)
+                                                                       (EQ
+                                                                        (CAR
+                                                                         %A2)
+                                                                        :%->%)
+                                                                       (TRUE-LISTP
+                                                                        (CDR
+                                                                         %A2))
+                                                                       (EQUAL
+                                                                        (ACL2::LEN
+                                                                         (CDR
+                                                                          %A2))
+                                                                        2)
+                                                                       (LET*
+                                                                        ((%T105
+                                                                          (CAR
+                                                                           (CDR
+                                                                            %A2))))
+                                                                        (DECLARE
+                                                                         (IGNORABLE
+                                                                          %T105))
+                                                                        (AND
+                                                                         (TRUE-LISTP
+                                                                          %T105)
+                                                                         (EQUAL
+                                                                          (ACL2::LEN
+                                                                           %T105)
+                                                                          2)
+                                                                         (LET*
+                                                                          ((%T106
+                                                                            (CAR
+                                                                             %T105)))
+                                                                          (DECLARE
+                                                                           (IGNORABLE
+                                                                            %T106))
+                                                                          (AND
+                                                                           (CONSP
+                                                                            %T106)
+                                                                           (EQ
+                                                                            (CAR
+                                                                             %T106)
+                                                                            :I32)
+                                                                           (TRUE-LISTP
+                                                                            (CDR
+                                                                             %T106))
+                                                                           (EQUAL
+                                                                            (ACL2::LEN
+                                                                             (CDR
+                                                                              %T106))
+                                                                            0)
+                                                                           (EQUAL
+                                                                            (CAR
+                                                                             (CDR
+                                                                              %T105))
+                                                                            T^R)
+                                                                           (LET*
+                                                                            ((%T107
+                                                                              (CAR
+                                                                              
+ (CDR
+                                                                              
+  (CDR
+                                                                              
+   %A2)))))
+                                                                            (DECLARE
+                                                                             (IGNORABLE
+                                                                              %T107))
+                                                                            (AND
+                                                                             (TRUE-LISTP
+                                                                              %T107)
+                                                                             (EQUAL
+                                                                              (ACL2::LEN
+                                                                              
+ %T107)
+                                                                              0)
+                                                                             (<
+                                                                              0
+                                                                              (ACL2::LEN
+                                                                              
+ (%GET-FIELD
+                                                                              
+  C^U
+                                                                              
+  :MEMS)))
+                                                                             (LET*
+                                                                              ((MT
+                                                                              
+  (NTH
+                                                                              
+   0
+                                                                              
+   (%GET-FIELD
+                                                                              
+    C^U
+                                                                              
+    :MEMS))))
+                                                                              (DECLARE
+                                                                              
+ (IGNORABLE
+                                                                              
+  MT))
+                                                                              (AND
+                                                                              
+ (<=
+                                                                              
+  (EXPT
+                                                                              
+   2
+                                                                              
+   (%GET-FIELD
+                                                                              
+    MEMARG
+                                                                              
+    :ALIGN))
+                                                                              
+  (/
+                                                                              
+   ($SIZE
+                                                                              
+    T^R)
+                                                                              
+   8))
+                                                                              
+ (LIST
+                                                                              
+  T)))))))))))))))))
+                                                               (DECLARE
+                                                                    (IGNORABLE
+                                                                         %R))
+                                                               (IF %R %R
+                                                                (LET
+                                                                 ((%R
+                                                                   (LET*
+                                                                    ((C^U
+                                                                        %A0))
+                                                                    (DECLARE
+                                                                     (IGNORABLE
+                                                                        C^U))
+                                                                    (AND
+                                                                     (CONSP
+                                                                         %A1)
+                                                                     (EQ
+                                                                      (CAR
+                                                                         %A1)
+                                                                      :STORE)
+                                                                     (TRUE-LISTP
+                                                                      (CDR
+                                                                        %A1))
+                                                                     (EQUAL
+                                                                      (ACL2::LEN
+                                                                       (CDR
+                                                                        %A1))
+                                                                      3)
+                                                                     (LET*
+                                                                      ((%T108
+                                                                        (CAR
+                                                                         (CDR
+                                                                          %A1))))
+                                                                      (DECLARE
+                                                                       (IGNORABLE
+                                                                        %T108))
+                                                                      (AND
+                                                                       (INN-P
+                                                                        %T108)
+                                                                       (LET*
+                                                                        ((INN
+                                                                          %T108)
+                                                                         (%T109
+                                                                          (CAR
+                                                                           (CDR
+                                                                            (CDR
+                                                                             %A1)))))
+                                                                        (DECLARE
+                                                                         (IGNORABLE
+                                                                          INN
+                                                                          %T109))
+                                                                        (AND
+                                                                         (CONSP
+                                                                          %T109)
+                                                                         (LET*
+                                                                          ((%T110
+                                                                            (CAR
+                                                                             %T109))
+                                                                           (M^U
+                                                                            %T110)
+                                                                           (MEMARG
+                                                                            (CAR
+                                                                             (CDR
+                                                                              (CDR
+                                                                              
+ (CDR
+                                                                              
+  %A1))))))
+                                                                          (DECLARE
+                                                                           (IGNORABLE
+                                                                            %T110
+                                                                            M^U
+                                                                            MEMARG))
+                                                                          (AND
+                                                                           (CONSP
+                                                                            %A2)
+                                                                           (EQ
+                                                                            (CAR
+                                                                             %A2)
+                                                                            :%->%)
+                                                                           (TRUE-LISTP
+                                                                            (CDR
+                                                                             %A2))
+                                                                           (EQUAL
+                                                                            (ACL2::LEN
+                                                                             (CDR
+                                                                              %A2))
+                                                                            2)
+                                                                           (LET*
+                                                                            ((%T111
+                                                                              (CAR
+                                                                              
+ (CDR
+                                                                              
+  %A2))))
+                                                                            (DECLARE
+                                                                             (IGNORABLE
+                                                                              %T111))
+                                                                            (AND
+                                                                             (TRUE-LISTP
+                                                                              %T111)
+                                                                             (EQUAL
+                                                                              (ACL2::LEN
+                                                                              
+ %T111)
+                                                                              2)
+                                                                             (LET*
+                                                                              ((%T112
+                                                                              
+  (CAR
+                                                                              
+   %T111)))
+                                                                              (DECLARE
+                                                                              
+ (IGNORABLE
+                                                                              
+  %T112))
+                                                                              (AND
+                                                                              
+ (CONSP
+                                                                              
+  %T112)
+                                                                              
+ (EQ
+                                                                              
+  (CAR
+                                                                              
+   %T112)
+                                                                              
+  :I32)
+                                                                              
+ (TRUE-LISTP
+                                                                              
+  (CDR
+                                                                              
+   %T112))
+                                                                              
+ (EQUAL
+                                                                              
+  (ACL2::LEN
+                                                                              
+   (CDR
+                                                                              
+    %T112))
+                                                                              
+  0)
+                                                                              
+ (LET*
+                                                                              
+  ((%T113
+                                                                              
+    (CAR
+                                                                              
+     (CDR
+                                                                              
+      %T111))))
+                                                                              
+  (DECLARE
+                                                                              
+   (IGNORABLE
+                                                                              
+    %T113))
+                                                                              
+  (AND
+                                                                              
+   (INN-P
+                                                                              
+    %T113)
+                                                                              
+   (EQUAL
+                                                                              
+    %T113
+                                                                              
+    INN)
+                                                                              
+   (LET*
+                                                                              
+    ((%T114
+                                                                              
+      (CAR
+                                                                              
+       (CDR
+                                                                              
+        (CDR
+                                                                              
+         %A2)))))
+                                                                              
+    (DECLARE
+                                                                              
+     (IGNORABLE
+                                                                              
+      %T114))
+                                                                              
+    (AND
+                                                                              
+     (TRUE-LISTP
+                                                                              
+      %T114)
+                                                                              
+     (EQUAL
+                                                                              
+      (ACL2::LEN
+                                                                              
+       %T114)
+                                                                              
+      0)
+                                                                              
+     (<
+                                                                              
+      0
+                                                                              
+      (ACL2::LEN
+                                                                              
+       (%GET-FIELD
+                                                                              
+        C^U
+                                                                              
+        :MEMS)))
+                                                                              
+     (LET*
+                                                                              
+      ((MT
+                                                                              
+        (NTH
+                                                                              
+         0
+                                                                              
+         (%GET-FIELD
+                                                                              
+          C^U
+                                                                              
+          :MEMS))))
+                                                                              
+      (DECLARE
+                                                                              
+       (IGNORABLE
+                                                                              
+        MT))
+                                                                              
+      (AND
+                                                                              
+       (<=
+                                                                              
+        (EXPT
+                                                                              
+         2
+                                                                              
+         (%GET-FIELD
+                                                                              
+          MEMARG
+                                                                              
+          :ALIGN))
+                                                                              
+        (/
+                                                                              
+         M^U
+                                                                              
+         8))
+                                                                              
+       (LIST
+                                                                              
+        T)))))))))))))))))))))
+                                                                 (DECLARE
+                                                                    (IGNORABLE
+                                                                         %R))
+                                                                 (IF %R %R
+                                                                  NIL))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+    T
+    NIL))
+  (DEFUN INSTR_OK/SPLIT (%A0 %A1 %A2)
+   (DECLARE (IGNORABLE %A0 %A1 %A2))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (1+ (%SIZE (LIST %A0 %A1 %A2)))
+                                  0)))
+   (LET ((%R (LET* ((C^U %A0))
+               (DECLARE (IGNORABLE C^U))
+               (AND (CONSP %A1)
+                    (EQ (CAR %A1) :NOP)
+                    (TRUE-LISTP (CDR %A1))
+                    (EQUAL (ACL2::LEN (CDR %A1)) 0)
+                    (TRUE-LISTP %A2)
+                    (EQUAL (ACL2::LEN %A2) 0)
+                    (LIST NIL)))))
+    (DECLARE (IGNORABLE %R))
+    (IF %R %R
+     (LET ((%R (LET* ((C^U %A0))
+                 (DECLARE (IGNORABLE C^U))
+                 (AND (CONSP %A1)
+                      (EQ (CAR %A1) :DROP)
+                      (TRUE-LISTP (CDR %A1))
+                      (EQUAL (ACL2::LEN (CDR %A1)) 0)
+                      (TRUE-LISTP %A2)
+                      (EQUAL (ACL2::LEN %A2) 1)
+                      (LET* ((T^R (CAR %A2)))
+                        (DECLARE (IGNORABLE T^R))
+                        (LIST NIL))))))
+      (DECLARE (IGNORABLE %R))
+      (IF %R %R
+       (LET ((%R (LET* ((C^U %A0))
+                   (DECLARE (IGNORABLE C^U))
+                   (AND (CONSP %A1)
+                        (EQ (CAR %A1) :SELECT)
+                        (TRUE-LISTP (CDR %A1))
+                        (EQUAL (ACL2::LEN (CDR %A1)) 0)
+                        (TRUE-LISTP %A2)
+                        (EQUAL (ACL2::LEN %A2) 3)
+                        (LET* ((T^R (CAR %A2)))
+                          (DECLARE (IGNORABLE T^R))
+                          (AND (EQUAL (CAR (CDR %A2)) T^R)
+                               (LET* ((%T0 (CAR (CDR (CDR %A2)))))
+                                 (DECLARE (IGNORABLE %T0))
+                                 (AND (CONSP %T0)
+                                      (EQ (CAR %T0) :I32)
+                                      (TRUE-LISTP (CDR %T0))
+                                      (EQUAL (ACL2::LEN (CDR %T0)) 0)
+                                      (LIST (LIST T^R))))))))))
+        (DECLARE (IGNORABLE %R))
+        (IF %R %R
+         (LET
+          ((%R
+            (LET* ((C^U %A0))
+             (DECLARE (IGNORABLE C^U))
+             (AND
+              (CONSP %A1)
+              (EQ (CAR %A1) :BLOCK)
+              (TRUE-LISTP (CDR %A1))
+              (EQUAL (ACL2::LEN (CDR %A1)) 2)
+              (LET* ((%T1 (CAR (CDR %A1))))
+               (DECLARE (IGNORABLE %T1))
+               (AND
+                (OR (NULL %T1)
+                    (AND (CONSP %T1) (NULL (CDR %T1))))
+                (LET* ((T-OPT %T1)
+                       (%T2 (CAR (CDR (CDR %A1)))))
+                 (DECLARE (IGNORABLE T-OPT %T2))
+                 (AND
+                  (TRUE-LISTP %T2)
+                  (LET* ((INSTR-STAR %T2))
+                   (DECLARE (IGNORABLE INSTR-STAR))
+                   (AND
+                    (TRUE-LISTP %A2)
+                    (EQUAL (ACL2::LEN %A2) 0)
+                    (OR
+                     (< (%SIZE INSTR-STAR) (%SIZE %A1))
+                     (AND
+                      (EQUAL (%SIZE INSTR-STAR) (%SIZE %A1))
+                      (<
+                        (%SIZE (LIST (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                                  (CONS :FUNCS NIL)
+                                                  (CONS :GLOBALS NIL)
+                                                  (CONS :TABLES NIL)
+                                                  (CONS :MEMS NIL)
+                                                  (CONS :LOCALS NIL)
+                                                  (CONS :LABELS (LIST T-OPT))
+                                                  (CONS :RETURN NIL))
+                                            C^U)
+                                     INSTR-STAR (LIST :%->% NIL T-OPT)))
+                        (%SIZE (LIST %A0 %A1 %A2)))))
+                    (INSTRS_OK (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                            (CONS :FUNCS NIL)
+                                            (CONS :GLOBALS NIL)
+                                            (CONS :TABLES NIL)
+                                            (CONS :MEMS NIL)
+                                            (CONS :LOCALS NIL)
+                                            (CONS :LABELS (LIST T-OPT))
+                                            (CONS :RETURN NIL))
+                                      C^U)
+                               INSTR-STAR (LIST :%->% NIL T-OPT))
+                    (LIST T-OPT)))))))))))
+          (DECLARE (IGNORABLE %R))
+          (IF %R %R
+           (LET
+            ((%R
+              (LET* ((C^U %A0))
+               (DECLARE (IGNORABLE C^U))
+               (AND
+                (CONSP %A1)
+                (EQ (CAR %A1) :LOOP)
+                (TRUE-LISTP (CDR %A1))
+                (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                (LET* ((%T3 (CAR (CDR %A1))))
+                 (DECLARE (IGNORABLE %T3))
+                 (AND
+                  (OR (NULL %T3)
+                      (AND (CONSP %T3) (NULL (CDR %T3))))
+                  (LET* ((T-OPT %T3)
+                         (%T4 (CAR (CDR (CDR %A1)))))
+                   (DECLARE (IGNORABLE T-OPT %T4))
+                   (AND
+                    (TRUE-LISTP %T4)
+                    (LET* ((INSTR-STAR %T4))
+                     (DECLARE (IGNORABLE INSTR-STAR))
+                     (AND
+                      (TRUE-LISTP %A2)
+                      (EQUAL (ACL2::LEN %A2) 0)
+                      (OR
+                       (< (%SIZE INSTR-STAR) (%SIZE %A1))
+                       (AND
+                        (EQUAL (%SIZE INSTR-STAR) (%SIZE %A1))
+                        (<
+                          (%SIZE (LIST (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                                    (CONS :FUNCS NIL)
+                                                    (CONS :GLOBALS NIL)
+                                                    (CONS :TABLES NIL)
+                                                    (CONS :MEMS NIL)
+                                                    (CONS :LOCALS NIL)
+                                                    (CONS :LABELS (LIST NIL))
+                                                    (CONS :RETURN NIL))
+                                              C^U)
+                                       INSTR-STAR (LIST :%->% NIL T-OPT)))
+                          (%SIZE (LIST %A0 %A1 %A2)))))
+                      (INSTRS_OK (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                              (CONS :FUNCS NIL)
+                                              (CONS :GLOBALS NIL)
+                                              (CONS :TABLES NIL)
+                                              (CONS :MEMS NIL)
+                                              (CONS :LOCALS NIL)
+                                              (CONS :LABELS (LIST NIL))
+                                              (CONS :RETURN NIL))
+                                        C^U)
+                                 INSTR-STAR (LIST :%->% NIL T-OPT))
+                      (LIST T-OPT)))))))))))
+            (DECLARE (IGNORABLE %R))
+            (IF %R %R
+             (LET
+              ((%R
+                (LET* ((C^U %A0))
+                 (DECLARE (IGNORABLE C^U))
+                 (AND
+                  (CONSP %A1)
+                  (EQ (CAR %A1) :IFELSE)
+                  (TRUE-LISTP (CDR %A1))
+                  (EQUAL (ACL2::LEN (CDR %A1)) 3)
+                  (LET* ((%T5 (CAR (CDR %A1))))
+                   (DECLARE (IGNORABLE %T5))
+                   (AND
+                    (OR (NULL %T5)
+                        (AND (CONSP %T5) (NULL (CDR %T5))))
+                    (LET* ((T-OPT %T5)
+                           (%T6 (CAR (CDR (CDR %A1)))))
+                     (DECLARE (IGNORABLE T-OPT %T6))
+                     (AND
+                      (TRUE-LISTP %T6)
+                      (LET* ((INSTR_1-STAR %T6)
+                             (%T7 (CAR (CDR (CDR (CDR %A1))))))
+                       (DECLARE (IGNORABLE INSTR_1-STAR %T7))
+                       (AND
+                        (TRUE-LISTP %T7)
+                        (LET* ((INSTR_2-STAR %T7))
+                         (DECLARE (IGNORABLE INSTR_2-STAR))
+                         (AND
+                          (TRUE-LISTP %A2)
+                          (EQUAL (ACL2::LEN %A2) 1)
+                          (LET* ((%T8 (CAR %A2)))
+                           (DECLARE (IGNORABLE %T8))
+                           (AND
+                            (CONSP %T8)
+                            (EQ (CAR %T8) :I32)
+                            (TRUE-LISTP (CDR %T8))
+                            (EQUAL (ACL2::LEN (CDR %T8)) 0)
+                            (OR
+                             (< (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                             (AND
+                              (EQUAL (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                              (<
+                               (%SIZE
+                                (LIST
+                                     (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                                  (CONS :FUNCS NIL)
+                                                  (CONS :GLOBALS NIL)
+                                                  (CONS :TABLES NIL)
+                                                  (CONS :MEMS NIL)
+                                                  (CONS :LOCALS NIL)
+                                                  (CONS :LABELS (LIST T-OPT))
+                                                  (CONS :RETURN NIL))
+                                            C^U)
+                                     INSTR_1-STAR (LIST :%->% NIL T-OPT)))
+                               (%SIZE (LIST %A0 %A1 %A2)))))
+                            (INSTRS_OK
+                                 (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                              (CONS :FUNCS NIL)
+                                              (CONS :GLOBALS NIL)
+                                              (CONS :TABLES NIL)
+                                              (CONS :MEMS NIL)
+                                              (CONS :LOCALS NIL)
+                                              (CONS :LABELS (LIST T-OPT))
+                                              (CONS :RETURN NIL))
+                                        C^U)
+                                 INSTR_1-STAR (LIST :%->% NIL T-OPT))
+                            (OR
+                             (< (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                             (AND
+                              (EQUAL (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                              (<
+                               (%SIZE
+                                (LIST
+                                     (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                                  (CONS :FUNCS NIL)
+                                                  (CONS :GLOBALS NIL)
+                                                  (CONS :TABLES NIL)
+                                                  (CONS :MEMS NIL)
+                                                  (CONS :LOCALS NIL)
+                                                  (CONS :LABELS (LIST T-OPT))
+                                                  (CONS :RETURN NIL))
+                                            C^U)
+                                     INSTR_2-STAR (LIST :%->% NIL T-OPT)))
+                               (%SIZE (LIST %A0 %A1 %A2)))))
+                            (INSTRS_OK
+                                 (%COMP (LIST :%REC (CONS :TYPES NIL)
+                                              (CONS :FUNCS NIL)
+                                              (CONS :GLOBALS NIL)
+                                              (CONS :TABLES NIL)
+                                              (CONS :MEMS NIL)
+                                              (CONS :LOCALS NIL)
+                                              (CONS :LABELS (LIST T-OPT))
+                                              (CONS :RETURN NIL))
+                                        C^U)
+                                 INSTR_2-STAR (LIST :%->% NIL T-OPT))
+                            (LIST T-OPT)))))))))))))))
+              (DECLARE (IGNORABLE %R))
+              (IF %R %R
+               (LET
+                ((%R
+                  (LET* ((C^U %A0))
+                   (DECLARE (IGNORABLE C^U))
+                   (AND
+                    (CONSP %A1)
+                    (EQ (CAR %A1) :BR_IF)
+                    (TRUE-LISTP (CDR %A1))
+                    (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                    (LET* ((L (CAR (CDR %A1))))
+                     (DECLARE (IGNORABLE L))
+                     (AND
+                      (TRUE-LISTP %A2)
+                      (<= 1 (ACL2::LEN %A2))
+                      (LET* ((%T13 (TAKE (- (ACL2::LEN %A2) 1) %A2)))
+                       (DECLARE (IGNORABLE %T13))
+                       (AND
+                        (TRUE-LISTP %T13)
+                        (<= (ACL2::LEN %T13) 1)
+                        (OR (NULL %T13)
+                            (AND (CONSP %T13) (NULL (CDR %T13))))
+                        (LET* ((T-OPT %T13)
+                               (%T14 (NTHCDR (- (ACL2::LEN %A2) 1) %A2)))
+                         (DECLARE (IGNORABLE T-OPT %T14))
+                         (AND
+                            (TRUE-LISTP %T14)
+                            (EQUAL (ACL2::LEN %T14) 1)
+                            (LET* ((%T15 (CAR %T14)))
+                              (DECLARE (IGNORABLE %T15))
+                              (AND (CONSP %T15)
+                                   (EQ (CAR %T15) :I32)
+                                   (TRUE-LISTP (CDR %T15))
+                                   (EQUAL (ACL2::LEN (CDR %T15)) 0)
+                                   (< L (ACL2::LEN (%GET-FIELD C^U :LABELS)))
+                                   (EQUAL (NTH L (%GET-FIELD C^U :LABELS))
+                                          T-OPT)
+                                   (LIST T-OPT)))))))))))))
+                (DECLARE (IGNORABLE %R))
+                (IF %R %R
+                 (LET
+                  ((%R
+                    (LET* ((C^U %A0))
+                     (DECLARE (IGNORABLE C^U))
+                     (AND
+                      (CONSP %A1)
+                      (EQ (CAR %A1) :CALL)
+                      (TRUE-LISTP (CDR %A1))
+                      (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                      (LET* ((X (CAR (CDR %A1))))
+                       (DECLARE (IGNORABLE X))
+                       (AND
+                        (TRUE-LISTP %A2)
+                        (LET* ((T_1-STAR %A2))
+                         (DECLARE (IGNORABLE T_1-STAR))
+                         (AND
+                          (< X (ACL2::LEN (%GET-FIELD C^U :FUNCS)))
+                          (LET* ((%T26 (NTH X (%GET-FIELD C^U :FUNCS))))
+                           (DECLARE (IGNORABLE %T26))
+                           (AND
+                            (CONSP %T26)
+                            (EQ (CAR %T26) :%->%)
+                            (TRUE-LISTP (CDR %T26))
+                            (EQUAL (ACL2::LEN (CDR %T26)) 2)
+                            (LET* ((%T27 (CAR (CDR %T26))))
+                             (DECLARE (IGNORABLE %T27))
+                             (AND
+                              (TRUE-LISTP %T27)
+                              (EQUAL %T27 T_1-STAR)
+                              (LET* ((%T28 (CAR (CDR (CDR %T26)))))
+                               (DECLARE (IGNORABLE %T28))
+                               (AND (TRUE-LISTP %T28)
+                                    (<= (ACL2::LEN %T28) 1)
+                                    (OR (NULL %T28)
+                                        (AND (CONSP %T28) (NULL (CDR %T28))))
+                                    (LET* ((T_2-OPT %T28))
+                                      (DECLARE (IGNORABLE T_2-OPT))
+                                      (LIST T_2-OPT))))))))))))))))
+                  (DECLARE (IGNORABLE %R))
+                  (IF %R %R
+                   (LET
+                    ((%R
+                      (LET* ((C^U %A0))
+                       (DECLARE (IGNORABLE C^U))
+                       (AND
+                        (CONSP %A1)
+                        (EQ (CAR %A1) :CALL_INDIRECT)
+                        (TRUE-LISTP (CDR %A1))
+                        (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                        (LET* ((X (CAR (CDR %A1))))
+                         (DECLARE (IGNORABLE X))
+                         (AND
+                          (TRUE-LISTP %A2)
+                          (<= 1 (ACL2::LEN %A2))
+                          (LET* ((%T29 (TAKE (- (ACL2::LEN %A2) 1) %A2)))
+                           (DECLARE (IGNORABLE %T29))
+                           (AND
+                            (TRUE-LISTP %T29)
+                            (LET* ((T_1-STAR %T29)
+                                   (%T30 (NTHCDR (- (ACL2::LEN %A2) 1) %A2)))
+                             (DECLARE (IGNORABLE T_1-STAR %T30))
+                             (AND
+                              (TRUE-LISTP %T30)
+                              (EQUAL (ACL2::LEN %T30) 1)
+                              (LET* ((%T31 (CAR %T30)))
+                               (DECLARE (IGNORABLE %T31))
+                               (AND
+                                (CONSP %T31)
+                                (EQ (CAR %T31) :I32)
+                                (TRUE-LISTP (CDR %T31))
+                                (EQUAL (ACL2::LEN (CDR %T31)) 0)
+                                (< 0 (ACL2::LEN (%GET-FIELD C^U :TABLES)))
+                                (LET* ((TT (NTH 0 (%GET-FIELD C^U :TABLES))))
+                                 (DECLARE (IGNORABLE TT))
+                                 (AND
+                                  (< X (ACL2::LEN (%GET-FIELD C^U :TYPES)))
+                                  (LET*
+                                    ((%T32 (NTH X (%GET-FIELD C^U :TYPES))))
+                                   (DECLARE (IGNORABLE %T32))
+                                   (AND
+                                    (CONSP %T32)
+                                    (EQ (CAR %T32) :%->%)
+                                    (TRUE-LISTP (CDR %T32))
+                                    (EQUAL (ACL2::LEN (CDR %T32)) 2)
+                                    (LET* ((%T33 (CAR (CDR %T32))))
+                                     (DECLARE (IGNORABLE %T33))
+                                     (AND
+                                      (TRUE-LISTP %T33)
+                                      (EQUAL %T33 T_1-STAR)
+                                      (LET* ((%T34 (CAR (CDR (CDR %T32)))))
+                                       (DECLARE (IGNORABLE %T34))
+                                       (AND
+                                        (TRUE-LISTP %T34)
+                                        (<= (ACL2::LEN %T34) 1)
+                                        (OR (NULL %T34)
+                                            (AND (CONSP %T34)
+                                                 (NULL (CDR %T34))))
+                                        (LET* ((T_2-OPT %T34))
+                                          (DECLARE (IGNORABLE T_2-OPT))
+                                          (LIST T_2-OPT))))))))))))))))))))))
+                    (DECLARE (IGNORABLE %R))
+                    (IF %R %R
+                     (LET ((%R (LET* ((C^U %A0))
+                                 (DECLARE (IGNORABLE C^U))
+                                 (AND (CONSP %A1)
+                                      (EQ (CAR %A1) :CONST)
+                                      (TRUE-LISTP (CDR %A1))
+                                      (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                                      (LET* ((T^R (CAR (CDR %A1)))
+                                             (C_T (CAR (CDR (CDR %A1)))))
+                                        (DECLARE (IGNORABLE T^R C_T))
+                                        (AND (TRUE-LISTP %A2)
+                                             (EQUAL (ACL2::LEN %A2) 0)
+                                             (LIST (LIST T^R))))))))
+                      (DECLARE (IGNORABLE %R))
+                      (IF %R %R
+                       (LET
+                          ((%R (LET* ((C^U %A0))
+                                 (DECLARE (IGNORABLE C^U))
+                                 (AND (CONSP %A1)
+                                      (EQ (CAR %A1) :UNOP)
+                                      (TRUE-LISTP (CDR %A1))
+                                      (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                                      (LET* ((T^R (CAR (CDR %A1)))
+                                             (UNOP_T (CAR (CDR (CDR %A1)))))
+                                        (DECLARE (IGNORABLE T^R UNOP_T))
+                                        (AND (TRUE-LISTP %A2)
+                                             (EQUAL (ACL2::LEN %A2) 1)
+                                             (EQUAL (CAR %A2) T^R)
+                                             (LIST (LIST T^R))))))))
+                        (DECLARE (IGNORABLE %R))
+                        (IF %R %R
+                         (LET
+                          ((%R (LET* ((C^U %A0))
+                                 (DECLARE (IGNORABLE C^U))
+                                 (AND (CONSP %A1)
+                                      (EQ (CAR %A1) :BINOP)
+                                      (TRUE-LISTP (CDR %A1))
+                                      (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                                      (LET* ((T^R (CAR (CDR %A1)))
+                                             (BINOP_T (CAR (CDR (CDR %A1)))))
+                                        (DECLARE (IGNORABLE T^R BINOP_T))
+                                        (AND (TRUE-LISTP %A2)
+                                             (EQUAL (ACL2::LEN %A2) 2)
+                                             (EQUAL (CAR %A2) T^R)
+                                             (EQUAL (CAR (CDR %A2)) T^R)
+                                             (LIST (LIST T^R))))))))
+                          (DECLARE (IGNORABLE %R))
+                          (IF %R %R
+                           (LET
+                            ((%R
+                              (LET* ((C^U %A0))
+                                (DECLARE (IGNORABLE C^U))
+                                (AND (CONSP %A1)
+                                     (EQ (CAR %A1) :TESTOP)
+                                     (TRUE-LISTP (CDR %A1))
+                                     (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                                     (LET* ((T^R (CAR (CDR %A1)))
+                                            (TESTOP_T (CAR (CDR (CDR %A1)))))
+                                       (DECLARE (IGNORABLE T^R TESTOP_T))
+                                       (AND (TRUE-LISTP %A2)
+                                            (EQUAL (ACL2::LEN %A2) 1)
+                                            (EQUAL (CAR %A2) T^R)
+                                            (LIST (LIST (LIST :I32)))))))))
+                            (DECLARE (IGNORABLE %R))
+                            (IF %R %R
+                             (LET
+                              ((%R
+                                (LET* ((C^U %A0))
+                                 (DECLARE (IGNORABLE C^U))
+                                 (AND (CONSP %A1)
+                                      (EQ (CAR %A1) :RELOP)
+                                      (TRUE-LISTP (CDR %A1))
+                                      (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                                      (LET* ((T^R (CAR (CDR %A1)))
+                                             (RELOP_T (CAR (CDR (CDR %A1)))))
+                                        (DECLARE (IGNORABLE T^R RELOP_T))
+                                        (AND (TRUE-LISTP %A2)
+                                             (EQUAL (ACL2::LEN %A2) 2)
+                                             (EQUAL (CAR %A2) T^R)
+                                             (EQUAL (CAR (CDR %A2)) T^R)
+                                             (LIST (LIST (LIST :I32)))))))))
+                              (DECLARE (IGNORABLE %R))
+                              (IF %R %R
+                               (LET
+                                ((%R
+                                  (LET* ((C^U %A0))
+                                   (DECLARE (IGNORABLE C^U))
+                                   (AND
+                                     (CONSP %A1)
+                                     (EQ (CAR %A1) :CVTOP)
+                                     (TRUE-LISTP (CDR %A1))
+                                     (EQUAL (ACL2::LEN (CDR %A1)) 3)
+                                     (LET*
+                                         ((NT_1 (CAR (CDR %A1)))
+                                          (NT_2 (CAR (CDR (CDR %A1))))
+                                          (%T39 (CAR (CDR (CDR (CDR %A1))))))
+                                       (DECLARE (IGNORABLE NT_1 NT_2 %T39))
+                                       (AND (CONSP %T39)
+                                            (EQ (CAR %T39) :REINTERPRET)
+                                            (TRUE-LISTP (CDR %T39))
+                                            (EQUAL (ACL2::LEN (CDR %T39)) 0)
+                                            (TRUE-LISTP %A2)
+                                            (EQUAL (ACL2::LEN %A2) 1)
+                                            (EQUAL (CAR %A2) NT_2)
+                                            (EQUAL ($SIZE NT_1) ($SIZE NT_2))
+                                            (LIST (LIST NT_1))))))))
+                                (DECLARE (IGNORABLE %R))
+                                (IF %R %R
+                                 (LET
+                                  ((%R
+                                    (LET* ((C^U %A0))
+                                     (DECLARE (IGNORABLE C^U))
+                                     (AND
+                                       (CONSP %A1)
+                                       (EQ (CAR %A1) :CVTOP)
+                                       (TRUE-LISTP (CDR %A1))
+                                       (EQUAL (ACL2::LEN (CDR %A1)) 3)
+                                       (LET*
+                                        ((NT_1 (CAR (CDR %A1)))
+                                         (NT_2 (CAR (CDR (CDR %A1))))
+                                         (CVTOP (CAR (CDR (CDR (CDR %A1))))))
+                                        (DECLARE (IGNORABLE NT_1 NT_2 CVTOP))
+                                        (AND (TRUE-LISTP %A2)
+                                             (EQUAL (ACL2::LEN %A2) 1)
+                                             (EQUAL (CAR %A2) NT_2)
+                                             (LIST (LIST NT_1))))))))
+                                  (DECLARE (IGNORABLE %R))
+                                  (IF %R %R
+                                   (LET
+                                    ((%R
+                                      (LET* ((C^U %A0))
+                                       (DECLARE (IGNORABLE C^U))
+                                       (AND
+                                        (CONSP %A1)
+                                        (EQ (CAR %A1) :LOCAL.GET)
+                                        (TRUE-LISTP (CDR %A1))
+                                        (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                                        (LET* ((X (CAR (CDR %A1))))
+                                         (DECLARE (IGNORABLE X))
+                                         (AND
+                                          (TRUE-LISTP %A2)
+                                          (EQUAL (ACL2::LEN %A2) 0)
+                                          (< X
+                                             (ACL2::LEN
+                                                  (%GET-FIELD C^U :LOCALS)))
+                                          (LET*
+                                           ((T^R
+                                             (NTH
+                                                X (%GET-FIELD C^U :LOCALS))))
+                                           (DECLARE (IGNORABLE T^R))
+                                           (LIST (LIST T^R)))))))))
+                                    (DECLARE (IGNORABLE %R))
+                                    (IF %R %R
+                                     (LET
+                                      ((%R
+                                        (LET* ((C^U %A0))
+                                         (DECLARE (IGNORABLE C^U))
+                                         (AND
+                                          (CONSP %A1)
+                                          (EQ (CAR %A1) :LOCAL.SET)
+                                          (TRUE-LISTP (CDR %A1))
+                                          (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                                          (LET* ((X (CAR (CDR %A1))))
+                                           (DECLARE (IGNORABLE X))
+                                           (AND
+                                            (TRUE-LISTP %A2)
+                                            (EQUAL (ACL2::LEN %A2) 1)
+                                            (LET* ((T^R (CAR %A2)))
+                                             (DECLARE (IGNORABLE T^R))
+                                             (AND
+                                              (<
+                                               X
+                                               (ACL2::LEN
+                                                   (%GET-FIELD C^U :LOCALS)))
+                                              (EQUAL
+                                               (NTH
+                                                  X (%GET-FIELD C^U :LOCALS))
+                                               T^R)
+                                              (LIST NIL)))))))))
+                                      (DECLARE (IGNORABLE %R))
+                                      (IF %R %R
+                                       (LET
+                                        ((%R
+                                          (LET* ((C^U %A0))
+                                           (DECLARE (IGNORABLE C^U))
+                                           (AND
+                                            (CONSP %A1)
+                                            (EQ (CAR %A1) :LOCAL.TEE)
+                                            (TRUE-LISTP (CDR %A1))
+                                            (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                                            (LET* ((X (CAR (CDR %A1))))
+                                             (DECLARE (IGNORABLE X))
+                                             (AND
+                                              (TRUE-LISTP %A2)
+                                              (EQUAL (ACL2::LEN %A2) 1)
+                                              (LET* ((T^R (CAR %A2)))
+                                               (DECLARE (IGNORABLE T^R))
+                                               (AND
+                                                (<
+                                                 X
+                                                 (ACL2::LEN
+                                                   (%GET-FIELD C^U :LOCALS)))
+                                                (EQUAL
+                                                 (NTH
+                                                  X (%GET-FIELD C^U :LOCALS))
+                                                 T^R)
+                                                (LIST (LIST T^R))))))))))
+                                        (DECLARE (IGNORABLE %R))
+                                        (IF %R %R
+                                         (LET
+                                          ((%R
+                                            (LET* ((C^U %A0))
+                                             (DECLARE (IGNORABLE C^U))
+                                             (AND
+                                              (CONSP %A1)
+                                              (EQ (CAR %A1) :GLOBAL.GET)
+                                              (TRUE-LISTP (CDR %A1))
+                                              (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                                              (LET* ((X (CAR (CDR %A1))))
+                                               (DECLARE (IGNORABLE X))
+                                               (AND
+                                                (TRUE-LISTP %A2)
+                                                (EQUAL (ACL2::LEN %A2) 0)
+                                                (<
+                                                 X
+                                                 (ACL2::LEN
+                                                  (%GET-FIELD C^U :GLOBALS)))
+                                                (LET*
+                                                 ((%T40
+                                                   (NTH X
+                                                        (%GET-FIELD
+                                                             C^U :GLOBALS))))
+                                                 (DECLARE (IGNORABLE %T40))
+                                                 (AND
+                                                  (TRUE-LISTP %T40)
+                                                  (EQUAL (ACL2::LEN %T40) 2)
+                                                  (LET*
+                                                    ((MUT (CAR %T40))
+                                                     (T^R (CAR (CDR %T40))))
+                                                   (DECLARE
+                                                        (IGNORABLE MUT T^R))
+                                                   (LIST (LIST T^R)))))))))))
+                                          (DECLARE (IGNORABLE %R))
+                                          (IF %R %R
+                                           (LET
+                                            ((%R
+                                              (LET* ((C^U %A0))
+                                               (DECLARE (IGNORABLE C^U))
+                                               (AND
+                                                (CONSP %A1)
+                                                (EQ (CAR %A1) :GLOBAL.SET)
+                                                (TRUE-LISTP (CDR %A1))
+                                                (EQUAL (ACL2::LEN (CDR %A1))
+                                                       1)
+                                                (LET* ((X (CAR (CDR %A1))))
+                                                 (DECLARE (IGNORABLE X))
+                                                 (AND
+                                                  (TRUE-LISTP %A2)
+                                                  (EQUAL (ACL2::LEN %A2) 1)
+                                                  (LET* ((T^R (CAR %A2)))
+                                                   (DECLARE (IGNORABLE T^R))
+                                                   (AND
+                                                    (<
+                                                     X
+                                                     (ACL2::LEN
+                                                         (%GET-FIELD
+                                                              C^U :GLOBALS)))
+                                                    (EQUAL
+                                                     (NTH X
+                                                          (%GET-FIELD
+                                                               C^U :GLOBALS))
+                                                     (LIST (LIST (LIST :MUT))
+                                                           T^R))
+                                                    (LIST NIL)))))))))
+                                            (DECLARE (IGNORABLE %R))
+                                            (IF %R %R
+                                             (LET
+                                              ((%R
+                                                (LET* ((C^U %A0))
+                                                 (DECLARE (IGNORABLE C^U))
+                                                 (AND
+                                                  (CONSP %A1)
+                                                  (EQ (CAR %A1) :MEMORY.SIZE)
+                                                  (TRUE-LISTP (CDR %A1))
+                                                  (EQUAL
+                                                       (ACL2::LEN (CDR %A1))
+                                                       0)
+                                                  (TRUE-LISTP %A2)
+                                                  (EQUAL (ACL2::LEN %A2) 0)
+                                                  (<
+                                                   0
+                                                   (ACL2::LEN
+                                                     (%GET-FIELD C^U :MEMS)))
+                                                  (LET*
+                                                   ((MT
+                                                      (NTH 0
+                                                           (%GET-FIELD
+                                                                C^U :MEMS))))
+                                                   (DECLARE (IGNORABLE MT))
+                                                   (LIST
+                                                     (LIST (LIST :I32))))))))
+                                              (DECLARE (IGNORABLE %R))
+                                              (IF %R %R
+                                               (LET
+                                                ((%R
+                                                  (LET* ((C^U %A0))
+                                                   (DECLARE (IGNORABLE C^U))
+                                                   (AND
+                                                    (CONSP %A1)
+                                                    (EQ (CAR %A1)
+                                                        :MEMORY.GROW)
+                                                    (TRUE-LISTP (CDR %A1))
+                                                    (EQUAL
+                                                        (ACL2::LEN (CDR %A1))
+                                                        0)
+                                                    (TRUE-LISTP %A2)
+                                                    (EQUAL (ACL2::LEN %A2) 1)
+                                                    (LET* ((%T41 (CAR %A2)))
+                                                     (DECLARE
+                                                          (IGNORABLE %T41))
+                                                     (AND
+                                                      (CONSP %T41)
+                                                      (EQ (CAR %T41) :I32)
+                                                      (TRUE-LISTP (CDR %T41))
+                                                      (EQUAL
+                                                       (ACL2::LEN (CDR %T41))
+                                                       0)
+                                                      (<
+                                                       0
+                                                       (ACL2::LEN
+                                                            (%GET-FIELD
+                                                                 C^U :MEMS)))
+                                                      (LET*
+                                                       ((MT
+                                                         (NTH
+                                                           0
+                                                           (%GET-FIELD
+                                                                C^U :MEMS))))
+                                                       (DECLARE
+                                                            (IGNORABLE MT))
+                                                       (LIST
+                                                        (LIST
+                                                         (LIST :I32))))))))))
+                                                (DECLARE (IGNORABLE %R))
+                                                (IF %R %R
+                                                 (LET
+                                                  ((%R
+                                                    (LET* ((C^U %A0))
+                                                     (DECLARE
+                                                          (IGNORABLE C^U))
+                                                     (AND
+                                                      (CONSP %A1)
+                                                      (EQ (CAR %A1) :LOAD)
+                                                      (TRUE-LISTP (CDR %A1))
+                                                      (EQUAL
+                                                        (ACL2::LEN (CDR %A1))
+                                                        3)
+                                                      (LET*
+                                                       ((T^R
+                                                            (CAR (CDR %A1))))
+                                                       (DECLARE
+                                                            (IGNORABLE T^R))
+                                                       (AND
+                                                        (NULL
+                                                         (CAR
+                                                            (CDR (CDR %A1))))
+                                                        (LET*
+                                                         ((MEMARG
+                                                           (CAR
+                                                            (CDR
+                                                             (CDR
+                                                               (CDR %A1))))))
+                                                         (DECLARE
+                                                          (IGNORABLE MEMARG))
+                                                         (AND
+                                                          (TRUE-LISTP %A2)
+                                                          (EQUAL
+                                                              (ACL2::LEN %A2)
+                                                              1)
+                                                          (LET*
+                                                           ((%T42 (CAR %A2)))
+                                                           (DECLARE
+                                                            (IGNORABLE %T42))
+                                                           (AND
+                                                            (CONSP %T42)
+                                                            (EQ (CAR %T42)
+                                                                :I32)
+                                                            (TRUE-LISTP
+                                                                 (CDR %T42))
+                                                            (EQUAL
+                                                             (ACL2::LEN
+                                                                  (CDR %T42))
+                                                             0)
+                                                            (<
+                                                             0
+                                                             (ACL2::LEN
+                                                              (%GET-FIELD
+                                                                 C^U :MEMS)))
+                                                            (LET*
+                                                             ((MT
+                                                               (NTH
+                                                                0
+                                                                (%GET-FIELD
+                                                                    C^U
+                                                                    :MEMS))))
+                                                             (DECLARE
+                                                              (IGNORABLE MT))
+                                                             (AND
+                                                              (<=
+                                                               (EXPT
+                                                                2
+                                                                (%GET-FIELD
+                                                                     MEMARG
+                                                                     :ALIGN))
+                                                               (/ ($SIZE T^R)
+                                                                  8))
+                                                              (LIST
+                                                               (LIST
+                                                                T^R))))))))))))))
+                                                  (DECLARE (IGNORABLE %R))
+                                                  (IF %R %R
+                                                   (LET
+                                                    ((%R
+                                                      (LET* ((C^U %A0))
+                                                       (DECLARE
+                                                            (IGNORABLE C^U))
+                                                       (AND
+                                                        (CONSP %A1)
+                                                        (EQ (CAR %A1) :LOAD)
+                                                        (TRUE-LISTP
+                                                             (CDR %A1))
+                                                        (EQUAL
+                                                             (ACL2::LEN
+                                                                  (CDR %A1))
+                                                             3)
+                                                        (LET*
+                                                         ((%T43
+                                                            (CAR (CDR %A1))))
+                                                         (DECLARE
+                                                            (IGNORABLE %T43))
+                                                         (AND
+                                                          (INN-P %T43)
+                                                          (LET*
+                                                           ((INN %T43)
+                                                            (%T44
+                                                             (CAR
+                                                              (CDR
+                                                                (CDR %A1)))))
+                                                           (DECLARE
+                                                              (IGNORABLE
+                                                                   INN %T44))
+                                                           (AND
+                                                            (CONSP %T44)
+                                                            (LET*
+                                                             ((%T45
+                                                                 (CAR %T44)))
+                                                             (DECLARE
+                                                                  (IGNORABLE
+                                                                       %T45))
+                                                             (AND
+                                                              (CONSP %T45)
+                                                              (EQ (CAR %T45)
+                                                                  :_)
+                                                              (TRUE-LISTP
+                                                                  (CDR %T45))
+                                                              (EQUAL
+                                                               (ACL2::LEN
+                                                                  (CDR %T45))
+                                                               2)
+                                                              (LET*
+                                                               ((%T46
+                                                                 (CAR
+                                                                  (CDR
+                                                                      %T45)))
+                                                                (M^U %T46)
+                                                                (SX
+                                                                 (CAR
+                                                                  (CDR
+                                                                   (CDR
+                                                                     %T45))))
+                                                                (MEMARG
+                                                                 (CAR
+                                                                  (CDR
+                                                                   (CDR
+                                                                    (CDR
+                                                                     %A1))))))
+                                                               (DECLARE
+                                                                (IGNORABLE
+                                                                  %T46 M^U
+                                                                  SX MEMARG))
+                                                               (AND
+                                                                (TRUE-LISTP
+                                                                     %A2)
+                                                                (EQUAL
+                                                                    (ACL2::LEN
+                                                                         %A2)
+                                                                    1)
+                                                                (LET*
+                                                                 ((%T47
+                                                                   (CAR
+                                                                       %A2)))
+                                                                 (DECLARE
+                                                                  (IGNORABLE
+                                                                       %T47))
+                                                                 (AND
+                                                                  (CONSP
+                                                                       %T47)
+                                                                  (EQ
+                                                                   (CAR %T47)
+                                                                   :I32)
+                                                                  (TRUE-LISTP
+                                                                   (CDR
+                                                                       %T47))
+                                                                  (EQUAL
+                                                                   (ACL2::LEN
+                                                                    (CDR
+                                                                       %T47))
+                                                                   0)
+                                                                  (<
+                                                                   0
+                                                                   (ACL2::LEN
+                                                                    (%GET-FIELD
+                                                                     C^U
+                                                                     :MEMS)))
+                                                                  (LET*
+                                                                   ((MT
+                                                                     (NTH
+                                                                      0
+                                                                      (%GET-FIELD
+                                                                       C^U
+                                                                       :MEMS))))
+                                                                   (DECLARE
+                                                                    (IGNORABLE
+                                                                         MT))
+                                                                   (AND
+                                                                    (<=
+                                                                     (EXPT
+                                                                      2
+                                                                      (%GET-FIELD
+                                                                       MEMARG
+                                                                       :ALIGN))
+                                                                     (/
+                                                                      M^U 8))
+                                                                    (LIST
+                                                                     (LIST
+                                                                      INN))))))))))))))))))
+                                                    (DECLARE (IGNORABLE %R))
+                                                    (IF %R %R
+                                                     (LET
+                                                      ((%R
+                                                        (LET* ((C^U %A0))
+                                                         (DECLARE
+                                                             (IGNORABLE C^U))
+                                                         (AND
+                                                          (CONSP %A1)
+                                                          (EQ (CAR %A1)
+                                                              :STORE)
+                                                          (TRUE-LISTP
+                                                               (CDR %A1))
+                                                          (EQUAL
+                                                              (ACL2::LEN
+                                                                   (CDR %A1))
+                                                              3)
+                                                          (LET*
+                                                           ((T^R
+                                                             (CAR
+                                                                 (CDR %A1))))
+                                                           (DECLARE
+                                                             (IGNORABLE T^R))
+                                                           (AND
+                                                            (NULL
+                                                             (CAR
+                                                              (CDR
+                                                                 (CDR %A1))))
+                                                            (LET*
+                                                             ((MEMARG
+                                                               (CAR
+                                                                (CDR
+                                                                 (CDR
+                                                                  (CDR
+                                                                    %A1))))))
+                                                             (DECLARE
+                                                                (IGNORABLE
+                                                                     MEMARG))
+                                                             (AND
+                                                              (TRUE-LISTP
+                                                                   %A2)
+                                                              (EQUAL
+                                                                   (ACL2::LEN
+                                                                        %A2)
+                                                                   2)
+                                                              (LET*
+                                                               ((%T48
+                                                                  (CAR %A2)))
+                                                               (DECLARE
+                                                                  (IGNORABLE
+                                                                       %T48))
+                                                               (AND
+                                                                (CONSP %T48)
+                                                                (EQ
+                                                                   (CAR %T48)
+                                                                   :I32)
+                                                                (TRUE-LISTP
+                                                                  (CDR %T48))
+                                                                (EQUAL
+                                                                 (ACL2::LEN
+                                                                  (CDR %T48))
+                                                                 0)
+                                                                (EQUAL
+                                                                 (CAR
+                                                                   (CDR %A2))
+                                                                 T^R)
+                                                                (<
+                                                                 0
+                                                                 (ACL2::LEN
+                                                                  (%GET-FIELD
+                                                                     C^U
+                                                                     :MEMS)))
+                                                                (LET*
+                                                                 ((MT
+                                                                   (NTH
+                                                                    0
+                                                                    (%GET-FIELD
+                                                                     C^U
+                                                                     :MEMS))))
+                                                                 (DECLARE
+                                                                    (IGNORABLE
+                                                                         MT))
+                                                                 (AND
+                                                                  (<=
+                                                                   (EXPT
+                                                                    2
+                                                                    (%GET-FIELD
+                                                                     MEMARG
+                                                                     :ALIGN))
+                                                                   (/
+                                                                    ($SIZE
+                                                                         T^R)
+                                                                    8))
+                                                                  (LIST
+                                                                   NIL)))))))))))))
+                                                      (DECLARE
+                                                           (IGNORABLE %R))
+                                                      (IF %R %R
+                                                       (LET
+                                                        ((%R
+                                                          (LET* ((C^U %A0))
+                                                           (DECLARE
+                                                             (IGNORABLE C^U))
+                                                           (AND
+                                                            (CONSP %A1)
+                                                            (EQ (CAR %A1)
+                                                                :STORE)
+                                                            (TRUE-LISTP
+                                                                 (CDR %A1))
+                                                            (EQUAL
+                                                              (ACL2::LEN
+                                                                   (CDR %A1))
+                                                              3)
+                                                            (LET*
+                                                             ((%T49
+                                                               (CAR
+                                                                 (CDR %A1))))
+                                                             (DECLARE
+                                                                  (IGNORABLE
+                                                                       %T49))
+                                                             (AND
+                                                              (INN-P %T49)
+                                                              (LET*
+                                                               ((INN %T49)
+                                                                (%T50
+                                                                 (CAR
+                                                                  (CDR
+                                                                   (CDR
+                                                                     %A1)))))
+                                                               (DECLARE
+                                                                (IGNORABLE
+                                                                   INN %T50))
+                                                               (AND
+                                                                (CONSP %T50)
+                                                                (LET*
+                                                                 ((%T51
+                                                                   (CAR
+                                                                       %T50))
+                                                                  (M^U %T51)
+                                                                  (MEMARG
+                                                                   (CAR
+                                                                    (CDR
+                                                                     (CDR
+                                                                      (CDR
+                                                                       %A1))))))
+                                                                 (DECLARE
+                                                                  (IGNORABLE
+                                                                     %T51 M^U
+                                                                     MEMARG))
+                                                                 (AND
+                                                                  (TRUE-LISTP
+                                                                       %A2)
+                                                                  (EQUAL
+                                                                    (ACL2::LEN
+                                                                         %A2)
+                                                                    2)
+                                                                  (LET*
+                                                                   ((%T52
+                                                                     (CAR
+                                                                       %A2)))
+                                                                   (DECLARE
+                                                                    (IGNORABLE
+                                                                       %T52))
+                                                                   (AND
+                                                                    (CONSP
+                                                                        %T52)
+                                                                    (EQ
+                                                                     (CAR
+                                                                        %T52)
+                                                                     :I32)
+                                                                    (TRUE-LISTP
+                                                                     (CDR
+                                                                       %T52))
+                                                                    (EQUAL
+                                                                     (ACL2::LEN
+                                                                      (CDR
+                                                                       %T52))
+                                                                     0)
+                                                                    (LET*
+                                                                     ((%T53
+                                                                       (CAR
+                                                                        (CDR
+                                                                         %A2))))
+                                                                     (DECLARE
+                                                                      (IGNORABLE
+                                                                       %T53))
+                                                                     (AND
+                                                                      (INN-P
+                                                                        %T53)
+                                                                      (EQUAL
+                                                                         %T53
+                                                                         INN)
+                                                                      (<
+                                                                       0
+                                                                       (ACL2::LEN
+                                                                        (%GET-FIELD
+                                                                         C^U
+                                                                         :MEMS)))
+                                                                      (LET*
+                                                                       ((MT
+                                                                         (NTH
+                                                                          0
+                                                                          (%GET-FIELD
+                                                                           C^U
+                                                                           :MEMS))))
+                                                                       (DECLARE
+                                                                        (IGNORABLE
+                                                                         MT))
+                                                                       (AND
+                                                                        (<=
+                                                                         (EXPT
+                                                                          2
+                                                                          (%GET-FIELD
+                                                                           MEMARG
+                                                                           :ALIGN))
+                                                                         (/
+                                                                          M^U
+                                                                          8))
+                                                                        (LIST
+                                                                         NIL)))))))))))))))))
+                                                        (DECLARE
+                                                             (IGNORABLE %R))
+                                                        (IF %R %R
+                                                         NIL)))))))))))))))))))))))))))))))))))))))))))))))))))))))
+  (DEFUN INSTRS_OK/SEARCH11 (%K %LO %HI %A1 %A2 C^U %A0)
+   (DECLARE (IGNORABLE %K %LO %HI %A1 %A2 C^U %A0))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (%SIZE (LIST %A0 %A1 %A2))
+                                  (NFIX (- (1+ %HI) %K)))))
+   (IF
+    (AND (NATP %K)
+         (NATP %LO)
+         (NATP %HI)
+         (<= %LO %K)
+         (<= %K %HI))
+    (LET
+     ((%R
+       (LET ((%T4 %K))
+        (DECLARE (IGNORABLE %T4))
+        (LET* ((%T5 (TAKE %T4 %A1)))
+         (DECLARE (IGNORABLE %T5))
+         (AND
+          (TRUE-LISTP %T5)
+          (LET* ((INSTR_1-STAR %T5)
+                 (%T6 (NTHCDR %T4 %A1)))
+           (DECLARE (IGNORABLE INSTR_1-STAR %T6))
+           (AND
+            (TRUE-LISTP %T6)
+            (LET* ((INSTR_2-STAR %T6))
+             (DECLARE (IGNORABLE INSTR_2-STAR))
+             (AND
+              (CONSP %A2)
+              (EQ (CAR %A2) :%->%)
+              (TRUE-LISTP (CDR %A2))
+              (EQUAL (ACL2::LEN (CDR %A2)) 2)
+              (LET* ((%T7 (CAR (CDR %A2))))
+               (DECLARE (IGNORABLE %T7))
+               (AND
+                (TRUE-LISTP %T7)
+                (LET* ((T_1-STAR %T7)
+                       (%T8 (CAR (CDR (CDR %A2)))))
+                 (DECLARE (IGNORABLE T_1-STAR %T8))
+                 (AND
+                  (TRUE-LISTP %T8)
+                  (LET* ((T_3-STAR %T8))
+                   (DECLARE (IGNORABLE T_3-STAR))
+                   (AND
+                    (OR (< (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                        (AND (EQUAL (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                             (< (%SIZE (LIST C^U INSTR_1-STAR T_1-STAR))
+                                (%SIZE (LIST %A0 %A1 %A2)))))
+                    (LET* ((%T9 (INSTRS_OK/SPLIT C^U INSTR_1-STAR T_1-STAR)))
+                     (DECLARE (IGNORABLE %T9))
+                     (AND
+                      %T9
+                      (LET* ((%T10 (CAR %T9)))
+                       (DECLARE (IGNORABLE %T10))
+                       (AND
+                        (TRUE-LISTP %T10)
+                        (LET* ((T_2-STAR %T10))
+                         (DECLARE (IGNORABLE T_2-STAR))
+                         (AND
+                          (OR
+                           (< (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                           (AND
+                             (EQUAL (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                             (< (%SIZE (LIST C^U INSTR_2-STAR
+                                             (LIST :%->% T_2-STAR T_3-STAR)))
+                                (%SIZE (LIST %A0 %A1 %A2)))))
+                          (INSTRS_OK C^U INSTR_2-STAR
+                                     (LIST :%->% T_2-STAR T_3-STAR))
+                          (LIST T))))))))))))))))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+       (INSTRS_OK/SEARCH11 (1+ %K)
+                           %LO %HI %A1 %A2 C^U %A0)))
+    NIL))
+  (DEFUN INSTRS_OK/SEARCH20 (%K %LO %HI %T16 T-STAR
+                                INSTR-STAR %A1 C^U T_1-STAR %A0 %A2)
+   (DECLARE (IGNORABLE %K %LO %HI %T16 T-STAR
+                       INSTR-STAR %A1 C^U T_1-STAR %A0 %A2))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (%SIZE (LIST %A0 %A1 %A2))
+                                  (NFIX (- (1+ %HI) %K)))))
+   (IF
+    (AND (NATP %K)
+         (NATP %LO)
+         (NATP %HI)
+         (<= %LO %K)
+         (<= %K %HI))
+    (LET
+     ((%R
+       (LET ((%T17 %K))
+        (DECLARE (IGNORABLE %T17))
+        (LET* ((%T18 (TAKE %T17 %T16)))
+         (DECLARE (IGNORABLE %T18))
+         (AND
+          (TRUE-LISTP %T18)
+          (EQUAL %T18 T-STAR)
+          (LET* ((%T19 (NTHCDR %T17 %T16)))
+           (DECLARE (IGNORABLE %T19))
+           (AND
+             (TRUE-LISTP %T19)
+             (LET* ((T_2-STAR %T19))
+               (DECLARE (IGNORABLE T_2-STAR))
+               (AND (OR (< (%SIZE INSTR-STAR) (%SIZE %A1))
+                        (AND (EQUAL (%SIZE INSTR-STAR) (%SIZE %A1))
+                             (< (%SIZE (LIST C^U INSTR-STAR
+                                             (LIST :%->% T_1-STAR T_2-STAR)))
+                                (%SIZE (LIST %A0 %A1 %A2)))))
+                    (INSTRS_OK C^U INSTR-STAR
+                               (LIST :%->% T_1-STAR T_2-STAR))
+                    (LIST T))))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+       (INSTRS_OK/SEARCH20 (1+ %K)
+                           %LO %HI %T16 T-STAR
+                           INSTR-STAR %A1 C^U T_1-STAR %A0 %A2)))
+    NIL))
+  (DEFUN INSTRS_OK/SEARCH21 (%K %LO %HI %T12 %A2 INSTR-STAR %A1 C^U %A0)
+   (DECLARE (IGNORABLE %K %LO
+                       %HI %T12 %A2 INSTR-STAR %A1 C^U %A0))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (%SIZE (LIST %A0 %A1 %A2))
+                                  (NFIX (- (1+ %HI) %K)))))
+   (IF
+    (AND (NATP %K)
+         (NATP %LO)
+         (NATP %HI)
+         (<= %LO %K)
+         (<= %K %HI))
+    (LET
+     ((%R
+       (LET ((%T13 %K))
+        (DECLARE (IGNORABLE %T13))
+        (LET* ((%T14 (TAKE %T13 %T12)))
+         (DECLARE (IGNORABLE %T14))
+         (AND
+          (TRUE-LISTP %T14)
+          (LET* ((T-STAR %T14)
+                 (%T15 (NTHCDR %T13 %T12)))
+           (DECLARE (IGNORABLE T-STAR %T15))
+           (AND (TRUE-LISTP %T15)
+                (LET* ((T_1-STAR %T15)
+                       (%T16 (CAR (CDR (CDR %A2)))))
+                  (DECLARE (IGNORABLE T_1-STAR %T16))
+                  (AND (TRUE-LISTP %T16)
+                       (INSTRS_OK/SEARCH20 0 0 (ACL2::LEN %T16)
+                                           %T16 T-STAR INSTR-STAR
+                                           %A1 C^U T_1-STAR %A0 %A2))))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+       (INSTRS_OK/SEARCH21 (1+ %K)
+                           %LO
+                           %HI %T12 %A2 INSTR-STAR %A1 C^U %A0)))
+    NIL))
+  (DEFUN INSTRS_OK (%A0 %A1 %A2)
+   (DECLARE (IGNORABLE %A0 %A1 %A2))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (1+ (%SIZE (LIST %A0 %A1 %A2)))
+                                  0)))
+   (IF
+    (LET ((%R (LET* ((C^U %A0))
+                (DECLARE (IGNORABLE C^U))
+                (AND (TRUE-LISTP %A1)
+                     (EQUAL (ACL2::LEN %A1) 0)
+                     (CONSP %A2)
+                     (EQ (CAR %A2) :%->%)
+                     (TRUE-LISTP (CDR %A2))
+                     (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                     (LET* ((%T0 (CAR (CDR %A2))))
+                       (DECLARE (IGNORABLE %T0))
+                       (AND (TRUE-LISTP %T0)
+                            (EQUAL (ACL2::LEN %T0) 0)
+                            (LET* ((%T1 (CAR (CDR (CDR %A2)))))
+                              (DECLARE (IGNORABLE %T1))
+                              (AND (TRUE-LISTP %T1)
+                                   (EQUAL (ACL2::LEN %T1) 0)
+                                   (LIST T)))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+      (LET
+       ((%R
+         (LET* ((C^U %A0))
+          (DECLARE (IGNORABLE C^U))
+          (AND
+           (TRUE-LISTP %A1)
+           (EQUAL (ACL2::LEN %A1) 1)
+           (LET* ((INSTR (CAR %A1)))
+            (DECLARE (IGNORABLE INSTR))
+            (AND
+             (CONSP %A2)
+             (EQ (CAR %A2) :%->%)
+             (TRUE-LISTP (CDR %A2))
+             (EQUAL (ACL2::LEN (CDR %A2)) 2)
+             (LET* ((%T2 (CAR (CDR %A2))))
+              (DECLARE (IGNORABLE %T2))
+              (AND
+               (TRUE-LISTP %T2)
+               (LET* ((T_1-STAR %T2)
+                      (%T3 (CAR (CDR (CDR %A2)))))
+                (DECLARE (IGNORABLE T_1-STAR %T3))
+                (AND
+                 (TRUE-LISTP %T3)
+                 (LET* ((T_2-STAR %T3))
+                  (DECLARE (IGNORABLE T_2-STAR))
+                  (AND
+                   (OR
+                    (< (%SIZE INSTR) (%SIZE %A1))
+                    (AND
+                       (EQUAL (%SIZE INSTR) (%SIZE %A1))
+                       (< (%SIZE (LIST C^U
+                                       INSTR (LIST :%->% T_1-STAR T_2-STAR)))
+                          (%SIZE (LIST %A0 %A1 %A2)))))
+                   (INSTR_OK C^U
+                             INSTR (LIST :%->% T_1-STAR T_2-STAR))
+                   (LIST T)))))))))))))
+       (DECLARE (IGNORABLE %R))
+       (IF %R %R
+        (LET ((%R (LET* ((C^U %A0))
+                    (DECLARE (IGNORABLE C^U))
+                    (AND (TRUE-LISTP %A1)
+                         (INSTRS_OK/SEARCH11 0 0 (ACL2::LEN %A1)
+                                             %A1 %A2 C^U %A0)))))
+         (DECLARE (IGNORABLE %R))
+         (IF %R %R
+          (LET
+           ((%R
+             (LET* ((C^U %A0))
+              (DECLARE (IGNORABLE C^U))
+              (AND
+                  (TRUE-LISTP %A1)
+                  (LET* ((INSTR-STAR %A1))
+                    (DECLARE (IGNORABLE INSTR-STAR))
+                    (AND (CONSP %A2)
+                         (EQ (CAR %A2) :%->%)
+                         (TRUE-LISTP (CDR %A2))
+                         (EQUAL (ACL2::LEN (CDR %A2)) 2)
+                         (LET* ((%T12 (CAR (CDR %A2))))
+                           (DECLARE (IGNORABLE %T12))
+                           (AND (TRUE-LISTP %T12)
+                                (INSTRS_OK/SEARCH21
+                                     0 0 (ACL2::LEN %T12)
+                                     %T12 %A2 INSTR-STAR %A1 C^U %A0)))))))))
+           (DECLARE (IGNORABLE %R))
+           (IF %R %R NIL))))))))
+    T
+    NIL))
+  (DEFUN INSTRS_OK/SPLIT/SEARCH9 (%K %LO %HI %A1 %A2 C^U %A0)
+   (DECLARE (IGNORABLE %K %LO %HI %A1 %A2 C^U %A0))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (%SIZE (LIST %A0 %A1 %A2))
+                                  (NFIX (- (1+ %HI) %K)))))
+   (IF
+    (AND (NATP %K)
+         (NATP %LO)
+         (NATP %HI)
+         (<= %LO %K)
+         (<= %K %HI))
+    (LET
+     ((%R
+       (LET ((%T2 %K))
+        (DECLARE (IGNORABLE %T2))
+        (LET* ((%T3 (TAKE %T2 %A1)))
+         (DECLARE (IGNORABLE %T3))
+         (AND
+          (TRUE-LISTP %T3)
+          (LET* ((INSTR_1-STAR %T3)
+                 (%T4 (NTHCDR %T2 %A1)))
+           (DECLARE (IGNORABLE INSTR_1-STAR %T4))
+           (AND
+            (TRUE-LISTP %T4)
+            (LET* ((INSTR_2-STAR %T4))
+             (DECLARE (IGNORABLE INSTR_2-STAR))
+             (AND
+              (TRUE-LISTP %A2)
+              (LET* ((T_1-STAR %A2))
+               (DECLARE (IGNORABLE T_1-STAR))
+               (AND
+                (OR (< (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                    (AND (EQUAL (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                         (< (%SIZE (LIST C^U INSTR_1-STAR T_1-STAR))
+                            (%SIZE (LIST %A0 %A1 %A2)))))
+                (LET* ((%T5 (INSTRS_OK/SPLIT C^U INSTR_1-STAR T_1-STAR)))
+                 (DECLARE (IGNORABLE %T5))
+                 (AND
+                  %T5
+                  (LET* ((%T6 (CAR %T5)))
+                   (DECLARE (IGNORABLE %T6))
+                   (AND
+                    (TRUE-LISTP %T6)
+                    (LET* ((T_2-STAR %T6))
+                     (DECLARE (IGNORABLE T_2-STAR))
+                     (AND
+                       (OR (< (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                           (AND (EQUAL (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                                (< (%SIZE (LIST C^U INSTR_2-STAR T_2-STAR))
+                                   (%SIZE (LIST %A0 %A1 %A2)))))
+                       (LET*
+                          ((%T7 (INSTRS_OK/SPLIT C^U INSTR_2-STAR T_2-STAR)))
+                         (DECLARE (IGNORABLE %T7))
+                         (AND %T7
+                              (LET* ((%T8 (CAR %T7)))
+                                (DECLARE (IGNORABLE %T8))
+                                (AND (TRUE-LISTP %T8)
+                                     (LET* ((T_3-STAR %T8))
+                                       (DECLARE (IGNORABLE T_3-STAR))
+                                       (LIST T_3-STAR)))))))))))))))))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+       (INSTRS_OK/SPLIT/SEARCH9 (1+ %K)
+                                %LO %HI %A1 %A2 C^U %A0)))
+    NIL))
+  (DEFUN INSTRS_OK/SPLIT/SEARCH15 (%K %LO %HI %A2 INSTR-STAR %A1 C^U %A0)
+   (DECLARE (IGNORABLE %K %LO %HI %A2 INSTR-STAR %A1 C^U %A0))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (%SIZE (LIST %A0 %A1 %A2))
+                                  (NFIX (- (1+ %HI) %K)))))
+   (IF
+    (AND (NATP %K)
+         (NATP %LO)
+         (NATP %HI)
+         (<= %LO %K)
+         (<= %K %HI))
+    (LET
+     ((%R
+       (LET ((%T10 %K))
+        (DECLARE (IGNORABLE %T10))
+        (LET* ((%T11 (TAKE %T10 %A2)))
+         (DECLARE (IGNORABLE %T11))
+         (AND
+          (TRUE-LISTP %T11)
+          (LET* ((T-STAR %T11) (%T12 (NTHCDR %T10 %A2)))
+           (DECLARE (IGNORABLE T-STAR %T12))
+           (AND
+            (TRUE-LISTP %T12)
+            (LET* ((T_1-STAR %T12))
+             (DECLARE (IGNORABLE T_1-STAR))
+             (AND
+                (OR (< (%SIZE INSTR-STAR) (%SIZE %A1))
+                    (AND (EQUAL (%SIZE INSTR-STAR) (%SIZE %A1))
+                         (< (%SIZE (LIST C^U INSTR-STAR T_1-STAR))
+                            (%SIZE (LIST %A0 %A1 %A2)))))
+                (LET* ((%T13 (INSTRS_OK/SPLIT C^U INSTR-STAR T_1-STAR)))
+                  (DECLARE (IGNORABLE %T13))
+                  (AND %T13
+                       (LET* ((%T14 (CAR %T13)))
+                         (DECLARE (IGNORABLE %T14))
+                         (AND (TRUE-LISTP %T14)
+                              (LET* ((T_2-STAR %T14))
+                                (DECLARE (IGNORABLE T_2-STAR))
+                                (LIST (APPEND T-STAR T_2-STAR))))))))))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+       (INSTRS_OK/SPLIT/SEARCH15 (1+ %K)
+                                 %LO %HI %A2 INSTR-STAR %A1 C^U %A0)))
+    NIL))
+  (DEFUN INSTRS_OK/SPLIT (%A0 %A1 %A2)
+   (DECLARE (IGNORABLE %A0 %A1 %A2))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (1+ (%SIZE (LIST %A0 %A1 %A2)))
+                                  0)))
+   (LET ((%R (LET* ((C^U %A0))
+               (DECLARE (IGNORABLE C^U))
+               (AND (TRUE-LISTP %A1)
+                    (EQUAL (ACL2::LEN %A1) 0)
+                    (TRUE-LISTP %A2)
+                    (EQUAL (ACL2::LEN %A2) 0)
+                    (LIST NIL)))))
+    (DECLARE (IGNORABLE %R))
+    (IF %R %R
+     (LET
+      ((%R
+        (LET* ((C^U %A0))
+         (DECLARE (IGNORABLE C^U))
+         (AND (TRUE-LISTP %A1)
+              (EQUAL (ACL2::LEN %A1) 1)
+              (LET* ((INSTR (CAR %A1)))
+                (DECLARE (IGNORABLE INSTR))
+                (AND (TRUE-LISTP %A2)
+                     (LET* ((T_1-STAR %A2))
+                       (DECLARE (IGNORABLE T_1-STAR))
+                       (AND (OR (< (%SIZE INSTR) (%SIZE %A1))
+                                (AND (EQUAL (%SIZE INSTR) (%SIZE %A1))
+                                     (< (%SIZE (LIST C^U INSTR T_1-STAR))
+                                        (%SIZE (LIST %A0 %A1 %A2)))))
+                            (LET* ((%T0 (INSTR_OK/SPLIT C^U INSTR T_1-STAR)))
+                              (DECLARE (IGNORABLE %T0))
+                              (AND %T0
+                                   (LET* ((%T1 (CAR %T0)))
+                                     (DECLARE (IGNORABLE %T1))
+                                     (AND (TRUE-LISTP %T1)
+                                          (LET* ((T_2-STAR %T1))
+                                            (DECLARE (IGNORABLE T_2-STAR))
+                                            (LIST T_2-STAR))))))))))))))
+      (DECLARE (IGNORABLE %R))
+      (IF %R %R
+       (LET ((%R (LET* ((C^U %A0))
+                   (DECLARE (IGNORABLE C^U))
+                   (AND (TRUE-LISTP %A1)
+                        (INSTRS_OK/SPLIT/SEARCH9 0 0 (ACL2::LEN %A1)
+                                                 %A1 %A2 C^U %A0)))))
+        (DECLARE (IGNORABLE %R))
+        (IF %R %R
+         (LET
+          ((%R
+            (LET* ((C^U %A0))
+             (DECLARE (IGNORABLE C^U))
+             (AND
+              (TRUE-LISTP %A1)
+              (LET* ((INSTR-STAR %A1))
+               (DECLARE (IGNORABLE INSTR-STAR))
+               (AND
+                  (TRUE-LISTP %A2)
+                  (INSTRS_OK/SPLIT/SEARCH15 0 0 (ACL2::LEN %A2)
+                                            %A2 INSTR-STAR %A1 C^U %A0)))))))
+          (DECLARE (IGNORABLE %R))
+          (IF %R %R NIL)))))))))))
 
 
 (%TRY-GUARDS INSTR_OK)
 
 (%TRY-LOGIC
- (DEFUN EXPR_OK (%A0 %A1)
-  (DECLARE (IGNORABLE %A0 %A1))
-  (LET
-   ((%R
-     (LET* ((C^U %A0))
-      (DECLARE (IGNORABLE C^U))
-      (AND
-          (TRUE-LISTP %A1)
-          (LET* ((INSTR-STAR %A1)
-                 (%T0 (INSTRS_OK C^U INSTR-STAR)))
-            (DECLARE (IGNORABLE INSTR-STAR %T0))
-            (AND %T0
-                 (LET* ((%T1 (CAR %T0)))
-                   (DECLARE (IGNORABLE %T1))
-                   (AND (CONSP %T1)
-                        (EQ (CAR %T1) :%->%)
-                        (TRUE-LISTP (CDR %T1))
-                        (EQUAL (ACL2::LEN (CDR %T1)) 2)
-                        (LET* ((%T2 (CAR (CDR %T1))))
-                          (DECLARE (IGNORABLE %T2))
-                          (AND (TRUE-LISTP %T2)
-                               (EQUAL (ACL2::LEN %T2) 0)
-                               (LET* ((%T3 (CAR (CDR (CDR %T1)))))
-                                 (DECLARE (IGNORABLE %T3))
-                                 (AND (TRUE-LISTP %T3)
-                                      (<= (ACL2::LEN %T3) 1)
-                                      (OR (NULL %T3)
-                                          (AND (CONSP %T3) (NULL (CDR %T3))))
-                                      (LET* ((T-OPT %T3))
+     (DEFUN EXPR_OK (%A0 %A1)
+       (DECLARE (IGNORABLE %A0 %A1))
+       (LET ((%R (LET* ((C^U %A0))
+                   (DECLARE (IGNORABLE C^U))
+                   (AND (TRUE-LISTP %A1)
+                        (LET* ((INSTR-STAR %A1)
+                               (%T0 (INSTRS_OK/SPLIT C^U INSTR-STAR NIL)))
+                          (DECLARE (IGNORABLE INSTR-STAR %T0))
+                          (AND %T0
+                               (LET* ((%T1 (CAR %T0)))
+                                 (DECLARE (IGNORABLE %T1))
+                                 (AND (TRUE-LISTP %T1)
+                                      (<= (ACL2::LEN %T1) 1)
+                                      (OR (NULL %T1)
+                                          (AND (CONSP %T1) (NULL (CDR %T1))))
+                                      (LET* ((T-OPT %T1))
                                         (DECLARE (IGNORABLE T-OPT))
-                                        (LIST T-OPT))))))))))))))
-   (DECLARE (IGNORABLE %R))
-   (IF %R %R NIL))))
+                                        (LIST T-OPT))))))))))
+         (DECLARE (IGNORABLE %R))
+         (IF %R %R NIL))))
 
 
 (%TRY-GUARDS EXPR_OK)
@@ -8779,8 +12806,8 @@
  (MUTUAL-RECURSION
   (DEFUN STEP/SEARCH36 (%K %LO %HI %T21 %T24 Z %A0)
    (DECLARE (IGNORABLE %K %LO %HI %T21 %T24 Z %A0))
-   (DECLARE (XARGS :MEASURE (%OM (%SIZE (LIST %A0))
-                                 (NFIX (- (1+ %K) %LO)))))
+   (DECLARE (XARGS :MEASURE (%OM3 0 (%SIZE (LIST %A0))
+                                  (NFIX (- (1+ %K) %LO)))))
    (IF
     (AND (NATP %K)
          (NATP %LO)
@@ -8815,8 +12842,10 @@
                  (AND
                   (OR (NOT (EQUAL VAL-STAR NIL))
                       (NOT (EQUAL ADMININSTR_1-STAR NIL)))
-                  (< (%SIZE (LIST (LIST :|%;%| Z ADMININSTR-STAR)))
-                     (%SIZE (LIST %A0)))
+                  (OR (< 0 0)
+                      (AND (EQUAL 0 0)
+                           (< (%SIZE (LIST (LIST :|%;%| Z ADMININSTR-STAR)))
+                              (%SIZE (LIST %A0)))))
                   (LET* ((%T32 (STEP (LIST :|%;%| Z ADMININSTR-STAR))))
                    (DECLARE (IGNORABLE %T32))
                    (AND
@@ -8849,7 +12878,7 @@
     NIL))
   (DEFUN STEP (%A0)
    (DECLARE (IGNORABLE %A0))
-   (DECLARE (XARGS :MEASURE (%OM (1+ (%SIZE (LIST %A0))) 0)))
+   (DECLARE (XARGS :MEASURE (%OM3 0 (1+ (%SIZE (LIST %A0))) 0)))
    (LET
     ((%R
       (AND
@@ -8932,8 +12961,11 @@
                    (LET* ((ADMININSTR-STAR %T9))
                     (DECLARE (IGNORABLE ADMININSTR-STAR))
                     (AND
-                     (< (%SIZE (LIST (LIST :|%;%| Z ADMININSTR-STAR)))
-                        (%SIZE (LIST %A0)))
+                     (OR
+                       (< 0 0)
+                       (AND (EQUAL 0 0)
+                            (< (%SIZE (LIST (LIST :|%;%| Z ADMININSTR-STAR)))
+                               (%SIZE (LIST %A0)))))
                      (LET* ((%T10 (STEP (LIST :|%;%| Z ADMININSTR-STAR))))
                       (DECLARE (IGNORABLE %T10))
                       (AND
@@ -8998,9 +13030,13 @@
                      (LET* ((ADMININSTR-STAR %T16))
                       (DECLARE (IGNORABLE ADMININSTR-STAR))
                       (AND
-                       (< (%SIZE (LIST (LIST :|%;%| (LIST :|%;%| S F-PRIME)
-                                             ADMININSTR-STAR)))
-                          (%SIZE (LIST %A0)))
+                       (OR
+                        (< 0 0)
+                        (AND
+                         (EQUAL 0 0)
+                         (< (%SIZE (LIST (LIST :|%;%| (LIST :|%;%| S F-PRIME)
+                                               ADMININSTR-STAR)))
+                            (%SIZE (LIST %A0)))))
                        (LET*
                            ((%T17 (STEP (LIST :|%;%| (LIST :|%;%| S F-PRIME)
                                               ADMININSTR-STAR))))

@@ -20,6 +20,10 @@
   :new (seq (num 0x01) (num 0x00) (num 0x00) (num 0x00))
   :reason "Bug in the SpecTec WASM 1.0 source (A-binary.spectec: `0x00 0x61 0x73 0x6D 1:Bu32`): the binary-format version is the fixed 4 bytes 0x01 0x00 0x00 0x00, not a LEB128 u32 (which encodes 1 as the single byte 0x01). Taken literally, no real .wasm file parses.")
 
+ (:decreasing "termination order"
+  :pairs (("Instr_ok" . 1) ("Instrs_ok" . 1))
+  :reason "Instruction typing recurses into sub-instructions under an EXTENDED context (block/loop/if add a label), so the size of all inputs can grow. The instruction component (index 1) decreases, or stays equal with a smaller stack (frame). Recursive premise calls are ordered lexicographically by (size of component 1, size of all inputs).")
+
  (:sized "||BX||"
   :pairs (("Bsection_" . "len") ("Bcode" . "len"))
   :reason "The source premise `len = ||BX||` (byte length of what BX matched) elaborates to `len = 0` in the IL, which would reject every non-empty section. In these grammars the item after `len` is parsed from exactly `len` bytes instead, and the `len = 0` premise is dropped.")

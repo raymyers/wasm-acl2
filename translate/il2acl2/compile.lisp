@@ -206,6 +206,12 @@
   (if (endp names) env
     (env-add-vars (cdr names) (acons (car names) (var-sym (car names) cx) env) cx)))
 
+;; Size of the designated decreasing component (config :decreasing) of an
+;; argument list for relation REL, or 0.
+(defun dec-size (rel args cx)
+  (let ((k (cdr (assoc-equal rel (cx-get :decreasing cx)))))
+    (if (and k (< k (len args))) (list (gsym "%SIZE") (nth k args)) 0)))
+
 ; build-steps with search points: (:choose k lo hi desc) runs the rest of
 ; the steps for k = lo..hi (or hi..lo), returning the first non-nil result.
 ; The rest is lambda-lifted into an aux function F/SEARCHn over its free
@@ -236,7 +242,8 @@
                       ;; inside a recursive relation: omega*size(inputs) + counter
                       (def (mk-defun-measure aux (list* k l h fvs)
                                              (if (and rf (subsetp-equal rf fvs))
-                                                 (list (gsym "%OM") (list (gsym "%SIZE") (cons (quote list) rf)) fin)
+                                                 (list (gsym "%OM3") (dec-size (cx-get :cur-rel cx) rf cx)
+                                                       (list (gsym "%SIZE") (cons (quote list) rf)) fin)
                                                fin)
                                              body)))
                  (mv (list* aux (if desc hi lo) lo hi fvs) (cx-add-aux def cx)))))))
@@ -997,14 +1004,33 @@
         ((is pr "RULE") (fv-list (cddr pr)))
         (t nil)))
 
+(defun split-last (comps)
+  ;; :split mode: last component (case m (tup a b)) -> (mv a b), else (mv nil nil)
+  (let ((l (car (last comps))))
+    (if (and (nodep l "CASE" 2) (is (third l) "TUP") (= (len (cdr (third l))) 2))
+        (mv (second (third l)) (third (third l)))
+      (mv nil nil))))
+
+(defun split-name (id cx) (gsym (concatenate 'string (cdr (fn-sym :rel id cx)) "/SPLIT")))
+
+
 ;; Before a premise call to a relation of the current recursive group: the
 ;; (always true for WASM Step) check size(callee inputs) < size(inputs), which
 ;; makes termination syntactic (see %OM in rt/prelude.lisp).
+;; Before a premise call to a relation of the current recursive group: the
+;; check that (size of the decreasing component, size of all inputs) of the
+;; callee is lexicographically smaller than the caller's. Derivations never
+;; need a subgoal that is not smaller in this order for WASM 1.0 (Step:
+;; subterms; typing: shorter instruction lists, or equal ones with a smaller
+;; stack), so the check only removes cycles; it makes termination syntactic.
 (defun rec-size-check (rel ts cx)
-  (let ((rf (cx-get :rel-formals cx)))
+  (let ((rf (cx-get :rel-formals cx)) (me (cx-get :cur-rel cx)))
     (if (and rf (member-equal rel (cx-get :rec-rels cx)))
-        (list (list :test (list (quote <) (list (gsym "%SIZE") (cons (quote list) ts))
-                                (list (gsym "%SIZE") (cons (quote list) rf)))))
+        (let ((ca (dec-size rel ts cx)) (oa (dec-size me rf cx))
+              (cb (list (gsym "%SIZE") (cons (quote list) ts)))
+              (ob (list (gsym "%SIZE") (cons (quote list) rf))))
+          (list (list :test (list (quote or) (list (quote <) ca oa)
+                                  (list (quote and) (list (quote equal) ca oa) (list (quote <) cb ob))))))
       nil)))
 
 ;; a relation premise, possibly iterated
@@ -1016,6 +1042,23 @@
          (fn (fn-sym :rel rel cx)))
     (cond
      ((null mode) (mv nil env (cx-err "relation not available" rel cx)))
+     ((eq (car mode) :multi)
+      ;; all bound: the check variant; else the split variant c(a, b) with b out
+      (if (not (has-unbound (cons (quote list) comps) env))
+          (mv-let (ts cx) (cexps comps env cx)
+            (mv (append (rec-size-check rel ts cx) (list (list :test (cons fn ts)))) env cx))
+        (mv-let (sa sb) (split-last comps)
+          (let ((ins (append (butlast comps 1) (list sa))))
+            (if (or (null sa) (has-unbound (cons (quote list) ins) env))
+                (mv nil env (cx-err "relation inputs unbound" pr cx))
+              (mv-let (ts cx) (cexps ins env cx)
+                (mv-let (tname cx) (cx-fresh "%T" cx)
+                  (let ((tv (gsym tname)))
+                    (mv-let (s1 env cx) (cpat sb (list (quote car) tv) env cx)
+                      (mv (append (rec-size-check rel ts cx)
+                                  (list (list* :bind tv (cons (split-name rel cx) ts)) (list :test tv))
+                                  s1)
+                          env cx))))))))))
      ((eq (car mode) :fun)
       (let ((ins (butlast comps 1)) (out (car (last comps))))
         (if (has-unbound (cons (quote list) ins) env)
@@ -1413,21 +1456,39 @@
                   (second (first p2))))))))
 
 (defun crule (r mode formals rel cx)
-  ;; (mv term cx): (list output) / (list t) if rule R applies, else nil
+  ;; (mv term cx): (list output) / (list t) if rule R applies, else nil.
+  ;; :split: inputs are the other components plus the first half a of the
+  ;; last component c(a, b); the output is b.
   (mv-let (comps prems) (rule-parts r)
-    (let* ((ins (if (eq mode :fun) (butlast comps 1) comps))
+    (mv-let (sa sb) (split-last comps)
+    (let* ((ins (cond ((eq mode :fun) (butlast comps 1))
+                      ((eq mode :split) (append (butlast comps 1) (list sa)))
+                      (t comps)))
+           (cx (if (and (eq mode :split) (null sa)) (cx-err "split mode: last component is not c(a, b)" r cx) cx))
            (cx (cx-put :redex (and (member-equal (cons rel (second r)) (cx-get :split-rules cx)) t) cx)))
       (mv-let (s1 env cx) (cpat-args ins formals nil cx)
         (let ((cx (cx-put :redex nil cx)))
           (mv-let (s2 env cx) (cprems prems env cx)
-            (mv-let (out cx) (if (eq mode :fun) (cexp (car (last comps)) env cx) (mv t cx))
-              (build-steps-cx (append s1 s2) (list 'list out) cx))))))))
+            (mv-let (out cx) (cond ((eq mode :fun) (cexp (car (last comps)) env cx))
+                                   ((eq mode :split) (cexp sb env cx))
+                                   (t (mv t cx)))
+              (build-steps-cx (append s1 s2) (list 'list out) cx)))))))))
 
 (defun crules (rs mode formals rel cx)
+  ;; in :split mode a rule whose output cannot be computed (e.g. unreachable:
+  ;; t_1* -> t_2*) is dropped and recorded in :incomplete; the :check variant
+  ;; keeps it
   (if (endp rs) (mv nil cx)
-    (mv-let (c cx) (crule (car rs) mode formals rel cx)
-      (mv-let (rest cx) (crules (cdr rs) mode formals rel cx)
-        (mv (cons c rest) cx)))))
+    (let ((errs0 (cx-get :errs cx)) (aux0 (cx-get :aux cx)))
+      (mv-let (c cx) (crule (car rs) mode formals rel cx)
+        (let* ((dropped (and (eq mode :split) (not (equal (len (cx-get :errs cx)) (len errs0)))))
+               (cx (if dropped
+                       (cx-put :incomplete (cons (concatenate 'string rel "/" (second (car rs)))
+                                                 (cx-get :incomplete cx))
+                               (cx-put :aux aux0 (cx-put :errs errs0 cx)))
+                     cx)))
+          (mv-let (rest cx) (crules (cdr rs) mode formals rel cx)
+            (mv (if dropped rest (cons c rest)) cx)))))))
 
 (defun chain-results (cs)
   ;; first non-nil of the rule results, still wrapped: (list output) or nil,
@@ -1440,9 +1501,9 @@
               (list 'if r r (chain-results (cdr cs))))))))
 
 ; (mv defuns cx) for one relation in the given mode
-(defun crel (x mode cx)
+(defun crel-1 (x mode cx)
   (mv-let (n rules) (rel-parts x)
-    (let* ((name (fn-sym :rel (second x) cx))
+    (let* ((name (if (eq mode :split) (split-name (second x) cx) (fn-sym :rel (second x) cx)))
            (cx (cx-put :fn (cdr name) cx)) (cx (cx-put :n 0 cx)) (cx (cx-put :aux nil cx))
            (cx (cx-put :tparams nil cx)))
       (if (eq mode :closure)
@@ -1458,19 +1519,29 @@
                       (mk-defun name (list a) (list aux (list (gsym "%FUEL")) a)))
                 cx))
         (let* ((formals (gsyms-prefixed "%A" (if (eq mode :fun) (1- n) n)))
-               (cx (cx-put :rel-formals (and (member-equal (second x) (cx-get :rec-rels cx)) formals) cx)))
+               (cx (cx-put :rel-formals (and (member-equal (second x) (cx-get :rec-rels cx)) formals) cx))
+               (cx (cx-put :cur-rel (second x) cx)))
           (mv-let (cs cx) (crules rules mode formals (second x) cx)
-            (let ((body (if (eq mode :fun) (chain-results cs) (list 'if (chain-results cs) t nil))))
+            (let ((body (if (member-eq mode '(:fun :split)) (chain-results cs) (list 'if (chain-results cs) t nil))))
               (mv (append (reverse (cx-get :aux cx))
                           (list (if (cx-get :rel-formals cx)
                                     ;; member of a recursive group: omega*(1+size(inputs))
                                     (mk-defun-measure name formals
-                                                      (list (gsym "%OM")
+                                                      (list (gsym "%OM3") (dec-size (second x) formals cx)
                                                             (list (quote 1+) (list (gsym "%SIZE") (cons (quote list) formals)))
                                                             0)
                                                       body)
                                   (mk-defun name formals body))))
                   cx))))))))
+
+(defun crel (x mode cx)
+  (if (eq mode :multi)
+      ;; both variants: R (all inputs) and R/SPLIT (output = second half of the
+      ;; last component)
+      (mv-let (d1 cx) (crel-1 x :check cx)
+        (mv-let (d2 cx) (crel-1 x :split cx)
+          (mv (append d1 d2) cx)))
+    (crel-1 x mode cx)))
 
 (defun rel-members (x) (if (is x "REC") (cdr x) (list x)))
 
@@ -1546,12 +1617,17 @@
           (mv-let (ds2 bad2 cx) (crel-members xs cx)
             (if (null bad2)
                 (mv ds2 cx)
-              ;; neither mode works: report the :fun errors, stub in :fun mode
-              (let* ((cx (cx-put :errs errs1 cx))
-                     (cx (set-modes xs :fun cx))
-                     (names (rel-mangled bad cx))
-                     (ds (append (drop-defuns-of ds names) (rel-stubs xs bad cx))))
-                (mv ds (cx-put :stubs (append (cx-get :stubs cx) names) cx))))))))))
+              ;; third attempt: :multi (check variant + split variant)
+              (mv-let (ds3 bad3 cx)
+                (crel-members xs (set-mode-ids (strip-seconds xs) :multi (cx-put :errs errs0 cx)))
+                (if (null bad3)
+                    (mv ds3 cx)
+                  ;; no mode works: report the :fun errors, stub in :fun mode
+                  (let* ((cx (cx-put :errs errs1 cx))
+                         (cx (set-modes xs :fun cx))
+                         (names (rel-mangled bad cx))
+                         (ds (append (drop-defuns-of ds names) (rel-stubs xs bad cx))))
+                    (mv ds (cx-put :stubs (append (cx-get :stubs cx) names) cx))))))))))))
 
 ; --- Grammars (plan §2.6): binary-format parsers -----------------------
 ;
@@ -1977,9 +2053,14 @@
 (defun strip-defun-names (ds)
   (if (endp ds) nil (cons (defun-name (car ds)) (strip-defun-names (cdr ds)))))
 
+(defun suffix-all (l s)
+  (if (endp l) nil (cons (concatenate (quote string) (car l) s) (suffix-all (cdr l) s))))
+
 (defun clique-events (x ds cx)
   (if (not (is x "REC")) ds
-    (let* ((mains (member-main-names (cdr x) cx))
+    (let* ((mains0 (member-main-names (cdr x) cx))
+           ;; multi-mode relations also have an R/SPLIT variant
+           (mains (append mains0 (suffix-all mains0 "/SPLIT")))
            (in (reaching ds (intersection-equal mains (strip-defun-names ds)) (1+ (len ds)))))
       (mv-let (outside inside) (split-clique ds in)
         (append outside

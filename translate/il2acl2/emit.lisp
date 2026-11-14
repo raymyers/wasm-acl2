@@ -118,6 +118,11 @@
   (if (endp es) nil
     (append (cadr (member :pairs (car es))) (inverse-pairs (cdr es)))))
 
+(defun decreasing-pairs (es)
+  ;; (:decreasing :pairs (("Rel" . k) ...))
+  (if (endp es) nil
+    (append (cadr (member :pairs (car es))) (decreasing-pairs (cdr es)))))
+
 (defun sized-pairs (es)
   ;; (:sized :pairs (("Bsection_" . "len") ...))
   (if (endp es) nil
@@ -183,6 +188,7 @@
                              (cons :split-rules (split-rules (config-entries config :split)))
                              (cons :inverses (inverse-pairs (config-entries config :inverse)))
                              (cons :sized (sized-pairs (config-entries config :sized)))
+                             (cons :decreasing (decreasing-pairs (config-entries config :decreasing)))
                              (cons :gram-defs (gram-defs forms)))))
               (mv-let (events builtins skipped cx) (cforms forms cx)
                 (let* ((names (prog2$ (cw "~%il2acl2: ~x0 events, ~x1 builtins/overrides, ~x2 forms not translated, stubs: ~x3~%unsupported constructs (~x4):~%~x5~%"
@@ -196,6 +202,7 @@
                                             (list :events events :builtins builtins
                                                   :skipped skipped
                                                   :stubs (reverse (cx-get :stubs cx))
+                                                  :incomplete (reverse (cx-get :incomplete cx))
                                                   :errs (reverse (cx-get :errs cx))
                                                   :config config)
                                             state)))
@@ -237,6 +244,7 @@
          (builtins (cadr (member :builtins g)))
          (skipped (cadr (member :skipped g)))
          (stubs (cadr (member :stubs g)))
+         (incomplete (cadr (member :incomplete g)))
          (config (cadr (member :config g)))
          (header
           (append
@@ -255,6 +263,9 @@
            (comment-lines ";   " (config-strings config))
            (list ";" "; Stubs (an unsupported construct; body signals an error):")
            (comment-lines ";   " stubs)
+           (list ";" "; Rules dropped from the R/SPLIT variants of multi-mode relations (their"
+                 "; output is not computable from the inputs; the R check variants keep them):")
+           (comment-lines ";   " incomplete)
            (list ";" "; Not translated yet:")
            (comment-lines ";   " (skipped-summary skipped))
            (list ""

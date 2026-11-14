@@ -92,7 +92,7 @@
              '(declare (xargs :ruler-extenders :all
                               :hints (("Goal" :in-theory
                                        (union-theories (theory 'acl2::ground-zero)
-                                                       '(%om-o< %om-o-p (:type-prescription %size)))))))
+                                                       '(%om-o< %om-o-p %om3-o< %om3-o-p (:type-prescription %size)))))))
              (cdddr d))
     d))
 
@@ -161,3 +161,23 @@
 (defun %size (x) (declare (xargs :guard t)) (acl2-count x))
 
 (in-theory (disable %om %size))
+
+; (%OM3 a b c) = omega^2*a + omega*b + c, for lexicographic size checks
+; (size of a designated decreasing component, size of all inputs).
+(defun %om3 (a b c)
+  (declare (xargs :guard t))
+  (if (posp a) (make-ord 2 a (%om b c)) (%om b c)))
+
+(defthm %om3-o-p
+  (o-p (%om3 a b c))
+  :hints (("Goal" :in-theory (enable %om))))
+
+(defthm %om3-o<
+  (implies (and (natp a) (natp b) (natp x) (natp y))
+           (equal (o< (%om3 a b c) (%om3 x y z))
+                  (or (< a x)
+                      (and (equal a x)
+                           (or (< b y) (and (equal b y) (< (nfix c) (nfix z))))))))
+  :hints (("Goal" :in-theory (enable %om o< o-finp o-first-expt o-first-coeff o-rst))))
+
+(in-theory (disable %om3))

@@ -403,9 +403,28 @@ hand-built store. But `$instantiate` has the premise
 so T5 cannot be completed as specified until `Module_ok` exists in an
 inference mode (T6).
 
-### T6: Typing (`gen/wasm1.lisp`) 🔶 Partial — blocked
-- [ ] All 76 typing rules as checkers or output-mode functions (§2.5)
-- [ ] `Module_ok` on the oracle corpus
+### T6: Typing (`gen/wasm1.lisp`) 🔶 Partial (instruction typing done; `Module_ok` blocked)
+- [~] All 76 typing rules as checkers or output-mode functions (§2.5).
+      Every typing relation translates except `Module_ok` and
+      `Externaddr_ok`. Instruction typing uses option 2 below, now
+      implemented: a **multi-mode** translation. `Instr_ok`/`Instrs_ok` get a check
+      variant `R` (all components given) and a split variant `R/SPLIT`
+      (output = second half of the last component `t_1* -> t_2*`). Premise
+      calls use the check variant when everything is bound, so polymorphic
+      instructions type in checking positions (end of a block/loop/function
+      body). Only `unreachable`, `br`, `br_table`, `return` are dropped, and
+      only from the split variants (listed in the generated header). So the
+      checker is sound and incomplete only for dead code after a polymorphic
+      instruction in the middle of a sequence. Recursion uses the
+      lexicographic check (instruction size, total size) from config
+      `:decreasing`, which also removes the `seq`/`frame` cycles.
+      `tests/sem/t6-typing.lisp` (16 checks): straight-line code, ill-typed
+      underflow/mismatch/wrong result, locals, `br` at the end of a block,
+      label out of range, `unreachable` at an arbitrary type, `Expr_ok`, and
+      `Func_ok` on factorial plus an ill-typed variant. The typing clique (15 functions) is
+      still `:program`: termination of its list-split searches needs more
+      measure work
+- [ ] `Module_ok` on the oracle corpus: blocked by the context cycle below
 
 **Exit**: every oracle module validates, and the deliberately ill-typed
 negative tests are rejected.
@@ -539,9 +558,9 @@ stuck, and the opening lemmas of the generated fuel loop.
 | Hand-written ACL2 lines | ~4,300 (`execution.lisp` 3717 + `validation.lisp` 594) | 390 (`rt/builtins.lisp` 299 + `rt/prelude.lisp` 91) + 16-line config |
 | Translator lines | n/a | ~2,550 (`il2acl2/`), WASM-agnostic |
 | Generated lines | 0 | 10,396 (`gen/wasm1.lisp`, 310 events) |
-| Config overrides | n/a | 3 (`$utf8`, `ctxt-instrs` split, `hint(inverse)` pairs) |
+| Config overrides | n/a | 7 (`$utf8`, `ctxt-instrs` split, `hint(inverse)` pairs, `:il-patch` version bug, `:sized` section lengths, `:decreasing` typing order) |
 | Execution rules covered | 170/170 instructions | all 58 reduction rules (Step_pure/read/Step) |
-| Validation | hand-written type checker | blocked (T6): non-instruction typing only |
+| Validation | hand-written type checker | generated: all typing relations except `Module_ok`, `Externaddr_ok`; instruction typing via multi-mode (sound, incomplete only for mid-sequence dead code) |
 | Spec rules traceable to ACL2 defs | informal | 1:1 by name (`STEP_PURE/BINOP-VAL` ...) |
 | Logic-mode share | 100% | **462 / 462** functions (incl. parsers); 164 guard-verified |
 | Numeric oracle agreement (8015 V8 vectors) | **6975** (all integer ops agree; floats disagree) | **8015** |
