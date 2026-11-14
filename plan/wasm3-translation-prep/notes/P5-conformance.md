@@ -4,7 +4,7 @@
   assertion values; item 3: spec-test-3 dry run)
 - Date: 2026-11-14
 - Repo commit: fa5d888 plus this note's commit
-- Status: draft
+- Status: final
 - Feeds wasm3 plan: milestones (conformance), risks, probe table
 - Incorporated in wasm3 plan: no
 
@@ -21,9 +21,10 @@ spec-test-3 at the pinned rev has 259 scripts. wabt 1.0.41 (`wast2json
 --enable-all`) converts 228 of them, with 5,365 modules and 62,383 commands. It
 fails on 31: GC 16 of 17, exceptions 3 of 5, memory64 3, bulk-memory 1, and
 8 top-level scripts. The cause is missing wabt syntax (`definition`,
-`instance`, packed and `rec` types, `exn`). The decode-only dry run on 3.0
-modules is blocked, because the generated 3.0 parser cannot be loaded yet
-(the `rt/` package question, P2).
+`instance`, packed and `rec` types, `exn`). In a decode-only experiment
+(scratch `rt/` in `W3T`, missing builtins stubbed) the generated 3.0 parser
+decodes 4,562 of 4,639 well-formed modules (98.3%) and rejects 604 of 643
+malformed ones.
 
 ## Findings
 
@@ -111,16 +112,45 @@ modules is blocked, because the generated 3.0 parser cannot be loaded yet
   and exception scripts if it parses them (to be checked), at the cost of a
   small `.bin.wast` reader in place of
   `wast2json`'s JSON. That is the recommended route for GC.
-- Decode-only pass rate: not measured. The generated 3.0 binary parser
-  (`gen/wasm-3.0/5_*.lisp`) needs `rt/` builtins in its package; `rt/` is in
-  `W1T` (P2-layout). Once that is decided, the dry run is: certify
-  `gen/wasm-3.0` up to `5_4-binary_modules`, run `GRAM/BMODULE` on the
-  5,365 modules, and count complete parses (and rejections for
-  `assert_malformed`).
+- Decode-only pass rate (2026-11-14, an experiment, see
+  `data/conformance-P5-2026-11-14/decode-3.0/README.txt`). The generated 3.0
+  books were certified in a scratch tree with `rt/` copied into package
+  `W3T`, the 46 builtins `rt/` lacks stubbed (`nil`), and all functions in
+  `:program` mode. Then `GRAM/BMODULE` ran on every module command of the
+  228 scripts:
+
+| Command kind | Modules | Decoded | As expected |
+|---|---|---|---|
+| `module` | 1,956 | 1,898 | 1,898 |
+| `assert_invalid` (well-formed binary) | 2,441 | 2,433 | 2,433 |
+| `assert_unlinkable` | 188 | 181 | 181 |
+| `assert_uninstantiable` | 54 | 50 | 50 |
+| `assert_malformed` (binary; must not decode) | 643 | 39 | 604 |
+
+  - **4,562 of 4,639 well-formed modules decode (98.3%)**; **604 of 643
+    malformed ones are rejected (93.9%)**. All 39 wrongly accepted are
+    invalid UTF-8 in names (`utf8-*` scripts, 13 each), the same failure as
+    in spec-test-1. Misses in decoding: `bulk-memory--table_copy` and
+    `memory64--table_copy64` 18 each; the rest are scattered over modules with
+    imports, multiple memories and data segments (`PER-SCRIPT.txt`).
+    `binary` stops at "too many locals" (control stack), as in 1.0.
+  - Caveat: stubbed builtins return `nil` (`$s33_to_u32` among them, which
+    block types use), so some misses may come from stubs, not the parser.
+  - Translator bug found by this first certification of 3.0 code: aux
+    functions of a relation in a rec group can contain the recursive
+    premise's size check against the relation's own formals, which the aux
+    did not take (`COMPTYPE_SUB/MAP5`: free `%A0 %A1`). Fixed in
+    `compile.lisp` (`close-aux-formals`: such an aux gets the formals it
+    uses as extra parameters); 1.0 is unchanged.
+  - Certification time risk: with the normal `%TRY-LOGIC`/`%TRY-GUARDS`,
+    `5_2-binary_types` spent more than 15 CPU minutes in one guard proof
+    (`Subgoal 1.101'`) before I stopped it. The prover step limits do not
+    bound wall time when single steps are slow. Up to `5_1` the logic-mode
+    chain took about 40 s.
 
 ## Open questions
 
-- `rt/` package decision (blocks item 3's decode number).
+- `rt/` package decision (the decode number above comes from a scratch copy).
 - Whether to build the reference interpreter in the flake for the GC and
   exception scripts.
 

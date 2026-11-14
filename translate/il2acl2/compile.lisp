@@ -1723,11 +1723,63 @@
                                   (mk-defun name formals body))))
                   cx)))))))))
 
+; Aux functions of a relation in a rec group can contain the generated size
+; check of a recursive premise, which compares against the relation's own
+; formals (:rel-formals). Such an aux gets the formals it uses as extra
+; trailing parameters, and every call to it in the relation passes them
+; (repeated until no aux uses a formal it does not have). Found by the first
+; certification of 3.0 code (COMPTYPE_SUB/MAP5, wasm3 prep P5); an aux that
+; does not use them is unchanged.
+(defun gsym-occurs (s x)
+  (cond ((gsym-p x) (equal x s))
+        ((consp x) (or (gsym-occurs s (car x)) (gsym-occurs s (cdr x))))
+        (t nil)))
+
+(defun missing-formals (rf d)
+  ;; formals in rf that the body of defun d uses but d does not take
+  (cond ((endp rf) nil)
+        ((and (not (member-equal (car rf) (third d))) (gsym-occurs (car rf) (cdddr d)))
+         (cons (car rf) (missing-formals (cdr rf) d)))
+        (t (missing-formals (cdr rf) d))))
+
+(defun needy-defuns (ds rf)
+  (cond ((endp ds) nil)
+        ((and (consp (car ds)) (eq (car (car ds)) 'defun) (missing-formals rf (car ds)))
+         (cons (cons (second (car ds)) (missing-formals rf (car ds))) (needy-defuns (cdr ds) rf)))
+        (t (needy-defuns (cdr ds) rf))))
+
+(defun add-call-args (x name extras)
+  (cond ((gsym-p x) x)
+        ((atom x) x)
+        ((eq (car x) (quote defun))                ; not a call: keep name and formals
+         (list* (car x) (cadr x) (caddr x) (add-call-args (cdddr x) name extras)))
+        ((equal (car x) name) (append (cons name (add-call-args (cdr x) name extras)) extras))
+        (t (cons (add-call-args (car x) name extras) (add-call-args (cdr x) name extras)))))
+
+(defun add-formals (ds name extras)
+  (cond ((endp ds) nil)
+        ((and (consp (car ds)) (eq (car (car ds)) 'defun) (equal (second (car ds)) name))
+         (cons (list* 'defun name (append (third (car ds)) extras) (cdddr (car ds))) (cdr ds)))
+        (t (cons (car ds) (add-formals (cdr ds) name extras)))))
+
+(defun apply-needy (ds needy)
+  (if (endp needy) ds
+    (let* ((name (car (car needy))) (extras (cdr (car needy)))
+           (ds (add-call-args ds name extras))
+           (ds (add-formals ds name extras)))
+      (apply-needy ds (cdr needy)))))
+
+(defun close-aux-formals (ds rf fuel)
+  (let ((needy (and rf (needy-defuns ds rf))))
+    (if (or (null needy) (zp fuel)) ds
+      (close-aux-formals (apply-needy ds needy) rf (1- fuel)))))
+
 (defun crel-1 (x mode cx)
   ;; errors logged while compiling carry the attempted mode
   (mv-let (ds cx)
     (crel-1-body x mode (cx-put :err-pos 0 (cx-put :err-rule nil (cx-put :err-mode mode cx))))
-    (mv ds (cx-put :err-pos nil (cx-put :err-rule nil (cx-put :err-mode nil cx))))))
+    (mv (close-aux-formals ds (cx-get :rel-formals cx) 20)
+        (cx-put :err-pos nil (cx-put :err-rule nil (cx-put :err-mode nil cx))))))
 
 (defun crel (x mode cx)
   (if (eq mode :multi)

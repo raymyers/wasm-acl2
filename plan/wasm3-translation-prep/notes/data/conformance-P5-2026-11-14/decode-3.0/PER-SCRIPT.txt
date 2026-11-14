@@ -1,0 +1,228 @@
+address 5  :ASSERT_INVALID=1
+align 71 
+binary-leb128 91 
+binary 43 
+block 156 
+br 21 
+br_if 31 
+br_on_non_null 4 
+br_on_null 4 
+br_table 25 
+bulk-memory--bulk 13 
+bulk-memory--memory_copy 97 
+bulk-memory--memory_fill 75 
+bulk-memory--memory_init 96  :ASSERT_INVALID=2
+bulk-memory--table-sub 3 
+bulk-memory--table_copy 52  :MODULE=18
+bulk-memory--table_fill 10 
+call 19 
+call_indirect 27 
+call_ref 8 
+comments 5 
+const 402 
+conversions 26 
+custom 11 
+data 66  :MODULE=4
+elem 115 
+endianness 1 
+exceptions--throw 4 
+exceptions--throw_ref 3 
+exports 88 
+f32 12 
+f32_bitwise 4 
+f32_cmp 7 
+f64 12 
+f64_bitwise 4 
+f64_cmp 7 
+fac 1 
+float_exprs 98 
+float_literals 2 
+float_memory 6 
+float_misc 1 
+forward 1 
+func 56 
+func_ptrs 10 
+gc--binary-gc 1 
+global 53  :MODULE=1
+i32 84 
+i64 30 
+id 1 
+if 93 
+imports 162  :MODULE=2 :ASSERT_UNLINKABLE=1
+inline-module 1 
+int_exprs 19 
+int_literals 1 
+labels 4 
+left-to-right 1 
+linking 71  :MODULE=5 :ASSERT_UNLINKABLE=2 :ASSERT_UNINSTANTIABLE=1
+load 47 
+local_get 17 
+local_init 6 
+local_set 34 
+local_tee 43 
+loop 28 
+memory64--address64 4 
+memory64--align64 63 
+memory64--binary_leb128_64 2 
+memory64--bulk64 5 
+memory64--call_indirect64 1 
+memory64--endianness64 1 
+memory64--float_memory64 6 
+memory64--load64 48 
+memory64--memory64-imports 70 
+memory64--memory_copy64 97 
+memory64--memory_fill64 75 
+memory64--memory_grow64 5 
+memory64--memory_init64 96  :ASSERT_INVALID=2
+memory64--memory_redundancy64 1 
+memory64--memory_trap64 2 
+memory64--table_copy64 52  :MODULE=18
+memory64--table_copy_mixed 4 
+memory64--table_fill64 10 
+memory64--table_get64 1 
+memory64--table_grow64 2 
+memory64--table_set64 1 
+memory64--table_size64 1 
+memory_grow 18 
+memory_redundancy 1 
+memory_size 6 
+memory_trap 2 
+multi-memory--address0 1 
+multi-memory--address1 1 
+multi-memory--align0 1 
+multi-memory--binary0 7 
+multi-memory--data0 7  :MODULE=3
+multi-memory--data1 14  :ASSERT_UNINSTANTIABLE=2
+multi-memory--data_drop0 1 
+multi-memory--exports0 8 
+multi-memory--float_exprs0 1 
+multi-memory--float_exprs1 1 
+multi-memory--float_memory0 2 
+multi-memory--imports0 7 
+multi-memory--imports1 1  :MODULE=1
+multi-memory--imports2 11  :MODULE=2
+multi-memory--imports3 9  :ASSERT_UNLINKABLE=3
+multi-memory--imports4 5 
+multi-memory--linking0 3 
+multi-memory--linking1 6  :MODULE=1
+multi-memory--linking2 2 
+multi-memory--linking3 6  :ASSERT_UNLINKABLE=1 :ASSERT_UNINSTANTIABLE=1
+multi-memory--load0 1 
+multi-memory--load1 2 
+multi-memory--load2 1 
+multi-memory--memory-multi 2 
+multi-memory--memory_copy0 1 
+multi-memory--memory_copy1 1 
+multi-memory--memory_fill0 1 
+multi-memory--memory_grow 3  :MODULE=1
+multi-memory--memory_init0 1 
+multi-memory--memory_size0 1 
+multi-memory--memory_size1 1 
+multi-memory--memory_size2 1 
+multi-memory--memory_size3 2 
+multi-memory--memory_size_import 2  :MODULE=1
+multi-memory--memory_trap0 1 
+multi-memory--memory_trap1 1 
+multi-memory--start0 1 
+multi-memory--store0 1 
+multi-memory--store1 3 
+multi-memory--store2 2 
+multi-memory--traps0 1 
+names 4  :MODULE=1
+nop 5 
+obsolete-keywords 0 
+ref 13 
+ref_as_non_null 3 
+ref_func 6  :ASSERT_INVALID=1
+ref_is_null 4 
+relaxed-simd--i16x8_relaxed_q15mulr_s 1 
+relaxed-simd--i32x4_relaxed_trunc 1 
+relaxed-simd--i8x16_relaxed_swizzle 1 
+relaxed-simd--relaxed_dot_product 1 
+relaxed-simd--relaxed_laneselect 1 
+relaxed-simd--relaxed_madd_nmadd 2 
+relaxed-simd--relaxed_min_max 1 
+return 21 
+return_call 17 
+return_call_indirect 22 
+return_call_ref 18 
+select 33 
+simd--simd_address 5  :ASSERT_INVALID=2
+simd--simd_align 58 
+simd--simd_bit_shift 26 
+simd--simd_bitwise 30 
+simd--simd_boolean 14 
+simd--simd_const 312 
+simd--simd_conversions 20 
+simd--simd_f32x4 10 
+simd--simd_f32x4_arith 19 
+simd--simd_f32x4_cmp 20 
+simd--simd_f32x4_pmin_pmax 7 
+simd--simd_f32x4_rounding 9 
+simd--simd_f64x2 10 
+simd--simd_f64x2_arith 19 
+simd--simd_f64x2_cmp 20 
+simd--simd_f64x2_pmin_pmax 7 
+simd--simd_f64x2_rounding 9 
+simd--simd_i16x8_arith 13 
+simd--simd_i16x8_arith2 19 
+simd--simd_i16x8_cmp 32 
+simd--simd_i16x8_extadd_pairwise_i8x16 5 
+simd--simd_i16x8_extmul_i8x16 13 
+simd--simd_i16x8_q15mulr_sat_s 4 
+simd--simd_i16x8_sat_arith 14 
+simd--simd_i32x4_arith 13 
+simd--simd_i32x4_arith2 16 
+simd--simd_i32x4_cmp 32 
+simd--simd_i32x4_dot_i16x8 4 
+simd--simd_i32x4_extadd_pairwise_i16x8 5 
+simd--simd_i32x4_extmul_i16x8 13 
+simd--simd_i32x4_trunc_sat_f32x4 5 
+simd--simd_i32x4_trunc_sat_f64x2 5 
+simd--simd_i64x2_arith 13 
+simd--simd_i64x2_arith2 4 
+simd--simd_i64x2_cmp 11 
+simd--simd_i64x2_extmul_i32x4 13 
+simd--simd_i8x16_arith 10 
+simd--simd_i8x16_arith2 21 
+simd--simd_i8x16_cmp 32 
+simd--simd_i8x16_sat_arith 14 
+simd--simd_int_to_int_extend 25 
+simd--simd_lane 95 
+simd--simd_linking 2 
+simd--simd_load 19 
+simd--simd_load16_lane 4 
+simd--simd_load32_lane 4 
+simd--simd_load64_lane 4 
+simd--simd_load8_lane 4 
+simd--simd_load_extend 14 
+simd--simd_load_splat 10 
+simd--simd_load_zero 6 
+simd--simd_memory-multi 1 
+simd--simd_select 1 
+simd--simd_splat 26 
+simd--simd_store 8 
+simd--simd_store16_lane 4 
+simd--simd_store32_lane 4 
+simd--simd_store64_lane 4 
+simd--simd_store8_lane 4 
+skip-stack-guard-page 1 
+stack 2 
+start 9 
+store 52 
+switch 2 
+table_get 6 
+table_grow 16 
+table_set 8 
+table_size 3 
+token 35 
+traps 4 
+type 1 
+unreachable 1 
+unreached-invalid 121 
+unreached-valid 3 
+unwind 1 
+utf8-custom-section-id 176  :ASSERT_MALFORMED=13
+utf8-import-field 176  :ASSERT_MALFORMED=13
+utf8-import-module 176  :ASSERT_MALFORMED=13
+utf8-invalid-encoding 3 

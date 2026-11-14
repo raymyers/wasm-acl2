@@ -24,9 +24,9 @@ Update this block at the end of every session, in the same commit as the work.
 A new session starts here.
 
 - **Last updated**: 2026-11-14
-- **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅. P5 🔶: items 1 (spec-test-1:
-  10,848 of 11,606 commands reached pass) and 2 done; item 3 half done
-  (wast2json counts), its decode count blocked on the `rt/` decision.
+- **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅, P5 ✅ (spec-test-1:
+  10,848 of 11,606 commands reached pass; spec-test-3 decode 98.3% by
+  experiment).
   P6 ✅ (runtime baseline). P4 🔶: G1 (53 specializations), G3, G4, G9 done;
   G5, G8 and W1/G2 wait for the mode table. P7 not started
 - **Next action**: the mode table design (W1/G2, with G5 and G8): a Fable session;
@@ -363,7 +363,7 @@ missing inverse pair. *Met 2026-11-14: the 17 remaining "pattern" errors are S5,
 override) or fewer, certifies, and passes the 2.0 numeric vectors. The 3.0
 probe is re-run and its stub and dropped-rule counts recorded.
 
-### P5: Conformance driver (W10) 🔶 (2026-11-14, [P5-conformance](notes/P5-conformance.md))
+### P5: Conformance driver (W10) ✅ (2026-11-14, [P5-conformance](notes/P5-conformance.md))
 - [x] Finish wasm1 T7: commit the driver, record N/M for spec-test-1.
       *Done: one ACL2 session per script (a crash costs one script);
       **10,848 of 11,606 commands reached pass** (of 12,014 countable);
@@ -376,16 +376,21 @@ probe is re-run and its stub and dropped-rule counts recorded.
       `make spec-data SPEC=<v>`; the converter emits v128 lanes, references,
       `assert_exception` and `:UNSUPPORTED` for the unknown. Comparing those
       values in ACL2 needs a running 3.0 semantics*
-- [ ] Dry run on spec-test-3: how many scripts `wast2json` converts, how many
+- [x] Dry run on spec-test-3: how many scripts `wast2json` converts, how many
       modules the generated 3.0 binary parser accepts (the parser already
-      compiles; this is its first real test). *Half done: 228 of 259 scripts
-      convert (5,365 modules; GC 1 of 17). The parser count is **blocked** on
-      the `rt/` package decision (P2-layout): the 3.0 books cannot load yet*
+      compiles; this is its first real test). *Done 2026-11-14: 228 of 259
+      scripts convert (5,365 modules; GC 1 of 17). Decode experiment (scratch
+      `rt/` in `W3T`, missing builtins stubbed, `:program` mode): **4,562 of
+      4,639 well-formed modules decode (98.3%)**, 604 of 643 malformed ones
+      rejected (the 39 misses are invalid UTF-8). Found and fixed a
+      translator bug (aux functions using the enclosing relation's formals);
+      found a certification-time risk (`5_2-binary_types` guard proof
+      >15 min)*
 
 **Notes**: `notes/P5-conformance.md` (pass counts, skipped scripts and why).
 
-**Exit**: spec-test-1 result recorded ✅; a decode-only pass rate for
-spec-test-3 recorded (blocked, see item 3).
+**Exit** ✅: spec-test-1 result recorded; a decode-only pass rate for
+spec-test-3 recorded (98.3%, by experiment: the `rt/` question is still open).
 
 ### P6: Runtime baseline (W9) ✅ (2026-11-14, [P6-runtime-baseline](notes/P6-runtime-baseline.md))
 - [x] Measure steps per second and the cost per memory access on the 1.0
