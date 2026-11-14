@@ -1,0 +1,18 @@
+; Failing rules of WASM 2.0: rule, mode, error kinds, first error detail
+Instr_ok/unreachable :FUN (("unbound variable" . 2)) "t_1*"
+Instr_ok/drop :FUN (("unbound variable" . 1)) "t"
+Instr_ok/select-impl :FUN (("checker relation with unbound arguments" . 1) ("condition with unbound variables" . 2) ("unbound variable" . 3)) (RULE "Valtype_sub" "|-%<:%" (TUP (VAR "t") (VAR "t'")))
+Instr_ok/br :FUN (("unbound variable" . 2)) "t_1*"
+Instr_ok/br_table :FUN (("checker relation with unbound arguments" . 2) ("unbound variable" . 3)) (RULE "Resulttype_sub" "|-%<:%" (TUP (CASE "%" (TUP (ITER (VAR "t") LIST (DOM "t" (VAR "t*"))))) (IDX (DOT (VAR "C") "LABELS") (PROJ (UNCASE (VAR "l") "%") 0))))
+Instr_ok/return :FUN (("unbound variable" . 2)) "t_1*"
+Instr_ok/ref.is_null :FUN (("unbound variable" . 1)) "rt"
+Instrs_ok/sub :FUN (("checker relation with unbound arguments" . 2) ("unbound variable" . 2)) (RULE "Resulttype_sub" "|-%<:%" (TUP (CASE "%" (TUP (ITER (VAR "t'_1") LIST (DOM "t'_1" (VAR "t'_1*"))))) (CASE "%" (TUP (ITER (VAR "t_1") LIST (DOM "t_1" (VAR "t_1*")))))))
+Instrs_ok/frame :FUN (("unbound variable" . 2)) "t*"
+Instr_ok/select-impl :CHECK (("checker relation with unbound arguments" . 1) ("condition with unbound variables" . 2)) (RULE "Valtype_sub" "|-%<:%" (TUP (VAR "t") (VAR "t'")))
+Instrs_ok/sub :CHECK (("relation inputs unbound" . 1) ("checker relation with unbound arguments" . 2)) (RULE "Instrs_ok" "%|-%:%" (TUP (VAR "C") (ITER (VAR "instr") LIST (DOM "instr" (VAR "instr*"))) (CASE "%->%" (TUP (CASE "%" (TUP (ITER (VAR "t_1") LIST (DOM "t_1" (VAR "t_1*"))))) (CASE "%" (TUP (ITER (VAR "t_2") LIST (DOM "t_2" (VAR "t_2*")))))))))
+Module_ok/ :FUN (("pattern" . 7) ("relation inputs unbound" . 6) ("iterated premise output not bound" . 6) ("checker relation with unbound arguments" . 2) ("condition with unbound variables" . 4) ("unbound variable" . 1)) (LEN (VAR "gt*"))
+Step_pure/vswizzle :FUN (("premise" . 2)) (ITER (IF (CMP LT NAT (PROJ (UNCASE (IDX (ITER (VAR "ci") LIST (DOM "ci" (VAR "ci*"))) (VAR "k")) "%") 0) (LEN (ITER (VAR "c'") LIST (DOM "c'" (VAR "c'*")))))) (LISTN (PROJ (UNCASE (VAR "M") "%") 0) "k"))
+Step_pure/vshuffle :FUN (("premise" . 2)) (ITER (IF (CMP LT NAT (PROJ (UNCASE (IDX (ITER (VAR "i") LIST (DOM "i" (VAR "i*"))) (VAR "k")) "%") 0) (LEN (ITER (VAR "c'") LIST (DOM "c'" (VAR "c'*")))))) (LISTN (VAR "N") "k"))
+Step_pure/vsplat :FUN (("condition with unbound variables" . 1) ("unbound variable" . 5)) (CMP EQ BOOL (VAR "c") (CALL "inv_lanes_" (EXP (CASE "%X%" (TUP (VAR "Lnn") (CASE "%" (TUP (VAR "N")))))) (EXP (ITER (CALL "packnum_" (EXP (VAR "Lnn")) (EXP (VAR "c_1"))) (LISTN (VAR "N"))))))
+Step_pure/vreplace_lane :FUN (("condition with unbound variables" . 1) ("unbound variable" . 7)) (CMP EQ BOOL (VAR "c") (CALL "inv_lanes_" (EXP (CASE "%X%" (TUP (VAR "Lnn") (CASE "%" (TUP (VAR "N")))))) (EXP (UPD (CALL "lanes_" (EXP (CASE "%X%" (TUP (VAR "Lnn") (CASE "%" (TUP (VAR "N")))))) (EXP (VAR "c_1"))) (IDX ROOT (PROJ (UNCASE (VAR "i") "%") 0)) (CALL "packnum_" (EXP (VAR "Lnn")) (EXP (VAR "c_2")))))))
+Step_read/vload-shape-val :FUN (("iterated premise without inputs" . 1) ("condition with unbound variables" . 1) ("unbound variable" . 1)) (ITER (IF (CMP EQ BOOL (CALL "ibytes_" (EXP (PROJ (UNCASE (VAR "M") "%") 0)) (EXP (VAR "j"))) (SLICE (DOT (CALL "mem" (EXP (VAR "z")) (EXP (CASE "%" (TUP (NUM (NAT 0)))))) "BYTES") (BIN ADD NAT (BIN ADD NAT (PROJ (UNCASE (VAR "i") "%") 0) (PROJ (UNCASE (DOT (VAR "ao") "OFFSET") "%") 0)) (CVT RAT NAT (BIN DIV RAT (CVT NAT RAT (BIN MUL NAT (VAR "k") (PROJ (UNCASE (VAR "M") "%") 0))) (CVT NAT RAT (NUM (NAT 8)))))) (CVT RAT NAT (BIN DIV RAT (CVT NAT RAT (PROJ (UNCASE (VAR "M") "%") 0)) (CVT NAT RAT (NUM (NAT 8)))))))) (LISTN (VAR "N") "k") (DOM "j" (VAR "j*")))

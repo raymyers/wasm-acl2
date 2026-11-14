@@ -53,3 +53,31 @@ which the user has not yet confirmed.
 `make -C translate il SPEC=<v>` (patched SpecTec) and
 `make -C translate probe SPEC=<v>` ("hint forms" line).
 `grep '(inverse' translate/il/wasm-<v>.il.sexp` lists the pairs.
+
+## 2026-11-14: item 2, inverse pairs from the IL
+
+- `emit.lisp` `all-inverse-pairs`: the pairs from `hint(inverse)` in the IL,
+  then from `:def` overrides that declare `:inverse` (only
+  `(:def "utf8" :inverse "inv_utf8")`), then any `:inverse` config entry
+  (none left). The `:inverse` entry is gone from all three configs.
+- 1.0: the pair list is the same as before, in the same order (`signed_`,
+  `ibytes_`, `fbytes_`, `bytes_`, `utf8`). Generated code is unchanged;
+  only the header's config listing changed (the entry is gone and the `utf8`
+  reason mentions its inverse). `make check` passes.
+- Effect (probe, `data/probe-P3-2026-11-14/`):
+
+| | before (P1/P2) | after |
+|---|---|---|
+| 2.0 stubs | 5 | **2** (`Module_ok`, `GRAM/Binstr`): `$vrelop_`, `$vextunop__`, `$vextbinop__` now compile |
+| 2.0 `Step` / `Step_read` / `Step_pure` | 22/23, 42/47, 51/56 | **23/23**, 46/47, 52/56 |
+| 3.0 D3-scope stubs | 21 | **16**: `$fvrelop_`, `$ivbitmaskop_`, `$ivadd_pairwise_`, `$ivdot_`, `$ivdot_sat_` now compile |
+| 3.0 dropped rules (D3 scope, emitted) | 42 | 36 |
+| 3.0 `Step` / `Step_read` / `Step_pure` | 35/36, 96/103, 77/79 | **36/36**, 101/103, 77/79 |
+| 3.0 failing reduction rules | 10 of 218 | **4**: G9 2 (`vsplat`, `vreplace_lane`), G3 1 (`array.new_data-num`), G4 1 (`vload-pack-val`) |
+
+- P3 exit check: no remaining "pattern" error in 3.0 involves a function
+  with an inverse hint. The 17 left are `$utf8single` (S5), `:fun`-mode
+  typing artifacts (`clos_deftype`, index and length patterns), `Module_ok`
+  (S4) and text grammars (`6.*`, out of scope).
+- Consequence for builtins: generated 3.0 code now calls the 16 `inv_*`
+  functions (clause-less defs), so they join the builtin inventory (item 3).

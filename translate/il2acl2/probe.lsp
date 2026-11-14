@@ -263,7 +263,7 @@
                      (cx (list (cons :tbl tbl)
                                (cons :overrides (config-overrides config))
                                (cons :split-rules (split-rules (config-entries config :split)))
-                               (cons :inverses (inverse-pairs (config-entries config :inverse)))
+                               (cons :inverses (all-inverse-pairs hints config))
                                (cons :sized (sized-pairs (config-entries config :sized)))
                                (cons :decreasing (decreasing-pairs (config-entries config :decreasing)))
                                (cons :rel-overrides (rel-override-alist (config-entries config :rel-override)))

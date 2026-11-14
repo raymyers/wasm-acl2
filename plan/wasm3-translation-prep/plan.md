@@ -26,9 +26,10 @@ A new session starts here.
 - **Last updated**: 2026-11-14
 - **Milestones**: P0 ✅, P1 ✅, P2 ✅ (SPEC parameter and per-version
   layout, config validation, one book per source file, mode manifest,
-  flake checks). P3 in progress: item 1 (hints in the IL) done. P4-P7 not started
-- **Next action**: P3 item 2 (`:inverse` config entries replaced by pairs
-  read from the IL). P5 and P6 can also start (they need only P2). P4 needs the mode
+  flake checks). P3 in progress: items 1 (hints in the IL) and 2 (inverse
+  pairs from hints) done. P4-P7 not started
+- **Next action**: P3 item 3 (builtin classification from `hint(builtin)`;
+  inventory note). P5 and P6 can also start (they need only P2). P4 needs the mode
   table design first (a Fable session, see below)
 - **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
   files in `translate/tests/spec/`, `flake.nix` and the `spec`/`spec-data`
@@ -152,7 +153,7 @@ counts overstate the number of distinct problems.
 
 | # | Area | What 3.0 does | Why today's mechanism falls short |
 |---|---|---|---|
-| S1 | **Inverse functions** | 16 `hint(inverse)` pairs; `Step_read` load rules solve `$nbytes_(nt, c) = bytes`, `$vbytes_`, `$zbytes_`, `$concatn_`, and SIMD rules solve `N = $jsize(Jnn)` for `Jnn` and `$ibits_(32, c) = ...` for `c` | `--ast` drops hints, so pairs are copied by hand into the config (5 today). Two inverses are also *used directly* in the spec (`$inv_lanes_`, `$inv_concat_`) and are builtins. Inverses of non-builtins (`$isize`, `$jsize`: finite functions) must be generated, not hand-written |
+| S1 | **Inverse functions** (*the 16 hinted pairs are read from the IL since P3; the `inv_*` defs still need builtins*) | 16 `hint(inverse)` pairs; `Step_read` load rules solve `$nbytes_(nt, c) = bytes`, `$vbytes_`, `$zbytes_`, `$concatn_`, and SIMD rules solve `N = $jsize(Jnn)` for `Jnn` and `$ibits_(32, c) = ...` for `c` | `--ast` drops hints, so pairs are copied by hand into the config (5 today). Two inverses are also *used directly* in the spec (`$inv_lanes_`, `$inv_concat_`) and are builtins. Inverses of non-builtins (`$isize`, `$jsize`: finite functions) must be generated, not hand-written |
 | S2 | **Mode inference for relations** | 125 relations; `: OK` and `<:` judgements whose last component is the subject, not an output | **Root causes isolated in P1** ([P1-typing-root-causes](notes/P1-typing-root-causes.md)): mode selection, not missing constructs. Failing rules for `:fun` / `:check` / `:multi`: type group 22 / 9 / **2** (both G8), `Instr_ok` 15 / 9 / **3** (all G5). An all-`:check` assignment is never tried. Some rules compile and are still incomplete: `Heaptype_sub/trans` picks a single witness `ht'` from `Heaptype_ok`'s split variant |
 | S3 | **Instruction typing** | 110 rules. New stack-polymorphic rules (`return_call*`, `throw`, `throw_ref`), subsumption through `Instrtype_sub`, local-initialization tracking in the instruction type (`t_1* ->_(x*) t_2*`) | The `R` / `R/SPLIT` multi-mode trick assumed the last component splits as `c(a, b)`. With the `x*` component and subtyping it needs re-validation. In the probe's attempt 14 `Instr_ok` rules were dropped from the split variant, including non-polymorphic ones (`array.new_data`, `extern.convert_any`) |
 | S4 | **`Module_ok`** | Different shape from 1.0: tags, recursive types, staged contexts `C'`, `Globals_ok`/`Types_ok` as separate relations | The 75-line hand-written `:rel-override` is 1.0-specific and must be redone. Since 3.0 sequentializes more, check first whether generic modes now cover it |
@@ -312,7 +313,10 @@ parts) and two header lines; `make check` (now with `t0-modes`) and
       *Done 2026-11-14 ([P3-hints](notes/P3-hints.md)): 15-line patch in
       `nix/`; 1.0 IL +244 hint lines, otherwise identical; generated code
       unchanged. 3.0 IL carries all 16 inverse pairs*
-- [ ] `:inverse` config entries are replaced by pairs read from the IL
+- [x] `:inverse` config entries are replaced by pairs read from the IL.
+      *Done 2026-11-14 ([P3-hints](notes/P3-hints.md)): the `utf8` override
+      declares its own inverse; 1.0 code unchanged. 2.0 stubs 5 → 2, 3.0
+      (D3 scope) 21 → 16; 3.0 failing reduction rules 10 → 4 of 218*
 - [ ] Builtin classification from `hint(builtin)`: numeric builtin (must be in
       `rt/`), choice parameter (D4), host hook (`hostcall`), notation
       (ignored). A clause-less def in no category is a hard error
@@ -408,8 +412,9 @@ P5, P6 need only P2 and can run alongside P3/P4.
   schema need no redesign.
 - Syntax recognizers, plain defs and the binary grammar are close: no stubs
   among the 208 types or the 90 binary grammars, and 16 stubs among 462 defs.
-- Execution is closer than typing: 10 of 218 reduction rules fail in `:fun`
-  (measured in P1): S1 inverses 6, G9 2, G3 1, G4 1. Since P1 the rest of
+- Execution is closer than typing: 4 of 218 reduction rules fail in `:fun`
+  after P3 (10 in P1; the 6 S1 inverses were missing pairs): G9 2, G3 1,
+  G4 1. Since P1 the rest of
   `Step`, `Step_read`, `Step_pure` is emitted.
 - Typing is mostly a mode problem (P1): in `:multi` the type-validation and
   subtyping group fails 2 rules (G8) and instruction typing 3 (G5). The

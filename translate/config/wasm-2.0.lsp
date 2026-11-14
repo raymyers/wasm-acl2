@@ -3,22 +3,17 @@
 ; P0/P1 probes used. Several remaining entries name 1.0 ids that do not exist
 ; in 2.0 (W5); config validation (P2) and P3 replace them.
 ; Removed by P2 config validation: ("bytes_" . "inv_bytes_") (no bytes_ here).
+; P3: inverse pairs now come from hint(inverse) in the IL (no :inverse entry).
 ; il2acl2 configuration: the counted, named exceptions to the generic
 ; translation (plan §1 "Rules of the game"). Keep this list short; each entry
 ; says why the IL cannot be translated mechanically.
 (
- (:def "utf8"
-  :reason "Clauses 2-4 define the bytes b_1..b_4 only through an arithmetic equation on ch (the inverse direction); no matching/binding translation exists. Hand-written in rt/builtins.lisp.")
+ (:def "utf8" :inverse "inv_utf8"
+  :reason "Clauses 2-4 define the bytes b_1..b_4 only through an arithmetic equation on ch (the inverse direction); no matching/binding translation exists. Hand-written in rt/builtins.lisp, with its inverse inv_utf8 (used to solve utf8(x) = bytes in Bname; the other inverse pairs come from hint(inverse) in the IL).")
 
  (:split "Step" "ctxt-instrs"
   :strategy :redex
   :reason "The generic split search of val* ++ admininstr* ++ admininstr_1* is exponential when it fails. Strategy: admininstr* ends right after the first non-value; val* is searched from longest to shortest. Completeness vs. the generic search: T8 obligation.")
-
- (:inverse "hint(inverse)"
-  :pairs (("signed_" . "inv_signed_") ("ibytes_" . "inv_ibytes_")
-          ("fbytes_" . "inv_fbytes_")
-          ("utf8" . "inv_utf8"))
-  :reason "SpecTec hint(inverse ...) annotations in 3-numerics.spectec; spectec --ast does not print hints. Used to solve f(a.., x) = v for x (load rules; Bname). inv_utf8 is the hand-written partner of the utf8 override.")
 
  (:decreasing "termination order"
   :pairs (("Instr_ok" . 1) ("Instrs_ok" . 1))

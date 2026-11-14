@@ -138,6 +138,37 @@
   (if (endp es) nil
     (append (cadr (member :pairs (car es))) (inverse-pairs (cdr es)))))
 
+; Inverse pairs (wasm3 prep P3): from the IL's hint(inverse $g) on def f,
+; then from :def overrides that declare :inverse (a hand-written partner),
+; then from any :inverse config entries. ("f" . "g") in that order.
+(defun hint-entry-inverses (id entries)
+  (cond ((endp entries) nil)
+        ((and (equal (sym-name (car (car entries))) "INVERSE")
+              (< 1 (length (second (car entries))))
+              (eql (char (second (car entries)) 0) #\$))
+         (cons (cons id (subseq (second (car entries)) 1 (length (second (car entries)))))
+               (hint-entry-inverses id (cdr entries))))
+        (t (hint-entry-inverses id (cdr entries)))))
+
+(defun hint-inverse-pairs (hints)
+  (cond ((endp hints) nil)
+        ((equal (sym-name (second (car hints))) "DEF")
+         (append (hint-entry-inverses (third (car hints)) (cdddr (car hints)))
+                 (hint-inverse-pairs (cdr hints))))
+        (t (hint-inverse-pairs (cdr hints)))))
+
+(defun override-inverse-pairs (config)
+  ;; (:def "f" :inverse "g" ...) -> ("f" . "g")
+  (cond ((endp config) nil)
+        ((and (eq (car (car config)) :def) (stringp (cadr (member :inverse (car config)))))
+         (cons (cons (second (car config)) (cadr (member :inverse (car config))))
+               (override-inverse-pairs (cdr config))))
+        (t (override-inverse-pairs (cdr config)))))
+
+(defun all-inverse-pairs (hints config)
+  (append (hint-inverse-pairs hints) (override-inverse-pairs config)
+          (inverse-pairs (config-entries config :inverse))))
+
 (defun decreasing-pairs (es)
   ;; (:decreasing :pairs (("Rel" . k) ...))
   (if (endp es) nil
@@ -370,7 +401,7 @@
     (declare (ignore summary))
     (if erp (mv erp state)
       (mv-let (erp forms hints state) (read-il il-file state)
-        (declare (ignore erp hints))
+        (declare (ignore erp))
         (mv-let (erp cfg state) (read-il-file config-file state)
           (if erp (mv erp state)
            (let ((cerrs (config-errors (car cfg) forms (mangle-table forms))))
@@ -381,7 +412,7 @@
                    (cx (list (cons :tbl (mangle-table forms))
                              (cons :overrides (config-overrides config))
                              (cons :split-rules (split-rules (config-entries config :split)))
-                             (cons :inverses (inverse-pairs (config-entries config :inverse)))
+                             (cons :inverses (all-inverse-pairs hints config))
                              (cons :sized (sized-pairs (config-entries config :sized)))
                              (cons :decreasing (decreasing-pairs (config-entries config :decreasing)))
                              (cons :rel-overrides (rel-override-alist (config-entries config :rel-override)))

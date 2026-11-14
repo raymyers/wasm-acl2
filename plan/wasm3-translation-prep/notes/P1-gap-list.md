@@ -119,3 +119,14 @@ Binary grammars: all 87 compile (no gap).
 `data/probe-P1-2026-11-14/` (commit: this note's): `report-<v>.txt`,
 `rules-<v>.txt`, `errors-<v>.lsp` from `make probe SPEC=<v>`;
 `*-3.0-core.*` from `make probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`.
+
+## 2026-11-14 update after P3 item 2 (inverse pairs from the IL)
+
+Resolved: every S1 row above. `Step_read/load-num-val`, `vload-num-val`,
+`vload-splat-val`, `vload_lane-val`, `array.init_data-num`,
+`Step/vstore_lane-val` and the defs `$fvrelop_`, `$ivbitmaskop_`,
+`$ivadd_pairwise_`, `$ivdot_`, `$ivdot_sat_` now compile (the inverses are
+declared `inv_*` defs; only the pairs were missing). Remaining in the D3
+scope: 16 stubs, and the reduction rules `Step_pure/vsplat`,
+`vreplace_lane` (G9), `Step_read/array.new_data-num` (G3),
+`vload-pack-val` (G4). Data: `data/probe-P3-2026-11-14/`.
