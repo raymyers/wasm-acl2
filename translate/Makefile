@@ -1,12 +1,18 @@
-# Deterministic SpecTec -> ACL2 translation of WASM 1.0.
-# See ../plan/wasm1-translation/plan.md. Independent of the WASM1 tree in ..
+# Deterministic SpecTec -> ACL2 translation of WASM 1.0 (and, in preparation,
+# 2.0 and 3.0: plan/wasm3-translation-prep). See ../plan/wasm1-translation/plan.md.
+# Independent of the WASM1 tree in ..
 #
 # Run inside `nix develop ..` (provides ACL2, CERT and nix).
 #
-#   make il          regenerate il/wasm-1.0.il.sexp via Nix (pinned SpecTec)
+# SPEC=1.0|2.0|3.0 selects the spec version (default 1.0): the IL
+# il/wasm-<v>.il.sexp, the config config/wasm-<v>.lsp, the output directory
+# gen/wasm-<v>/, the book wasm<major>.lisp and the package W<major>T.
+# Only 1.0 is checked in and tested; see notes/P2-layout.md of the prep plan.
+#
+#   make il          regenerate il/wasm-<v>.il.sexp via Nix (pinned SpecTec)
 #   make check-il    fail if the checked-in IL differs from a fresh regeneration
-#   make gen         run the translator: il/ + il2acl2-config.lsp -> gen/
-#   make check-gen   fail unless two fresh translator runs agree with gen/
+#   make gen         run the translator: il/ + config/ -> gen/wasm-<v>/
+#   make check-gen   fail unless two fresh translator runs agree with gen/wasm-<v>/
 #   make vectors     regenerate tests/sem/numeric-vectors.lsp (WASM engine oracle)
 #   make invoke-vectors  regenerate tests/sem/invoke-vectors.lsp (V8 runs the corpus exports)
 #   make test        certify the translator, gen/, rt/ and every test book
@@ -18,43 +24,50 @@ NIX  ?= nix
 ACL2 ?= acl2
 CERT ?= $(ACL2_SYSTEM_BOOKS)/build/cert.pl
 JOBS ?= 4
-IL   := il/wasm-1.0.il.sexp
-GEN_FILES := package.lsp portcullis.acl2 portcullis.lisp cert.acl2 wasm1.lisp
+SPEC ?= 1.0
+SPEC_MAJOR := $(firstword $(subst ., ,$(SPEC)))
+PKG    := W$(SPEC_MAJOR)T
+IL     := il/wasm-$(SPEC).il.sexp
+CONFIG := config/wasm-$(SPEC).lsp
+GEN    := gen/wasm-$(SPEC)
+BOOK   := wasm$(SPEC_MAJOR)
+TARGET := (assign il2acl2-target (quote (:version "$(SPEC)" :pkg "$(PKG)" :il "$(IL)" :config "$(CONFIG)" :outdir "$(GEN)/" :book "$(BOOK)")))
+GEN_FILES := package.lsp portcullis.acl2 portcullis.lisp cert.acl2 $(BOOK).lisp
 TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 
 .PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors probe
 
 il:
-	$(NIX) build ..#wasm1-il --no-link --print-out-paths > .il-out
-	install -m 644 "$$(cat .il-out)/wasm-1.0.il.sexp" $(IL)
+	$(NIX) build ..#wasm$(SPEC_MAJOR)-il --no-link --print-out-paths > .il-out
+	install -m 644 "$$(cat .il-out)/wasm-$(SPEC).il.sexp" $(IL)
 	rm -f .il-out
 
 check-il:
-	$(NIX) build ..#wasm1-il --no-link --print-out-paths > .il-out
-	cmp "$$(cat .il-out)/wasm-1.0.il.sexp" $(IL)
+	$(NIX) build ..#wasm$(SPEC_MAJOR)-il --no-link --print-out-paths > .il-out
+	cmp "$$(cat .il-out)/wasm-$(SPEC).il.sexp" $(IL)
 	rm -f .il-out
 	@echo "IL is up to date and reproducible"
 
 translator:
 	$(CERT) --acl2 $(ACL2) -j $(JOBS) il2acl2/emit
 
-# The translator writes into ./gen/ relative to translate/.
+# The translator writes into ./gen/wasm-<v>/ relative to translate/.
 gen: translator
-	mkdir -p gen
-	$(ACL2) < il2acl2/run.lsp > gen.log 2>&1 || (tail -40 gen.log; exit 1)
-	@echo "gen/ regenerated (log: gen.log)"
+	mkdir -p $(GEN)
+	{ echo '$(TARGET)'; cat il2acl2/run.lsp; } | $(ACL2) > gen.log 2>&1 || (tail -40 gen.log; exit 1)
+	@echo "$(GEN)/ regenerated (log: gen.log)"
 
-# Regenerate twice from scratch copies and compare both with gen/.
+# Regenerate twice from scratch copies and compare both with gen/wasm-<v>/.
 check-gen: translator
 	@set -e; for n in 1 2; do \
-	  d=.check-gen-$$n; rm -rf $$d; mkdir -p $$d/gen; \
+	  d=.check-gen-$$n; rm -rf $$d; mkdir -p $$d/$(GEN); \
 	  mkdir -p $$d/il2acl2; \
-	  cp -R il il2acl2-config.lsp package.lsp portcullis.acl2 portcullis.lisp cert.acl2 $$d/; \
+	  cp -R il config package.lsp portcullis.acl2 portcullis.lisp cert.acl2 $$d/; \
 	  cp il2acl2/*.lisp il2acl2/*.lsp il2acl2/cert.acl2 $$d/il2acl2/; \
-	  (cd $$d && $(ACL2) < il2acl2/run.lsp > gen.log 2>&1) || { tail -40 $$d/gen.log; exit 1; }; \
-	  for f in $(GEN_FILES); do cmp $$d/gen/$$f gen/$$f; done; \
+	  (cd $$d && { echo '$(TARGET)'; cat il2acl2/run.lsp; } | $(ACL2) > gen.log 2>&1) || { tail -40 $$d/gen.log; exit 1; }; \
+	  for f in $(GEN_FILES); do cmp $$d/$(GEN)/$$f $(GEN)/$$f; done; \
 	done; rm -rf .check-gen-1 .check-gen-2
-	@echo "gen/ is up to date and the translator is deterministic"
+	@echo "$(GEN)/ is up to date and the translator is deterministic"
 
 # Regenerate the numeric oracle vectors (Node/V8 runs the WASM ops).
 vectors:
@@ -80,12 +93,12 @@ compare:
 # pinned SpecTec into .probe/<SPEC>/ and print the probe table (schema errors,
 # mangling, events, stubs by source file, error kinds). Writes nothing under
 # gen/. EXCLUDE is a list of file globs to leave out, e.g. EXCLUDE='X.* 6.*'.
-# For 2.0/3.0 the 1.0-specific config entries (PROBE_DROP) are ignored.
-SPEC ?= 3.0
+# PROBE_CONFIG defaults to config/wasm-<v>.lsp; PROBE_DROP lists config entry
+# kinds to ignore.
 EXCLUDE ?=
 PROBE_DIR := .probe/$(SPEC)
-PROBE_CONFIG ?= il2acl2-config.lsp
-PROBE_DROP ?= $(if $(filter 1.0,$(SPEC)),,:rel-override :il-patch)
+PROBE_CONFIG ?= $(CONFIG)
+PROBE_DROP ?=
 
 probe: translator
 	@set -e; d=$(PROBE_DIR); mkdir -p $$d; \

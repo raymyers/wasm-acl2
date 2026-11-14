@@ -2,7 +2,7 @@
 ; generated reduction relations (STEP_PURE / STEP_READ / STEP, and STEPS, the
 ; generated refl/trans closure of STEP).
 (in-package "W1T")
-(include-book "../../gen/wasm1")
+(include-book "../../gen/wasm-1.0/wasm1")
 
 (program) ; STEP and STEPS are in :program mode until T8
 

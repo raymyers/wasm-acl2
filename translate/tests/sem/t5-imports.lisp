@@ -5,7 +5,7 @@
 ; corpus module (gcd.wasm, hash.wasm) instantiated from its bytes; module B is
 ; written here in the IL syntax and imports from A's instance.
 (in-package "W1T")
-(include-book "../../gen/wasm1")
+(include-book "../../gen/wasm-1.0/wasm1")
 
 (program)
 (set-state-ok t)

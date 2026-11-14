@@ -2,9 +2,9 @@
 ;
 ; Two phases, because the W1T package's imports depend on the generated
 ; names (every ACL2 export whose name we define or bind is left out):
-;   phase 1 (package IL2ACL2): compile, write gen/package.lsp + portcullis
-;   -- the run script then ld's gen/package.lsp --
-;   phase 2 (current package W1T): intern names, print gen/wasm1.lisp
+;   phase 1 (package IL2ACL2): compile, write <outdir>/package.lsp + portcullis
+;   -- the run script then ld's <outdir>/package.lsp --
+;   phase 2 (current package: the target's, e.g. W1T): print <outdir>/<book>.lisp
 ; Both phases are deterministic functions of the IL and the config.
 (in-package "IL2ACL2")
 (include-book "top")
@@ -21,23 +21,23 @@
 
 ; Config override code (:%w1t-override . forms) is written with translator-package
 ; symbols; they become W1T symbols here. Elsewhere such symbols are an error.
-(defun override-syms (x)
-  (cond ((and (symbolp x) x (equal (symbol-package-name x) "IL2ACL2")) (intern$ (symbol-name x) "W1T"))
-        ((consp x) (cons (override-syms (car x)) (override-syms (cdr x))))
+(defun override-syms (x pkg)
+  (cond ((and (symbolp x) x (equal (symbol-package-name x) "IL2ACL2")) (intern$ (symbol-name x) pkg))
+        ((consp x) (cons (override-syms (car x) pkg) (override-syms (cdr x) pkg)))
         (t x)))
 
-(defun convert-gsyms (x)
-  (cond ((gsym-p x) (intern$ (cdr x) "W1T"))
-        ((and (consp x) (eq (car x) :%w1t-override)) (override-syms (cdr x)))
-        ((consp x) (cons (convert-gsyms (car x)) (convert-gsyms (cdr x))))
+(defun convert-gsyms (x pkg)
+  (cond ((gsym-p x) (intern$ (cdr x) pkg))
+        ((and (consp x) (eq (car x) :%w1t-override)) (override-syms (cdr x) pkg))
+        ((consp x) (cons (convert-gsyms (car x) pkg) (convert-gsyms (cdr x) pkg)))
         (t x)))
 
 ; Every symbol in generated code must be a W1T, ACL2, or keyword symbol.
-(defun foreign-symbols (x acc)
+(defun foreign-symbols (x pkg acc)
   (cond ((and (symbolp x) x (not (eq x t))
-              (not (member-equal (symbol-package-name x) (list "W1T" "ACL2" "KEYWORD" "COMMON-LISP"))))
+              (not (member-equal (symbol-package-name x) (list pkg "ACL2" "KEYWORD" "COMMON-LISP"))))
          (if (member-eq x acc) acc (cons x acc)))
-        ((consp x) (foreign-symbols (cdr x) (foreign-symbols (car x) acc)))
+        ((consp x) (foreign-symbols (cdr x) pkg (foreign-symbols (car x) pkg acc)))
         (t acc)))
 
 (defun event-first-name (ev)
@@ -46,14 +46,14 @@
         (t nil)))
 
 ; each event: (%TRY-LOGIC ev) then (%TRY-GUARDS name)
-(defun wrap-try-logic (evs)
+(defun wrap-try-logic (evs pkg)
   (cond ((endp evs) nil)
         ;; config :memoize events go out as they are
         ((and (consp (car evs)) (eq (car (car evs)) (quote acl2::memoize)))
-         (cons (car evs) (wrap-try-logic (cdr evs))))
-        (t (list* (list (intern$ "%TRY-LOGIC" "W1T") (car evs))
-           (list (intern$ "%TRY-GUARDS" "W1T") (event-first-name (car evs)))
-           (wrap-try-logic (cdr evs))))))
+         (cons (car evs) (wrap-try-logic (cdr evs) pkg)))
+        (t (list* (list (intern$ "%TRY-LOGIC" pkg) (car evs))
+           (list (intern$ "%TRY-GUARDS" pkg) (event-first-name (car evs)))
+           (wrap-try-logic (cdr evs) pkg)))))
 
 (defun clashing-exports (syms names)
   (cond ((endp syms) nil)
@@ -201,8 +201,17 @@
             (concatenate (quote string) (string-downcase (head (car sk))) " " (second (car sk))))
           (skipped-summary (cdr sk)))))
 
-; Returns (mv erp state); stores the compiled results in state global W1T-GEN.
-(defun gen-phase1 (il-file config-file outdir state)
+; A target (wasm3 prep P2) names one spec version's inputs and outputs:
+;   (:version "1.0" :pkg "W1T" :il "il/wasm-1.0.il.sexp"
+;    :config "config/wasm-1.0.lsp" :outdir "gen/wasm-1.0/" :book "wasm1")
+; Paths are relative to translate/; outdir is two levels below it.
+(defun tgt (k target) (cadr (member k target)))
+
+; Returns (mv erp state); stores the compiled results in state global
+; IL2ACL2-GEN for phase 2.
+(defun gen-phase1 (target state)
+  (let ((il-file (tgt :il target)) (config-file (tgt :config target))
+        (outdir (tgt :outdir target)) (pkg (tgt :pkg target)))
   (mv-let (erp summary state) (il-check il-file state)
     (declare (ignore summary))
     (if erp (mv erp state)
@@ -229,24 +238,26 @@
                                      (collect-gsyms events
                                              (strip-cars builtins))))
                        (clash (clashing-exports *acl2-exports* names))
-                       (state (f-put-global 'w1t-gen
+                       (state (f-put-global 'il2acl2-gen
                                             (list :events events :builtins builtins
                                                   :skipped skipped
                                                   :stubs (reverse (cx-get :stubs cx))
                                                   :incomplete (reverse (cx-get :incomplete cx))
                                                   :partial (cx-get :partial cx)
                                                   :errs (reverse (cx-get :errs cx))
-                                                  :config config)
+                                                  :config config
+                                                  :target target)
                                             state)))
                   (mv-let (erp state)
                     (write-file
                      (concatenate 'string outdir "package.lsp")
                      (list "; GENERATED by translate/il2acl2 -- do not edit."
-                           "; W1T: the package of the generated WASM 1.0 semantics. It imports"
+                           (concatenate 'string "; " pkg ": the package of the generated WASM "
+                                        (tgt :version target) " semantics. It imports")
                            "; *acl2-exports* minus every export whose name the generated code"
                            "; defines or binds."
                            "(in-package \"ACL2\")")
-                     (list (list 'defpkg "W1T"
+                     (list (list 'defpkg pkg
                                  (list 'set-difference-eq '*acl2-exports*
                                        (list 'quote (acl2::merge-sort-symbol< clash)))))
                      state)
@@ -259,19 +270,21 @@
                           (mv-let (erp state)
                             (write-file (concatenate 'string outdir "portcullis.lisp")
                                         (list "; GENERATED -- do not edit."
-                                              "; Empty book whose portcullis defines the W1T package."
+                                              (concatenate 'string "; Empty book whose portcullis defines the "
+                                                           pkg " package.")
                                               "(in-package \"ACL2\")")
                                         nil state)
                             (if erp (mv erp state)
                               (write-file (concatenate 'string outdir "cert.acl2")
                                           (list "; GENERATED -- do not edit."
                                                 "(include-book \"portcullis\")")
-                                          nil state))))))))))))))))
+                                          nil state)))))))))))))))))
 
 ; --- Phase 2 -----------------------------------------------------------
 
-(defun gen-phase2 (outdir state)
-  (let* ((g (@ w1t-gen))
+; Runs with the target's package current (symbols print unqualified).
+(defun gen-phase2 (state)
+  (let* ((g (@ il2acl2-gen))
          (events (cadr (member :events g)))
          (builtins (cadr (member :builtins g)))
          (skipped (cadr (member :skipped g)))
@@ -279,11 +292,13 @@
          (incomplete (cadr (member :incomplete g)))
          (partial (cadr (member :partial g)))
          (config (cadr (member :config g)))
+         (target (cadr (member :target g)))
+         (pkg (tgt :pkg target))
          (header
           (append
-           (list "; GENERATED by translate/il2acl2 from translate/il/wasm-1.0.il.sexp"
+           (list (concatenate 'string "; GENERATED by translate/il2acl2 from translate/" (tgt :il target))
                  "; (SpecTec rev: see translate/il/SPECTEC_REV). Do not edit: fix the translator,"
-                 "; translate/il2acl2-config.lsp, or translate/rt/ instead."
+                 (concatenate 'string "; translate/" (tgt :config target) ", or translate/rt/ instead.")
                  ";"
                  "; Contents, in IL order: a recognizer NAME-P for every syntax definition"
                  "; and a function $NAME for every SpecTec function definition."
@@ -307,15 +322,16 @@
            (list ";" "; Not translated yet:")
            (comment-lines ";   " (skipped-summary skipped))
            (list ""
-                 "(in-package \"W1T\")"
+                 (concatenate 'string "(in-package \"" pkg "\")")
                  ""
-                 "(include-book \"../rt/builtins\")"
+                 "(include-book \"../../rt/builtins\")"
                  ""
                  "(set-verify-guards-eagerness 0)"
                  "(set-bogus-mutual-recursion-ok t) ; stubbed members of a rec group"
                  ""))))
-    (let* ((forms (wrap-try-logic (convert-gsyms events)))
-           (bad (foreign-symbols forms nil)))
+    (let* ((forms (wrap-try-logic (convert-gsyms events pkg) pkg))
+           (bad (foreign-symbols forms pkg nil)))
       (if bad
           (mv (msg "Translator symbols leaked into generated code: ~x0" bad) state)
-        (write-file (concatenate 'string outdir "wasm1.lisp") header forms state)))))
+        (write-file (concatenate 'string (tgt :outdir target) (tgt :book target) ".lisp")
+                    header forms state)))))

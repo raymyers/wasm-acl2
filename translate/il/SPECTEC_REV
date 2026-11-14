@@ -1,5 +1,9 @@
-# Pinned SpecTec input for translate/il/wasm-1.0.il.sexp.
+# Pinned SpecTec input for translate/il/wasm-<v>.il.sexp.
 # The rev is locked by the `wasm-spec` input in ../../flake.nix / flake.lock.
 rev: 943c5df07e84f11d2b83078964df5812530afbd2
 spectec: 0.5 (built from spectec/ at that rev, OCaml 5.4)
 command: spectec --ast --all-passes specification/wasm-1.0/*.spectec
+# 2.0 and 3.0 (flake outputs wasm2-il, wasm3-il; not checked in yet):
+command (2.0): spectec --ast --all-passes specification/wasm-2.0/*.spectec
+command (3.0): spectec --ast --all-passes specification/wasm-3.0/*.spectec
+               except X.* 6.* 7.* (25 of 37 files; list in the output's FILES)

@@ -6,7 +6,7 @@
 ; those same BV expressions, so these lemmas link the two semantics.
 (in-package "WASM")
 (include-book "../../execution")
-(include-book "../gen/wasm1")
+(include-book "../gen/wasm-1.0/wasm1")
 (include-book "kestrel/bv/bvplus" :dir :system)
 (include-book "kestrel/bv/bvminus" :dir :system)
 (include-book "kestrel/bv/bvmult" :dir :system)

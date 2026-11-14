@@ -1,5 +1,5 @@
 ; Hand-written SpecTec builtins (hint(builtin) in 3-numerics.spectec) and
-; config overrides (il2acl2-config.lsp) for the generated W1T semantics.
+; config overrides (config/wasm-1.0.lsp) for the generated W1T semantics.
 ; These are the ONLY hand-written semantic definitions (plan §2.4).
 ;
 ; Encoding (plan §2.2): iN/uN/byte/char are naturals; fN is (:POS mag) or
@@ -10,7 +10,7 @@
 (include-book "prelude")
 
 ; ---------------------------------------------------------------------
-; Override: $utf8 (il2acl2-config.lsp). UTF-8 encoding of a char list,
+; Override: $utf8 (config/wasm-1.0.lsp). UTF-8 encoding of a char list,
 ; matching the four clauses of A-binary.spectec $utf8.
 
 (defun %utf8-char (c)

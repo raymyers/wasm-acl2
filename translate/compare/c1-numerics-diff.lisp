@@ -9,7 +9,7 @@
 ; pattern is decoded (with W1T's decoder) to a rational or special.
 (in-package "WASM")
 (include-book "../../execution")
-(include-book "../gen/wasm1")
+(include-book "../gen/wasm-1.0/wasm1")
 
 (program)
 

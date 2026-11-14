@@ -3,7 +3,7 @@
 ; with wat2wasm, see ../oracle/gen-wasm-corpus.mjs), consumes all input, and
 ; agrees with V8 on the exports (names and kinds).
 (in-package "W1T")
-(include-book "../../gen/wasm1")
+(include-book "../../gen/wasm-1.0/wasm1")
 
 (program)
 (set-state-ok t)

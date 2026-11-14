@@ -4,7 +4,7 @@
 ; generated GRAM/BMODULE) validates, with one external type per export; and
 ; deliberately ill-typed variants of a corpus module are rejected.
 (in-package "W1T")
-(include-book "../../gen/wasm1")
+(include-book "../../gen/wasm-1.0/wasm1")
 
 (program)
 (set-state-ok t)

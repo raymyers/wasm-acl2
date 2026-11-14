@@ -4,7 +4,7 @@
 ; $invoke + STEPS (8-reduction) -> results, compared with V8 on every vector of
 ; invoke-vectors.lsp (../oracle/gen-invoke-vectors.mjs).
 (in-package "W1T")
-(include-book "../../gen/wasm1")
+(include-book "../../gen/wasm-1.0/wasm1")
 
 (program)
 (set-state-ok t)

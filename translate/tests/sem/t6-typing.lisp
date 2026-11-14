@@ -4,7 +4,7 @@
 ; stack-polymorphic rules unreachable/br/br_table/return, which the check
 ; variant keeps). Expr_ok and Func_ok compute their types.
 (in-package "W1T")
-(include-book "../../gen/wasm1")
+(include-book "../../gen/wasm-1.0/wasm1")
 
 (defmacro %check (name form)
   `(make-event (if ,form '(value-triple ,name)

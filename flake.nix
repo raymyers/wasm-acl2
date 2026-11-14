@@ -65,7 +65,24 @@
         };
     in
     {
-      packages = forAllSystems (pkgs: rec {
+      packages = forAllSystems (
+        pkgs:
+        let
+          mkIl =
+            spectec: v: exclude:
+            pkgs.runCommand "wasm${builtins.head (lib.splitString "." v)}-il" { } ''
+              mkdir -p $out
+              files=
+              for f in ${wasm-spec}/specification/wasm-${v}/*.spectec; do
+                case $(basename $f) in
+                  ${if exclude == [ ] then "__none__" else lib.concatStringsSep " | " exclude}) ;;
+                  *) files="$files $f"; echo $(basename $f) >> $out/FILES ;;
+                esac
+              done
+              ${spectec}/bin/spectec --ast --all-passes $files > $out/wasm-${v}.il.sexp
+            '';
+        in
+        rec {
         default = wasm-acl2;
 
         # SpecTec (the WASM spec DSL toolchain) at the pinned wasm-spec rev.
@@ -119,6 +136,18 @@
           ${spectec}/bin/spectec --ast --all-passes \
             ${spectec}/share/spectec/wasm-1.0/*.spectec > $out/wasm-1.0.il.sexp
         '';
+
+        # The 2.0 and 3.0 IL (wasm3 prep P2; `make -C translate il SPEC=<v>`).
+        # The file list is the version's directory minus the globs in
+        # `exclude`, listed in $out/FILES. 3.0 leaves out the notation (X.*),
+        # text format (6.*) and soundness (7.*) files: decision D3 of
+        # plan/wasm3-translation-prep, recommended and not yet confirmed.
+        wasm2-il = mkIl spectec "2.0" [ ];
+        wasm3-il = mkIl spectec "3.0" [
+          "X.*"
+          "6.*"
+          "7.*"
+        ];
 
         # ACL2 plus just the community books this project depends on.
         #
@@ -243,7 +272,8 @@
             platforms = systems;
           };
         };
-      });
+        }
+      );
 
       checks = forAllSystems (pkgs: {
         inherit (self.packages.${pkgs.stdenv.hostPlatform.system}) wasm-acl2;

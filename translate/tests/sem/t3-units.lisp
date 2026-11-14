@@ -2,7 +2,7 @@
 ; $signed_, $fadd_ with NaN / Inf / signed zero. ($iadd_ .. $irem_ and the
 ; signed helpers are generated from 3-numerics.spectec; $fadd_ is a builtin.)
 (in-package "W1T")
-(include-book "../../gen/wasm1")
+(include-book "../../gen/wasm-1.0/wasm1")
 
 (defmacro %check (name form)
   `(make-event (if ,form '(value-triple ,name)

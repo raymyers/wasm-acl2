@@ -3,7 +3,7 @@
 ; refl/trans closure of STEP, translated from 8-reduction.spectec) ends in
 ; i32.const ((a + b) mod 2^32). The WASM1 analog is proofs/proof-add-spec.lisp.
 (in-package "W1T")
-(include-book "../../gen/wasm1")
+(include-book "../../gen/wasm-1.0/wasm1")
 (local (include-book "arithmetic-5/top" :dir :system))
 
 (defun i32c (n) (list :const '(:i32) n))
@@ -58,7 +58,7 @@
 ; defthm with :expand hints for the generated search / step functions
 (defmacro defthm-gen (name form &key (expand-prefixes '("STEP_PURE/SEARCH")) enable)
   `(make-event
-    (mv-let (channel state) (open-input-channel "../../gen/wasm1.lisp" :object state)
+    (mv-let (channel state) (open-input-channel "../../gen/wasm-1.0/wasm1.lisp" :object state)
       (mv-let (forms state) (read-forms-loop channel nil state)
         (let ((state (close-input-channel channel state)))
           (mv nil

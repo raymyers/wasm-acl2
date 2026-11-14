@@ -7,7 +7,7 @@
 ; expand all of them (names collected from gen/wasm1.lisp, so the hints do
 ; not depend on the generated numbering).
 (in-package "W1T")
-(include-book "../../gen/wasm1")
+(include-book "../../gen/wasm-1.0/wasm1")
 (local (include-book "arithmetic-5/top" :dir :system))
 
 (defun i32c (n) (list :const '(:i32) n))
@@ -47,7 +47,7 @@
 
 (defmacro defthm-step-pure (name form)
   `(make-event
-    (mv-let (channel state) (open-input-channel "../../gen/wasm1.lisp" :object state)
+    (mv-let (channel state) (open-input-channel "../../gen/wasm-1.0/wasm1.lisp" :object state)
       (mv-let (forms state) (read-forms-loop channel nil state)
         (let ((state (close-input-channel channel state)))
           (mv nil

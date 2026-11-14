@@ -1,7 +1,7 @@
 ; T2 exit check: generated recognizers accept/reject concrete values in the
 ; encoding of plan §2.2, and the generated book is in logic mode.
 (in-package "W1T")
-(include-book "../../gen/wasm1")
+(include-book "../../gen/wasm-1.0/wasm1")
 
 (defmacro %check (name form)
   `(make-event (if ,form '(value-triple ,name)

@@ -24,18 +24,21 @@ Update this block at the end of every session, in the same commit as the work.
 A new session starts here.
 
 - **Last updated**: 2026-11-14
-- **Milestones**: P0 ✅, P1 ✅ (errors carry rule and mode; per-rule stubs;
-  per-rule gap list; typing root causes). P2-P7 not started
-- **Next action**: P2, first item (spec target as a parameter). P4 needs the
-  mode table design first (a Fable session, see below)
+- **Milestones**: P0 ✅, P1 ✅. P2 in progress: item 1 (SPEC parameter,
+  per-version layout) done; items 2-5 open. P3-P7 not started
+- **Next action**: P2 item 2 (config entries validated against the IL)
 - **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
   files in `translate/tests/spec/`, `flake.nix` and the `spec`/`spec-data`
-  targets in `translate/Makefile` are uncommitted; P5 picks them up)
+  targets in `translate/Makefile` are uncommitted; P5 picks them up. Their
+  include paths were updated in the working tree for the `gen/wasm-1.0/` move)
 - **Decisions D1-D6**: none confirmed by the user yet; §4 holds recommendations only.
-  P1 decided (translator-internal, reversible): per-rule stubs keep the `:fun`
+  Assumed so far, reversible: D2 (layout in P2), D3 (3.0 IL file list in the
+  flake). P1 decided (translator-internal): per-rule stubs keep the `:fun`
   interface when it can be saved; modes are P4's
-- **Blocked on**: nothing
-- **Next Fable session needed for**: now that P1 is done, the typing triage
+- **Blocked on**: nothing for P2. Certifying 2.0/3.0 needs a decision on the
+  runtime's package (`rt/` is in `W1T`), see [P2-layout](notes/P2-layout.md); ask
+  the user together with D2
+- **Next Fable session needed for**: the typing triage
   (input: [P1-typing-root-causes](notes/P1-typing-root-causes.md), incl. whether
   `Heaptype_sub/trans` can be dropped) and the mode table design (model-choice items 1 and 2)
 
@@ -262,10 +265,16 @@ and one cause (14 rules in the best attempt, D3 scope, plus 16 defs). 1.0
 output is unchanged: `make check` passes, `gen/` byte-identical.
 
 ### P2: Multi-spec plumbing (W4, W5, W7, W8, W12)
-- [ ] Spec target as a parameter: `SPEC=1.0|2.0|3.0` selects the source file
+- [x] Spec target as a parameter: `SPEC=1.0|2.0|3.0` selects the source file
       list (with excludes), `il/wasm-<v>.il.sexp`, `config/wasm-<v>.lsp`,
       `gen/wasm<v>/`, and the package name. Flake outputs become
-      `wasm-il.<v>`; `SPECTEC_REV` records the file list
+      `wasm-il.<v>`; `SPEC_REV` records the file list.
+      *Done 2026-11-14 ([P2-layout](notes/P2-layout.md)): `gen/wasm-<v>/`,
+      `W<major>T`; flake outputs are `wasm1-il`/`wasm2-il`/`wasm3-il`, since
+      `packages` cannot nest. 1.0 definitions byte-identical (2 header lines
+      changed), `make check` and `make compare` pass. 2.0/3.0 generate (688 /
+      1,086 events) but cannot certify: `rt/` is in package `W1T` (open,
+      with D2)*
 - [ ] Config entries are validated: an entry whose def, relation, rule or
       grammar does not exist in the IL is a hard error
 - [ ] Generated output split into several books in IL order, with a generated
