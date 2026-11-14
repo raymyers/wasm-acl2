@@ -485,22 +485,20 @@ faithfully:
   after `len` is parsed from exactly `len` bytes.
 
 ### T8: Logic mode, guards, reasoning 🔶 Partial
-- [~] Move generated functions from `:program` to logic mode. Termination comes
-      from `acl2-count` by default; measures go in config when that fails.
-      Done generically via `%try-logic` (`:ruler-extenders :all`, bounded
-      prover steps): 312 of 332 in logic mode at T4; now **446 of 462** (with
-      parsers) after three generic changes: (1) `mutual-recursion` holds only
-      the functions that really recurse (aux functions that never call back
-      are emitted first); (2) parsers carry always-true progress checks
-      `|rest| <= |input|` after every sub-parse, with measures 2|S| (grammar)
-      and 2|S|+1 (its loops); (3) a second logic attempt proves termination
-      in the `ground-zero` theory, so large callees are not opened. Left: the
-      16 functions of the `STEP` mutual
-      recursion (with its search/prefix aux functions) and its callers. Its
-      termination needs a lexicographic measure across `STEP` and the search
-      function, plus the fact that the `ctxt-instrs` side condition makes the
-      inner instruction list strictly shorter. That is proof work for config
-      measures, not done yet
+- [x] Move generated functions from `:program` to logic mode: **all 462**.
+      Termination comes from generic translator mechanisms (no config
+      measures): (1) `mutual-recursion` holds only the functions that really
+      recurse (aux functions that never call back are emitted first);
+      (2) parsers carry always-true progress checks `|rest| <= |input|` after
+      every sub-parse, with measures 2|S| (grammar) and 2|S|+1 (its loops);
+      (3) a second logic attempt proves termination in the `ground-zero`
+      theory, so large callees are not opened; (4) inside a recursive
+      relation group every recursive premise call is preceded by a generated
+      size check (`%SIZE` of the callee inputs < of the own inputs, always
+      true for WASM `Step`), and relations get measure ω·(1+size) and their
+      split searches ω·size + counter (`%OM`, with two prelude lemmas);
+      (5) per-formal measure attempts for single recursive defuns
+      (`$allocfuncs` recurses on its 3rd argument)
 - [x] Guard verification wherever it is achievable: each event is followed
       by `(%try-guards f)`, a step-bounded `verify-guards` that falls back
       silently. Result: **164** functions guard-verified
