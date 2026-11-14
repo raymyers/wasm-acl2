@@ -1183,6 +1183,23 @@
   (if (endp syms) nil
     (cons (cons (car syms) (nth-term i (list (quote car) tv))) (nth-binds (cdr syms) (1+ i) tv))))
 
+;; G8 (wasm3 prep P4): a premise `if v < |l|` whose v is bound by nothing
+;; else and whose l is bound. In :check mode the rule then says "there is a
+;; v below |l| for which the other premises hold" (Deftype_sub/super,
+;; Heaptype_sub/rec-sub). Index of such a premise, or nil.
+(defun exists-index-prem (prs i env)
+  (cond ((endp prs) nil)
+        ((let ((p (car prs)))
+           (and (nodep p "IF" 1)
+                (let ((e (second p)))
+                  (and (nodep e "CMP" 4) (atom-is (second e) "LT")
+                       (nodep (fourth e) "VAR" 1) (not (assoc-equal (second (fourth e)) env))
+                       (nodep (fifth e) "LEN" 1) (not (has-unbound (fifth e) env))))))
+         i)
+        (t (exists-index-prem (cdr prs) (1+ i) env))))
+
+(defun fv-prems (prs) (if (endp prs) nil (append (fv-prem (car prs)) (fv-prems (cdr prs)))))
+
 (defun rule-prem-p (p)
   (or (is p "RULE") (and (is p "ITER") (rule-prem-p (second p)))))
 
@@ -1384,12 +1401,40 @@
 ;; errors, when none is ready).
 (defun cprems (prs env cx)
   (if (endp prs) (mv nil env cx)
-    (let* ((k (or (first-ready prs 0 env cx nil) (first-ready prs 0 env cx t) 0))
-           (p (nth k prs))
-           (rest (append (take k prs) (nthcdr (1+ k) prs))))
-      (mv-let (s1 env cx) (cprem p env cx)
-        (mv-let (s2 env cx) (cprems rest env cx)
-          (mv (append s1 s2) env cx))))))
+    (let* ((k (or (first-ready prs 0 env cx nil) (first-ready prs 0 env cx t)))
+           (j (and (null k) (eq (cx-get :err-mode cx) :check) (exists-index-prem prs 0 env))))
+      (if j
+          (cexists-index (nth j prs) (append (take j prs) (nthcdr (1+ j) prs)) env cx)
+        (let* ((k (or k 0))
+               (p (nth k prs))
+               (rest (append (take k prs) (nthcdr (1+ k) prs))))
+          (mv-let (s1 env cx) (cprem p env cx)
+            (mv-let (s2 env cx) (cprems rest env cx)
+              (mv (append s1 s2) env cx))))))))
+
+;; exists v < |l|: the other premises hold (G8, :check mode only). An aux
+;; function loops over v; the other premises may not bind new variables.
+(defun cexists-index (p others env cx)
+  (let* ((e (second p)) (v (second (fourth e))) (l-e (fifth e))
+         (fvs (bound-in (set-difference-equal (fv-prems others) (list v)) env))
+         (fvsyms (env-terms fvs env))
+         (ksym (var-sym v cx)) (nsym (gsym "%N"))
+         (ienv (env-add-vars (list v) (env-restrict fvs env) cx)))
+    (mv-let (nv cx) (cexp l-e env cx)
+      (mv-let (isteps env3 cx) (cprems others ienv cx)
+        (if (not (equal (len env3) (len ienv)))
+            (mv nil env (cx-err "existential index with premises that bind variables" p cx))
+          (mv-let (aux-name cx) (cx-fresh (concatenate 'string (cx-get :fn cx) "/SOME") cx)
+            (let* ((aux (gsym aux-name))
+                   (def (mk-defun-measure
+                         aux (list* ksym nsym fvsyms)
+                         (list 'nfix (list '- (list 'nfix nsym) (list 'nfix ksym)))
+                         (list 'if (list '<= (list 'nfix nsym) (list 'nfix ksym)) nil
+                               (list 'or (build-steps isteps t)
+                                     (list* aux (list '1+ (list 'nfix ksym)) nsym fvsyms))))))
+              (mv (list (list :test (list* aux 0 nv fvsyms)))
+                  env                    ; v exists only inside the loop
+                  (cx-add-aux def cx)))))))))
 
 ;; index of the first premise that compiles cleanly; relation premises
 ;; (expensive calls) only when ALLOW-RULES, so cheap tests run first

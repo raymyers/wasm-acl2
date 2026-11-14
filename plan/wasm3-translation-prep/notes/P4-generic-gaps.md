@@ -4,7 +4,7 @@
   iterated premises; G5 disjunctions; and the P1-found G8, G9)
 - Date: 2026-11-14
 - Repo commit: 3d79703 plus this note's commit
-- Status: draft (G1, G3, G4, G9 done; G5 and G8 go with the mode table)
+- Status: draft (G1, G3, G4, G9 done; G8 partly; G5 and the rest of G8 go with the mode table)
 - Feeds wasm3 plan: scheme delta (function arguments), gap list, config budget
 - Incorporated in wasm3 plan: yes (draft plan, §3, §4 (modes, patterns), §5 M5)
 
@@ -185,3 +185,23 @@ only its "overridable by a counted config entry" part:
 - Not general G2: outputs must be the last components, and only two. Any
   set of output positions is the mode table's (W1) job.
 - 1.0 unchanged; `make check` passes.
+
+## 2026-11-14: G8 in `:check` mode (supersedes the deferral above)
+
+The deferral above assumed that G8 rules fail only in `:multi`. Since the
+type group is declared `:check`, they are dropped from emitted code, so G8
+now matters.
+
+- `cprems`: when no premise is ready and the rule is compiled in `:check`
+  mode, a premise `if v < |l|` (v bound by nothing else, l bound) becomes
+  "there is a v below |l| for which the other premises hold". An aux
+  `<fn>/SOME (v n free-vars...)` loops over v (measure n - v); the other
+  premises may not bind new variables. v is not visible after the loop.
+- Effect, 3.0 D3 scope: `Deftype_sub/super` compiles (`Deftype_sub` 2/2);
+  dropped rules 7 → 6; errors 56 → 53. `Heaptype_sub/rec-sub` still fails:
+  its j is also used in the conclusion (`typeuse*[j]`), a deferred pattern
+  test outside the loop. That needs the deferred tests inside the search
+  (mode-table work).
+- The real 3.0 books (shared `rt/` in `WRT`) certify through
+  `2_1-validation_types`, `DEFTYPE_SUB/SOME` included, in 8.5 s.
+- 1.0 `make check` and 2.0 `make check-2.0` pass, outputs unchanged.
