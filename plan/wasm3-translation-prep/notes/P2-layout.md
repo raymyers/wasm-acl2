@@ -1,9 +1,9 @@
 # Multi-spec layout: directories, packages, flake outputs
 
-- Milestone: P2 (item 1: spec target as a parameter)
+- Milestone: P2 (item 1: spec target as a parameter; item 2: config validation)
 - Date: 2026-11-14
 - Repo commit: ec20d63 plus this note's commit
-- Status: draft (items 2-5 of P2 add to it; the `rt/` package question is open)
+- Status: draft (items 3-5 of P2 add to it; the `rt/` package question is open)
 - Feeds wasm3 plan: scheme delta (package and layout), decisions (D2)
 - Incorporated in wasm3 plan: no
 
@@ -76,3 +76,29 @@ builtin classification. Until then only 1.0 certifies.
 No measurements beyond the probe comparison (identical to
 `data/probe-P1-2026-11-14/`). Reproduce with `make probe SPEC=<v>` and
 `make gen SPEC=<v>` (after `make il SPEC=<v>`).
+
+## 2026-11-14: item 2, config validation
+
+- `emit.lisp` `config-errors`: every entry must name something in the IL
+  (rules in plan item text, plus: `:decreasing` index below the relation's
+  arity, `:sized` variable occurs in the grammar, `:il-patch` `:old` still
+  occurs in the form, unknown kinds rejected). An `:inverse` partner may be
+  missing from the IL only when the function is itself a `:def` override
+  (`utf8`/`inv_utf8`). `gen-phase1` fails on any error; the probe prints them.
+- 1.0: no errors, `gen/` unchanged, `make check` passes. A copy of the 1.0
+  config with two typos (`Step/ctxt-instr`, `Instrs_okk`) makes `make gen`
+  fail with both listed.
+- 2.0 and 3.0 provisional configs: exactly one stale entry each, the inverse
+  pair `bytes_`/`inv_bytes_` (2.0/3.0 have `nbytes_`, `vbytes_`, and in 3.0
+  `zbytes_`, `cbytes_`). Removed; it had no effect, so the probe reports are
+  unchanged. `utf8`, `Step/ctxt-instrs`, `Bsection_`/`Bcode` `len` all exist
+  in 2.0 and 3.0.
+- **Finding for P3**: 2.0 and 3.0 *declare* the inverses as defs:
+  3.0 has `inv_concat_`, `inv_concatn_`, `inv_isize`, `inv_jsize`,
+  `inv_fsize`, `inv_jsizenn`, `inv_ibits_`, `inv_fbits_`, `inv_ibytes_`,
+  `inv_fbytes_`, `inv_nbytes_`, `inv_vbytes_`, `inv_zbytes_`, `inv_cbytes_`,
+  `inv_signed_`, `inv_lanes_` (16, matching the 16 `hint(inverse)`).
+  So most S1 failures in the gap list (`$jsize`, `$nbytes_`, `$zbytes_`,
+  `$concat_`, `$ibits_`, `$isize` patterns) need only the pairs, which P3
+  reads from the hints. The plan's "generated inverses for finite
+  functions" becomes "builtins for the declared `inv_*` defs".

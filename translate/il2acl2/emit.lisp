@@ -201,6 +201,94 @@
             (concatenate (quote string) (string-downcase (head (car sk))) " " (second (car sk))))
           (skipped-summary (cdr sk)))))
 
+; --- Config validation (wasm3 prep P2, W5) -----------------------------
+;
+; Every config entry must name something that exists in the IL, so a stale
+; or misspelled entry is a hard error instead of silently doing nothing.
+; An :inverse partner may be absent from the IL only when the function
+; itself is a :def override (the hand-written override supplies both).
+
+(defun occurs-in (x tree)
+  (or (equal x tree)
+      (and (consp tree) (or (occurs-in x (car tree)) (occurs-in x (cdr tree))))))
+
+(defun il-form-named (id forms)
+  (cond ((endp forms) nil)
+        ((is (car forms) "REC")
+         (or (il-form-named id (cdr (car forms))) (il-form-named id (cdr forms))))
+        ((and (consp (car forms)) (equal (second (car forms)) id)) (car forms))
+        (t (il-form-named id (cdr forms)))))
+
+(defun tbl-has (ns id tbl) (and (stringp id) (assoc-equal id (cdr (assoc-eq ns tbl))) t))
+
+(defun rel-arity (id forms)
+  (let ((x (il-form-named id forms)))
+    (if (is x "REL") (mv-let (n rules) (rel-parts x) (declare (ignore rules)) n) 0)))
+
+(defun cfg-err (e what) (list (car e) (second e) what))
+
+(defun check-names (e ns ids tbl what)
+  (cond ((endp ids) nil)
+        ((tbl-has ns (car ids) tbl) (check-names e ns (cdr ids) tbl what))
+        (t (cons (cfg-err e (concatenate 'string what " " (if (stringp (car ids)) (car ids) "?")
+                                         " not in the IL"))
+                 (check-names e ns (cdr ids) tbl what)))))
+
+(defun check-inverse-pairs (e ps overrides tbl)
+  (if (endp ps) nil
+    (let ((f (car (car ps))) (g (cdr (car ps))))
+      (append (if (tbl-has :def f tbl) nil
+                (list (cfg-err e (concatenate 'string "def " f " not in the IL"))))
+              (if (or (tbl-has :def g tbl) (member-equal f overrides)) nil
+                (list (cfg-err e (concatenate 'string "inverse " g " not in the IL and " f
+                                              " is not a :def override"))))
+              (check-inverse-pairs e (cdr ps) overrides tbl)))))
+
+(defun check-decreasing (e ps forms tbl)
+  (if (endp ps) nil
+    (append (cond ((not (tbl-has :rel (car (car ps)) tbl))
+                   (list (cfg-err e (concatenate 'string "relation " (car (car ps)) " not in the IL"))))
+                  ((not (and (natp (cdr (car ps))) (< (cdr (car ps)) (rel-arity (car (car ps)) forms))))
+                   (list (cfg-err e (concatenate 'string "component index out of range for " (car (car ps))))))
+                  (t nil))
+            (check-decreasing e (cdr ps) forms tbl))))
+
+(defun check-sized (e ps forms tbl)
+  (if (endp ps) nil
+    (append (cond ((not (tbl-has :gram (car (car ps)) tbl))
+                   (list (cfg-err e (concatenate 'string "grammar " (car (car ps)) " not in the IL"))))
+                  ((not (occurs-in (cdr (car ps)) (il-form-named (car (car ps)) forms)))
+                   (list (cfg-err e (concatenate 'string "variable " (cdr (car ps)) " not in grammar "
+                                                 (car (car ps))))))
+                  (t nil))
+            (check-sized e (cdr ps) forms tbl))))
+
+(defun config-entry-errors (e forms tbl overrides)
+  (case (car e)
+    (:def (check-names e :def (list (second e)) tbl "def"))
+    (:rel-override (check-names e :rel (list (second e)) tbl "relation"))
+    (:memoize (check-names e :rel (cadr (member :rels e)) tbl "relation"))
+    (:split (if (member-equal (cons (second e) (third e)) (rule-pairs forms)) nil
+              (list (cfg-err e (concatenate 'string "rule " (second e) "/" (third e) " not in the IL")))))
+    (:inverse (check-inverse-pairs e (cadr (member :pairs e)) overrides tbl))
+    (:decreasing (check-decreasing e (cadr (member :pairs e)) forms tbl))
+    (:sized (check-sized e (cadr (member :pairs e)) forms tbl))
+    (:il-patch (let ((x (il-form-named (second e) forms)))
+                 (cond ((null x) (list (cfg-err e (concatenate 'string (second e) " not in the IL"))))
+                       ((not (occurs-in (cadr (member :old e)) x))
+                        (list (cfg-err e ":old does not occur in the form (fixed upstream?)")))
+                       (t nil))))
+    (otherwise (list (cfg-err e "unknown config entry kind")))))
+
+(defun config-errors-1 (config forms tbl overrides)
+  (if (endp config) nil
+    (append (config-entry-errors (car config) forms tbl overrides)
+            (config-errors-1 (cdr config) forms tbl overrides))))
+
+; list of (kind label message); nil when every entry matches the IL
+(defun config-errors (config forms tbl)
+  (config-errors-1 config forms tbl (config-overrides config)))
+
 ; A target (wasm3 prep P2) names one spec version's inputs and outputs:
 ;   (:version "1.0" :pkg "W1T" :il "il/wasm-1.0.il.sexp"
 ;    :config "config/wasm-1.0.lsp" :outdir "gen/wasm-1.0/" :book "wasm1")
@@ -219,6 +307,9 @@
         (declare (ignore erp))
         (mv-let (erp cfg state) (read-il-file config-file state)
           (if erp (mv erp state)
+           (let ((cerrs (config-errors (car cfg) forms (mangle-table forms))))
+            (if cerrs
+                (mv (msg "Config entries that do not match the IL (~s0):~|~x1" config-file cerrs) state)
             (let* ((config (car cfg))
                    (forms (apply-patches forms (config-entries config :il-patch)))
                    (cx (list (cons :tbl (mangle-table forms))
@@ -278,7 +369,7 @@
                               (write-file (concatenate 'string outdir "cert.acl2")
                                           (list "; GENERATED -- do not edit."
                                                 "(include-book \"portcullis\")")
-                                          nil state)))))))))))))))))
+                                          nil state)))))))))))))))))))
 
 ; --- Phase 2 -----------------------------------------------------------
 

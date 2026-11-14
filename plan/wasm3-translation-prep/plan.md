@@ -24,9 +24,9 @@ Update this block at the end of every session, in the same commit as the work.
 A new session starts here.
 
 - **Last updated**: 2026-11-14
-- **Milestones**: P0 ✅, P1 ✅. P2 in progress: item 1 (SPEC parameter,
-  per-version layout) done; items 2-5 open. P3-P7 not started
-- **Next action**: P2 item 2 (config entries validated against the IL)
+- **Milestones**: P0 ✅, P1 ✅. P2 in progress: items 1 (SPEC parameter,
+  per-version layout) and 2 (config validation) done; items 3-5 open. P3-P7 not started
+- **Next action**: P2 item 3 (generated output split into several books)
 - **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
   files in `translate/tests/spec/`, `flake.nix` and the `spec`/`spec-data`
   targets in `translate/Makefile` are uncommitted; P5 picks them up. Their
@@ -275,8 +275,11 @@ output is unchanged: `make check` passes, `gen/` byte-identical.
       changed), `make check` and `make compare` pass. 2.0/3.0 generate (688 /
       1,086 events) but cannot certify: `rt/` is in package `W1T` (open,
       with D2)*
-- [ ] Config entries are validated: an entry whose def, relation, rule or
-      grammar does not exist in the IL is a hard error
+- [x] Config entries are validated: an entry whose def, relation, rule or
+      grammar does not exist in the IL is a hard error. *Done 2026-11-14
+      ([P2-layout](notes/P2-layout.md)): 1.0 clean; one stale entry in the
+      2.0/3.0 configs (`bytes_` inverse) removed. Found: 3.0 declares all 16
+      `inv_*` inverses as defs, so S1 is mostly missing pairs (P3)*
 - [ ] Generated output split into several books in IL order, with a generated
       `top.lisp`
 - [ ] Generated mode manifest (`gen/.../modes.lsp`: logic / guards / program
@@ -294,7 +297,10 @@ definitions are unchanged apart from file boundaries, and all 1.0 tests pass.
 - [ ] Builtin classification from `hint(builtin)`: numeric builtin (must be in
       `rt/`), choice parameter (D4), host hook (`hostcall`), notation
       (ignored). A clause-less def in no category is a hard error
-- [ ] Generated inverses for finite functions (`$isize`, `$jsize`, `$fsize`, `$jsizenn`)
+- [ ] Generated inverses for finite functions (`$isize`, `$jsize`, `$fsize`, `$jsizenn`).
+      *P2 found that 2.0/3.0 declare `inv_isize`, `inv_jsize`, `inv_fsize`,
+      `inv_jsizenn` (and 12 more `inv_*`) as clause-less defs: they need
+      builtins in `rt/` and the pairs, not generation*
 
 **Notes**: `notes/P3-builtin-inventory.md` (every clause-less def of 3.0:
 category, status in `rt/`, oracle source).

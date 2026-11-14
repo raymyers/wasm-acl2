@@ -2,6 +2,7 @@
 ; :il-patch (Bmodule) and :rel-override (Module_ok) entries, i.e. what the
 ; P0/P1 probes used. Several remaining entries name 1.0 ids that do not exist
 ; in 3.0 (W5); config validation (P2) and P3 replace them.
+; Removed by P2 config validation: ("bytes_" . "inv_bytes_") (no bytes_ here).
 ; il2acl2 configuration: the counted, named exceptions to the generic
 ; translation (plan §1 "Rules of the game"). Keep this list short; each entry
 ; says why the IL cannot be translated mechanically.
@@ -15,7 +16,7 @@
 
  (:inverse "hint(inverse)"
   :pairs (("signed_" . "inv_signed_") ("ibytes_" . "inv_ibytes_")
-          ("fbytes_" . "inv_fbytes_") ("bytes_" . "inv_bytes_")
+          ("fbytes_" . "inv_fbytes_")
           ("utf8" . "inv_utf8"))
   :reason "SpecTec hint(inverse ...) annotations in 3-numerics.spectec; spectec --ast does not print hints. Used to solve f(a.., x) = v for x (load rules; Bname). inv_utf8 is the hand-written partner of the utf8 override.")
 
