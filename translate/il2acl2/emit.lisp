@@ -289,6 +289,72 @@
 (defun config-errors (config forms tbl)
   (config-errors-1 config forms tbl (config-overrides config)))
 
+; --- Parts: one generated book per source file (wasm3 prep P2, W7) --------
+;
+; decls (il/wasm-<v>.decls.lsp, from il2acl2/spec-decls.sh) maps each
+; declaration (kind id file) to its .spectec file. A form's events go to the
+; part of its file; parts are consecutive runs of IL order: a form whose file
+; comes after that of a later form joins the earlier part (suffix-min), so each
+; part only needs the parts before it.
+
+(defun decl-kind (x)
+  (cond ((is x "TYP") "syntax") ((is x "DEF") "def") ((is x "REL") "relation")
+        ((is x "GRAM") "grammar") (t nil)))
+
+(defun form-decl-key (x)
+  (let ((y (if (is x "REC") (cadr x) x))) (cons (decl-kind y) (second y))))
+
+(defun decl-file (key decls)
+  (cond ((endp decls) nil)
+        ((and (equal (first (car decls)) (car key)) (equal (second (car decls)) (cdr key)))
+         (third (car decls)))
+        (t (decl-file key (cdr decls)))))
+
+(defun decl-files (decls acc)
+  ;; distinct files in order of first appearance
+  (cond ((endp decls) (reverse acc))
+        ((member-equal (third (car decls)) acc) (decl-files (cdr decls) acc))
+        (t (decl-files (cdr decls) (cons (third (car decls)) acc)))))
+
+(defun index-of (x l n)
+  (cond ((endp l) nil) ((equal x (car l)) n) (t (index-of x (cdr l) (1+ n)))))
+
+(defun form-file-indices (xs decls files)
+  ;; per form: index of its file in files, or nil when not in decls
+  (if (endp xs) nil
+    (let ((f (decl-file (form-decl-key (car xs)) decls)))
+      (cons (and f (index-of f files 0)) (form-file-indices (cdr xs) decls files)))))
+
+(defun suffix-min (is last)
+  ;; label_k = min(index_k, label_{k+1}); unknown forms take the next label;
+  ;; the result is non-decreasing, and equals the indices when they already are
+  (if (endp is) nil
+    (let* ((rest (suffix-min (cdr is) last))
+           (next (if (consp rest) (car rest) last)))
+      (cons (if (car is) (min (car is) next) next) rest))))
+
+; (mv parts builtins skipped cx), parts = ((file . events) ...) in IL order;
+; the events of all parts, appended, are exactly those of cforms.
+(defun cforms-parts (xs labels files parts builtins skipped cx)
+  (if (endp xs) (mv (reverse parts) builtins skipped cx)
+    (mv-let (e b s cx) (cform (car xs) cx)
+      (let* ((file (nth (car labels) files))
+             (parts (cond ((and parts (equal (car (car parts)) file))
+                           (cons (cons file (append (cdr (car parts)) e)) (cdr parts)))
+                          (e (cons (cons file e) parts))
+                          (t parts))))
+        (cforms-parts (cdr xs) (cdr labels) files parts (append builtins b) (append skipped s) cx)))))
+
+(defun part-book (file)
+  ;; book name of a part: the file name with `.` replaced by `_`
+  (coerce (substitute #\_ #\. (coerce file 'list)) 'string))
+
+(defun part-events (parts)
+  (if (endp parts) nil (append (cdr (car parts)) (part-events (cdr parts)))))
+
+(defun part-names (parts)
+  (if (endp parts) nil (cons (part-book (car (car parts))) (part-names (cdr parts)))))
+
 ; A target (wasm3 prep P2) names one spec version's inputs and outputs:
 ;   (:version "1.0" :pkg "W1T" :il "il/wasm-1.0.il.sexp"
 ;    :config "config/wasm-1.0.lsp" :outdir "gen/wasm-1.0/" :book "wasm1")
@@ -297,7 +363,7 @@
 
 ; Returns (mv erp state); stores the compiled results in state global
 ; IL2ACL2-GEN for phase 2.
-(defun gen-phase1 (target state)
+(defun gen-phase1-1 (target decls state)
   (let ((il-file (tgt :il target)) (config-file (tgt :config target))
         (outdir (tgt :outdir target)) (pkg (tgt :pkg target)))
   (mv-let (erp summary state) (il-check il-file state)
@@ -321,8 +387,12 @@
                              (cons :rel-overrides (rel-override-alist (config-entries config :rel-override)))
                              (cons :memo (memo-rels (config-entries config :memoize)))
                              (cons :gram-defs (gram-defs forms)))))
-              (mv-let (events builtins skipped cx) (cforms forms cx)
-                (let* ((names (prog2$ (cw "~%il2acl2: ~x0 events, ~x1 builtins/overrides, ~x2 forms not translated, stubs: ~x3~%unsupported constructs (~x4):~%~x5~%"
+              (mv-let (parts builtins skipped cx)
+                (let ((files (or (decl-files decls nil) (list "all"))))
+                  (cforms-parts forms (suffix-min (form-file-indices forms decls files) (1- (len files)))
+                                files nil nil nil cx))
+                (let* ((events (part-events parts))
+                       (names (prog2$ (cw "~%il2acl2: ~x0 events, ~x1 builtins/overrides, ~x2 forms not translated, stubs: ~x3~%unsupported constructs (~x4):~%~x5~%"
                                (len events) (len builtins) (len skipped)
                                (reverse (cx-get :stubs cx)) (len (cx-get :errs cx))
                                (reverse (cx-get :errs cx)))
@@ -337,7 +407,8 @@
                                                   :partial (cx-get :partial cx)
                                                   :errs (reverse (cx-get :errs cx))
                                                   :config config
-                                                  :target target)
+                                                  :target target
+                                                  :parts parts)
                                             state)))
                   (mv-let (erp state)
                     (write-file
@@ -371,6 +442,31 @@
                                                 "(include-book \"portcullis\")")
                                           nil state)))))))))))))))))))
 
+(defun write-parts (parts prev target state)
+  ;; each part: (in-package), include the previous part (the runtime for the
+  ;; first), the defaults that are local to a book, then its events
+  (if (endp parts) (mv nil state)
+    (let* ((pkg (tgt :pkg target))
+           (book (part-book (car (car parts))))
+           (forms (wrap-try-logic (convert-gsyms (cdr (car parts)) pkg) pkg)))
+      (mv-let (erp state)
+        (write-file (concatenate 'string (tgt :outdir target) book ".lisp")
+                    (list (concatenate 'string "; GENERATED by translate/il2acl2 from translate/" (tgt :il target)
+                                       ": the forms of " (car (car parts)) ".spectec.")
+                          (concatenate 'string "; Do not edit. The header of " (tgt :book target)
+                                       ".lisp lists builtins, overrides, stubs and dropped rules.")
+                          ""
+                          (concatenate 'string "(in-package \"" pkg "\")")
+                          ""
+                          (concatenate 'string "(include-book \"" prev "\")")
+                          ""
+                          "(set-verify-guards-eagerness 0)"
+                          "(set-bogus-mutual-recursion-ok t) ; stubbed members of a rec group"
+                          "")
+                    forms state)
+        (if erp (mv erp state)
+          (write-parts (cdr parts) book target state))))))
+
 ; --- Phase 2 -----------------------------------------------------------
 
 ; Runs with the target's package current (symbols print unqualified).
@@ -384,6 +480,7 @@
          (partial (cadr (member :partial g)))
          (config (cadr (member :config g)))
          (target (cadr (member :target g)))
+         (parts (cadr (member :parts g)))
          (pkg (tgt :pkg target))
          (header
           (append
@@ -412,17 +509,24 @@
            (comment-lines ";   " incomplete)
            (list ";" "; Not translated yet:")
            (comment-lines ";   " (skipped-summary skipped))
+           (list ";" "; Parts (one book per source file, in IL order; each includes the one before):")
+           (comment-lines ";   " (part-names parts))
            (list ""
                  (concatenate 'string "(in-package \"" pkg "\")")
                  ""
-                 "(include-book \"../../rt/builtins\")"
-                 ""
-                 "(set-verify-guards-eagerness 0)"
-                 "(set-bogus-mutual-recursion-ok t) ; stubbed members of a rec group"
+                 (concatenate 'string "(include-book \"" (car (last (part-names parts))) "\")")
                  ""))))
-    (let* ((forms (wrap-try-logic (convert-gsyms events pkg) pkg))
-           (bad (foreign-symbols forms pkg nil)))
+    (let* ((bad (foreign-symbols (convert-gsyms events pkg) pkg nil)))
       (if bad
           (mv (msg "Translator symbols leaked into generated code: ~x0" bad) state)
-        (write-file (concatenate 'string (tgt :outdir target) (tgt :book target) ".lisp")
-                    header forms state)))))
+        (mv-let (erp state) (write-parts parts "../../rt/builtins" target state)
+          (if erp (mv erp state)
+            (write-file (concatenate 'string (tgt :outdir target) (tgt :book target) ".lisp")
+                        header nil state)))))))
+
+(defun gen-phase1 (target state)
+  ;; the declarations map is optional: without it everything is one part
+  (mv-let (erp decls state)
+    (if (tgt :decls target) (read-il-file (tgt :decls target) state) (mv nil nil state))
+    (if erp (mv erp state)
+      (gen-phase1-1 target (car decls) state))))

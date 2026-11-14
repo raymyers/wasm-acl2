@@ -4,7 +4,8 @@
 ;
 ; Step_pure rules that use the generic split search (trap-vals,
 ; br-zero, ...) are lifted into STEP_PURE/SEARCHn functions; the proofs
-; expand all of them (names collected from gen/wasm1.lisp, so the hints do
+; expand all of them (names collected from gen/wasm-1.0/8-reduction.lisp, the
+; part that holds the reduction relations, so the hints do
 ; not depend on the generated numbering).
 (in-package "W1T")
 (include-book "../../gen/wasm-1.0/wasm1")
@@ -47,7 +48,7 @@
 
 (defmacro defthm-step-pure (name form)
   `(make-event
-    (mv-let (channel state) (open-input-channel "../../gen/wasm-1.0/wasm1.lisp" :object state)
+    (mv-let (channel state) (open-input-channel "../../gen/wasm-1.0/8-reduction.lisp" :object state)
       (mv-let (forms state) (read-forms-loop channel nil state)
         (let ((state (close-input-channel channel state)))
           (mv nil

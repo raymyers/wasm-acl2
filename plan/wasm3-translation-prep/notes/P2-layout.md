@@ -102,3 +102,34 @@ No measurements beyond the probe comparison (identical to
   `$concat_`, `$ibits_`, `$isize` patterns) need only the pairs, which P3
   reads from the hints. The plan's "generated inverses for finite
   functions" becomes "builtins for the declared `inv_*` defs".
+
+## 2026-11-14: item 3, one generated book per source file
+
+- `make il` also writes `il/wasm-<v>.decls.lsp` (from
+  `il2acl2/spec-decls.sh`, formerly `probe-names.sh`): every declaration's
+  source file. Checked in for 1.0 and compared by `check-il`. The 1.0 IL is
+  unchanged.
+- Each form's events go to the part (book) of its file. Parts are
+  consecutive runs of IL order, and each part includes the one before it (the
+  first includes `rt/builtins`). The label of a form is the minimum file
+  index of itself and every later form (suffix minimum), so a form that the
+  IL places before its file's neighbours joins the earlier part. That is
+  sound for any labelling that is non-decreasing in IL order, since every
+  dependency comes earlier in the IL.
+  - The first version ("never go back") collapsed 3.0 into 7 parts: the IL
+    places some `5.1` forms among the `1.1` ones. With the suffix minimum
+    3.0 has 24 parts (25 files; `1.0-syntax.profiles` produces no events),
+    2.0 has 10, and 1.0 has 10 (one per file).
+- The top book keeps the name `wasm1.lisp` (not the plan's `top.lisp`), so
+  every test keeps its `include-book`. It holds the header (now with the
+  part list) and includes the last part.
+- 1.0: the parts' events, concatenated, are byte-identical to the old
+  single book (37,065 lines); the header gains the part list. `make check`
+  (25 books certified) and `make compare` pass. `check-gen` now compares the
+  whole set of generated files. The two tests that read generated code as
+  data (`t8-proofs`, `t8-run`) read `8-reduction.lisp`.
+- Part sizes: 1.0's largest is `A-binary` (20,651 lines, of 37,263). In 3.0
+  `5_3-binary_instructions` has 245,830 of 363,736 lines and
+  `4_3-execution_instructions` 61,035. The chain gives no parallelism, and
+  the binary-instruction part dominates. A finer split (by rec group or
+  size) is possible later with the same labelling rule.

@@ -28,11 +28,14 @@ SPEC ?= 1.0
 SPEC_MAJOR := $(firstword $(subst ., ,$(SPEC)))
 PKG    := W$(SPEC_MAJOR)T
 IL     := il/wasm-$(SPEC).il.sexp
+DECLS  := il/wasm-$(SPEC).decls.lsp
 CONFIG := config/wasm-$(SPEC).lsp
 GEN    := gen/wasm-$(SPEC)
 BOOK   := wasm$(SPEC_MAJOR)
-TARGET := (assign il2acl2-target (quote (:version "$(SPEC)" :pkg "$(PKG)" :il "$(IL)" :config "$(CONFIG)" :outdir "$(GEN)/" :book "$(BOOK)")))
-GEN_FILES := package.lsp portcullis.acl2 portcullis.lisp cert.acl2 $(BOOK).lisp
+TARGET := (assign il2acl2-target (quote (:version "$(SPEC)" :pkg "$(PKG)" :il "$(IL)" :decls "$(DECLS)" :config "$(CONFIG)" :outdir "$(GEN)/" :book "$(BOOK)")))
+# Everything the translator writes (one book per source file plus the top
+# book $(BOOK).lisp); check-gen compares the whole set.
+GEN_PATTERNS := *.lisp *.lsp *.acl2
 TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 
 .PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors probe
@@ -40,11 +43,13 @@ TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 il:
 	$(NIX) build ..#wasm$(SPEC_MAJOR)-il --no-link --print-out-paths > .il-out
 	install -m 644 "$$(cat .il-out)/wasm-$(SPEC).il.sexp" $(IL)
+	install -m 644 "$$(cat .il-out)/wasm-$(SPEC).decls.lsp" $(DECLS)
 	rm -f .il-out
 
 check-il:
 	$(NIX) build ..#wasm$(SPEC_MAJOR)-il --no-link --print-out-paths > .il-out
 	cmp "$$(cat .il-out)/wasm-$(SPEC).il.sexp" $(IL)
+	cmp "$$(cat .il-out)/wasm-$(SPEC).decls.lsp" $(DECLS)
 	rm -f .il-out
 	@echo "IL is up to date and reproducible"
 
@@ -65,7 +70,9 @@ check-gen: translator
 	  cp -R il config package.lsp portcullis.acl2 portcullis.lisp cert.acl2 $$d/; \
 	  cp il2acl2/*.lisp il2acl2/*.lsp il2acl2/cert.acl2 $$d/il2acl2/; \
 	  (cd $$d && { echo '$(TARGET)'; cat il2acl2/run.lsp; } | $(ACL2) > gen.log 2>&1) || { tail -40 $$d/gen.log; exit 1; }; \
-	  for f in $(GEN_FILES); do cmp $$d/$(GEN)/$$f $(GEN)/$$f; done; \
+	  test "$$(cd $$d/$(GEN) && ls)" = "$$(cd $(GEN) && ls $(GEN_PATTERNS) 2> /dev/null)" \
+	    || { echo "file list of $(GEN)/ differs from a fresh run"; exit 1; }; \
+	  for f in $$(cd $$d/$(GEN) && ls); do cmp $$d/$(GEN)/$$f $(GEN)/$$f; done; \
 	done; rm -rf .check-gen-1 .check-gen-2
 	@echo "$(GEN)/ is up to date and the translator is deterministic"
 
@@ -110,7 +117,7 @@ probe: translator
 	  for p in $(EXCLUDE); do case $$(basename $$f) in $$p) keep=;; esac; done; \
 	  if test -n "$$keep"; then files="$$files $$f"; fi; done; \
 	"$$sp/bin/spectec" --ast --all-passes $$files > $$d/wasm-$(SPEC).il.sexp; \
-	sh il2acl2/probe-names.sh $$files > $$d/names.lsp; \
+	sh il2acl2/spec-decls.sh $$files > $$d/names.lsp; \
 	{ echo '(assign probe-il "'$$d/wasm-$(SPEC).il.sexp'")'; \
 	  echo '(assign probe-config "$(PROBE_CONFIG)")'; \
 	  echo '(defconst *probe-names* (quote'; cat $$d/names.lsp; echo '))'; \

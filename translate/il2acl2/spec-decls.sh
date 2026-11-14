@@ -1,9 +1,10 @@
 #!/bin/sh
 # Print the declarations of the given .spectec files as an ACL2 list of
 # (kind id file), kind one of "syntax" "def" "relation" "grammar", file the
-# basename without .spectec. Used by `make probe` to group stubs by file.
-# Only the first declaration of an id counts (later `syntax x/...` lines
-# extend it).
+# basename without .spectec, in file order. The flake writes it next to the IL
+# (il/wasm-<v>.decls.lsp): gen splits its output into one book per source
+# file, and `make probe` groups stubs by file. Only the first declaration of
+# an id counts (later `syntax x/...` lines extend it).
 echo "("
 for f in "$@"; do
   b=$(basename "$f" .spectec)

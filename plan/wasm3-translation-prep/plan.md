@@ -25,8 +25,9 @@ A new session starts here.
 
 - **Last updated**: 2026-11-14
 - **Milestones**: P0 ✅, P1 ✅. P2 in progress: items 1 (SPEC parameter,
-  per-version layout) and 2 (config validation) done; items 3-5 open. P3-P7 not started
-- **Next action**: P2 item 3 (generated output split into several books)
+  per-version layout), 2 (config validation) and 3 (one book per source
+  file) done; items 4-5 open. P3-P7 not started
+- **Next action**: P2 item 4 (generated mode manifest compared by `check-gen`)
 - **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
   files in `translate/tests/spec/`, `flake.nix` and the `spec`/`spec-data`
   targets in `translate/Makefile` are uncommitted; P5 picks them up. Their
@@ -280,8 +281,12 @@ output is unchanged: `make check` passes, `gen/` byte-identical.
       ([P2-layout](notes/P2-layout.md)): 1.0 clean; one stale entry in the
       2.0/3.0 configs (`bytes_` inverse) removed. Found: 3.0 declares all 16
       `inv_*` inverses as defs, so S1 is mostly missing pairs (P3)*
-- [ ] Generated output split into several books in IL order, with a generated
-      `top.lisp`
+- [x] Generated output split into several books in IL order, with a generated
+      `top.lisp`. *Done 2026-11-14 ([P2-layout](notes/P2-layout.md)): one
+      book per source file (decls map checked in next to the IL), chained in
+      IL order; the top book stays `wasm1.lisp`. 1.0 events byte-identical,
+      10 parts; 3.0 24 parts, of which `5.3-binary.instructions` is 68% of
+      the lines*
 - [ ] Generated mode manifest (`gen/.../modes.lsp`: logic / guards / program
       per function, stubs, dropped rules), checked in and compared by `check-gen`
 - [ ] `check-gen` per target as a flake check

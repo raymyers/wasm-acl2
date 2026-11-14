@@ -80,6 +80,7 @@
                 esac
               done
               ${spectec}/bin/spectec --ast --all-passes $files > $out/wasm-${v}.il.sexp
+              sh ${./translate/il2acl2/spec-decls.sh} $files > $out/wasm-${v}.decls.lsp
             '';
         in
         rec {
@@ -135,6 +136,7 @@
           mkdir -p $out
           ${spectec}/bin/spectec --ast --all-passes \
             ${spectec}/share/spectec/wasm-1.0/*.spectec > $out/wasm-1.0.il.sexp
+          sh ${./translate/il2acl2/spec-decls.sh} ${spectec}/share/spectec/wasm-1.0/*.spectec > $out/wasm-1.0.decls.lsp
         '';
 
         # The 2.0 and 3.0 IL (wasm3 prep P2; `make -C translate il SPEC=<v>`).

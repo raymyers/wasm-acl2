@@ -58,7 +58,7 @@
 ; defthm with :expand hints for the generated search / step functions
 (defmacro defthm-gen (name form &key (expand-prefixes '("STEP_PURE/SEARCH")) enable)
   `(make-event
-    (mv-let (channel state) (open-input-channel "../../gen/wasm-1.0/wasm1.lisp" :object state)
+    (mv-let (channel state) (open-input-channel "../../gen/wasm-1.0/8-reduction.lisp" :object state)
       (mv-let (forms state) (read-forms-loop channel nil state)
         (let ((state (close-input-channel channel state)))
           (mv nil

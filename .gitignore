@@ -26,6 +26,8 @@ translate/.probe/
 # 2.0/3.0 targets are not checked in until they are tested (wasm3 prep P2/P4)
 translate/il/wasm-2.0.il.sexp
 translate/il/wasm-3.0.il.sexp
+translate/il/wasm-2.0.decls.lsp
+translate/il/wasm-3.0.decls.lsp
 translate/gen/wasm-2.0/
 translate/gen/wasm-3.0/
 workxxx.*
