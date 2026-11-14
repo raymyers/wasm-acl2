@@ -504,7 +504,7 @@ faithfully:
 - [x] Guard verification wherever it is achievable: each event is followed
       by `(%try-guards f)`, a step-bounded `verify-guards` that falls back
       silently. Result: **164** functions guard-verified
-      (`:common-lisp-compliant`), 282 logic-only, 16 `:program`, of 462
+      (`:common-lisp-compliant`), 298 logic-only, 0 `:program`, of 462
 - [x] Generated or hand-written proofs over the generated defs: the analogs of
       WASM1's `add-correct` and `div-by-zero-traps`. `tests/sem/t8-proofs.lisp`,
       all for all inputs: `$idiv_`/`$irem_` by zero have no result; the
@@ -512,12 +512,14 @@ faithfully:
       `i32.const (a+b mod 2^32)`, traps `div_u` by zero, and selects
       correctly. Proofs expand the lifted search functions by name, collected
       from `gen/wasm1.lisp`. Also `compare/c2-int-equiv.lisp` (T9)
-- [ ] Prove the split strategy in §2.5 complete (needs `STEP` in logic mode)
+- [ ] Prove the split strategy in §2.5 complete (now possible: `STEP` is in logic mode)
 
 **Exit**: the share of the generated semantics in logic mode is recorded and
-increasing; the first `run`-level theorem is proved. *Status*: share recorded
-(312/332); theorems are at the `Step_pure` level, since `STEP`/`STEPS` are
-still `:program`, so no `run`-level theorem yet.
+increasing; the first `run`-level theorem is proved. *Status*: **met**. Share
+462/462 in logic mode. `tests/sem/t8-run.lisp` proves, for all 32-bit a, b,
+that the generated `STEPS` runs `i32.const a; i32.const b; i32.add` to
+`i32.const ((a+b) mod 2^32)`, via the lemmas that one `STEP` adds, a single value is
+stuck, and the opening lemmas of the generated fuel loop.
 
 ### T9: Side-by-side comparison with WASM1 (`translate/compare/`) 🔶 Partial
 - [~] **Differential testing**: run the same oracle corpus through both
@@ -543,7 +545,7 @@ still `:program`, so no `run`-level theorem yet.
 | Execution rules covered | 170/170 instructions | all 58 reduction rules (Step_pure/read/Step) |
 | Validation | hand-written type checker | blocked (T6): non-instruction typing only |
 | Spec rules traceable to ACL2 defs | informal | 1:1 by name (`STEP_PURE/BINOP-VAL` ...) |
-| Logic-mode share | 100% | 446 / 462 functions (incl. parsers); 164 guard-verified |
+| Logic-mode share | 100% | **462 / 462** functions (incl. parsers); 164 guard-verified |
 | Numeric oracle agreement (8015 V8 vectors) | **6975** (all integer ops agree; floats disagree) | **8015** |
 | Effort to absorb a SpecTec update | manual | regenerate + review diff (`make check`) |
 
