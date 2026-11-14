@@ -90,7 +90,9 @@
   (if (and (true-listp d) (eq (car d) 'defun) (consp (cdr d)) (consp (cddr d)))
       (list* 'defun (cadr d) (caddr d)
              '(declare (xargs :ruler-extenders :all
-                              :hints (("Goal" :in-theory (theory 'acl2::ground-zero)))))
+                              :hints (("Goal" :in-theory
+                                       (union-theories (theory 'acl2::ground-zero)
+                                                       '(%om-o< %om-o-p (:type-prescription %size)))))))
              (cdddr d))
     d))
 
@@ -104,9 +106,26 @@
       (cons 'mutual-recursion (%gz-defuns (cdr ev)))
     (%gz-defun ev)))
 
+; Further alternatives for a single recursive defun: measure (acl2-count f)
+; for each formal f in turn (e.g. $allocfuncs recurses on its third argument
+; while its first, the store, grows).
+(defun %measure-alts (d fs)
+  (declare (xargs :guard t))
+  (if (or (atom fs) (not (and (true-listp d) (eq (car d) 'defun) (consp (cdr d)) (consp (cddr d)))))
+      nil
+    (cons (list 'with-prover-step-limit 200000
+                (list* 'defun (cadr d) (caddr d)
+                       (list 'declare (list 'xargs :ruler-extenders :all
+                                            :measure (list 'acl2-count (car fs))))
+                       (cdddr d)))
+          (%measure-alts d (cdr fs)))))
+
 (defmacro %try-logic (ev)
   `(make-event '(:or (with-prover-step-limit 200000 ,(%logic-version ev))
-                     (with-prover-step-limit 200000 ,(%gz-version ev))
+                     (with-prover-step-limit 2000000 ,(%gz-version ev))
+                     ,@(and (consp ev) (eq (car ev) 'defun) (consp (cdr ev)) (consp (cddr ev))
+                            (true-listp (caddr ev))
+                            (%measure-alts ev (caddr ev)))
                      ,(%program-version ev))))
 
 ; Step bound for closure relations (Steps): R(x) iterates the step relation
@@ -118,3 +137,27 @@
 (defmacro %try-guards (name)
   `(make-event '(:or (with-prover-step-limit 100000 (verify-guards ,name))
                      (value-triple :guards-not-verified))))
+
+; Lexicographic measures for recursive relation groups (T8): (%OM m n) is
+; the ordinal omega*m + n. A relation R in a rec group has measure
+; (%OM (1+ size(inputs)) 0); a split search inside it has
+; (%OM size(inputs) counter); every recursive premise call is preceded by a
+; generated check size(callee inputs) < size(inputs).
+(defun %om (m n)
+  (declare (xargs :guard t))
+  (if (posp m) (make-ord 1 m (nfix n)) (nfix n)))
+
+(defthm %om-o-p
+  (o-p (%om m n)))
+
+(defthm %om-o<
+  (implies (and (natp a) (natp b))
+           (equal (o< (%om a x) (%om b y))
+                  (or (< a b) (and (equal a b) (< (nfix x) (nfix y))))))
+  :hints (("Goal" :in-theory (enable o< o-finp o-first-expt o-first-coeff o-rst))))
+
+; Opaque size (= acl2-count): the size check and the measure mention the same
+; %SIZE terms, which stay syntactically identical in the measure conjecture.
+(defun %size (x) (declare (xargs :guard t)) (acl2-count x))
+
+(in-theory (disable %om %size))

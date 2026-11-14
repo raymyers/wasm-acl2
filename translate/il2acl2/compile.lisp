@@ -229,10 +229,15 @@
                                         (ignorable-decl (list r))
                                         (list (quote if) r r next))
                                   nil))
+                      (fin (if desc
+                               (list (quote nfix) (list (quote -) (list (quote 1+) k) l))
+                             (list (quote nfix) (list (quote -) (list (quote 1+) h) k))))
+                      (rf (cx-get :rel-formals cx))
+                      ;; inside a recursive relation: omega*size(inputs) + counter
                       (def (mk-defun-measure aux (list* k l h fvs)
-                                             (if desc
-                                                 (list (quote nfix) (list (quote -) (list (quote 1+) k) l))
-                                               (list (quote nfix) (list (quote -) (list (quote 1+) h) k)))
+                                             (if (and rf (subsetp-equal rf fvs))
+                                                 (list (gsym "%OM") (list (gsym "%SIZE") (cons (quote list) rf)) fin)
+                                               fin)
                                              body)))
                  (mv (list* aux (if desc hi lo) lo hi fvs) (cx-add-aux def cx)))))))
         ((eq (car (car steps)) :test)
@@ -992,6 +997,16 @@
         ((is pr "RULE") (fv-list (cddr pr)))
         (t nil)))
 
+;; Before a premise call to a relation of the current recursive group: the
+;; (always true for WASM Step) check size(callee inputs) < size(inputs), which
+;; makes termination syntactic (see %OM in rt/prelude.lisp).
+(defun rec-size-check (rel ts cx)
+  (let ((rf (cx-get :rel-formals cx)))
+    (if (and rf (member-equal rel (cx-get :rec-rels cx)))
+        (list (list :test (list (quote <) (list (gsym "%SIZE") (cons (quote list) ts))
+                                (list (gsym "%SIZE") (cons (quote list) rf)))))
+      nil)))
+
 ;; a relation premise, possibly iterated
 (defun crule-premise (pr env cx)
   (let* ((rel (second pr)) (rest (cddr pr)) (n (len rest))
@@ -1009,13 +1024,14 @@
             (mv-let (tname cx) (cx-fresh "%T" cx)
               (let ((tv (gsym tname)))
                 (mv-let (s1 env cx) (cpat out (list (quote car) tv) env cx)
-                  (mv (append (list (list* :bind tv (cons fn ts)) (list :test tv)) s1)
+                  (mv (append (rec-size-check rel ts cx)
+                              (list (list* :bind tv (cons fn ts)) (list :test tv)) s1)
                       env cx))))))))
      (t
       (if (has-unbound (cons (quote list) comps) env)
           (mv nil env (cx-err "checker relation with unbound arguments" pr cx))
         (mv-let (ts cx) (cexps comps env cx)
-          (mv (list (list :test (cons fn ts))) env cx)))))))
+          (mv (append (rec-size-check rel ts cx) (list (list :test (cons fn ts)))) env cx)))))))
 
 ; ((sym . (nth i (car tv))) ...)
 (defun nth-binds (syms i tv)
@@ -1441,13 +1457,20 @@
                                                           (list 'list a)))))
                       (mk-defun name (list a) (list aux (list (gsym "%FUEL")) a)))
                 cx))
-        (let ((formals (gsyms-prefixed "%A" (if (eq mode :fun) (1- n) n))))
+        (let* ((formals (gsyms-prefixed "%A" (if (eq mode :fun) (1- n) n)))
+               (cx (cx-put :rel-formals (and (member-equal (second x) (cx-get :rec-rels cx)) formals) cx)))
           (mv-let (cs cx) (crules rules mode formals (second x) cx)
-            (mv (append (reverse (cx-get :aux cx))
-                        (list (mk-defun name formals
-                                        (if (eq mode :fun) (chain-results cs)
-                                          (list 'if (chain-results cs) t nil)))))
-                cx)))))))
+            (let ((body (if (eq mode :fun) (chain-results cs) (list 'if (chain-results cs) t nil))))
+              (mv (append (reverse (cx-get :aux cx))
+                          (list (if (cx-get :rel-formals cx)
+                                    ;; member of a recursive group: omega*(1+size(inputs))
+                                    (mk-defun-measure name formals
+                                                      (list (gsym "%OM")
+                                                            (list (quote 1+) (list (gsym "%SIZE") (cons (quote list) formals)))
+                                                            0)
+                                                      body)
+                                  (mk-defun name formals body))))
+                  cx))))))))
 
 (defun rel-members (x) (if (is x "REC") (cdr x) (list x)))
 
@@ -1508,7 +1531,9 @@
 
 ; A relation (or REC group of relations): try :fun; members with errors are
 ; retried as :check; members still failing become stubs. (mv events cx)
-(defun crel-form (x cx)
+(defun strip-seconds (l) (if (endp l) nil (cons (second (car l)) (strip-seconds (cdr l)))))
+
+(defun crel-form-1 (x cx)
   (let* ((xs (rel-members x))
          (cx (set-modes xs :fun cx))
          (errs0 (cx-get :errs cx)))
@@ -1896,6 +1921,10 @@
         (mv (append d1 d2) (append b1 b2) cx)))))
 
 ; (mv events builtins skipped cx)
+(defun crel-form (x cx)
+  (mv-let (ds cx) (crel-form-1 x (cx-put :rec-rels (and (is x "REC") (strip-seconds (cdr x))) cx))
+    (mv ds (cx-put :rel-formals nil (cx-put :rec-rels nil cx)))))
+
 ; --- Cliques: only functions that really recurse go in mutual-recursion ---
 
 (mutual-recursion
