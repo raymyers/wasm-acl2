@@ -68,7 +68,7 @@ check-gen: translator
 	@set -e; for n in 1 2; do \
 	  d=.check-gen-$$n; rm -rf $$d; mkdir -p $$d/$(GEN); \
 	  mkdir -p $$d/il2acl2; \
-	  cp -R il config package.lsp portcullis.acl2 portcullis.lisp cert.acl2 $$d/; \
+	  cp -R il config rt package.lsp portcullis.acl2 portcullis.lisp cert.acl2 $$d/; \
 	  cp il2acl2/*.lisp il2acl2/*.lsp il2acl2/cert.acl2 $$d/il2acl2/; \
 	  (cd $$d && { echo '$(TARGET)'; cat il2acl2/run.lsp; } | $(ACL2) > gen.log 2>&1) || { tail -40 $$d/gen.log; exit 1; }; \
 	  test "$$(cd $$d/$(GEN) && ls)" = "$$(cd $(GEN) && ls $(GEN_PATTERNS) 2> /dev/null | grep -v '^modes.lsp$$')" \

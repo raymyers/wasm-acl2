@@ -26,10 +26,10 @@ A new session starts here.
 - **Last updated**: 2026-11-14
 - **Milestones**: P0 ✅, P1 ✅, P2 ✅ (SPEC parameter and per-version
   layout, config validation, one book per source file, mode manifest,
-  flake checks). P3 in progress: items 1 (hints in the IL) and 2 (inverse
-  pairs from hints) done. P4-P7 not started
-- **Next action**: P3 item 3 (builtin classification from `hint(builtin)`;
-  inventory note). P5 and P6 can also start (they need only P2). P4 needs the mode
+  flake checks), P3 ✅ (hints in the IL, inverse pairs from hints, builtin
+  classification and inventory). P4-P7 not started
+- **Next action**: P5 first item (finish wasm1 T7: commit the driver,
+  record N/M for spec-test-1), or P6. P4 needs the mode
   table design first (a Fable session, see below)
 - **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
   files in `translate/tests/spec/`, `flake.nix` and the `spec`/`spec-data`
@@ -308,7 +308,7 @@ parts) and two header lines; `make check` (now with `t0-modes`) and
 
 **Notes**: `notes/P2-layout.md` (final directory, package and flake naming).
 
-### P3: Hints at the hand-off (W6, S1, S7, D5)
+### P3: Hints at the hand-off (W6, S1, S7, D5) ✅ (2026-11-14)
 - [x] Patch `backend-ast/print.ml` to emit hint definitions; schema and reader accept them.
       *Done 2026-11-14 ([P3-hints](notes/P3-hints.md)): 15-line patch in
       `nix/`; 1.0 IL +244 hint lines, otherwise identical; generated code
@@ -317,20 +317,26 @@ parts) and two header lines; `make check` (now with `t0-modes`) and
       *Done 2026-11-14 ([P3-hints](notes/P3-hints.md)): the `utf8` override
       declares its own inverse; 1.0 code unchanged. 2.0 stubs 5 → 2, 3.0
       (D3 scope) 21 → 16; 3.0 failing reduction rules 10 → 4 of 218*
-- [ ] Builtin classification from `hint(builtin)`: numeric builtin (must be in
+- [x] Builtin classification from `hint(builtin)`: numeric builtin (must be in
       `rt/`), choice parameter (D4), host hook (`hostcall`), notation
-      (ignored). A clause-less def in no category is a hard error
-- [ ] Generated inverses for finite functions (`$isize`, `$jsize`, `$fsize`, `$jsizenn`).
-      *P2 found that 2.0/3.0 declare `inv_isize`, `inv_jsize`, `inv_fsize`,
-      `inv_jsizenn` (and 12 more `inv_*`) as clause-less defs: they need
-      builtins in `rt/` and the pairs, not generation*
+      (ignored). A clause-less def in no category is a hard error.
+      *Done 2026-11-14 ([P3-builtin-inventory](notes/P3-builtin-inventory.md)):
+      one counted `:builtins` entry per 2.0/3.0 config; the translator lists
+      numeric builtins with no definition in `rt/`. 3.0 (D3 scope): 89 =
+      77 numeric (34 missing in `rt/`) + 11 choice + 1 host; 2.0: 64 (21
+      missing); 1.0: 45 (0 missing), output unchanged*
+- [x] Generated inverses for finite functions (`$isize`, `$jsize`, `$fsize`, `$jsizenn`).
+      *No work needed: the 2.0/3.0 spec defines `inv_isize`, `inv_jsize`,
+      `inv_fsize`, `inv_jsizenn` with clauses, and they compile. The other
+      12 `inv_*` are clause-less builtins in the inventory*
 
 **Notes**: `notes/P3-builtin-inventory.md` (every clause-less def of 3.0:
 category, status in `rt/`, oracle source).
 
-**Exit**: the 1.0 config loses its `:inverse` entry and the generated 1.0
+**Exit** ✅: the 1.0 config loses its `:inverse` entry and the generated 1.0
 code is unchanged. The 3.0 probe shows no "pattern" errors caused by a
-missing inverse pair.
+missing inverse pair. *Met 2026-11-14: the 17 remaining "pattern" errors are S5, S4,
+`:fun` typing artifacts and text grammars ([P3-hints](notes/P3-hints.md))*
 
 ### P4: Generic translator gaps, gated on 2.0 (G1-G5, D1)
 - [ ] G1 function arguments by specialization

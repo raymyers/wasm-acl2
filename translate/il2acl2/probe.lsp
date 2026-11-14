@@ -250,7 +250,7 @@
                   (probe-tally (probe-err-kinds es) nil) (third (car es)))
               (probe-print-rule-errs (cdr l))))))
 
-(defun probe-run (il-file config-file names drop errors-file state)
+(defun probe-run (il-file config-file names drop errors-file rt-names state)
   (mv-let (erp forms hints state) (read-il il-file state)
     (if erp (mv erp state)
       (mv-let (erp cfg state) (read-il-file config-file state)
@@ -291,6 +291,13 @@
                           (len collisions) (len renamed) (len atom-collisions))
                       (cw "~%Phase 1: events ~x0, defuns ~x1, builtins/overrides ~x2, forms skipped ~x3~%"
                           (len events) (probe-count-defuns events 0) (len builtins) (len skipped))
+                      (let ((cls (classify-builtins forms hints config)))
+                        (cw "~%Builtins (clause-less defs): ~x0; numeric ~x1 (no definition in rt/: ~x2), choice ~x3, host ~x4, notation ~x5, unclassified ~x6~%  missing in rt/: ~s7~%"
+                            (len cls) (len (ids-of-category cls :numeric))
+                            (len (missing-in-rt (ids-of-category cls :numeric) rt-names tbl))
+                            (len (ids-of-category cls :choice)) (len (ids-of-category cls :host))
+                            (len (ids-of-category cls :notation)) (len (ids-of-category cls nil))
+                            (join-words (missing-in-rt (ids-of-category cls :numeric) rt-names tbl))))
                       (cw "~%Stubs: ~x0~%" (len stubs))
                       (cw "Stubs by source file:~%")
                       (probe-print-groups groups)
@@ -313,11 +320,12 @@
                                  (list "; Every error logged by translator phase 1 (make probe)."
                                        "; One per line: (function kind detail [:rule \"Rel/id\" :pos k] [:mode m]).")
                                  errs state))))))))))))
-
-(mv-let (erp state)
-  (probe-run (@ acl2::probe-il) (@ acl2::probe-config) (@ acl2::probe-names)
-             (@ acl2::probe-drop) (@ acl2::probe-errors) state)
-  (if erp
-      (prog2$ (cw "~%probe FAILED:~%~@0~%" erp) (mv (good-bye 1) nil state))
-    (mv nil :probe-ok state)))
+(mv-let (rt-erp rt-names state) (rt-defined-names *rt-files* nil state)
+ (declare (ignore rt-erp))
+  (mv-let (erp state)
+    (probe-run (@ acl2::probe-il) (@ acl2::probe-config) (@ acl2::probe-names)
+               (@ acl2::probe-drop) (@ acl2::probe-errors) rt-names state)
+    (if erp
+        (prog2$ (cw "~%probe FAILED:~%~@0~%" erp) (mv (good-bye 1) nil state))
+      (mv nil :probe-ok state))))
 (good-bye 0)

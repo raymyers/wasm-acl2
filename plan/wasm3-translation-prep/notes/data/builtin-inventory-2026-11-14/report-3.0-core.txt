@@ -1,0 +1,90 @@
+Probe of WASM 3.0 (SpecTec 943c5df)
+Excluded: X.* 6.* 7.*
+Spec files: 25, lines: 7008
+IL lines: 52937, bytes: 1272952
+IL forms (top level): 758, hint forms: 640
+IL forms by kind (rec members counted): (("TYP" . 191) ("DEF" . 442) ("REC" . 61) ("REL" . 85) ("GRAM" . 87))
+IL names: (:TYP 191 :DEF 442 :REL 85 :RULE 509 :GRAM 87 :VAR 726 :ATOM 284)
+Rules: 509, in 85 relations; relations with no rules: NIL
+Relations with the most rules: (("Instr_ok" . 110) ("Step_read" . 103) ("Step_pure" . 79) ("Step" . 36) ("Heaptype_sub" . 21) ("Instr_const" . 14) ("Ref_ok" . 9) ("Externaddr_ok" . 6))
+Clause-less defs: 89
+Defs taking def (function) parameters: 16: ivunop_ fvunop_ ivbinop_ ivbinopsx_ ivbinopsxnd_ fvbinop_ ivternopnd_ fvternop_ ivrelop_ ivrelopsx_ fvrelop_ ivshiftop_ ivshiftopsx_ ivswizzlop_ ivextunop__ ivextbinop__
+Defs taking type parameters: 14
+Largest rec group: 19 members (first: Heaptype_ok)
+Grammars: 87, binary B*: 87, text T*: 0
+Config entries used: 6 (ignored kinds: NIL)
+Config entries that do not match the IL: 0
+
+Schema errors: 0
+
+Mangling: collisions 0, renamed 18, atom collisions 0
+
+Phase 1: events 1103, defuns 1184, builtins/overrides 90, forms skipped 0
+
+Builtins (clause-less defs): 89; numeric 77 (no definition in rt/: 34), choice 11, host 1, notation 0, unclassified 0
+  missing in rt/: inv_concat_ inv_concatn_ s33_to_u32 ibits_ fbits_ nbytes_ vbytes_ zbytes_ cbytes_ inv_ibits_ inv_fbits_ inv_nbytes_ inv_vbytes_ inv_zbytes_ inv_cbytes_ ceilz iq15mulr_sat_ irelaxed_q15mulr_ iavgr_ irev_ iandnot_ ibitselect_ irelaxed_laneselect_ fpmin_ fpmax_ frelaxed_min_ frelaxed_max_ frelaxed_madd_ frelaxed_nmadd_ trunc_sat__ relaxed_trunc__ narrow__ lanes_ inv_lanes_
+
+Stubs: 16
+Stubs by source file:
+  2.1-validation.types: 4: DEFTYPE_SUB DEFTYPE_OK SUBTYPE_OK2 RESULTTYPE_OK
+  2.4-validation.modules: 1: MODULE_OK
+  3.2-numerics.vector: 8: $VUNOP_ $VBINOP_ $VTERNOP_ $VRELOP_ $VSHIFTOP_ $VSWIZZLOP_ $VEXTUNOP__ $VEXTBINOP__
+  4.4-execution.modules: 2: $EVALEXPRS $EVALGLOBALS
+  5.1-binary.values: 1: $UTF8SINGLE
+
+Relations emitted without some rules (per-rule stubs): 13, rules dropped: 36
+  Heaptype_ok (:FUN): 2/3 translated; dropped: Heaptype_ok/abs
+  Valtype_ok (:FUN): 2/4 translated; dropped: Valtype_ok/vec Valtype_ok/num
+  Typeuse_ok (:FUN): 1/3 translated; dropped: Typeuse_ok/rec Typeuse_ok/typeidx
+  Storagetype_ok (:FUN): 1/2 translated; dropped: Storagetype_ok/pack
+  Comptype_ok (:FUN): 2/3 translated; dropped: Comptype_ok/struct
+  Rectype_ok2 (:FUN): 1/2 translated; dropped: Rectype_ok2/empty
+  Comptype_sub (:FUN): 2/3 translated; dropped: Comptype_sub/func
+  Heaptype_sub (:FUN): 14/21 translated; dropped: Heaptype_sub/bot Heaptype_sub/noextern Heaptype_sub/noexn Heaptype_sub/nofunc Heaptype_sub/none Heaptype_sub/rec-sub Heaptype_sub/typeidx-r
+  Valtype_sub (:FUN): 3/4 translated; dropped: Valtype_sub/bot
+  Instr_ok (:FUN): 96/110 translated; dropped: Instr_ok/any.convert_extern Instr_ok/extern.convert_any Instr_ok/array.init_data Instr_ok/array.new_data Instr_ok/throw_ref Instr_ok/throw Instr_ok/return_call_indirect Instr_ok/return_call_ref Instr_ok/return_call Instr_ok/return Instr_ok/br_table Instr_ok/br Instr_ok/select-impl Instr_ok/unreachable
+  Instrs_ok (:FUN): 4/5 translated; dropped: Instrs_ok/sub
+  Step_pure (:FUN): 77/79 translated; dropped: Step_pure/vreplace_lane Step_pure/vsplat
+  Step_read (:FUN): 101/103 translated; dropped: Step_read/array.new_data-num Step_read/vload-pack-val
+
+Relation groups where no mode compiles every rule: 5
+  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):
+  (("Heaptype_ok" "Reftype_ok" "Valtype_ok" "Typeuse_ok" "Resulttype_ok" "Fieldtype_ok" "Storagetype_ok" "Comptype_ok" "Subtype_ok2" "Rectype_ok2" "Deftype_ok" "Comptype_sub" "Deftype_sub" "Heaptype_sub" "Reftype_sub" "Valtype_sub" "Resulttype_sub" "Storagetype_sub" "Fieldtype_sub") ((22 . 0) (9 . 0) (2 . 0)) :BEST 2 :EMITTED 0)
+  (("Instr_ok" "Instrs_ok") ((15 . 0) (9 . 0) (3 . 0)) :BEST 2 :EMITTED 0)
+  (("Module_ok") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+  (("Step_pure") ((2 . 0) (2 . 0) (2 . 0)) :BEST 0 :EMITTED 0)
+  (("Step_read") ((2 . 0) (2 . 0) (2 . 0)) :BEST 0 :EMITTED 0)
+
+Logged errors: 227, in 29 functions
+Errors by kind:
+  81: "unbound variable"
+  53: "higher-order argument"
+  28: "condition with unbound variables"
+  20: "relation inputs unbound"
+  15: "checker relation with unbound arguments"
+  13: "pattern"
+  7: "iterated premise output not bound"
+  6: "disjuncts bind different variables"
+  3: "iterated premise without inputs"
+  1: "premise"
+
+Rules dropped from split variants (all attempts, including discarded ones): 43
+  Heaptype_ok: 1: abs
+  Valtype_ok: 2: num vec
+  Typeuse_ok: 2: typeidx rec
+  Resulttype_ok: 1: (unnamed)
+  Storagetype_ok: 1: pack
+  Comptype_ok: 1: struct
+  Subtype_ok2: 1: (unnamed)
+  Rectype_ok2: 1: empty
+  Deftype_ok: 1: (unnamed)
+  Comptype_sub: 1: func
+  Deftype_sub: 2: refl super
+  Heaptype_sub: 7: typeidx-r rec-sub none nofunc noexn noextern bot
+  Valtype_sub: 1: bot
+  Instr_ok: 14: unreachable select-impl br br_table return return_call return_call_ref return_call_indirect throw throw_ref array.new_data array.init_data extern.convert_any any.convert_extern
+  Instrs_ok: 1: sub
+  Module_ok: 1: (unnamed)
+  Externaddr_ok: 1: sub
+  Step_pure: 2: vsplat vreplace_lane
+  Step_read: 2: vload-pack-val array.new_data-num

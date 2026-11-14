@@ -169,3 +169,12 @@ No measurements beyond the probe comparison (identical to
 - Per target: only 1.0 has a checked-in output. A `translate-gen-wasm3`
   check is one copy of the block once 3.0's `gen/` is checked in (P4 or the
   wasm3 plan).
+
+## 2026-11-14 correction (from P3)
+
+The item 2 finding above says the 16 `inv_*` inverses are declared defs and
+that P3's "generated inverses for finite functions" becomes "builtins for
+the declared `inv_*` defs". Partly wrong: `inv_isize`, `inv_jsize`,
+`inv_fsize` and `inv_jsizenn` are *defined* in the spec (with clauses), so
+they need nothing. The other 12 are clause-less builtins. See
+[P3-builtin-inventory.md](P3-builtin-inventory.md).

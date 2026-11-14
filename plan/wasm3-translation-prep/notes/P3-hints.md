@@ -4,7 +4,7 @@
   definitions; schema and reader accept them)
 - Date: 2026-11-14
 - Repo commit: f9c403e plus this note's commit
-- Status: draft (items 2-4 of P3 add to it)
+- Status: final
 - Feeds wasm3 plan: scheme delta, builtin inventory, decisions (D5)
 - Incorporated in wasm3 plan: no
 

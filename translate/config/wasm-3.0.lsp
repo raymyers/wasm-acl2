@@ -11,6 +11,13 @@
  (:def "utf8" :inverse "inv_utf8"
   :reason "Clauses 2-4 define the bytes b_1..b_4 only through an arithmetic equation on ch (the inverse direction); no matching/binding translation exists. Hand-written in rt/builtins.lisp, with its inverse inv_utf8 (used to solve utf8(x) = bytes in Bname; the other inverse pairs come from hint(inverse) in the IL).")
 
+ (:builtins "categories"
+  :choice ("ND" "R_fmadd" "R_fmin" "R_fmax" "R_idot" "R_idot_add" "R_iq15mulr"
+           "R_trunc_u" "R_trunc_s" "R_swizzle" "R_laneselect")
+  :host ("hostcall")
+  :numeric ("s33_to_u32")
+  :reason "Clause-less defs that are not plain numeric builtins (S7): $ND and the $R_* relaxed-SIMD parameters are nondeterminism choices (fixed by the D4 policy, 3.0-numerics.relaxed.spectec); $hostcall is the host-function hook (4.0-execution.configurations). $s33_to_u32 (3.1-numerics.scalar) is declared without hint(builtin) but is a numeric conversion, so it is listed as :numeric.")
+
  (:split "Step" "ctxt-instrs"
   :strategy :redex
   :reason "The generic split search of val* ++ admininstr* ++ admininstr_1* is exponential when it fails. Strategy: admininstr* ends right after the first non-value; val* is searched from longest to shortest. Completeness vs. the generic search: T8 obligation.")

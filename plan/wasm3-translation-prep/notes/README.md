@@ -71,4 +71,5 @@ says `yes` or `dropped` in the last column.
 | [P1-gap-list.md](P1-gap-list.md) | P1 (per-rule gap list) | draft | gap list, milestones, config budget | no |
 | [P1-typing-root-causes.md](P1-typing-root-causes.md) | P1 (S2 root causes) | draft | gap list, risks, scheme delta | no |
 | [P2-layout.md](P2-layout.md) | P2 (all items; `rt/` package question open) | final | scheme delta, decisions | no |
-| [P3-hints.md](P3-hints.md) | P3 (items 1-2: hint patch, IL hint forms, inverse pairs from hints) | draft | scheme delta, builtin inventory, decisions | no |
+| [P3-hints.md](P3-hints.md) | P3 (items 1-2: hint patch, IL hint forms, inverse pairs from hints) | final | scheme delta, builtin inventory, decisions | no |
+| [P3-builtin-inventory.md](P3-builtin-inventory.md) | P3 (items 3-4: builtin classification, inventory) | final | builtin inventory, config budget, decisions | no |

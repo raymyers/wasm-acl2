@@ -232,6 +232,92 @@
             (concatenate (quote string) (string-downcase (head (car sk))) " " (second (car sk))))
           (skipped-summary (cdr sk)))))
 
+; --- Builtin classification (wasm3 prep P3, S7) --------------------------
+;
+; Every clause-less def is classified: :numeric (a hand-written function in
+; rt/), :choice (a nondeterminism parameter, D4), :host (a host hook such as
+; $hostcall) or :notation (only used in notation; ignored). Membership in a
+; category comes from the config entry
+;   (:builtins "categories" :choice (...) :host (...) :notation (...)
+;              :numeric (...) :reason ...)
+; and otherwise from hint(builtin), which means :numeric. A clause-less def
+; in no category is a hard error.
+
+(defun has-clause-p (xs) (and (consp xs) (or (is (car xs) "CLAUSE") (has-clause-p (cdr xs)))))
+
+(defun clauseless-defs (forms)
+  ;; ids of the clause-less defs, in IL order (REC groups opened)
+  (cond ((endp forms) nil)
+        ((is (car forms) "REC") (append (clauseless-defs (cdr (car forms))) (clauseless-defs (cdr forms))))
+        ((and (is (car forms) "DEF") (not (has-clause-p (cddr (car forms)))))
+         (cons (second (car forms)) (clauseless-defs (cdr forms))))
+        (t (clauseless-defs (cdr forms)))))
+
+(defun symbol-names-of (l)
+  (if (endp l) nil (cons (sym-name (car l)) (symbol-names-of (cdr l)))))
+
+(defun hint-builtin-ids (hints)
+  (cond ((endp hints) nil)
+        ((and (equal (sym-name (second (car hints))) "DEF")
+              (member-equal "BUILTIN" (symbol-names-of (strip-cars (cdddr (car hints))))))
+         (cons (third (car hints)) (hint-builtin-ids (cdr hints))))
+        (t (hint-builtin-ids (cdr hints)))))
+
+(defun builtin-category (id hinted bcfg)
+  (cond ((member-equal id (cadr (member :choice bcfg))) :choice)
+        ((member-equal id (cadr (member :host bcfg))) :host)
+        ((member-equal id (cadr (member :notation bcfg))) :notation)
+        ((member-equal id (cadr (member :numeric bcfg))) :numeric)
+        ((member-equal id hinted) :numeric)
+        (t nil)))
+
+; ((id . category) ...) for every clause-less def, category nil if unknown
+(defun classify-builtins-1 (ids hinted bcfg)
+  (if (endp ids) nil
+    (cons (cons (car ids) (builtin-category (car ids) hinted bcfg))
+          (classify-builtins-1 (cdr ids) hinted bcfg))))
+
+(defun classify-builtins (forms hints config)
+  (classify-builtins-1 (clauseless-defs forms) (hint-builtin-ids hints)
+                       (car (config-entries config :builtins))))
+
+(defun ids-of-category (cls cat)
+  (cond ((endp cls) nil)
+        ((eq (cdr (car cls)) cat) (cons (car (car cls)) (ids-of-category (cdr cls) cat)))
+        (t (ids-of-category (cdr cls) cat))))
+
+; Names defined by rt/ (DEFUN / DEFMACRO anywhere in its top-level forms)
+(defun defined-names (x acc)
+  (cond ((atom x) acc)
+        ((and (member-equal (sym-name (car x)) '("DEFUN" "DEFMACRO" "DEFUND")) (consp (cdr x))
+              (sym-name (cadr x)))
+         (cons (sym-name (cadr x)) acc))
+        (t (defined-names (cdr x) (defined-names (car x) acc)))))
+
+(defun rt-defined-names (files acc state)
+  ;; (mv erp names state); a missing rt/ file is an error, not an empty list
+  (if (endp files) (mv nil acc state)
+    (mv-let (erp forms state) (read-il-file (car files) state)
+      (if erp (mv (msg "Cannot read ~s0 (the builtin check needs rt/)" (car files)) nil state)
+        (rt-defined-names (cdr files) (defined-names forms acc) state)))))
+
+(defun missing-in-rt (ids rt-names tbl)
+  ;; numeric builtins whose mangled name rt/ does not define
+  (cond ((endp ids) nil)
+        ((member-equal (cdr (assoc-equal (car ids) (cdr (assoc-eq :def tbl)))) rt-names)
+         (missing-in-rt (cdr ids) rt-names tbl))
+        (t (cons (car ids) (missing-in-rt (cdr ids) rt-names tbl)))))
+
+(defun unclassified-builtins (cls)
+  (cond ((endp cls) nil)
+        ((null (cdr (car cls)))
+         (cons (list :builtin (car (car cls))
+                     "clause-less def without hint(builtin) and not in a :builtins category")
+               (unclassified-builtins (cdr cls))))
+        (t (unclassified-builtins (cdr cls)))))
+
+(defconst *rt-files* '("rt/prelude.lisp" "rt/builtins.lisp"))
+
 ; --- Config validation (wasm3 prep P2, W5) -----------------------------
 ;
 ; Every config entry must name something that exists in the IL, so a stale
@@ -304,6 +390,13 @@
     (:inverse (check-inverse-pairs e (cadr (member :pairs e)) overrides tbl))
     (:decreasing (check-decreasing e (cadr (member :pairs e)) forms tbl))
     (:sized (check-sized e (cadr (member :pairs e)) forms tbl))
+    (:builtins (let ((ids (append (cadr (member :choice e)) (cadr (member :host e))
+                                  (cadr (member :notation e)) (cadr (member :numeric e))))
+                     (cl (clauseless-defs forms)))
+                 (append (check-names e :def ids tbl "def")
+                         (if (set-difference-equal (intersection-equal ids (strip-cars (cdr (assoc-eq :def tbl)))) cl)
+                             (list (cfg-err e "a listed def has clauses (not a builtin)"))
+                           nil))))
     (:il-patch (let ((x (il-form-named (second e) forms)))
                  (cond ((null x) (list (cfg-err e (concatenate 'string (second e) " not in the IL"))))
                        ((not (occurs-in (cadr (member :old e)) x))
@@ -394,7 +487,7 @@
 
 ; Returns (mv erp state); stores the compiled results in state global
 ; IL2ACL2-GEN for phase 2.
-(defun gen-phase1-1 (target decls state)
+(defun gen-phase1-1 (target decls rt-names state)
   (let ((il-file (tgt :il target)) (config-file (tgt :config target))
         (outdir (tgt :outdir target)) (pkg (tgt :pkg target)))
   (mv-let (erp summary state) (il-check il-file state)
@@ -404,9 +497,10 @@
         (declare (ignore erp))
         (mv-let (erp cfg state) (read-il-file config-file state)
           (if erp (mv erp state)
-           (let ((cerrs (config-errors (car cfg) forms (mangle-table forms))))
+           (let ((cerrs (append (config-errors (car cfg) forms (mangle-table forms))
+                                (unclassified-builtins (classify-builtins forms hints (car cfg))))))
             (if cerrs
-                (mv (msg "Config entries that do not match the IL (~s0):~|~x1" config-file cerrs) state)
+                (mv (msg "Config entries that do not match the IL, or unclassified builtins (~s0):~|~x1" config-file cerrs) state)
             (let* ((config (car cfg))
                    (forms (apply-patches forms (config-entries config :il-patch)))
                    (cx (list (cons :tbl (mangle-table forms))
@@ -439,7 +533,10 @@
                                                   :errs (reverse (cx-get :errs cx))
                                                   :config config
                                                   :target target
-                                                  :parts parts)
+                                                  :parts parts
+                                                  :builtin-classes (classify-builtins forms hints config)
+                                                  :rt-missing (missing-in-rt (ids-of-category (classify-builtins forms hints config) :numeric)
+                                                                             rt-names (cx-get :tbl cx)))
                                             state)))
                   (mv-let (erp state)
                     (write-file
@@ -512,6 +609,8 @@
          (config (cadr (member :config g)))
          (target (cadr (member :target g)))
          (parts (cadr (member :parts g)))
+         (classes (cadr (member :builtin-classes g)))
+         (rt-missing (cadr (member :rt-missing g)))
          (pkg (tgt :pkg target))
          (header
           (append
@@ -526,6 +625,19 @@
                  "; Builtins and overrides (hand-written in translate/rt/builtins.lisp),"
                  "; as (name . arity):")
            (comment-lines ";   " (builtin-strings builtins))
+           (if (or (ids-of-category classes :choice) (ids-of-category classes :host)
+                   (ids-of-category classes :notation))
+               (append (list ";" "; Builtins that are not numeric functions (config :builtins):")
+                       (comment-lines ";   choice (nondeterminism parameter): "
+                                      (list (join-words (ids-of-category classes :choice))))
+                       (comment-lines ";   host hook: " (list (join-words (ids-of-category classes :host))))
+                       (comment-lines ";   notation (unused): "
+                                      (list (join-words (ids-of-category classes :notation)))))
+             nil)
+           (if rt-missing
+               (append (list ";" "; Numeric builtins with no definition in rt/ yet (certification fails until added):")
+                       (comment-lines ";   " (list (join-words rt-missing))))
+             nil)
            (list ";" "; Config overrides:")
            (comment-lines ";   " (config-strings config))
            (list ";" "; Stubs (an unsupported construct; body signals an error):")
@@ -560,4 +672,6 @@
   (mv-let (erp decls state)
     (if (tgt :decls target) (read-il-file (tgt :decls target) state) (mv nil nil state))
     (if erp (mv erp state)
-      (gen-phase1-1 target (car decls) state))))
+      (mv-let (erp rt-names state) (rt-defined-names *rt-files* nil state)
+       (if erp (mv erp state)
+        (gen-phase1-1 target (car decls) rt-names state))))))
