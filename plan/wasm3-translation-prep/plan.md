@@ -26,8 +26,9 @@ A new session starts here.
 - **Last updated**: 2026-11-14
 - **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅, P5 ✅, P6 ✅. P4: exit ✅ (2.0
   certifies with 1 stub; 8,724 scalar + 528 SIMD vectors agree with V8);
-  G1, G3, G4, G9, declared modes and `:fun2` done; the mode-table inference
-  (W1/G2), G5 and G8 open. P7 🔶: the wasm3 plan exists as a **draft**
+  G1, G3, G4, G5, G8, G9, declared modes and `:fun2` done (3.0 D3 scope: 2
+  stubs, 2 dropped rules); the mode-table inference
+  (W1/G2 general form) open. P7 🔶: the wasm3 plan exists as a **draft**
   ([plan/wasm3-translation/plan.md](../wasm3-translation/plan.md)); every
   note is incorporated
 - **Next action**: the user decides D1-D6 ([decisions](notes/decisions.md));
@@ -349,12 +350,14 @@ missing inverse pair. *Met 2026-11-14: the 17 remaining "pattern" errors are S5,
       stubs and 1 dropped rule. Inference per relation and several outputs
       (G2) are the Fable design session. `:fun2` (last two components
       out) declared for `Eval_expr`: 3.0 D3-scope stubs 4 → 2*
-- [ ] G3, G4 iterated premises; G5 disjunctions. *G3 done 2026-11-14
+- [x] G3, G4 iterated premises; G5 disjunctions. *G3 done 2026-11-14
       (count-only iteration, an aux loop; full 3.0 stubs 83 → 81). G5 is not
       mechanical: `t'` is existential, so it goes with the mode table
       ([P4-generic-gaps](notes/P4-generic-gaps.md)). G4 done too
       (`Step_read` 102/103). G9 (list-pattern order) done: 3.0 reduction
-      failures 1 of 218; 2.0 reduction relations complete. G8 goes with
+      failures 1 of 218; 2.0 reduction relations complete. G5 (pure tests,
+      finite existentials) and G8 (index search, deferred tests in the loop)
+      done: 3.0 D3 scope has 2 dropped rules left; `Instr_ok` 110/110. Was: G8 goes with
       the mode table*
 - [x] 2.0 as a full target: builtins for SIMD, saturating truncation and sign
       extension in `rt/`; Node/V8 numeric vectors for them (W11).

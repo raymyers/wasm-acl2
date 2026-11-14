@@ -4,7 +4,7 @@
   iterated premises; G5 disjunctions; and the P1-found G8, G9)
 - Date: 2026-11-14
 - Repo commit: 3d79703 plus this note's commit
-- Status: draft (G1, G3, G4, G9 done; G8 partly; G5 and the rest of G8 go with the mode table)
+- Status: draft (G1, G3, G4, G5, G8, G9 done; the mode-table inference open)
 - Feeds wasm3 plan: scheme delta (function arguments), gap list, config budget
 - Incorporated in wasm3 plan: yes (draft plan, §3, §4 (modes, patterns), §5 M5)
 
@@ -205,3 +205,28 @@ now matters.
 - The real 3.0 books (shared `rt/` in `WRT`) certify through
   `2_1-validation_types`, `DEFTYPE_SUB/SOME` included, in 8.5 s.
 - 1.0 `make check` and 2.0 `make check-2.0` pass, outputs unchanged.
+
+## 2026-11-14: G5 done; G8 rest done (supersedes the G5/G8 deferrals above)
+
+- G8, deferred tests: `crule` passes its deferred conclusion tests to
+  `cprems` (cx `:dfr`); the `:check`-mode index search runs those that
+  mention its variable inside the loop and takes the formals they compare
+  with as extra parameters. `Heaptype_sub/rec-sub` compiles
+  (`typeuse*[j]` in the conclusion).
+- G5, pure tests: a disjunction whose branches bind different variables
+  that occur nowhere else in the rule (counted occurrences, cx `:rule-occ`)
+  compiles to `(or branch1 branch2)` with no bindings: `Instr_ok/array.new_data`,
+  `array.init_data`.
+- G5, finite existential: in `:check` mode, a disjunction `v = y1 ∨ v = y2`
+  whose v is otherwise unbound and whose yk are of variant types with
+  nullary cases only (`numtype`, `vectype`: values from the IL type
+  definitions, cx `:typ-defs`) becomes a search over those values: all
+  premises (with the disjunction, now a test) hold for some v.
+  `Instr_ok/select-impl` compiles; `Instr_ok` 110/110.
+- Effect, 3.0 D3 scope: dropped rules 5 → **2** (`Heaptype_sub/trans`,
+  `Step_read/array.new_data-num`), errors 52 → 47; stubs 2. 2.0:
+  `select-impl` compiles too; left `Instrs_ok/sub` (1 rule), 1 stub.
+- The real 3.0 books certify through `2_3-validation_instructions` (41 s)
+  with the new search functions (`HEAPTYPE_SUB/SOME`, `INSTR_OK/SOME`).
+- 1.0 `make check` and 2.0 `make check-2.0` pass.
+- Data: `data/probe-P4-G5G8-2026-11-14/`.

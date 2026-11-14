@@ -1183,6 +1183,12 @@
   (if (endp syms) nil
     (cons (cons (car syms) (nth-term i (list (quote car) tv))) (nth-binds (cdr syms) (1+ i) tv))))
 
+(defun deferred-tests (dfr env cx)
+  (if (endp dfr) (mv nil cx)
+    (mv-let (e cx) (cexp (car (car dfr)) env cx)
+      (mv-let (rest cx) (deferred-tests (cdr dfr) env cx)
+        (mv (cons (list :test (list 'equal (cdr (car dfr)) e)) rest) cx)))))
+
 ;; G8 (wasm3 prep P4): a premise `if v < |l|` whose v is bound by nothing
 ;; else and whose l is bound. In :check mode the rule then says "there is a
 ;; v below |l| for which the other premises hold" (Deftype_sub/super,
@@ -1197,6 +1203,67 @@
                        (nodep (fifth e) "LEN" 1) (not (has-unbound (fifth e) env))))))
          i)
         (t (exists-index-prem (cdr prs) (1+ i) env))))
+
+(defun occ-count (v l) (cond ((endp l) 0) ((equal (car l) v) (1+ (occ-count v (cdr l)))) (t (occ-count v (cdr l)))))
+
+(defun local-to (vars e cx)
+  ;; every var occurs in the current rule only inside expression e
+  (or (endp vars)
+      (and (equal (occ-count (car vars) (cx-get :rule-occ cx)) (occ-count (car vars) (fv-exp e)))
+           (local-to (cdr vars) e cx))))
+
+(defun dfr-mentioning (v dfr)
+  (cond ((endp dfr) nil)
+        ((member-equal v (fv-exp (car (car dfr)))) (cons (car dfr) (dfr-mentioning v (cdr dfr))))
+        (t (dfr-mentioning v (cdr dfr)))))
+
+(defun dfr-fvs (dfr) (if (endp dfr) nil (append (fv-exp (car (car dfr))) (dfr-fvs (cdr dfr)))))
+
+;; G5 (wasm3 prep P4): the values of a type that is a variant of nullary
+;; cases only (numtype, vectype, ...), as encoded values; nil otherwise
+(defun nullary-cases (cs)
+  (cond ((endp cs) nil)
+        ((and (nodep (car cs) "CASE" 2) (equal (third (car cs)) '(tup)))
+         (cons (list (tag-kw (second (car cs)))) (nullary-cases (cdr cs))))
+        ((and (nodep (car cs) "CASE" 2) (is (third (car cs)) "TUP") (null (cdr (third (car cs)))))
+         (cons (list (tag-kw (second (car cs)))) (nullary-cases (cdr cs))))
+        (t (list :no))))
+
+(defun finite-values (id cx)
+  (let* ((x (cdr (assoc-equal id (cx-get :typ-defs cx))))
+         (inst (and (is x "TYP") (third x)))
+         (v (and (is inst "INST") (second inst))))
+    (and (is v "VARIANT")
+         (let ((vals (nullary-cases (cdr v))))
+           (and (not (member-equal :no vals)) vals)))))
+
+(defun finite-branch (b v)
+  ;; (cmp eq bool (var v) (sub (var y) ...)) -> the type id y, else nil
+  (and (nodep b "CMP" 4) (atom-is (second b) "EQ")
+       (equal (fourth b) (list 'var v))
+       (is (fifth b) "SUB") (nodep (second (fifth b)) "VAR" 1)
+       (second (second (fifth b)))))
+
+(defun finite-disj-domain (e v cx)
+  ;; e = a \/ b \/ ...; the union of the branches' finite types, or :no
+  (if (and (nodep e "BIN" 4) (atom-is (second e) "OR"))
+      (let ((d1 (finite-disj-domain (fourth e) v cx)) (d2 (finite-disj-domain (fifth e) v cx)))
+        (if (or (eq d1 :no) (eq d2 :no)) :no (union-equal d1 d2)))
+    (let* ((y (finite-branch e v)) (vals (and y (finite-values y cx))))
+      (if vals vals :no))))
+
+(defun exists-finite-prem (prs i env cx)
+  ;; (mv index v domain) of a premise `if v = y1 \/ v = y2 ...` with v
+  ;; unbound and each yk of a finite type
+  (if (endp prs) (mv nil nil nil)
+    (let* ((p (car prs)) (e (and (nodep p "IF" 1) (second p)))
+           (b (and (nodep e "BIN" 4) (atom-is (second e) "OR") (fourth e)))
+           (b (if (and (nodep b "BIN" 4) (atom-is (second b) "OR")) (fourth b) b))
+           (v (and (nodep b "CMP" 4) (nodep (fourth b) "VAR" 1) (second (fourth b))))
+           (dom (and v (not (assoc-equal v env)) (finite-disj-domain e v cx))))
+      (if (and dom (not (eq dom :no)))
+          (mv i v dom)
+        (exists-finite-prem (cdr prs) (1+ i) env cx)))))
 
 (defun fv-prems (prs) (if (endp prs) nil (append (fv-prem (car prs)) (fv-prems (cdr prs)))))
 
@@ -1223,15 +1290,22 @@
             (let* ((new1 (set-difference-equal (remove-duplicates-equal (strip-cars e1)) (strip-cars env)))
                    (new2 (set-difference-equal (remove-duplicates-equal (strip-cars e2)) (strip-cars env)))
                    (syms (env-terms new1 e1)))
-              (if (not (and (subsetp-equal new1 new2) (subsetp-equal new2 new1)))
-                  (mv nil env (cx-err "disjuncts bind different variables" e cx))
+              (cond
+               ((and (not (and (subsetp-equal new1 new2) (subsetp-equal new2 new1)))
+                     (local-to (union-equal new1 new2) e cx))
+                ;; G5 (wasm3 prep P4): the branches bind different variables that
+                ;; occur nowhere else in the rule, so the disjunction is a test
+                (mv (list (list :test (list (quote or) (build-steps s1 t) (build-steps s2 t)))) env cx))
+               ((not (and (subsetp-equal new1 new2) (subsetp-equal new2 new1)))
+                  (mv nil env (cx-err "disjuncts bind different variables" e cx)))
+               (t
                 (mv-let (tname cx) (cx-fresh "%T" cx)
                   (let ((tv (gsym tname)))
                     (mv (append (list (list* :bind tv (list 'or (build-steps s1 (list 'list (cons 'list syms)))
                                                           (build-steps s2 (list 'list (cons 'list syms)))))
                                       (list :test tv))
                                 (bind-steps (nth-binds syms 0 tv)))
-                        (append (env-restrict new1 e1) env) cx))))))))
+                        (append (env-restrict new1 e1) env) cx)))))))))
        ((and (nodep e "MEM" 2) (has-unbound (second e) env) (not (has-unbound (third e) env)))
         ;; x <- e with x unbound: choose the first element (deterministic)
         (mv-let (v cx) (cexp (third e) env cx)
@@ -1403,38 +1477,78 @@
   (if (endp prs) (mv nil env cx)
     (let* ((k (or (first-ready prs 0 env cx nil) (first-ready prs 0 env cx t)))
            (j (and (null k) (eq (cx-get :err-mode cx) :check) (exists-index-prem prs 0 env))))
-      (if j
-          (cexists-index (nth j prs) (append (take j prs) (nthcdr (1+ j) prs)) env cx)
+      (mv-let (fi fv fdom) (if (or k j (not (eq (cx-get :err-mode cx) :check))) (mv nil nil nil) (exists-finite-prem prs 0 env cx))
+      (cond
+       (j
+        (cexists-index (nth j prs) (append (take j prs) (nthcdr (1+ j) prs)) env cx))
+       (fi (cexists-list fv fdom prs env cx))
+       (t
         (let* ((k (or k 0))
                (p (nth k prs))
                (rest (append (take k prs) (nthcdr (1+ k) prs))))
           (mv-let (s1 env cx) (cprem p env cx)
             (mv-let (s2 env cx) (cprems rest env cx)
-              (mv (append s1 s2) env cx))))))))
+              (mv (append s1 s2) env cx))))))))))
 
 ;; exists v < |l|: the other premises hold (G8, :check mode only). An aux
 ;; function loops over v; the other premises may not bind new variables.
-(defun cexists-index (p others env cx)
-  (let* ((e (second p)) (v (second (fourth e))) (l-e (fifth e))
-         (fvs (bound-in (set-difference-equal (fv-prems others) (list v)) env))
+;; exists v in dom: all premises prs hold (G5 with a finite domain, :check
+;; mode only); prs includes the disjunction, which becomes a test once v is
+;; bound. Deferred conclusion tests that mention v run inside the loop.
+(defun cexists-list (v dom prs env cx)
+  (let* ((mine (dfr-mentioning v (cx-get :dfr cx)))
+         (cx (cx-put :dfr (set-difference-equal (cx-get :dfr cx) mine) cx))
+         (fvs (bound-in (set-difference-equal (append (fv-prems prs) (dfr-fvs mine)) (list v)) env))
          (fvsyms (env-terms fvs env))
+         (fsyms (remove-duplicates-equal (strip-cdrs mine)))
+         (vsym (var-sym v cx)) (lsym (gsym "%L"))
+         (ienv (env-add-vars (list v) (env-restrict fvs env) cx)))
+    (mv-let (isteps env3 cx) (cprems prs ienv cx)
+      (mv-let (dsteps cx) (deferred-tests mine env3 cx)
+        (if (not (equal (len env3) (len ienv)))
+            (mv nil env (cx-err "existential over a finite type with premises that bind variables" v cx))
+          (mv-let (aux-name cx) (cx-fresh (concatenate 'string (cx-get :fn cx) "/SOME") cx)
+            (let* ((aux (gsym aux-name))
+                   (params (cons lsym (append fvsyms fsyms)))
+                   (def (mk-defun aux params
+                                  (list 'if (list 'atom lsym) nil
+                                        (list 'or (build-steps (cons (list* :bind vsym (list 'car lsym))
+                                                                     (append isteps dsteps))
+                                                               t)
+                                              (cons aux (cons (list 'cdr lsym) (append fvsyms fsyms))))))))
+              (mv (list (list :test (cons aux (cons (list 'quote dom) (append fvsyms fsyms)))))
+                  env
+                  (cx-add-aux def cx)))))))))
+
+(defun cexists-index (p others env cx)
+  ;; deferred conclusion tests (crule's :dfr) that mention v run inside the
+  ;; loop too (Heaptype_sub/rec-sub: typeuse*[j] in the conclusion)
+  (let* ((e (second p)) (v (second (fourth e))) (l-e (fifth e))
+         (mine (dfr-mentioning v (cx-get :dfr cx)))
+         (cx (cx-put :dfr (set-difference-equal (cx-get :dfr cx) mine) cx))
+         (fvs (bound-in (set-difference-equal (append (fv-prems others) (dfr-fvs mine)) (list v)) env))
+         (fvsyms (env-terms fvs env))
+         (fsyms (remove-duplicates-equal (strip-cdrs mine)))   ; formals the tests compare with
          (ksym (var-sym v cx)) (nsym (gsym "%N"))
          (ienv (env-add-vars (list v) (env-restrict fvs env) cx)))
     (mv-let (nv cx) (cexp l-e env cx)
       (mv-let (isteps env3 cx) (cprems others ienv cx)
-        (if (not (equal (len env3) (len ienv)))
-            (mv nil env (cx-err "existential index with premises that bind variables" p cx))
-          (mv-let (aux-name cx) (cx-fresh (concatenate 'string (cx-get :fn cx) "/SOME") cx)
-            (let* ((aux (gsym aux-name))
-                   (def (mk-defun-measure
-                         aux (list* ksym nsym fvsyms)
-                         (list 'nfix (list '- (list 'nfix nsym) (list 'nfix ksym)))
-                         (list 'if (list '<= (list 'nfix nsym) (list 'nfix ksym)) nil
-                               (list 'or (build-steps isteps t)
-                                     (list* aux (list '1+ (list 'nfix ksym)) nsym fvsyms))))))
-              (mv (list (list :test (list* aux 0 nv fvsyms)))
-                  env                    ; v exists only inside the loop
-                  (cx-add-aux def cx)))))))))
+        (mv-let (dsteps cx) (deferred-tests mine env3 cx)
+          (if (not (equal (len env3) (len ienv)))
+              (mv nil env (cx-err "existential index with premises that bind variables" p cx))
+            (mv-let (aux-name cx) (cx-fresh (concatenate 'string (cx-get :fn cx) "/SOME") cx)
+              (let* ((aux (gsym aux-name))
+                     (params (list* ksym nsym (append fvsyms fsyms)))
+                     (def (mk-defun-measure
+                           aux params
+                           (list 'nfix (list '- (list 'nfix nsym) (list 'nfix ksym)))
+                           (list 'if (list '<= (list 'nfix nsym) (list 'nfix ksym)) nil
+                                 (list 'or (build-steps (append isteps dsteps) t)
+                                       (list* aux (list '1+ (list 'nfix ksym)) nsym
+                                              (append fvsyms fsyms)))))))
+                (mv (list (list :test (list* aux 0 nv (append fvsyms fsyms))))
+                    env                    ; v exists only inside the loop
+                    (cx-add-aux def cx))))))))))
 
 ;; index of the first premise that compiles cleanly; relation premises
 ;; (expensive calls) only when ALLOW-RULES, so cheap tests run first
@@ -1483,12 +1597,6 @@
           (let ((cx (cx-put :aux aux0 (cx-put :errs errs0 cx1))))
             (mv-let (s2 env dfr cx) (cpat-args-defer (cdr pats) (cdr formals) env cx)
               (mv s2 env (cons (cons (car pats) (car formals)) dfr) cx))))))))
-
-(defun deferred-tests (dfr env cx)
-  (if (endp dfr) (mv nil cx)
-    (mv-let (e cx) (cexp (car (car dfr)) env cx)
-      (mv-let (rest cx) (deferred-tests (cdr dfr) env cx)
-        (mv (cons (list :test (list 'equal (cdr (car dfr)) e)) rest) cx)))))
 
 (defun crec-fields (fs i r cx)
   ;; record fields (field atom ty params... prems...) at positions i.. of alist r
@@ -1696,8 +1804,8 @@
            (cx (cx-put :redex (and (member-equal (cons rel (second r)) (cx-get :split-rules cx)) t) cx)))
       (mv-let (s1 env dfr cx) (cpat-args-defer ins formals nil cx)
         (let ((cx (cx-put :redex nil cx)))
-          (mv-let (s2 env cx) (cprems prems env cx)
-            (mv-let (s3 cx) (deferred-tests dfr env cx)
+          (mv-let (s2 env cx) (cprems prems env (cx-put :rule-occ (append (fv-exp (cons (quote tup) comps)) (fv-prems prems)) (cx-put :dfr dfr cx)))
+            (mv-let (s3 cx) (deferred-tests (cx-get :dfr cx) env (cx-put :dfr nil cx))
             (mv-let (out cx) (cond ((eq mode :fun) (cexp (car (last comps)) env cx))
                                    ((eq mode :fun2) (cexp (cons (quote tup) (nthcdr (- (len comps) 2) comps)) env cx))
                                    ((and (eq mode :split) sa) (cexp sb env cx))

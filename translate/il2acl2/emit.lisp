@@ -180,6 +180,13 @@
   (if (endp es) nil
     (append (cadr (member :pairs (car es))) (sized-pairs (cdr es)))))
 
+(defun typ-defs (forms)
+  ;; alist syntax id -> its TYP form (finite types for existential search, G5)
+  (cond ((endp forms) nil)
+        ((is (car forms) "REC") (append (typ-defs (cdr (car forms))) (typ-defs (cdr forms))))
+        ((is (car forms) "TYP") (cons (cons (second (car forms)) (car forms)) (typ-defs (cdr forms))))
+        (t (typ-defs (cdr forms)))))
+
 (defun gram-defs (forms)
   ;; alist grammar id -> its GRAM form (for inlining parametric grammars)
   (cond ((endp forms) nil)
@@ -539,6 +546,7 @@
                              (cons :rel-overrides (rel-override-alist (config-entries config :rel-override)))
                              (cons :memo (memo-rels (config-entries config :memoize)))
                              (cons :declared-modes (declared-mode-pairs (config-entries config :modes)))
+                             (cons :typ-defs (typ-defs forms))
                              (cons :gram-defs (gram-defs forms)))))
               (mv-let (parts builtins skipped cx)
                 (let ((files (or (decl-files decls nil) (list "all"))))

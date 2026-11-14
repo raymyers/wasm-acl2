@@ -54,7 +54,7 @@ From `make probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
 | Schema errors | 0 | 3 (full 3.0) |
 | Phase-1 events | 1,240 | 993 |
 | Stubs | **2**: `Module_ok`, `$utf8single` | 35 |
-| Relations emitted without some rules | 3, with 6 rules dropped | (whole-relation stubs) |
+| Relations emitted without some rules | 2, with 2 rules dropped (`Heaptype_sub/trans`, `Step_read/array.new_data-num`) | (whole-relation stubs) |
 | Reduction rules (`Step`, `Step_read`, `Step_pure`) failing | **1 of 218** | about 10 |
 | Clause-less defs | 89 = 77 numeric (13 not in `rt/`) + 11 choice + 1 host | |
 | Defs with function parameters | 16, replaced by 53 specializations | 16 compiled wrongly |
@@ -73,9 +73,6 @@ From the P1 gap list as updated through P4
 | core | `Module_ok` stub (tags, recursive types, staged contexts) | S4 | M7 |
 | core | `$utf8single` stub (result defined arithmetically) | S5 | M1 |
 | core | malformed UTF-8 in names accepted (39 decode cases; also in 1.0, 39 spec-test-1 failures) | `$utf8` inverse too lenient | M2 |
-| SIMD / reference types | `Instr_ok/select-impl`: existential `t'` with `t' = numtype ∨ vectype` | G5 | M6 |
-| GC | `Instr_ok/array.new_data`, `array.init_data` (same shape) | G5 | M6 |
-| GC | `Heaptype_sub/rec-sub`: index bound only by `j < \|l\|` and used in the conclusion (`Deftype_sub/super` solved by the `:check`-mode search) | G8 | M5 |
 | GC | `Heaptype_sub/trans`: existential intermediate (dropped under `:check`) | triage | M5 |
 | GC | `Step_read/array.new_data-num`: `c*` under `$concatn_($zbytes_(zt, c)^n)` | nested inverse (S1) | M3 |
 | GC / bulk memory | builtins `$zbytes_ $cbytes_ $inv_zbytes_ $inv_cbytes_ $inv_concatn_` | S7 | M1 |

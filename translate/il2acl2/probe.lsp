@@ -277,6 +277,7 @@
                                (cons :rel-overrides (rel-override-alist (config-entries config :rel-override)))
                                (cons :memo (memo-rels (config-entries config :memoize)))
                                (cons :declared-modes (declared-mode-pairs (config-entries config :modes)))
+                               (cons :typ-defs (typ-defs forms))
                                (cons :gram-defs (gram-defs forms)))))
                 (mv-let (events builtins skipped cx) (time$ (cforms forms cx))
                   (let* ((stubs (reverse (cx-get :stubs cx)))
