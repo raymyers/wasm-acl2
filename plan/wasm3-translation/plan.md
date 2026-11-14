@@ -157,14 +157,16 @@ recorded as N/M.
 
 ### M5: Type validation and subtyping (mode table)
 - [ ] Mode table design (Fable): inference per relation, any output
-      positions (generalizes `:fun2`), existentials (G5, G8)
+      positions (generalizes `:fun2`), existentials beyond the `:check`-mode
+      searches the prep added (G5, G8: index and finite-type searches)
 - [ ] Triage `Heaptype_sub/trans` (admissible? then drop with the argument written)
 
 **Exit**: the 19-relation type group has no dropped rule, or each dropped
 rule has a written completeness argument.
 
 ### M6: Instruction typing
-- [ ] G5 rules; local-initialization tracking; subsumption (`Instrtype_sub`)
+- [ ] Certify and test instruction typing (all 110 `Instr_ok` rules translate
+      since the prep, G5 included); local-initialization tracking; subsumption (`Instrtype_sub`)
 
 **Exit**: 110 of 110 `Instr_ok` rules; spec-test-3 `assert_invalid` N/M.
 
