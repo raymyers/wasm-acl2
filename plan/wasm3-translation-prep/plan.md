@@ -1,0 +1,332 @@
+# WASM 3.0 Translation: Prep
+
+> **Goal of this plan**: do the groundwork that lets us write
+> `plan/wasm3-translation/plan.md` with measured numbers, known blockers, and
+> decided scope, and lets that plan start from a pipeline that already
+> handles a second spec version. This plan does **not** translate WASM 3.0.
+>
+> **Deliverable**: `plan/wasm3-translation/plan.md` (written in P7), plus the
+> translator and plumbing changes in P0-P6 that it depends on.
+>
+> **Starting point**: [plan/wasm1-translation/plan.md](../wasm1-translation/plan.md).
+> T0-T6 are done; T7 (spec-test-1 driver), T8 (split-strategy proof) and T9
+> (float equivalence, false as stated) are partial.
+>
+> **Source of truth**: `specification/wasm-3.0/*.spectec` at the SpecTec rev
+> already pinned in `flake.nix` (`WebAssembly/spec@943c5df`). The same
+> checkout also holds `wasm-2.0` and `wasm-latest`.
+
+---
+
+## 1. Probe (2026-11-14): what happens today
+
+Everything in §2-§4 comes from running the existing pipeline, unmodified, on
+the 2.0 and 3.0 sources. Reproduction is in §8.
+
+### 1.1 Size
+
+| | WASM 1.0 | WASM 2.0 | WASM 3.0 |
+|---|---|---|---|
+| `.spectec` files / lines | 10 / 2,353 | 4,175 lines | 39 / 9,353 |
+| IL (`--ast --all-passes`) lines / bytes | 13,309 / 315 KB | 34,341 / 798 KB | 66,179 / 1.57 MB |
+| Top-level IL forms | 318 | 470 | 974 |
+| `typ` / `def` / `rel` / `gram` (rec members counted) | 90 / 132 / 36 / 61 | 145 / 214 / 41 / 71 | 208 / 462 / 125 / 232 |
+| Rules | 137 | 265 | 567 |
+| `Step_pure` / `Step_read` / `Step` rules | 29 / 13 / 13 | | 79 / 103 / 36 |
+| `Instr_ok` rules | 31 | | 110 |
+| Clause-less defs (builtins) | 45 | (63 `hint(builtin)`) | 93 (88 `hint(builtin)`) |
+| `hint(inverse)` in source | 4 | 12 | 16 |
+| Defs taking `def` (function) parameters | 0 | | 16 |
+| Defs taking type parameters | 4 | | 17 |
+| Largest `rec` group | 2 relations | | 19 relations |
+| Grammars: binary `B*` / text `T*` | 61 / 0 | 71 / 0 | 90 / 142 |
+| Official test suite (`spectec/test-interpreter`) | spec-test-1: 75 files | spec-test-2 | spec-test-3: 259 `.wast` |
+
+### 1.2 Pipeline result per stage
+
+| Stage | 2.0 | 3.0 |
+|---|---|---|
+| Stock `spectec --ast --all-passes` | ✅ | ✅ (all 39 files; also works with the `X.*`, `6.*`, `7.*` files left out) |
+| ACL2 reader on the IL | ✅ | ✅ (strings now contain `\"` and `\\`; both read correctly) |
+| T1 schema check (`il-check`) | ✅ 0 errors | ❌ 3 errors, all in `Tchar` (see §2) |
+| Mangling | ✅ injective, 19 renames | ✅ injective, 27 renames, no tag collisions |
+| New IL node kinds vs 1.0 | none | `alt` and `text` terminals (grammars), `equiv`, `list1` |
+| Translator phase 1 (compile), 1.0 config minus the `Module_ok` override and the `Bmodule` patch | 631 events, **10 stubs** | **crashes** (control stack exhausted) on one form. With that form skipped: 1,268 events, **110 stubs**, 1,079 logged errors, 0.5 s |
+| Phase 2, certification, any test | not run | not run |
+
+"0 stubs" for a form means only that the compiler accepted it. Nothing from
+2.0 or 3.0 has been certified or executed.
+
+2.0 stubs: `Step`, `Step_read`, `Step_pure`, `Module_ok`, `Instrs_ok`,
+`Instr_ok`, `$vrelop_`, `$vextunop__`, `$vextbinop__`, `GRAM/Binstr`.
+
+3.0 stubs, by cluster (41 outside the text format + 69 text grammars):
+
+| Cluster | Stubs | Count |
+|---|---|---|
+| Reduction | `Step_pure`, `Step_read`, `Step` | 3 |
+| Instruction and module typing | `Instr_ok`, `Instrs_ok`, `Module_ok` | 3 |
+| Type validation (one 19-relation `rec` group) | `Heaptype_ok`, `Valtype_ok`, `Typeuse_ok`, `Resulttype_ok`, `Storagetype_ok`, `Comptype_ok`, `Subtype_ok2`, `Rectype_ok2`, `Deftype_ok` | 9 |
+| Subtyping | `Valtype_sub`, `Heaptype_sub`, `Deftype_sub`, `Comptype_sub` | 4 |
+| Numerics (mostly SIMD) | `$vunop_`, `$vbinop_`, `$vternop_`, `$vrelop_`, `$vshiftop_`, `$vswizzlop_`, `$vextunop__`, `$vextbinop__`, `$fvrelop_`, `$ivbitmaskop_`, `$ivadd_pairwise_`, `$ivdot_`, `$ivdot_sat_`, `$utf8single` | 14 |
+| Instantiation | `$evalexprs`, `$evalglobals` | 2 |
+| Soundness appendix (`7.*`) | `Context_ok`, `Moduleinst_ok`, `ImmutReachable`, `Store_ok`, `Extend_store` | 5 |
+| Notation (`X.*`) | `NotationTypingScheme` (+ the crash) | 1 |
+| Text format (`6.*`) | 69 of the 142 `T*` grammars | 69 |
+
+The binary grammar (`5.*`, 90 grammars) compiles with no stubs.
+
+---
+
+## 2. Gap analysis: SpecTec formalism
+
+What the translator supports today versus what the 3.0 IL uses. "Sites" are
+counts from the 3.0 error log; a stubbed form logs every failing rule, so
+counts overstate the number of distinct problems.
+
+### 2.1 Hard gaps (construct not supported at all)
+
+| # | Construct | 3.0 use | Today | Needed |
+|---|---|---|---|---|
+| G1 | **Function-valued arguments** (`(def "f")` as a call argument; `def` parameters) | 16 defs take them (`$ivunop_`, `$fvbinop_`, `$ivrelopsx_`, ...), 53 call sites in 8 SIMD dispatchers | `cargs` rejects: "higher-order argument" | Specialize the callee per function argument (all 53 sites pass a constant name), or pass a tag and dispatch. Specialization keeps everything first-order and logic-mode |
+| G2 | **Relation premises with several outputs** | `Eval_expr: z; expr ~>* z'; val*` (store and values both produced) in `$evalexprs`, `$evalglobals` | `:fun` mode fixes "last component = output" | Per-relation mode declarations with any set of output positions (see W1) |
+| G3 | **Iterated premise with a counter and no list domain** (`(if ...)^(i<n)`, `(R ...)^(a<\|s.TAGS\|)`) | 34 sites: `Extend_store` 30, `Store_ok` 3, one `Step_read` array rule | "premise" | Bounded-quantifier loop over `0..n-1`, as `citer` already does for expressions |
+| G4 | **Iterated premise where every domain is an output of a non-relation premise** (`(if $ibytes_(K, j) = ...)^(k<M)` binding `j*`) | one `Step_read` vector-load rule | "iterated premise without inputs" | Extend the existing output-list machinery from `rule` premises to `if` premises |
+| G5 | **Disjunction whose branches bind a variable differently** | 3 sites in `Instr_ok` (`t' = numtype \/ t' = vectype`, `select`) | "disjuncts bind different variables" | Treat as a membership test after `t'` is bound, or enumerate branches |
+| G6 | **Text grammar**: `text` terminals, character-code literals above `0xFF`, `alt` | 736 sites, 67 grammars | "grammar symbol"; the schema also rejects `(num 0xD7FF)` because `hexbyte-p` wants exactly two digits | Only if the text format is in scope (D3). The schema fix is needed regardless, or the `6.*` files must be left out |
+| G7 | **Relation with zero rules and an empty tuple** (`NotationTypingPremisedots`) | 1 (in `X.2`) | Translator **crashes** with stack exhaustion | Exclude `X.*` from the input, and make the compiler fail cleanly on this shape |
+
+### 2.2 Soft gaps (supported in 1.0, but the mechanism does not stretch)
+
+| # | Area | What 3.0 does | Why today's mechanism falls short |
+|---|---|---|---|
+| S1 | **Inverse functions** | 16 `hint(inverse)` pairs; `Step_read` load rules solve `$nbytes_(nt, c) = bytes`, `$vbytes_`, `$zbytes_`, `$concatn_`, and SIMD rules solve `N = $jsize(Jnn)` for `Jnn` and `$ibits_(32, c) = ...` for `c` | `--ast` drops hints, so pairs are copied by hand into the config (5 today). Two inverses are also *used directly* in the spec (`$inv_lanes_`, `$inv_concat_`) and are builtins. Inverses of non-builtins (`$isize`, `$jsize`: finite functions) must be generated, not hand-written |
+| S2 | **Mode inference for relations** | 125 relations; many `... : OK` judgements with extra index arguments (`C \|- subtype : OK(x, i)`), existential intermediates (`Heaptype_sub/trans`), premises that look up `C.TYPES[typeidx]` with the index bound late | See W1. Root causes inside the type-validation and subtyping groups are **not yet isolated**: the log reports the `:fun` attempt's errors even when the real failure was in `:check` or `:multi` |
+| S3 | **Instruction typing** | 110 rules. New stack-polymorphic rules (`return_call*`, `throw`, `throw_ref`), subsumption through `Instrtype_sub`, local-initialization tracking in the instruction type (`t_1* ->_(x*) t_2*`) | The `R` / `R/SPLIT` multi-mode trick assumed the last component splits as `c(a, b)`. With the `x*` component and subtyping it needs re-validation. In the probe's attempt 14 `Instr_ok` rules were dropped from the split variant, including non-polymorphic ones (`array.new_data`, `extern.convert_any`) |
+| S4 | **`Module_ok`** | Different shape from 1.0: tags, recursive types, staged contexts `C'`, `Globals_ok`/`Types_ok` as separate relations | The 75-line hand-written `:rel-override` is 1.0-specific and must be redone. Since 3.0 sequentializes more, check first whether generic modes now cover it |
+| S5 | **Equations defining a result arithmetically** | `$utf8single` (the 1.0 `$utf8` problem, renamed) | Config `:def` override + hand-written inverse. Carry over |
+| S6 | **Nondeterminism** | `$ND`, `$relaxed2/4`, ten `$R_*` parameters (relaxed SIMD); float ops; `memory.grow`/`table.grow` | 1.0 policy was "first applicable rule; one float result; canonical NaN". 3.0 makes the choice points explicit builtins, so the policy must be a stated decision (D4) |
+| S7 | **Builtins** | 93 clause-less defs. About 30 new numeric ones: `trunc_sat__`, `narrow__`, `iavgr_`, `iq15mulr_sat_`, `ibitselect_`, `fpmin_/fpmax_`, `frelaxed_*`, `lanes_`/`inv_lanes_`, `ibits_`/`fbits_`, `vbytes_`/`zbytes_`/`cbytes_`, `ceilz`, `s33_to_u32`, ... | Hand-written in `rt/builtins.lisp` (319 lines for 45). Several clause-less defs are **not** numeric builtins: `hostcall`, `allocX`, `dots`, `instrdots`, `ieee_`, `ND`, `R_*`. "Clause-less = builtin" no longer classifies them; each needs an explicit category |
+| S8 | **Type families and type parameters** | 17 defs with type parameters (`$concat_(syntax X, ...)`, `$relaxed2`, `$disjoint_`); families indexed by other families (`lane_($lanetype(shape))`) | Type arguments are dropped and type parameters are unchecked in recognizers. Sound for execution, but recognizers for such types are vacuous, which matters for guards and for any typed theorem |
+| S9 | **Subtype patterns** (`sub t1 t2 e` in pattern position) | 1,314 `sub` nodes vs 260; deeper hierarchies (`ref <: val`, `addrref <: ref`, `typeuse <: heaptype`, `deftype <: typeuse`) | Compiled to a recognizer call on the scrutinee: cost grows with type depth, and it relies on recognizers being exact (see S8) |
+| S10 | **`||G||` (byte length of a match)** | Still written `len = \|\|BX\|\|` in the source (2 sites); the 3.0 IL was not re-checked | Config `:sized`, keyed by grammar and variable name. Carry over after checking the IL and the names |
+
+### 2.3 Things that turn out not to be gaps
+
+- No new expression, type, path or premise node kinds in the core (`0.*`-`5.*`).
+- `real` literals: none. `else`, `let`, `cvt`, `ext`, `upd`, `slice`, `comp`,
+  `mem`, `lift`, `unopt`: all present in 3.0 and already handled.
+- The 1.0 `Bmodule` version bug is fixed in the 3.0 source (`Bversion` is four
+  literal bytes), so that `:il-patch` goes away.
+- No variant mixes an atom-free case with other cases, so newtype elision
+  stays unambiguous.
+- Translator speed is not an issue (0.5 s for the whole 3.0 IL).
+
+---
+
+## 3. Gap analysis: plumbing
+
+Weaknesses in how the pipeline is built, independent of any single construct.
+
+| # | Weakness | Evidence | Consequence for 3.0 |
+|---|---|---|---|
+| W1 | **Modes are guessed, three shots per `rec` group** (`:fun` = last component is the output, then `:check` for members that failed, then `:multi` for the whole group). There is no per-relation mode table and no way to state a mode | `crel-form-1` | In the 19-relation type group one unresolvable member stubs every member that failed the `:fun` shot, which is every `: OK` judgement. No relation can have two outputs (G2) |
+| W2 | **Stub granularity is the whole relation** (or `rec` member) | 3 `Step*` stubs for roughly 10 failing rules out of 218 | Cannot report "N of M rules translated", cannot run a partial semantics, cannot bring up features one proposal at a time |
+| W3 | **Misleading diagnostics**: after all modes fail, the log holds the `:fun` attempt's errors; errors carry the function name but not the rule id | The 3.0 log blames `Valtype_ok` for "unbound variable numtype", a `:fun`-mode artifact | Root-causing S2 from the log is guesswork. This is the first thing to fix |
+| W4 | **Single-spec hard-coding**: `il/wasm-1.0.il.sexp`, `gen/wasm1.lisp`, package `W1T`, flake outputs `wasm1-il` / `wasm1-spec-tests`, header text, the count `318` in `t1-il` | `run.lsp`, `emit.lisp`, `Makefile`, `flake.nix` | No second target without copying the tree. The spec file list is a glob over one directory, with no way to leave out `X.*`, `6.*`, `7.*` |
+| W5 | **Config references are unchecked and version-specific** | Running with the 1.0 config on 3.0 raised no complaint, although `$utf8`, the `Module_ok` override and the patch target do not apply | A stale or misspelled entry silently does nothing. Entries must fail when their target is missing, and config must be per spec version |
+| W6 | **Hints are lost at the hand-off** (`backend-ast/print.ml` ignores `HintD` and case/field hints) | `hint(inverse)`, `hint(builtin)`, `hint(partial)` | Hand-copied inverse table (5 → 16+ pairs), and no way to tell `hint(builtin)` from "declared, defined nowhere" (S7) |
+| W7 | **One generated book** for everything | `gen/wasm1.lisp`: 37 K lines, 473 events; the 3.0 probe produced 1,268 | Any change recertifies everything; no parallelism; one failure hides the rest. Needs a split along IL order (syntax / numerics / typing / execution / binary) |
+| W8 | **`%try-logic` hides regressions**: an event that stops being admitted in logic mode silently becomes `:program` | Counts are recorded by hand in the plan | Need a generated, checked-in mode manifest (logic / guard-verified / program per function) that `check-gen` diffs |
+| W9 | **Untyped runtime is slow and unsafe at the edges**: memory is a byte list (each step O(memory)), records are alists, `nth` out of range returns `nil`, `:program` code can crash SBCL on ill-formed input | T5: slowest vector 8 s for 40 loop iterations; fuel 10^6 | spec-test-3 has 259 scripts, with GC heaps, 64-bit memories and SIMD loops. Needs a measured baseline and a plan before committing to a pass-rate target |
+| W10 | **Conformance driver is unfinished and 1.0-shaped** | T7 is open; `tests/spec/` and `gen-spec-tests.mjs` are uncommitted; the driver disables every post-1.0 feature in `wast2json` and skips scripts using old NaN assertion syntax | 3.0 needs the driver before anything else can be validated at scale, with multi-value, reference values, `v128`, exceptions and GC values in assertions |
+| W11 | **Oracle coverage is 1.0-only** | 8,015 numeric vectors, 515 invoke vectors, 13 modules | No oracle for the ~50 new builtins. Node/V8 can produce SIMD and saturating-conversion vectors the same way |
+| W12 | **Determinism is checked only locally** | No CI workflow in the repo; `nix flake check` covers the IL but not `check-gen` | Add `check-gen` as a flake check per target |
+| W13 | **Open 1.0 obligations that 3.0 inherits** | T8: completeness of the `ctxt-instrs` `:redex` split is unproved; the typing clique (25 functions) is still `:program`; multi-mode typing is incomplete for mid-sequence dead code | 3.0 adds a second evaluation context (`Step/ctxt-handler`) and triples the typing clique. Decide which of these block 3.0 and which are carried |
+
+---
+
+## 4. Decisions needed before the wasm3 plan is written
+
+Recommendations are first. Each one changes the size of the wasm3 plan.
+
+| # | Decision | Recommendation | Alternative |
+|---|---|---|---|
+| D1 | **Is 2.0 a stepping stone?** | Yes, as a prep gate only (P4). It passes the schema today, has 10 stubs, and exercises G1, S1 and SIMD without GC types or exceptions | Go straight to 3.0 |
+| D2 | **One tree or one per version?** | One translator, one `rt/`, per-version `il/`, `config/`, `gen/` and package (`W1T`, `W3T`). 1.0 stays as the regression target | Fork `translate/` to `translate3/` |
+| D3 | **Scope of 3.0 files** | In: `0.*`-`5.*` (syntax, validation, numerics, execution, binary). Out: `X.*` (notation). Deferred, each as its own milestone: `6.*` text format (a generated `.wat` parser), `7.*` soundness judgements (valuable later as the statement of type soundness) | Everything |
+| D4 | **Nondeterminism policy** | Deterministic profile: `$ND` false, `$R_*` fixed to the values V8 uses, canonical NaN, growth succeeds when within limits. Each choice is a named builtin, listed in the generated header | Set-valued semantics |
+| D5 | **How to get hints** | Small upstream-able patch to `backend-ast/print.ml` that prints hint definitions, applied in the flake (W6). Keeps "no fork" in spirit: a 20-line patch file against a pinned rev | Keep copying hints into config |
+| D6 | **Validation target for 3.0** | Execution first (decode → instantiate without `Module_ok` as a test-only path → invoke), typing second. In 1.0 typing was the hardest part and 3.0 typing is 3x larger with subtyping | Typing and execution together |
+
+---
+
+## 5. Milestones
+
+Each milestone ends with 1.0 still passing `make -C translate check`
+byte-identically, unless the milestone says the output changes.
+
+### P0: Probe as a tool
+- [ ] `make -C translate probe SPEC=3.0`: builds the IL into a scratch
+      directory and prints the §1.2 table (schema errors, mangle report,
+      events, stubs by cluster, error kinds). No files under `gen/` change
+- [ ] Fix G7 so the probe needs no skip list: zero-rule relations compile to a
+      clean error, never a crash
+- [ ] Schema: accept grammar character codes wider than one byte (G6, schema
+      part only)
+
+**Exit**: the probe reproduces the §1 numbers for 1.0, 2.0 and 3.0 in one command each.
+
+### P1: Diagnostics and granularity (W2, W3)
+- [ ] Every logged error carries relation, rule id and attempted mode
+- [ ] On total failure, report the errors of the attempt that got furthest
+      (fewest failing rules), not always `:fun`
+- [ ] Per-rule stubs: a rule that does not compile is dropped and listed; the
+      relation is still emitted. The generated header and the probe report
+      "rules translated / rules total" per relation
+- [ ] Re-run the probe and replace the S2 row with real root causes for the
+      type-validation and subtyping groups
+
+**Exit**: a per-rule gap list for 3.0 exists, each entry with a rule id and
+one cause. 1.0 output is unchanged (it has no dropped rules outside the known
+split-variant list).
+
+### P2: Multi-spec plumbing (W4, W5, W7, W8, W12)
+- [ ] Spec target as a parameter: `SPEC=1.0|2.0|3.0` selects the source file
+      list (with excludes), `il/wasm-<v>.il.sexp`, `config/wasm-<v>.lsp`,
+      `gen/wasm<v>/`, and the package name. Flake outputs become
+      `wasm-il.<v>`; `SPECTEC_REV` records the file list
+- [ ] Config entries are validated: an entry whose def, relation, rule or
+      grammar does not exist in the IL is a hard error
+- [ ] Generated output split into several books in IL order, with a generated
+      `top.lisp`
+- [ ] Generated mode manifest (`gen/.../modes.lsp`: logic / guards / program
+      per function, stubs, dropped rules), checked in and compared by `check-gen`
+- [ ] `check-gen` per target as a flake check
+
+**Exit**: 1.0 regenerates through the parameterized pipeline. Its generated
+definitions are unchanged apart from file boundaries, and all 1.0 tests pass.
+
+### P3: Hints at the hand-off (W6, S1, S7, D5)
+- [ ] Patch `backend-ast/print.ml` to emit hint definitions; schema and reader accept them
+- [ ] `:inverse` config entries are replaced by pairs read from the IL
+- [ ] Builtin classification from `hint(builtin)`: numeric builtin (must be in
+      `rt/`), choice parameter (D4), host hook (`hostcall`), notation
+      (ignored). A clause-less def in no category is a hard error
+- [ ] Generated inverses for finite functions (`$isize`, `$jsize`, `$fsize`, `$jsizenn`)
+
+**Exit**: the 1.0 config loses its `:inverse` entry and the generated 1.0
+code is unchanged. The 3.0 probe shows no "pattern" errors caused by a
+missing inverse pair.
+
+### P4: Generic translator gaps, gated on 2.0 (G1-G5, D1)
+- [ ] G1 function arguments by specialization
+- [ ] W1/G2: explicit mode table per relation (input and output positions),
+      inferred where the current heuristic works, overridable by a counted
+      config entry; modes solved per relation, not per attempt per group
+- [ ] G3, G4 iterated premises; G5 disjunctions
+- [ ] 2.0 as a full target: builtins for SIMD, saturating truncation and sign
+      extension in `rt/`; Node/V8 numeric vectors for them (W11)
+
+**Exit**: 2.0 translates with stubs limited to `Module_ok` (pending its
+override) or fewer, certifies, and passes the 2.0 numeric vectors. The 3.0
+probe is re-run and its stub and dropped-rule counts recorded.
+
+### P5: Conformance driver (W10)
+- [ ] Finish wasm1 T7: commit the driver, record N/M for spec-test-1
+- [ ] Parameterize it by spec version and feature flags; assertion values for
+      multi-value, references and `v128`
+- [ ] Dry run on spec-test-3: how many scripts `wast2json` converts, how many
+      modules the generated 3.0 binary parser accepts (the parser already
+      compiles; this is its first real test)
+
+**Exit**: spec-test-1 result recorded; a decode-only pass rate for spec-test-3 recorded.
+
+### P6: Runtime baseline (W9)
+- [ ] Measure steps per second and the cost per memory access on the 1.0
+      corpus; profile one spec-test-1 script that is slow
+- [ ] Decide and write down the 3.0 approach: keep the byte-list encoding
+      (spec-faithful) with an execution-only fast path proved or tested
+      equal, or accept a time budget and a skip list
+- [ ] List the places where `:program`-mode code can crash on ill-formed
+      input, and whether guards or a well-formedness check in the driver covers them
+
+**Exit**: a time estimate for running spec-test-3, with the measurements behind it.
+
+### P7: Write `plan/wasm3-translation/plan.md`
+- [ ] Record D1-D6 as decided
+- [ ] Refreshed probe table, and the per-rule gap list from P1/P4 as the work
+      list, grouped by proposal (SIMD, bulk memory, reference types, tail
+      calls, exceptions, GC, memory64, multi-memory, relaxed SIMD)
+- [ ] Translation-scheme delta against wasm1 §2: modes, function arguments,
+      nondeterminism policy, typed recognizers, package and layout
+- [ ] Milestones with exit criteria in the wasm1 style, in the D6 order:
+      syntax, numerics and builtins, binary decode, execution, instantiation,
+      type validation and subtyping, instruction typing, `Module_ok`,
+      conformance, logic mode and proofs. Deferred: text format, soundness judgements
+- [ ] Builtin inventory with an oracle source for each
+- [ ] Config budget: expected counted overrides, each tied to a gap in §2
+- [ ] Risks, with the go/no-go points (instruction typing with subtyping is
+      the likely one; Strategy B from wasm1 §1 remains the fallback for `Step`)
+
+**Exit**: the wasm3 plan exists, and every number in it comes from the probe
+or a test run.
+
+### Order and dependencies
+
+```
+P0 ─▶ P1 ─▶ P4 ─▶ P7
+ └──▶ P2 ─▶ P3 ─┘
+P5, P6 need only P2 and can run alongside P3/P4.
+```
+
+---
+
+## 6. What the wasm3 plan can already assume
+
+- Stock SpecTec at the pinned rev elaborates 3.0; the `--ast` hand-off holds.
+- The IL core vocabulary is unchanged; the reader, mangler and (after P0) the
+  schema need no redesign.
+- Syntax recognizers, plain defs and the binary grammar are close: no stubs
+  among the 208 types or the 90 binary grammars, and 16 stubs among 462 defs.
+- Execution is closer than typing: about 10 of 218 reduction rules fail, from
+  S1, G3 or G4.
+- Typing is the open question: 16 of the 41 non-text stubs are type
+  validation, subtyping or instruction typing, and their causes are not yet
+  isolated (P1).
+
+---
+
+## 7. Risks to the prep itself
+
+| Risk | Mitigation |
+|---|---|
+| P4's mode table turns into a redesign of the relation compiler | Keep the three existing strategies as the inference fallback; the table only adds declared modes and multiple outputs. 1.0 byte-identity is the guard |
+| Per-rule stubs (P1) change 1.0 output | They must not: 1.0 has no failing rules. Any diff is a bug |
+| The hint patch (P3) does not apply cleanly at a later SpecTec rev | It touches one printer file; offer it upstream. The fallback is today's config table |
+| 2.0 gate (P4) costs more than it saves | Time-box it: if 2.0 is not certified after G1-G5 land, record its probe numbers and move on |
+| Prep grows into doing 3.0 | P7's exit is a document. Anything 3.0-specific beyond the probe (GC builtins, the new `Module_ok`) belongs in the wasm3 plan |
+
+---
+
+## 8. Reproducing the probe
+
+Run from `translate/` inside `nix develop ..`.
+
+```bash
+S=$(nix build ..#spectec --no-link --print-out-paths)/bin/spectec
+SRC=$(nix eval --raw --impure --expr \
+  '(builtins.getFlake (toString ./..)).inputs.wasm-spec.outPath')
+$S --ast --all-passes $SRC/specification/wasm-3.0/*.spectec > /tmp/wasm-3.0.il.sexp
+```
+
+Schema and mangling: in ACL2, `(ld "package.lsp")`,
+`(include-book "il2acl2/top")`, then call `check-il-forms` and `mangle-table`
+on the forms from `read-il-file` (`il-check` stops at the first failure, so
+call the parts directly).
+
+Translator: `(include-book "il2acl2/emit")`, build the context as
+`gen-phase1` does but with the `:rel-override` and `:il-patch` entries
+removed from the config, and call `cform` on each top-level form in order,
+skipping `NotationTypingPremisedots`. Then read `:stubs`, `:errs` and
+`:incomplete` from the context. P0 turns this into `make probe`.
