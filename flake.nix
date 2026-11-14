@@ -292,8 +292,39 @@
             ${spectec}/bin/spectec --ast --all-passes $src/*.spectec > b.sexp
             cmp a.sexp b.sexp
             cmp a.sexp ${./translate/il/wasm-1.0.il.sexp}
+            sh ${./translate/il2acl2/spec-decls.sh} $src/*.spectec > decls.lsp
+            cmp decls.lsp ${./translate/il/wasm-1.0.decls.lsp}
             touch $out
           '';
+
+        # Determinism of the IL -> ACL2 step (wasm3 prep P2, W12): two fresh
+        # translator runs agree with the checked-in translate/gen/wasm-<v>/
+        # (`make -C translate check-gen SPEC=<v>`). Only 1.0 is checked in.
+        translate-gen-wasm1 =
+          let
+            acl2 = self.packages.${pkgs.stdenv.hostPlatform.system}.acl2;
+          in
+          pkgs.runCommand "translate-gen-wasm1-check"
+            {
+              nativeBuildInputs = [
+                acl2
+                pkgs.perl
+                pkgs.which
+                pkgs.hostname
+                pkgs.gnumake
+              ];
+            }
+            ''
+              export HOME=$TMPDIR/home
+              mkdir -p $HOME
+              export USER=nobody
+              export ACL2_SYSTEM_BOOKS=${acl2}/share/acl2/books
+              cp -R ${./translate} translate
+              chmod -R u+w translate
+              make -C translate check-gen SPEC=1.0 \
+                ACL2=${acl2}/bin/acl2 CERT=${acl2}/share/acl2/books/build/cert.pl
+              touch $out
+            '';
       });
 
       devShells = forAllSystems (pkgs: {

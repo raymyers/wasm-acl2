@@ -24,10 +24,12 @@ Update this block at the end of every session, in the same commit as the work.
 A new session starts here.
 
 - **Last updated**: 2026-11-14
-- **Milestones**: P0 ✅, P1 ✅. P2 in progress: items 1 (SPEC parameter,
-  per-version layout), 2 (config validation), 3 (one book per source
-  file), 4 (mode manifest) done; item 5 open. P3-P7 not started
-- **Next action**: P2 item 5 (`check-gen` as a flake check)
+- **Milestones**: P0 ✅, P1 ✅, P2 ✅ (SPEC parameter and per-version
+  layout, config validation, one book per source file, mode manifest,
+  flake checks). P3-P7 not started
+- **Next action**: P3, first item (patch `backend-ast/print.ml` to emit
+  hints). P5 and P6 can also start (they need only P2). P4 needs the mode
+  table design first (a Fable session, see below)
 - **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
   files in `translate/tests/spec/`, `flake.nix` and the `spec`/`spec-data`
   targets in `translate/Makefile` are uncommitted; P5 picks them up. Their
@@ -36,7 +38,7 @@ A new session starts here.
   Assumed so far, reversible: D2 (layout in P2), D3 (3.0 IL file list in the
   flake). P1 decided (translator-internal): per-rule stubs keep the `:fun`
   interface when it can be saved; modes are P4's
-- **Blocked on**: nothing for P2. Certifying 2.0/3.0 needs a decision on the
+- **Blocked on**: nothing for P3. Certifying 2.0/3.0 needs a decision on the
   runtime's package (`rt/` is in `W1T`), see [P2-layout](notes/P2-layout.md); ask
   the user together with D2
 - **Next Fable session needed for**: the typing triage
@@ -265,7 +267,7 @@ from §2, proposal) and `notes/P1-typing-root-causes.md`.
 and one cause (14 rules in the best attempt, D3 scope, plus 16 defs). 1.0
 output is unchanged: `make check` passes, `gen/` byte-identical.
 
-### P2: Multi-spec plumbing (W4, W5, W7, W8, W12)
+### P2: Multi-spec plumbing (W4, W5, W7, W8, W12) ✅ (2026-11-14, [P2-layout](notes/P2-layout.md))
 - [x] Spec target as a parameter: `SPEC=1.0|2.0|3.0` selects the source file
       list (with excludes), `il/wasm-<v>.il.sexp`, `config/wasm-<v>.lsp`,
       `gen/wasm<v>/`, and the package name. Flake outputs become
@@ -294,12 +296,16 @@ output is unchanged: `make check` passes, `gen/` byte-identical.
       check`) compares them, and `make modes` rewrites the file; stubs and
       dropped rules stay in the header that `check-gen` compares. 1.0: 503
       functions, 160 guards / 308 logic / 35 program*
-- [ ] `check-gen` per target as a flake check
+- [x] `check-gen` per target as a flake check. *Done 2026-11-14:
+      `checks.<system>.translate-gen-wasm1` (8 s); `translate-il` also
+      compares the decls file. Only 1.0 has a checked-in target*
+
+**Exit** ✅: 1.0 regenerates through the parameterized pipeline; its
+generated definitions are byte-identical apart from file boundaries (10
+parts) and two header lines; `make check` (now with `t0-modes`) and
+`make compare` pass.
 
 **Notes**: `notes/P2-layout.md` (final directory, package and flake naming).
-
-**Exit**: 1.0 regenerates through the parameterized pipeline. Its generated
-definitions are unchanged apart from file boundaries, and all 1.0 tests pass.
 
 ### P3: Hints at the hand-off (W6, S1, S7, D5)
 - [ ] Patch `backend-ast/print.ml` to emit hint definitions; schema and reader accept them

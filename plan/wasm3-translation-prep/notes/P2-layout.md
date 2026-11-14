@@ -1,9 +1,9 @@
 # Multi-spec layout: directories, packages, flake outputs
 
-- Milestone: P2 (item 1: spec target as a parameter; item 2: config validation)
+- Milestone: P2 (all five items: spec parameter, config validation, book split, mode manifest, flake checks)
 - Date: 2026-11-14
 - Repo commit: ec20d63 plus this note's commit
-- Status: draft (items 3-5 of P2 add to it; the `rt/` package question is open)
+- Status: final for P2 (the `rt/` package question stays open, see below)
 - Feeds wasm3 plan: scheme delta (package and layout), decisions (D2)
 - Incorporated in wasm3 plan: no
 
@@ -158,3 +158,14 @@ No measurements beyond the probe comparison (identical to
   `$instantiate`), plus the `/SPLIT` variants of the callers.
 - Only for 1.0: the test books are 1.0's. A 2.0/3.0 manifest needs those
   targets to certify (the `rt/` package question).
+
+## 2026-11-14: item 5, flake checks
+
+- `checks.<system>.translate-gen-wasm1`: copies `translate/` into the
+  sandbox and runs `make check-gen SPEC=1.0` with the flake's ACL2 (two
+  fresh translator runs must equal the checked-in `gen/wasm-1.0/`). 8 s
+  on aarch64-darwin with ACL2 already built. Passes.
+- `checks.<system>.translate-il` now also compares `il/wasm-1.0.decls.lsp`.
+- Per target: only 1.0 has a checked-in output. A `translate-gen-wasm3`
+  check is one copy of the block once 3.0's `gen/` is checked in (P4 or the
+  wasm3 plan).
