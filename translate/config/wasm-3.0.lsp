@@ -34,7 +34,7 @@
   :pairs (("Bsection_" . "len") ("Bcode" . "len"))
   :reason "The source premise `len = ||BX||` (byte length of what BX matched) elaborates to `len = 0` in the IL, which would reject every non-empty section. In these grammars the item after `len` is parsed from exactly `len` bytes instead, and the `len = 0` premise is dropped.")
  (:modes "declared modes"
-  :pairs (("Instr_ok" . :multi) ("Instrs_ok" . :multi)
+  :pairs (("Instr_ok" . :multi) ("Instrs_ok" . :multi) ("Eval_expr" . :fun2)
           ("Heaptype_ok" . :check)
           ("Reftype_ok" . :check)
           ("Valtype_ok" . :check)
@@ -54,6 +54,6 @@
           ("Resulttype_sub" . :check)
           ("Storagetype_sub" . :check)
           ("Fieldtype_sub" . :check))
-  :reason "The mode inference (three attempts per rec group) cannot find these (wasm3 prep P1/P4). Type validation and subtyping (one 19-relation rec group) are judgements C |- x : OK / C |- x <: y whose subjects are inputs: :check (an all-:check assignment is never tried by the inference; :multi would compile Heaptype_sub/trans with a single witness). Instruction typing is :multi, as WASM 1.0 infers it: the check variant keeps the stack-polymorphic rules, the split variant computes output stacks. Replace by the mode table (W1).")
+  :reason "The mode inference (three attempts per rec group) cannot find these (wasm3 prep P1/P4). Type validation and subtyping (one 19-relation rec group) are judgements C |- x : OK / C |- x <: y whose subjects are inputs: :check (an all-:check assignment is never tried by the inference; :multi would compile Heaptype_sub/trans with a single witness). Instruction typing is :multi, as WASM 1.0 infers it: the check variant keeps the stack-polymorphic rules, the split variant computes output stacks. Eval_expr (z; expr ~>* z'; val*) has two outputs, the store and the values: :fun2 (G2). Replace by the mode table (W1).")
 
 )

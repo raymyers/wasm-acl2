@@ -28,7 +28,7 @@ A new session starts here.
   10,848 of 11,606 commands reached pass; spec-test-3 decode 98.3% by
   experiment).
   P6 ✅ (runtime baseline). P4 🔶: G1 (53 specializations), G3, G4, G9 and
-  declared modes done (3.0 D3 scope: 4 stubs, 7 dropped rules);
+  declared modes incl. `:fun2` done (3.0 D3 scope: 2 stubs, 7 dropped rules);
   G5, G8 and the W1/G2 inference wait for the mode table design. P7 not started
 - **Next action**: the mode table design (W1/G2, with G5 and G8): a Fable session;
   the 2.0 gate needs the `rt/` decision. P7 needs P4 and D1-D6
@@ -352,7 +352,8 @@ missing inverse pair. *Met 2026-11-14: the 17 remaining "pattern" errors are S5,
       With the type group `:check` and instruction typing `:multi`, 3.0 (D3
       scope) has 4 stubs and 7 dropped rules (was 8 and 36); 2.0 has 2
       stubs and 1 dropped rule. Inference per relation and several outputs
-      (G2) are the Fable design session*
+      (G2) are the Fable design session. `:fun2` (last two components
+      out) declared for `Eval_expr`: 3.0 D3-scope stubs 4 → 2*
 - [ ] G3, G4 iterated premises; G5 disjunctions. *G3 done 2026-11-14
       (count-only iteration, an aux loop; full 3.0 stubs 83 → 81). G5 is not
       mechanical: `t'` is existential, so it goes with the mode table

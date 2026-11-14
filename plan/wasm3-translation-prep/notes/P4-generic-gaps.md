@@ -170,3 +170,18 @@ only its "overridable by a counted config entry" part:
 - What the mode table still has to do: infer these instead of declaring
   them, allow several outputs (G2), and decide existentials (G5, G8,
   `trans`).
+
+## 2026-11-14: G2 for the last two components (`:fun2`)
+
+- Declared mode `:fun2`: the last two components are outputs; the
+  relation returns `(list (list out1 out2))`; a calling premise binds both
+  with a tuple pattern. `crel-1-body`, `crule`, `rel-stubs` and
+  `crule-premise` handle it; config validation accepts it.
+- 3.0 config declares `("Eval_expr" . :fun2)` (`z; expr ~>* z'; val*`).
+  Generated: `EVAL_EXPR (z expr)` returns `(z' vals)`, and `$evalexprs` /
+  `$evalglobals` destructure it. Effect, D3 scope: stubs 4 → **2**
+  (`Module_ok`, `$utf8single`), errors 68 → 56. Full 3.0: stubs 76 (70 text
+  grammars, 4 in `7.*`/`X.*`, plus the 2).
+- Not general G2: outputs must be the last components, and only two. Any
+  set of output positions is the mode table's (W1) job.
+- 1.0 unchanged; `make check` passes.

@@ -391,8 +391,8 @@
         ((not (tbl-has :rel (car (car ps)) tbl))
          (cons (cfg-err e (concatenate 'string "relation " (car (car ps)) " not in the IL"))
                (check-mode-pairs e (cdr ps) tbl)))
-        ((not (member-eq (cdr (car ps)) '(:fun :check :multi)))
-         (cons (cfg-err e (concatenate 'string "mode of " (car (car ps)) " is not :fun, :check or :multi"))
+        ((not (member-eq (cdr (car ps)) '(:fun :fun2 :check :multi)))
+         (cons (cfg-err e (concatenate 'string "mode of " (car (car ps)) " is not :fun, :fun2, :check or :multi"))
                (check-mode-pairs e (cdr ps) tbl)))
         (t (check-mode-pairs e (cdr ps) tbl))))
 
