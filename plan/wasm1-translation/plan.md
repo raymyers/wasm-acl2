@@ -504,7 +504,11 @@ faithfully:
   after `len` is parsed from exactly `len` bytes.
 
 ### T8: Logic mode, guards, reasoning 🔶 Partial
-- [x] Move generated functions from `:program` to logic mode: **all 462**.
+- [x] Move generated functions from `:program` to logic mode: **all 462** of
+      the execution, numerics, parsers and module functions. With the T6
+      multi-mode typing functions the total is 474: 459 in logic mode, and
+      the 15 of the instruction-typing clique stay `:program` (their split
+      searches inside the multi-mode clique need further measure work).
       Termination comes from generic translator mechanisms (no config
       measures): (1) `mutual-recursion` holds only the functions that really
       recurse (aux functions that never call back are emitted first);
@@ -562,7 +566,7 @@ stuck, and the opening lemmas of the generated fuel loop.
 | Execution rules covered | 170/170 instructions | all 58 reduction rules (Step_pure/read/Step) |
 | Validation | hand-written type checker | generated: all typing relations except `Module_ok`, `Externaddr_ok`; instruction typing via multi-mode (sound, incomplete only for mid-sequence dead code) |
 | Spec rules traceable to ACL2 defs | informal | 1:1 by name (`STEP_PURE/BINOP-VAL` ...) |
-| Logic-mode share | 100% | **462 / 462** functions (incl. parsers); 164 guard-verified |
+| Logic-mode share | 100% | 459 / 474 (all but the instruction-typing clique); 161 guard-verified |
 | Numeric oracle agreement (8015 V8 vectors) | **6975** (all integer ops agree; floats disagree) | **8015** |
 | Effort to absorb a SpecTec update | manual | regenerate + review diff (`make check`) |
 
