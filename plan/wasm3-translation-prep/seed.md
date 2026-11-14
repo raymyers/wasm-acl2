@@ -1,0 +1,1 @@
+Inspect plan/wasm1-translation and create plan/wasm3-translation-prep with a plan to create a plan/wasm3-translation. Prep will have gap analysis in what we support in spectec formalism now vs what's needed to process the wasm3 spec, and any other relevant weaknesses in how our plumbing works today. We are doing the ground work to set the final version up for success.
