@@ -27,11 +27,12 @@ A new session starts here.
 - **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅, P5 ✅ (spec-test-1:
   10,848 of 11,606 commands reached pass; spec-test-3 decode 98.3% by
   experiment).
-  P6 ✅ (runtime baseline). P4 🔶: G1 (53 specializations), G3, G4, G9 and
+  P6 ✅ (runtime baseline). P4 exit ✅: 2.0 certifies with 1 stub and passes
+  8,724 scalar + 528 SIMD vectors; G1, G3, G4, G9 and
   declared modes incl. `:fun2` done (3.0 D3 scope: 2 stubs, 7 dropped rules);
-  G5, G8 and the W1/G2 inference wait for the mode table design. P7 not started
-- **Next action**: the mode table design (W1/G2, with G5 and G8): a Fable session;
-  the 2.0 gate needs the `rt/` decision. P7 needs P4 and D1-D6
+  G5, G8 and the W1/G2 inference still wait for the mode table design. P7 not started
+- **Next action**: P7 (write the wasm3 plan; needs D1-D6). The mode table design (W1/G2, G5, G8) is a Fable session;
+  `make check-2.0` is the 2.0 regression
 - **In progress / uncommitted**: nothing for this plan. The old single-book
   driver `translate/tests/spec/t7-spec.lisp` (untracked, the user's) is
   superseded by `t7-lib.lisp` + `run-all.sh` and was left in place
@@ -361,13 +362,16 @@ missing inverse pair. *Met 2026-11-14: the 17 remaining "pattern" errors are S5,
       (`Step_read` 102/103). G9 (list-pattern order) done: 3.0 reduction
       failures 1 of 218; 2.0 reduction relations complete. G8 goes with
       the mode table*
-- [ ] 2.0 as a full target: builtins for SIMD, saturating truncation and sign
-      extension in `rt/`; Node/V8 numeric vectors for them (W11)
+- [x] 2.0 as a full target: builtins for SIMD, saturating truncation and sign
+      extension in `rt/`; Node/V8 numeric vectors for them (W11).
+      *Done 2026-11-14 ([P4-wasm2-result](notes/P4-wasm2-result.md)): 21
+      builtins added; 2.0 certifies with 1 stub (`Module_ok`); 8,724/8,724
+      scalar and 528/528 SIMD vectors agree with V8; `make check-2.0`*
 
 **Notes**: `notes/P4-mode-table-design.md` (design, alternatives rejected),
 `notes/P4-wasm2-result.md` (2.0 numbers), and an updated `notes/P1-gap-list.md`.
 
-**Exit**: 2.0 translates with stubs limited to `Module_ok` (pending its
+**Exit** ✅ (2026-11-14): 2.0 translates with stubs limited to `Module_ok` (pending its
 override) or fewer, certifies, and passes the 2.0 numeric vectors. The 3.0
 probe is re-run and its stub and dropped-rule counts recorded.
 

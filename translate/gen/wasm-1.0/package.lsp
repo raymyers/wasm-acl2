@@ -6,47 +6,58 @@
 (DEFPKG "W1T"
         (APPEND (SET-DIFFERENCE-EQ *ACL2-EXPORTS* '(LEN STATE-P W))
                 '(WRT::$BYTES_ WRT::$CONVERT__ WRT::$DEMOTE__
-                               WRT::$EXTEND__ WRT::$FABS_
-                               WRT::$FADD_ WRT::$FBYTES_ WRT::$FCEIL_
-                               WRT::$FCOPYSIGN_ WRT::$FDIV_
-                               WRT::$FEQ_ WRT::$FFLOOR_ WRT::$FGE_
-                               WRT::$FGT_ WRT::$FLE_ WRT::$FLT_
-                               WRT::$FMAX_ WRT::$FMIN_ WRT::$FMUL_
-                               WRT::$FNEAREST_ WRT::$FNEG_ WRT::$FNE_
-                               WRT::$FSQRT_ WRT::$FSUB_ WRT::$FTRUNC_
-                               WRT::$IAND_ WRT::$IBYTES_ WRT::$ICLZ_
+                               WRT::$EXTEND__ WRT::$FABS_ WRT::$FADD_
+                               WRT::$FBITS_ WRT::$FBYTES_ WRT::$FCEIL_
+                               WRT::$FCOPYSIGN_ WRT::$FDIV_ WRT::$FEQ_
+                               WRT::$FFLOOR_ WRT::$FGE_ WRT::$FGT_
+                               WRT::$FLE_ WRT::$FLT_ WRT::$FMAX_
+                               WRT::$FMIN_ WRT::$FMUL_ WRT::$FNEAREST_
+                               WRT::$FNEG_ WRT::$FNE_ WRT::$FPMAX_
+                               WRT::$FPMIN_ WRT::$FSQRT_ WRT::$FSUB_
+                               WRT::$FTRUNC_ WRT::$IANDNOT_ WRT::$IAND_
+                               WRT::$IAVGR_ WRT::$IBITSELECT_
+                               WRT::$IBITS_ WRT::$IBYTES_ WRT::$ICLZ_
                                WRT::$ICTZ_ WRT::$INOT_ WRT::$INV_BYTES_
-                               WRT::$INV_FBYTES_ WRT::$INV_IBYTES_
-                               WRT::$INV_UTF8 WRT::$IOR_
-                               WRT::$IPOPCNT_ WRT::$IROTL_ WRT::$IROTR_
-                               WRT::$ISHL_ WRT::$ISHR_ WRT::$IXOR_
-                               WRT::$PROMOTE__ WRT::$REINTERPRET__
-                               WRT::$TRUNCZ WRT::$TRUNC__
-                               WRT::$UTF8 WRT::$WRAP__ WRT::%ABSVAL
-                               WRT::%BITSF WRT::%BOOL WRT::%CANON-NAN
-                               WRT::%COMP WRT::%COMP-FIELDS
-                               WRT::%CONT WRT::%CTZ WRT::%EMAX
-                               WRT::%EMIN WRT::%FBITS WRT::%FCONV
-                               WRT::%FE WRT::%FEQ WRT::%FINT
-                               WRT::%FM WRT::%FNEG WRT::%FUEL
-                               WRT::%GET-FIELD WRT::%GZ-DEFUN
-                               WRT::%GZ-DEFUNS WRT::%GZ-VERSION
-                               WRT::%ILOG2 WRT::%INF-P WRT::%INT-VT-P
+                               WRT::$INV_CONCAT_ WRT::$INV_FBITS_
+                               WRT::$INV_FBYTES_ WRT::$INV_IBITS_
+                               WRT::$INV_IBYTES_ WRT::$INV_LANES_
+                               WRT::$INV_NBYTES_ WRT::$INV_UTF8
+                               WRT::$INV_VBYTES_ WRT::$IOR_
+                               WRT::$IPOPCNT_ WRT::$IQ15MULR_SAT_
+                               WRT::$IREV_ WRT::$IROTL_
+                               WRT::$IROTR_ WRT::$ISHL_ WRT::$ISHR_
+                               WRT::$IXOR_ WRT::$LANES_ WRT::$NARROW__
+                               WRT::$NBYTES_ WRT::$PROMOTE__
+                               WRT::$REINTERPRET__ WRT::$S33_TO_U32
+                               WRT::$TRUNCZ WRT::$TRUNC_SAT__
+                               WRT::$TRUNC__ WRT::$UTF8 WRT::$VBYTES_
+                               WRT::$WRAP__ WRT::%ABSVAL WRT::%BITS-INT
+                               WRT::%BITS-MSB WRT::%BITSF
+                               WRT::%BOOL WRT::%CANON-NAN WRT::%COMP
+                               WRT::%COMP-FIELDS WRT::%CONT WRT::%CTZ
+                               WRT::%EMAX WRT::%EMIN WRT::%FBITS
+                               WRT::%FCONV WRT::%FE WRT::%FEQ
+                               WRT::%FINT WRT::%FLOAT-LT-P WRT::%FM
+                               WRT::%FNEG WRT::%FUEL WRT::%GET-FIELD
+                               WRT::%GZ-DEFUN WRT::%GZ-DEFUNS
+                               WRT::%GZ-VERSION WRT::%ILOG2 WRT::%INF-P
+                               WRT::%INT-NT-P WRT::%INT-VT-P
                                WRT::%ISQRT WRT::%ISQRT-ITER
-                               WRT::%KIND WRT::%LE-BYTES WRT::%LE-INT
+                               WRT::%KIND WRT::%LANE-SIZE
+                               WRT::%LANES WRT::%LE-BYTES WRT::%LE-INT
                                WRT::%LOGIC-DEFUN WRT::%LOGIC-DEFUNS
-                               WRT::%LOGIC-VERSION WRT::%LT
-                               WRT::%MAG WRT::%MEASURE-ALTS WRT::%MK
-                               WRT::%NAN-P WRT::%NEG-P WRT::%OM
+                               WRT::%LOGIC-VERSION WRT::%LT WRT::%MAG
+                               WRT::%MEASURE-ALTS WRT::%MK WRT::%NAN-P
+                               WRT::%NEG-P WRT::%NUM-SIZE WRT::%OM
                                WRT::%OM-O-P WRT::%OM-O< WRT::%OM3
                                WRT::%OM3-O-P WRT::%OM3-O< WRT::%POW2
                                WRT::%PROGRAM-DEFUN WRT::%PROGRAM-DEFUNS
                                WRT::%PROGRAM-VERSION
                                WRT::%PUT-FIELD WRT::%REC-P WRT::%ROUND
-                               WRT::%ROUND-EVEN WRT::%ROUND-MAG
-                               WRT::%S WRT::%SIZE WRT::%SX-SIGNED-P
-                               WRT::%TRY-GUARDS WRT::%TRY-LOGIC
-                               WRT::%U WRT::%UTF8-CHAR WRT::%VAL
+                               WRT::%ROUND-EVEN WRT::%ROUND-MAG WRT::%S
+                               WRT::%SAT WRT::%SIZE WRT::%SX-SIGNED-P
+                               WRT::%TRY-GUARDS WRT::%TRY-LOGIC WRT::%U
+                               WRT::%UNLANES WRT::%UTF8-CHAR WRT::%VAL
                                WRT::%VT-SIZE WRT::%ZERO WRT::%ZERO-P)))
 
 

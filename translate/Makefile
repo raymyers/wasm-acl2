@@ -21,7 +21,8 @@
 #   make spec        T7 report: run spec-test-1 on the generated semantics (slow)
 #   make probe SPEC=3.0  probe table for one spec version (plan/wasm3-translation-prep P0)
 #   make modes       rewrite gen/wasm-1.0/modes.lsp from certified books (t0-modes checks it)
-#   make check       check-il + check-gen + test
+#   make check       check-il + check-gen + test (1.0)
+#   make check-2.0   2.0 gate: regenerate, certify, run the 2.0 numeric and SIMD vectors
 
 NIX  ?= nix
 ACL2 ?= acl2
@@ -41,7 +42,7 @@ TARGET := (assign il2acl2-target (quote (:version "$(SPEC)" :pkg "$(PKG)" :il "$
 GEN_PATTERNS := *.lisp *.lsp *.acl2
 TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 
-.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors spec-data spec probe modes
+.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors spec-data spec probe modes check-2.0
 
 il:
 	$(NIX) build ..#wasm$(SPEC_MAJOR)-il --no-link --print-out-paths > .il-out
@@ -165,6 +166,15 @@ probe: translator
 	cat $$d/report.txt; echo "(report: $$d/report.txt, rules: $$d/rules.txt, errors: $$d/errors.lsp, log: $$d/acl2.log)"
 
 check: check-il check-gen test
+
+# The 2.0 gate (wasm3 prep P4): regenerate 2.0 from the checked-in IL (gen/wasm-2.0
+# is not checked in: it is 20 MB and a deterministic function of IL and
+# translator), certify it, and run the 2.0 numeric and SIMD vectors.
+check-2.0:
+	$(MAKE) check-il SPEC=2.0
+	$(MAKE) gen SPEC=2.0
+	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-2.0/wasm2 tests/sem-2.0/t3-numerics-2.0 tests/sem-2.0/t3-simd-2.0
+	@grep -h "T3 numerics (2.0)\|T3 SIMD (2.0)" tests/sem-2.0/*.cert.out
 
 clean:
 	rm -rf .check-gen-1 .check-gen-2 gen.log

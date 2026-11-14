@@ -264,6 +264,7 @@
                  (tbl (mangle-table forms)))
             (mv-let (collisions renamed atom-collisions) (mangle-report tbl)
               (let* ((config (probe-drop-kinds (car cfg) drop))
+                     (forms0 forms)                 ; config is validated before patching
                      (forms (apply-patches forms (config-entries config :il-patch)))
                      (spec (mv-list 3 (specialize-fn-args forms)))
                      (forms (first spec))
@@ -290,8 +291,8 @@
                       (cw "IL names: ~x0~%" (probe-name-counts tbl))
                       (probe-print-il-stats forms)
                       (cw "Config entries used: ~x0 (ignored kinds: ~x1)~%" (len config) drop)
-                      (cw "Config entries that do not match the IL: ~x0~%" (len (config-errors config forms tbl)))
-                      (probe-print-lines (config-errors config forms tbl))
+                      (cw "Config entries that do not match the IL: ~x0~%" (len (config-errors config forms0 tbl)))
+                      (probe-print-lines (config-errors config forms0 tbl))
                       (cw "~%Schema errors: ~x0~%" (len schema-errs))
                       (probe-print-tally-sorted (probe-tally (probe-schema-keys schema-errs) nil))
                       (if schema-errs (cw "  in: ~x0~%" (probe-group (probe-schema-ctx schema-errs) nil)) nil)

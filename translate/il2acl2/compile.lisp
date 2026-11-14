@@ -712,6 +712,11 @@
        (mv-let (c cx) (crec (second p) s env cx)
          (mv-let (steps env cx) (cpat (fourth p) s env cx)
            (mv (append pre (list (list :test c)) steps) env cx)))))
+    ((and (nodep p "PROJ" 2) (nodep (second p) "UNCASE" 2) (atom-free-p (third (second p)))
+          (= (length (third (second p))) 1) (eql (third p) 0))
+     ;; (proj (uncase x "%") 0) on an elided newtype is x itself, as in cexp
+     ;; (wasm3 prep P4: 2.0 Binstr/vector-const solves $ibytes_(128, b') = b)
+     (cpat (second (second p)) s env cx))
     ((nodep p "CVT" 3)
      (mv-let (s pre cx) (scrutinee s cx)
        (mv-let (steps env cx) (cpat (fourth p) s env cx)
@@ -1819,7 +1824,7 @@
     (let ((m (declared-mode (second (car xs)) (if (closure-step (car xs)) :closure mode) cx)))
       (set-modes (cdr xs) mode
                  (cx-put :modes (put-assoc-equal (second (car xs))
-                                                 (cons (if (member-eq m (quote (:check :fun2))) m :fun) m)
+                                                 (cons (if (member-eq m (quote (:check :fun2 :multi))) m :fun) m)
                                                  (cx-get :modes cx))
                          cx)))))
 

@@ -317,3 +317,78 @@
 (defun $inv_fbytes_ (n bs) (%bitsf n (%le-int bs)))
 (defun $inv_bytes_ (vt bs)
   (if (%int-vt-p vt) ($inv_ibytes_ (%vt-size vt) bs) ($inv_fbytes_ (%vt-size vt) bs)))
+
+; ---------------------------------------------------------------------
+; WASM 2.0 builtins (wasm3 prep P4, 2.0 gate). Semantics as in the WASM 2.0
+; spec text and SpecTec's interpreter (backend-interpreter/numerics.ml at the
+; pinned rev); encodings as above. A lane type is (:I8) (:I16) (:I32) (:I64)
+; (:F32) (:F64); a shape is (:X lanetype dim); a v128 is a natural, lane 0
+; in the low bits. Bit lists are most significant bit first.
+
+(defun %sat (n sx i)                                   ; saturate to N bits, as an iN
+  (let ((i (ifix i)))
+    (if (%sx-signed-p sx)
+        (%u n (max (- (%pow2 (1- n))) (min i (1- (%pow2 (1- n))))))
+      (max 0 (min i (1- (%pow2 n)))))))
+
+(defun $s33_to_u32 (i) (%u 32 i))
+
+(defun $narrow__ (m n sx i) (%sat n sx (%s m i)))
+
+(defun $trunc_sat__ (m n sx f)
+  (cond ((%nan-p f) (list 0))
+        ((%inf-p f) (list (%sat n sx (if (%neg-p f) (- (%pow2 n)) (%pow2 n)))))
+        (t (list (%sat n sx (truncate (%val m f) 1))))))
+
+(defun %bits-msb (k i)                                 ; k bits of i, MSB first
+  (if (zp k) nil (cons (mod (floor (ifix i) (%pow2 (1- k))) 2) (%bits-msb (1- k) i))))
+(defun %bits-int (bs acc)
+  (if (atom bs) acc (%bits-int (cdr bs) (+ (* 2 acc) (if (equal (car bs) 1) 1 0)))))
+
+(defun $ibits_ (n i) (%bits-msb (nfix n) (%u n i)))
+(defun $fbits_ (n f) (%bits-msb (nfix n) (%fbits n f)))
+(defun $inv_ibits_ (n bs) (%u n (%bits-int bs 0)))
+(defun $inv_fbits_ (n bs) (%bitsf n (%bits-int bs 0)))
+
+(defun %num-size (nt) (if (and (consp nt) (member-eq (car nt) '(:i64 :f64))) 64 32))
+(defun %int-nt-p (nt) (and (consp nt) (member-eq (car nt) '(:i32 :i64)) t))
+(defun $nbytes_ (nt v)
+  (if (%int-nt-p nt) ($ibytes_ (%num-size nt) v) ($fbytes_ (%num-size nt) v)))
+(defun $inv_nbytes_ (nt bs)
+  (if (%int-nt-p nt) ($inv_ibytes_ (%num-size nt) bs) ($inv_fbytes_ (%num-size nt) bs)))
+(defun $vbytes_ (vt v) (declare (ignore vt)) (%le-bytes 16 (%u 128 v)))
+(defun $inv_vbytes_ (vt bs) (declare (ignore vt)) (%u 128 (%le-int bs)))
+
+(defun $irev_ (n i) (%bits-int (reverse (%bits-msb (nfix n) (%u n i))) 0))
+(defun $iandnot_ (n a b) (%u n (logand (ifix a) (lognot (ifix b)))))
+(defun $ibitselect_ (n i1 i2 i3)
+  (%u n (logior (logand (ifix i1) (ifix i3)) (logand (ifix i2) (lognot (ifix i3))))))
+(defun $iavgr_ (n sx a b)
+  (if (%sx-signed-p sx)
+      (%u n (floor (+ (%s n a) (%s n b) 1) 2))
+    (floor (+ (%u n a) (%u n b) 1) 2)))
+(defun $iq15mulr_sat_ (n sx a b)
+  (%sat n sx (floor (+ (* (%s n a) (%s n b)) #x4000) (%pow2 15))))
+
+(defun $fpmin_ (n a b) (if (equal ($flt_ n b a) 1) (list b) (list a)))
+(defun $fpmax_ (n a b) (if (equal ($flt_ n a b) 1) (list b) (list a)))
+
+(defun %lane-size (lt)
+  (case (and (consp lt) (car lt)) (:i8 8) (:i16 16) ((:i64 :f64) 64) (otherwise 32)))
+(defun %float-lt-p (lt) (and (consp lt) (member-eq (car lt) '(:f32 :f64)) t))
+(defun %lanes (k w fl v)                               ; k lanes of w bits, from lane 0
+  (if (zp k) nil
+    (cons (if fl (%bitsf w (mod (ifix v) (%pow2 w))) (mod (ifix v) (%pow2 w)))
+          (%lanes (1- k) w fl (floor (ifix v) (%pow2 w))))))
+(defun %unlanes (ls w fl)
+  (if (atom ls) 0
+    (+ (if fl (%fbits w (car ls)) (%u w (car ls))) (* (%pow2 w) (%unlanes (cdr ls) w fl)))))
+(defun $lanes_ (sh v)
+  (let ((lt (cadr sh)) (dim (nfix (caddr sh))))
+    (%lanes dim (%lane-size lt) (%float-lt-p lt) (%u 128 v))))
+(defun $inv_lanes_ (sh ls)
+  (let ((lt (cadr sh))) (%u 128 (%unlanes ls (%lane-size lt) (%float-lt-p lt)))))
+
+(defun $inv_concat_ (l)                                ; split into pairs (as numerics.ml)
+  (if (or (atom l) (atom (cdr l))) nil
+    (cons (list (car l) (cadr l)) ($inv_concat_ (cddr l)))))
