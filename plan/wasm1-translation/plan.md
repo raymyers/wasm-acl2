@@ -161,7 +161,7 @@ represented only by a generated recognizer.
 | `tup` | list |
 | `iter … list` / `list1` / `listn` | list |
 | `iter … opt` | `nil` or `(list x)` |
-| record (`str`) | alist in field-declaration order: `((:FIELD . v) …)` |
+| record (`str`) | `(:%REC (:FIELD . v) …)`, fields in declaration order. The `:%REC` marker is needed because `comp` (`++`) has no type info and must tell records from lists of tagged values |
 | `sub e t₁ t₂` | the same object (variants share tags under subtyping) |
 | `cvt` (nat↔int↔rat) | identity |
 
@@ -177,8 +177,20 @@ case-by-case with `inst` become a `cond` on the index.
   premises become `let*` bindings. `else` becomes the final `t` branch.
 - After `totalize`, every partial function returns an option, so falling
   through every clause yields `nil`. That makes it a total function in ACL2.
-- `iter e (dom x xs)…` becomes `(loop$ for x in xs [as y in ys] collect e)`.
-  Trivial maps (`x` over `xs`) simplify to `xs`.
+- `iter e (dom x xs)…` becomes a lifted auxiliary recursive function
+  `F/ITERk` (free variables passed as extra arguments). Trivial maps (`x` over
+  `xs`) simplify to `xs`. Not `loop$`: it needs badges/warrants even in
+  `:program` mode (found in T2).
+- Clauses compile to nested `and`/`let*` returning `(list result)` or `nil`;
+  the def body chains them, so there is no exponential duplication.
+- Premises are **scheduled**: SpecTec lists them out of dependency order
+  (`$allocfunc` uses `x` before the premise that binds it), so the compiler
+  always takes the first premise that compiles under the current bindings.
+  `if a = e` with `a` unbound is a binding; `if a /\ b` is split in two.
+- A form hitting an unsupported construct becomes an explicit **stub**
+  (body signals an error) listed in the generated header.
+- Every event is wrapped in `(%try-logic …)`: logic mode if ACL2 admits it
+  (default measures, guards not verified), else `:program`.
 - Clause-less `def`s are **builtins**. The generator emits nothing for them and
   checks that `builtins.lisp` defines each one with the expected arity. Any
   missing builtin is a hard error.
@@ -240,14 +252,14 @@ translate/                     # fully independent of the WASM1 tree
   il/wasm-1.0.il.sexp          # spectec --ast --all-passes output (checked in)
   il/SPECTEC_REV               # pinned commit + exact command line
   il2acl2/                     # the translator (ACL2 :program mode)
-    read.lisp  schema.lisp  mangle.lisp  types.lisp
-    defs.lisp  rels.lisp  gram.lisp  emit.lisp  main.lisp
+    read.lisp  schema.lisp  mangle.lisp  top.lisp (T1 checks)
+    compile.lisp (exp/pattern/premise/type/def compiler)  emit.lisp  run.lsp
   il2acl2-config.lsp           # counted overrides (modes, split strategies, measures)
-  builtins.lisp                # 45 hand-written builtins
-  prelude.lisp                 # tiny runtime helpers (option, list utilities)
   gen/                         # GENERATED — do not edit
-    syntax.lisp  numerics.lisp  runtime.lisp  typing.lisp
-    reduction.lisp  module.lisp  binary.lisp  top.lisp
+    package.lsp  portcullis.*  # W1T package (imports computed from generated names)
+    wasm1.lisp                 # all types + defs in IL order (types call defs such
+                               # as $size and $utf8, so they cannot be split by kind)
+  rt/                          # hand-written: prelude.lisp (records), builtins.lisp
   tests/                       # assert-event tests over gen/
   compare/                     # T9: books that include BOTH trees (the only place they meet)
 ```
@@ -292,15 +304,31 @@ no two mixops share a tag. Notes for T2: mangled names that clash with
 so the generated `W1T` package must leave those out of its imports. Unnamed
 rules (`rule Limits_ok:`) mangle to `LIMITS_OK/`.
 
-### T2: Syntax → recognizers (`gen/syntax.lisp`, `gen/runtime.lisp`)
-- [ ] 88 `typ` definitions: variants, records, aliases, and indexed families
-- [ ] Newtype elision rule (§2.2) applied uniformly
-- [ ] Certifies in logic mode, with guards (recognizers are simple)
+### T2: Syntax → recognizers (`gen/wasm1.lisp`) ✅ (2026-11-13)
+- [x] All 90 `typ` definitions: variants, records, aliases, and indexed families
+      (families take the index as extra arguments: `(VAL_-P x vt)`; inst
+      clauses match the index by pattern; type parameters are unchecked)
+- [x] Newtype elision rule (§2.2) applied uniformly (atom-free mixop ⇒ payload;
+      checked: such a case is always the only case of its variant)
+- [x] Certifies in logic mode: all 242 generated functions are admitted in
+      logic mode by `%try-logic`, none fell back to `:program`. Guard
+      verification is deferred to T8
 
 **Exit**: `(INSTR-P '(:CONST (:I32) 7))` holds, and both books certify.
 
+**Result**: `make -C translate check` passes: `check-gen` (two fresh runs are
+byte-identical to the checked-in `gen/`) and `tests/sem/t2-syntax.lisp`
+(bytes, uN/sN, floats incl. NaN payload and exponent bounds, records, names via
+`$utf8`, `val_` family, instructions incl. the `STORE` `Inn?` premise, `$size`,
+`$signed_`). Note `loadop_` is mixop `%_%`, so its tag is `:_`: `(:_ 8 (:U))`.
+The compiler also already handles all def clauses (T3, first item); remaining
+compile errors are confined to two stubs, `$instantiate` and `$allocmodule`
+(relation premises, T5). One config override so far: `$utf8` (its multi-byte
+clauses are defined by an arithmetic equation on the result).
+
 ### T3: Functions and builtins (`gen/numerics.lisp`, `builtins.lisp`)
-- [ ] Clause compilation (§2.3): patterns, `if`/`let`/`else` premises, `loop$` for iteration
+- [x] Clause compilation (§2.3): patterns, `if`/`let`/`else` premises,
+      lifted aux functions for iteration (done in T2)
 - [ ] The 45 builtins on Kestrel bv and IEEE libraries
 - [ ] Start in `:program` mode for everything that does not get through admission;
       record the count

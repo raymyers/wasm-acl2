@@ -17,3 +17,8 @@ Makefile-tmp
 # Nix build symlink
 result
 result-*
+
+# translate/ scratch
+translate/gen.log
+translate/.check-gen-*/
+translate/.il-out
