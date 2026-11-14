@@ -326,15 +326,27 @@ compile errors are confined to two stubs, `$instantiate` and `$allocmodule`
 (relation premises, T5). One config override so far: `$utf8` (its multi-byte
 clauses are defined by an arithmetic equation on the result).
 
-### T3: Functions and builtins (`gen/numerics.lisp`, `builtins.lisp`)
+### T3: Functions and builtins (`gen/wasm1.lisp`, `rt/builtins.lisp`) ✅ (2026-11-13)
 - [x] Clause compilation (§2.3): patterns, `if`/`let`/`else` premises,
       lifted aux functions for iteration (done in T2)
-- [ ] The 45 builtins on Kestrel bv and IEEE libraries
-- [ ] Start in `:program` mode for everything that does not get through admission;
-      record the count
-- [ ] Unit tests: `$iadd_`, `$idiv_` (trap cases via option), `$signed_`, `$fadd_` NaN/Inf/±0
+- [x] The 45 builtins, in pure ACL2 (no community books; exact rational
+      arithmetic + one round-to-nearest-even; sqrt via integer sqrt + sticky
+      bit). Simpler than Kestrel bv/IEEE and keeps `rt/` independent of WASM1.
+      Float ops return one result; for NaN results the canonical NaN
+- [x] `%try-logic` admits each event in logic mode when possible: count of
+      `:program` fallbacks is **0** (all 242 generated functions + builtins)
+- [x] Unit tests: `$iadd_`, `$idiv_` (trap cases via option), `$signed_`, `$fadd_` NaN/Inf/±0
+      (`tests/sem/t3-units.lisp`)
 
 **Exit**: every generated `def` evaluates, and numerics tests pass.
+
+**Result**: `tests/sem/t3-numerics.lisp` runs **8015/8015** oracle vectors
+(`make vectors`: Node/V8 executes every WASM 1.0 numeric instruction, i32/i64/
+f32/f64 incl. all conversions, on edge cases + seeded random bit patterns;
+NaN results compared as "is NaN", reinterprets bit-exact) through the
+*generated* dispatchers `$binop_ $unop_ $testop_ $relop_ $cvtop__` and the
+builtins. Every generated def evaluates except the two module stubs
+(`$instantiate`, `$allocmodule`, T5).
 
 ### T4: Reduction relations (`gen/reduction.lisp`)
 - [ ] Mode analysis (§2.5) for `Step_pure`, `Step_read`, `Step`
