@@ -580,12 +580,28 @@ that the generated `STEPS` runs `i32.const a; i32.const b; i32.add` to
 `i32.const ((a+b) mod 2^32)`, via the lemmas that one `STEP` adds, a single value is
 stuck, and the opening lemmas of the generated fuel loop.
 
-### T9: Side-by-side comparison with WASM1 (`translate/compare/`) 🔶 Partial
-- [~] **Differential testing**: run the same oracle corpus through both
-      semantics and diff the results. *Numeric level done*
+### T9: Side-by-side comparison with WASM1 (`translate/compare/`) 🔶 Partial (float equivalence remains; it is false as stated)
+- [x] **Differential testing**: run the same oracle corpus through both
+      semantics and diff the results. *Numeric level*
       (`compare/c1-numerics-diff.lisp`, `make -C translate compare`): WASM1
-      runs the same 8015 V8 vectors as single-instruction programs. The
-      module-level corpus is unblocked: T5 runs `invoke-vectors.lsp` on W1T
+      runs the same 8015 V8 vectors as single-instruction programs.
+      *Module level* (`compare/c3-module-diff.lisp`, 2026-11-14): WASM1 runs
+      the 515 T5 invoke vectors. WASM1 has no module loader, so the book is
+      the bridge: W1T's generated `GRAM/BMODULE` decodes each `.wasm`, and the
+      module is converted to a WASM1 state (funcinsts, memory with data
+      segments, table with elem segments) in WASM1's instruction syntax.
+      Result: WASM1 agrees on **335**, disagrees on **24**, and **156** cannot
+      be expressed in WASM1 at all (`nan_oracle` 40, `inf_arith_oracle` 116),
+      because WASM1's `f32.const`/`f64.const` take a rational and the NaN/±Inf/−0
+      specials exist only as stack values. Every integer, control-flow,
+      memory, packed-memory and `call_indirect` vector agrees. All 24
+      disagreements are floats: exact rational results with no rounding
+      (`f64.div 1.5 10` gives 3/20); no signed zero (`0 * -0` gives 0, and
+      `1/(-0)` traps); `copysign` with a NaN sign operand gives NaN;
+      `reinterpret` and float store/load of 0 or NaN trap; and a WASM1
+      bug: `execute-f32.sqrt` returns its argument for every integer > 1
+      (`isq = v`), so sqrt(4) = 4. WASM1's M12 test header claims sqrt(4)=2 but
+      never checks it
 - [~] **Equivalence theorems** for numerics, e.g.
       `(equal (W1T::$IADD_ 32 a b) (WASM::...i32.add... a b))`, plus the
       float ops, modulo the encoding map between the two float representations.
@@ -605,7 +621,7 @@ stuck, and the opening lemmas of the generated fuel loop.
 | Validation | hand-written type checker | generated: all typing relations except `Externaddr_ok` (stub) and `Module_ok` (config override calling the generated relations); instruction typing via multi-mode (sound, incomplete only for mid-sequence dead code) |
 | Spec rules traceable to ACL2 defs | informal | 1:1 by name (`STEP_PURE/BINOP-VAL` ...) |
 | Logic-mode share | 100% | 466 / 491 (all but the instruction-typing clique and its callers); 162 guard-verified |
-| Module-level oracle agreement (corpus exports, V8) | (T9, pending) | **515 / 515** (13/13 modules instantiate) |
+| Module-level oracle agreement (515 corpus invoke vectors, V8) | **335** agree, 24 disagree (floats), 156 inexpressible (NaN/Inf constants); runs only via a W1T-decoded bridge (no loader) | **515** (13/13 modules instantiate, from `.wasm` bytes) |
 | Numeric oracle agreement (8015 V8 vectors) | **6975** (all integer ops agree; floats disagree) | **8015** |
 | Effort to absorb a SpecTec update | manual | regenerate + review diff (`make check`) |
 
