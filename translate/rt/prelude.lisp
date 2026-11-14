@@ -60,5 +60,32 @@
       (cons 'mutual-recursion (%program-defuns (cdr ev)))
     (%program-defun ev)))
 
+; The logic attempt uses :ruler-extenders :all (generated recursive calls sit
+; inside let*/and, which the default rulers do not see through) and is
+; bounded by a prover step limit (deterministic, unlike a time limit), so a
+; hard termination proof falls back instead of hanging.
+(defun %logic-defun (d)
+  (declare (xargs :guard t))
+  (if (and (true-listp d) (eq (car d) 'defun) (consp (cdr d)) (consp (cddr d)))
+      (list* 'defun (cadr d) (caddr d)
+             '(declare (xargs :ruler-extenders :all))
+             (cdddr d))
+    d))
+
+(defun %logic-defuns (ds)
+  (declare (xargs :guard t))
+  (if (atom ds) nil (cons (%logic-defun (car ds)) (%logic-defuns (cdr ds)))))
+
+(defun %logic-version (ev)
+  (declare (xargs :guard t))
+  (if (and (consp ev) (eq (car ev) 'mutual-recursion))
+      (cons 'mutual-recursion (%logic-defuns (cdr ev)))
+    (%logic-defun ev)))
+
 (defmacro %try-logic (ev)
-  `(make-event '(:or ,ev ,(%program-version ev))))
+  `(make-event '(:or (with-prover-step-limit 200000 ,(%logic-version ev))
+                     ,(%program-version ev))))
+
+; Step bound for closure relations (Steps): R(x) iterates the step relation
+; at most (%FUEL) times and has no result if the bound is reached.
+(defun %fuel () (declare (xargs :guard t)) 1000000)

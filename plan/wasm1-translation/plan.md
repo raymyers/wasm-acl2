@@ -310,9 +310,10 @@ rules (`rule Limits_ok:`) mangle to `LIMITS_OK/`.
       clauses match the index by pattern; type parameters are unchecked)
 - [x] Newtype elision rule (§2.2) applied uniformly (atom-free mixop ⇒ payload;
       checked: such a case is always the only case of its variant)
-- [x] Certifies in logic mode: all 242 generated functions are admitted in
-      logic mode by `%try-logic`, none fell back to `:program`. Guard
-      verification is deferred to T8
+- [x] Certifies; every recognizer is in logic mode (`%try-logic`). Guard
+      verification is deferred to T8. (Correction, found in T4: the mode
+      count first reported here, "0 `:program` fallbacks", came from a buggy
+      script; see the T4 result for the real numbers.)
 
 **Exit**: `(INSTR-P '(:CONST (:I32) 7))` holds, and both books certify.
 
@@ -333,8 +334,8 @@ clauses are defined by an arithmetic equation on the result).
       arithmetic + one round-to-nearest-even; sqrt via integer sqrt + sticky
       bit). Simpler than Kestrel bv/IEEE and keeps `rt/` independent of WASM1.
       Float ops return one result; for NaN results the canonical NaN
-- [x] `%try-logic` admits each event in logic mode when possible: count of
-      `:program` fallbacks is **0** (all 242 generated functions + builtins)
+- [x] `%try-logic` admits each event in logic mode when possible, else
+      `:program`; the count is recorded (T4 result: 312 logic / 20 `:program`)
 - [x] Unit tests: `$iadd_`, `$idiv_` (trap cases via option), `$signed_`, `$fadd_` NaN/Inf/±0
       (`tests/sem/t3-units.lisp`)
 
@@ -348,15 +349,44 @@ NaN results compared as "is NaN", reinterprets bit-exact) through the
 builtins. Every generated def evaluates except the two module stubs
 (`$instantiate`, `$allocmodule`, T5).
 
-### T4: Reduction relations (`gen/reduction.lisp`)
-- [ ] Mode analysis (§2.5) for `Step_pure`, `Step_read`, `Step`
-- [ ] `ctxt-label`, `ctxt-frame`, `ctxt-instrs` (the split strategy)
-- [ ] `STEPS` with fuel
-- [ ] Hand-built configs run factorial and fibonacci to completion
+### T4: Reduction relations (`gen/wasm1.lisp`) ✅ (2026-11-13)
+- [x] Mode analysis (§2.5) for `Step_pure`, `Step_read`, `Step`: every
+      relation is first compiled `:fun` (last component = output; returns
+      `(list out)` or `nil`, first applicable rule wins), retried as `:check`
+      if that fails, and stubbed if both fail. `Steps` is recognised by its
+      refl/trans shape (`:closure`)
+- [x] `ctxt-label`, `ctxt-frame`, `ctxt-instrs` (the split strategy). Generic
+      split search for `cat` patterns with no fixed-length side (the rest of
+      the rule runs inside a lambda-lifted search function, so later
+      failures backtrack). `ctxt-instrs` uses the config `:redex` strategy
+- [x] `STEPS` with fuel: `STEPS(x)` iterates `STEP` to a normal form, at most
+      `(%FUEL)` = 10^6 steps
+- [x] Hand-built configs run factorial and fibonacci to completion
 
 **Exit**: all 58 reduction rules are translated and the M2-style control-flow programs run.
 **Go/no-go**: if the `ctxt-instrs` split cannot be handled without an
 unreasonable amount of config, switch `Step` to Strategy B (AL).
+
+**Result**: go: no Strategy B needed. `Step_pure`, `Step_read`, `Step`,
+`Steps` and `Eval_expr` translate with no stubs. `tests/sem/t4-reduction.lisp`
+(16 checks) runs arithmetic, wraparound, div-by-zero trap, select, block/br,
+nested br, if/else, factorial(5)=120, factorial(10), fibonacci(10)=55, a call
+through the store, return through labels, memory store/load (incl. a full
+64 KiB page with `memory.size`), and an out-of-bounds trap.
+New generic machinery: linear-arithmetic patterns (`BR(l+1)`,
+`(n·64)·Ki = |bytes|`), `c <- e` bindings (first element), disjunctive
+premises that bind (`block`'s `(t?=ε ∧ n=0) ∨ (t?≠ε ∧ n=1)`), elided-newtype
+projections in patterns, premise scheduling that runs cheap tests before
+relation calls. Config now has 3 entries: `$utf8` override, the
+`ctxt-instrs` `:redex` split, and the 4 `hint(inverse)` pairs (`--ast` drops
+hints) used by the load rules. Modes: 312 generated functions in logic mode,
+20 in `:program` (`$concat_`, the `STEP` group and its callers `STEPS`,
+`EVAL_EXPR`, alloc/init defs): termination is T8. Remaining stubs: the
+typing relations (T6), `Externaddr_ok`, `Module_ok`, `$instantiate` (T5).
+Bug found and fixed on the way: a `:fun` relation must return `(list out)`,
+since `NOP ~> ε` has an empty output. Note: `:program` code runs without
+safety checks, so feeding it an ill-formed configuration (e.g. a module
+instance with no memory address) can crash SBCL instead of failing cleanly.
 
 ### T5: Module instantiation and invocation (`gen/module.lisp`)
 - [ ] `9-module.spectec`: alloc*, instantiate, invoke (5 rules plus defs)

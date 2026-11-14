@@ -95,6 +95,21 @@
 
 ; --- Phase 1 -----------------------------------------------------------
 
+(defun config-entries (config kind)
+  (cond ((endp config) nil)
+        ((eq (car (car config)) kind) (cons (car config) (config-entries (cdr config) kind)))
+        (t (config-entries (cdr config) kind))))
+
+(defun split-rules (es)
+  ;; (:split "Rel" "rule" ...) -> ("Rel" . "rule")
+  (if (endp es) nil
+    (cons (cons (second (car es)) (third (car es))) (split-rules (cdr es)))))
+
+(defun inverse-pairs (es)
+  ;; (:inverse :pairs (("f" . "inv_f") ...) ...)
+  (if (endp es) nil
+    (append (cadr (member :pairs (car es))) (inverse-pairs (cdr es)))))
+
 (defun config-overrides (config)
   ;; config: list of entries (:def "id" :reason "...")
   (cond ((endp config) nil)
@@ -120,10 +135,16 @@
           (if erp (mv erp state)
             (let* ((config (car cfg))
                    (cx (list (cons :tbl (mangle-table forms))
-                             (cons :overrides (config-overrides config)))))
+                             (cons :overrides (config-overrides config))
+                             (cons :split-rules (split-rules (config-entries config :split)))
+                             (cons :inverses (inverse-pairs (config-entries config :inverse))))))
               (mv-let (events builtins skipped cx) (cforms forms cx)
-                (let* ((names (collect-gsyms events
-                                             (strip-cars builtins)))
+                (let* ((names (prog2$ (cw "~%il2acl2: ~x0 events, ~x1 builtins/overrides, ~x2 forms not translated, stubs: ~x3~%unsupported constructs (~x4):~%~x5~%"
+                               (len events) (len builtins) (len skipped)
+                               (reverse (cx-get :stubs cx)) (len (cx-get :errs cx))
+                               (reverse (cx-get :errs cx)))
+                                     (collect-gsyms events
+                                             (strip-cars builtins))))
                        (clash (clashing-exports *acl2-exports* names))
                        (state (f-put-global 'w1t-gen
                                             (list :events events :builtins builtins
@@ -196,6 +217,7 @@
                  "(include-book \"../rt/builtins\")"
                  ""
                  "(set-verify-guards-eagerness 0)"
+                 "(set-bogus-mutual-recursion-ok t) ; stubbed members of a rec group"
                  ""))))
     (let* ((forms (wrap-try-logic (convert-gsyms events)))
            (bad (foreign-symbols forms nil)))

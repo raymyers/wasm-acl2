@@ -126,6 +126,8 @@
 
 (defun build-steps (steps success)
   (cond ((endp steps) success)
+        ;; search points are only supported at the top of a clause/rule body
+        ((eq (car (car steps)) :choose) (list (gsym "%SEARCH-NOT-SUPPORTED-HERE")))
         ((eq (car (car steps)) :test)
          (let ((ts (take-tests steps)))
            (cons 'and (append ts (list (build-steps (nthcdr (len ts) steps) success))))))
@@ -134,6 +136,26 @@
            (list 'let* (bind-pairs bs)
                  (list 'declare (cons 'ignorable (strip-cars bs)))
                  (build-steps (nthcdr (len bs) steps) success))))))
+
+; Free generated variables (markers) of a generated ACL2 term, in order of
+; first occurrence. Function names (car of a call) are not variables.
+(mutual-recursion
+ (defun term-fv (x bound acc)
+   (cond ((gsym-p x) (if (or (member-equal x bound) (member-equal x acc)) acc (append acc (list x))))
+         ((atom x) acc)
+         ((member-eq (car x) (quote (let let*)))
+          (term-fv-binds (cadr x) (cddr x) bound acc))
+         ((eq (car x) (quote declare)) acc)
+         ((eq (car x) (quote quote)) acc)
+         (t (term-fv-list (cdr x) bound acc))))
+ (defun term-fv-binds (binds body bound acc)
+   ;; sequential (let*) scoping; our generated lets bind distinct fresh names
+   (if (atom binds)
+       (term-fv-list body bound acc)
+     (term-fv-binds (cdr binds) body (cons (car (car binds)) bound)
+                    (term-fv (cadr (car binds)) bound acc))))
+ (defun term-fv-list (l bound acc)
+   (if (atom l) acc (term-fv-list (cdr l) bound (term-fv (car l) bound acc)))))
 
 (defun ignorable-decl (formals) (list 'declare (cons 'ignorable formals)))
 
@@ -183,6 +205,44 @@
 (defun env-add-vars (names env cx)
   (if (endp names) env
     (env-add-vars (cdr names) (acons (car names) (var-sym (car names) cx) env) cx)))
+
+; build-steps with search points: (:choose k lo hi desc) runs the rest of
+; the steps for k = lo..hi (or hi..lo), returning the first non-nil result.
+; The rest is lambda-lifted into an aux function F/SEARCHn over its free
+; variables. Returns (mv term cx).
+(defun build-steps-cx (steps success cx)
+  (cond ((endp steps) (mv success cx))
+        ((eq (car (car steps)) :choose)
+         (let* ((st (car steps)) (kv (second st)) (lo (third st)) (hi (fourth st))
+                (desc (fifth st)))
+           (mv-let (rest cx) (build-steps-cx (cdr steps) success cx)
+             (mv-let (aux-name cx) (cx-fresh (concatenate (quote string) (cx-get :fn cx) "/SEARCH") cx)
+               (let* ((aux (gsym aux-name))
+                      (k (gsym "%K")) (l (gsym "%LO")) (h (gsym "%HI")) (r (gsym "%R"))
+                      (fvs (remove-equal kv (term-fv rest nil nil)))
+                      (next (list* aux (if desc (list (quote 1-) k) (list (quote 1+) k)) l h fvs))
+                      (body (list (quote if)
+                                  (list (quote and) (list (quote natp) k) (list (quote natp) l)
+                                        (list (quote natp) h) (list (quote <=) l k) (list (quote <=) k h))
+                                  (list (quote let) (list (list r (list (quote let) (list (list kv k))
+                                                                        (ignorable-decl (list kv)) rest)))
+                                        (ignorable-decl (list r))
+                                        (list (quote if) r r next))
+                                  nil))
+                      (def (mk-defun-measure aux (list* k l h fvs)
+                                             (if desc
+                                                 (list (quote nfix) (list (quote -) (list (quote 1+) k) l))
+                                               (list (quote nfix) (list (quote -) (list (quote 1+) h) k)))
+                                             body)))
+                 (mv (list* aux (if desc hi lo) lo hi fvs) (cx-add-aux def cx)))))))
+        ((eq (car (car steps)) :test)
+         (let ((ts (take-tests steps)))
+           (mv-let (rest cx) (build-steps-cx (nthcdr (len ts) steps) success cx)
+             (mv (cons (quote and) (append ts (list rest))) cx))))
+        (t
+         (let ((bs (take-binds steps)))
+           (mv-let (rest cx) (build-steps-cx (nthcdr (len bs) steps) success cx)
+             (mv (list (quote let*) (bind-pairs bs) (ignorable-decl (strip-cars bs)) rest) cx))))))
 
 ; --- Expressions -------------------------------------------------------
 
@@ -562,6 +622,36 @@
                  (nth-term i (list (quote car) tv)))
           (list-out-binds (cdr outs) (1+ i) tv cx))))
 
+(defun exp-args (as)
+  (cond ((endp as) nil)
+        ((is (car as) "EXP") (cons (second (car as)) (exp-args (cdr as))))
+        (t (exp-args (cdr as)))))
+
+; Known length of a list pattern, as a term: [p1 .. pk] or p^n with n bound.
+(defun static-len2 (p env cx)
+  (cond ((is p "LIST") (mv (len (cdr p)) cx))
+        ((and (is p "ITER") (true-listp p) (is (third p) "LISTN") (nodep (third p) "LISTN" 1)
+              (not (has-unbound (second (third p)) env)))
+         (cexp (second (third p)) env cx))
+        (t (mv nil cx))))
+
+; val* ++ (B ++ C) with val* an iteration: the shape the :redex split
+; strategy (config) applies to.
+(defun redex-shape-p (p)
+  (and (nodep p "CAT" 2) (is (second p) "ITER") (true-listp (second p))
+       (nodep (third p) "CAT" 2)))
+
+; Length constraint of a p^n iteration pattern against s: binds n when it is
+; an unbound variable, else tests |s| = n.
+(defun listn-count-steps (it s env cx)
+  (if (not (nodep it "LISTN" 1)) (mv nil env cx)
+    (let ((n (second it)))
+      (if (and (nodep n "VAR" 1) (not (assoc-equal (second n) env)))
+          (mv (list (list* :bind (var-sym (second n) cx) (list (quote len) s)))
+              (acons (second n) (var-sym (second n) cx) env) cx)
+        (mv-let (nt cx) (cexp n env cx)
+          (mv (list (list :test (list (quote equal) (list (quote len) s) nt))) env cx))))))
+
 ; --- Patterns ----------------------------------------------------------
 
 (defun trivial-iter-dom (p)
@@ -640,29 +730,85 @@
              (mv (append pre (list (list :test (list 'consp s))) steps) env cx)))
        (mv (list (list :test (list 'null s))) env cx)))
     ((nodep p "CAT" 2)
-     (let ((ka (static-len (second p))) (kb (static-len (third p))))
-       (mv-let (s pre cx) (scrutinee s cx)
-         (cond
-          ((eql ka 1)
-           (mv-let (s1 env cx) (cpat (second (second p)) (list 'car s) env cx)
-             (mv-let (s2 env cx) (cpat (third p) (list 'cdr s) env cx)
-               (mv (append pre (list (list :test (list 'consp s))) s1 s2) env cx))))
-          (ka
-           (mv-let (s1 env cx) (cpat (second p) (list 'take ka s) env cx)
-             (mv-let (s2 env cx) (cpat (third p) (list 'nthcdr ka s) env cx)
-               (mv (append pre (list (list :test (list 'true-listp s))
-                                     (list :test (list '<= ka (list 'len s))))
-                           s1 s2)
-                   env cx))))
-          (kb
-           (let ((n (list '- (list 'len s) kb)))
-             (mv-let (s1 env cx) (cpat (second p) (list 'take n s) env cx)
-               (mv-let (s2 env cx) (cpat (third p) (list 'nthcdr n s) env cx)
+     (mv-let (ka cx) (static-len2 (second p) env cx)
+       (mv-let (kb cx) (static-len2 (third p) env cx)
+         (mv-let (s pre cx) (scrutinee s cx)
+           (cond
+            ((and (cx-get :redex cx) (redex-shape-p p))
+             (cpat-redex p s pre env (cx-put :redex nil cx)))
+            ((eql ka 1)
+             (mv-let (s1 env cx) (cpat (second (second p)) (list 'car s) env cx)
+               (mv-let (s2 env cx) (cpat (third p) (list 'cdr s) env cx)
+                 (mv (append pre (list (list :test (list 'consp s))) s1 s2) env cx))))
+            (ka
+             (mv-let (s1 env cx) (cpat (second p) (list 'take ka s) env cx)
+               (mv-let (s2 env cx) (cpat (third p) (list 'nthcdr ka s) env cx)
                  (mv (append pre (list (list :test (list 'true-listp s))
-                                       (list :test (list '<= kb (list 'len s))))
+                                       (list :test (list '<= ka (list 'len s))))
                              s1 s2)
-                     env cx)))))
-          (t (mv nil env (cx-err "cat pattern with no fixed-length side" p cx)))))))
+                     env cx))))
+            (kb
+             (let ((n (list '- (list 'len s) kb)))
+               (mv-let (s1 env cx) (cpat (second p) (list 'take n s) env cx)
+                 (mv-let (s2 env cx) (cpat (third p) (list 'nthcdr n s) env cx)
+                   (mv (append pre (list (list :test (list 'true-listp s))
+                                         (list :test (list '<= kb (list 'len s))))
+                               s1 s2)
+                       env cx)))))
+            (t
+             ;; Neither side has a known length: search the split point
+             ;; (plan §2.5). Everything after this step runs inside the
+             ;; search, so a later failure tries the next split.
+             (mv-let (kname cx) (cx-fresh "%T" cx)
+               (let ((kv (gsym kname)))
+                 (mv-let (s1 env cx) (cpat (second p) (list 'take kv s) env cx)
+                   (mv-let (s2 env cx) (cpat (third p) (list 'nthcdr kv s) env cx)
+                     (mv (append pre (list (list :test (list 'true-listp s))
+                                           (list :choose kv 0 (list 'len s) nil))
+                                 s1 s2)
+                         env cx)))))))))))
+    ((and (nodep p "PROJ" 2) (eql (third p) 0) (nodep (second p) "UNCASE" 2)
+          (atom-free-p (third (second p))) (= (length (third (second p))) 1))
+     ;; x!%.0 on an elided newtype is x itself
+     (cpat (second (second p)) s env cx))
+    ((and (nodep p "BIN" 4) (name-in (second p) '("ADD" "SUB" "MUL"))
+          (name-in (third p) '("NAT" "INT" "RAT"))
+          (has-unbound p env)
+          (not (and (has-unbound (fourth p) env) (has-unbound (fifth p) env))))
+     ;; linear arithmetic pattern: solve  a op b = s  for the unbound side
+     (let* ((op (sym-name (second p))) (ty (third p))
+            (left-unbound (has-unbound (fourth p) env))
+            (q (if left-unbound (fourth p) (fifth p)))
+            (c (if left-unbound (fifth p) (fourth p))))
+       (mv-let (s pre cx) (scrutinee s cx)
+         (mv-let (ct cx) (cexp c env cx)
+           (let ((v (cond ((equal op "ADD") (list '- s ct))
+                          ((equal op "MUL") (list '/ s ct))
+                          (left-unbound (list '+ s ct))     ; q - c = s
+                          (t (list '- ct s)))))            ; c - q = s
+             (mv-let (s1 env cx) (cpat q v env cx)
+               (mv (append pre
+                           (if (equal op "MUL") (list (list :test (list 'not (list 'equal ct 0)))) nil)
+                           (list (list :test (numtyp-test ty v)))
+                           s1)
+                   env cx)))))))
+    ((and (is p "CALL") (true-listp p) (has-unbound p env)
+          (assoc-equal (second p) (cx-get :inverses cx)))
+     ;; f(a.., x) = s with x unbound: x := f^-1(a.., s), then check f(a.., x) = s
+     ;; (inverse pairs come from SpecTec hint(inverse), via the config)
+     (let* ((args (exp-args (cddr p)))
+            (g (cdr (assoc-equal (second p) (cx-get :inverses cx)))))
+       (mv-let (s pre cx) (scrutinee s cx)
+         (mv-let (others cx) (cexps (butlast args 1) env cx)
+           (mv-let (tname cx) (cx-fresh "%T" cx)
+             (let ((tv (gsym tname)))
+               (mv-let (s1 env cx) (cpat (car (last args)) tv env cx)
+                 (mv-let (chk cx) (cexp p env cx)
+                   (mv (append pre
+                               (list (list* :bind tv (cons (fn-sym :def g cx) (append others (list s)))))
+                               s1
+                               (list (list :test (list 'equal chk s))))
+                       env cx)))))))))
     ((trivial-iter-dom p)
      (let ((d (trivial-iter-dom p)) (it (third p)))
        (mv-let (s pre cx) (scrutinee s cx)
@@ -694,7 +840,7 @@
                          steps)
                  env cx)))))))
     ((and (is p "ITER") (true-listp p) (>= (len p) 4)
-          (name-in (third p) '("LIST" "LIST1" "OPT"))
+          (or (name-in (third p) '("LIST" "LIST1" "OPT")) (nodep (third p) "LISTN" 1))
           (has-unbound p env))
      (citer-pat (second p) (third p) (cdddr p) s env cx))
     ((null (unbound-vars (remove-duplicates-equal (fv-exp p)) env))
@@ -763,14 +909,49 @@
                                                                 (append (bind-steps (car-binds in-names lsyms cx))
                                                                         psteps)
                                                                 (list 'list row))))))))
-                         (mv (append pre
-                                     (list (list :test (list 'true-listp s)))
-                                     (if (atom-is it "LIST1") (list (list :test (list 'consp s))) nil)
-                                     (list (list* :bind tv (list* aux s (append ds fvsyms)))
-                                           (list :test tv))
-                                     (list-out-binds outs 0 tv cx))
-                             (env-add-out-lists outs env cx)
-                             (cx-add-aux def cx))))))))))))))
+                         (mv-let (csteps env2 cx2)
+                           (listn-count-steps it s (env-add-out-lists outs env cx) (cx-add-aux def cx))
+                           (mv (append pre
+                                       (list (list :test (list 'true-listp s)))
+                                       (if (atom-is it "LIST1") (list (list :test (list 'consp s))) nil)
+                                       (list (list* :bind tv (list* aux s (append ds fvsyms)))
+                                             (list :test tv))
+                                       (list-out-binds outs 0 tv cx)
+                                       csteps)
+                               env2 cx2))))))))))))))
+
+ ;; Config split strategy :redex for  A* ++ B ++ C  (Step/ctxt-instrs):
+ ;; p = length of the longest prefix of s whose elements match A's element
+ ;; pattern; B must end at position p (the first element that is not an A),
+ ;; and A's length is searched from p down to 0. Plan §2.5; completeness
+ ;; w.r.t. the generic search is a T8 proof obligation.
+ (defun cpat-redex (p s pre env cx)
+   (let* ((a (second p)) (b (second (third p))) (c (third (third p)))
+          (sv (gsym "%S")))
+     (mv-let (fname cx) (cx-fresh (concatenate 'string (cx-get :fn cx) "/PREFIX") cx)
+       (mv-let (msteps env0 cx) (cpat (second a) (list 'car sv) nil cx)
+         (declare (ignore env0))
+         (let* ((f (gsym fname))
+                (def (mk-defun f (list sv)
+                               (list 'if (list 'atom sv) 0
+                                     (list 'if (build-steps msteps t)
+                                           (list '+ 1 (list f (list 'cdr sv)))
+                                           0)))))
+           (mv-let (pname cx) (cx-fresh "%T" cx)
+             (mv-let (kname cx) (cx-fresh "%T" cx)
+               (let* ((pv (gsym pname)) (kv (gsym kname)) (cx (cx-add-aux def cx)))
+                 (mv-let (s1 env cx) (cpat a (list 'take kv s) env cx)
+                   (mv-let (s2 env cx) (cpat b (list 'take (list '- (list '+ 1 pv) kv)
+                                                     (list 'nthcdr kv s))
+                                             env cx)
+                     (mv-let (s3 env cx) (cpat c (list 'nthcdr (list '+ 1 pv) s) env cx)
+                       (mv (append pre
+                                   (list (list :test (list 'true-listp s))
+                                         (list* :bind pv (list f s))
+                                         (list :test (list '< pv (list 'len s)))
+                                         (list :choose kv 0 pv t))
+                                   s1 s2 s3)
+                           env cx))))))))))))
 
  (defun cpat-fields (fs i r env cx)
    (if (endp fs) (mv nil env cx)
@@ -802,6 +983,39 @@
         ((is pr "RULE") (fv-list (cddr pr)))
         (t nil)))
 
+;; a relation premise, possibly iterated
+(defun crule-premise (pr env cx)
+  (let* ((rel (second pr)) (rest (cddr pr)) (n (len rest))
+         (e (nth (- n 1) rest))
+         (comps (if (and (is e "TUP") (true-listp e)) (cdr e) (list e)))
+         (mode (cdr (assoc-equal rel (cx-get :modes cx))))
+         (fn (fn-sym :rel rel cx)))
+    (cond
+     ((null mode) (mv nil env (cx-err "relation not available" rel cx)))
+     ((eq (car mode) :fun)
+      (let ((ins (butlast comps 1)) (out (car (last comps))))
+        (if (has-unbound (cons (quote list) ins) env)
+            (mv nil env (cx-err "relation inputs unbound" pr cx))
+          (mv-let (ts cx) (cexps ins env cx)
+            (mv-let (tname cx) (cx-fresh "%T" cx)
+              (let ((tv (gsym tname)))
+                (mv-let (s1 env cx) (cpat out (list (quote car) tv) env cx)
+                  (mv (append (list (list* :bind tv (cons fn ts)) (list :test tv)) s1)
+                      env cx))))))))
+     (t
+      (if (has-unbound (cons (quote list) comps) env)
+          (mv nil env (cx-err "checker relation with unbound arguments" pr cx))
+        (mv-let (ts cx) (cexps comps env cx)
+          (mv (list (list :test (cons fn ts))) env cx)))))))
+
+; ((sym . (nth i (car tv))) ...)
+(defun nth-binds (syms i tv)
+  (if (endp syms) nil
+    (cons (cons (car syms) (nth-term i (list (quote car) tv))) (nth-binds (cdr syms) (1+ i) tv))))
+
+(defun rule-prem-p (p)
+  (or (is p "RULE") (and (is p "ITER") (rule-prem-p (second p)))))
+
 (mutual-recursion
 (defun cprem (pr env cx)
   ;; (mv steps env cx)
@@ -814,6 +1028,31 @@
    ((nodep pr "IF" 1)
     (let ((e (second pr)))
       (cond
+       ((and (nodep e "BIN" 4) (atom-is (second e) "OR") (has-unbound e env))
+        ;; a \/ b binding variables: the first disjunct that holds binds them
+        ;; (both disjuncts must bind the same variables)
+        (mv-let (s1 e1 cx) (cprem (list 'if (fourth e)) env cx)
+          (mv-let (s2 e2 cx) (cprem (list 'if (fifth e)) env cx)
+            (let* ((new1 (set-difference-equal (remove-duplicates-equal (strip-cars e1)) (strip-cars env)))
+                   (new2 (set-difference-equal (remove-duplicates-equal (strip-cars e2)) (strip-cars env)))
+                   (syms (env-terms new1 e1)))
+              (if (not (and (subsetp-equal new1 new2) (subsetp-equal new2 new1)))
+                  (mv nil env (cx-err "disjuncts bind different variables" e cx))
+                (mv-let (tname cx) (cx-fresh "%T" cx)
+                  (let ((tv (gsym tname)))
+                    (mv (append (list (list* :bind tv (list 'or (build-steps s1 (list 'list (cons 'list syms)))
+                                                          (build-steps s2 (list 'list (cons 'list syms)))))
+                                      (list :test tv))
+                                (bind-steps (nth-binds syms 0 tv)))
+                        (append (env-restrict new1 e1) env) cx))))))))
+       ((and (nodep e "MEM" 2) (has-unbound (second e) env) (not (has-unbound (third e) env)))
+        ;; x <- e with x unbound: choose the first element (deterministic)
+        (mv-let (v cx) (cexp (third e) env cx)
+          (mv-let (tname cx) (cx-fresh "%T" cx)
+            (let ((tv (gsym tname)))
+              (mv-let (s1 env cx) (cpat (second e) (list (quote car) tv) env cx)
+                (mv (append (list (list* :bind tv v) (list :test (list (quote consp) tv))) s1)
+                    env cx))))))
        ((and (nodep e "CMP" 4) (atom-is (second e) "EQ")
              (has-unbound (fourth e) env) (not (has-unbound (fifth e) env)))
         ;; x = e with x unbound: a binding (mode analysis, plan §2.5)
@@ -877,7 +1116,9 @@
                                                          rec-call)))))
                   (mv (list (list :test (cons aux (append ds fvsyms))))
                       env (cx-add-aux def cx)))))))))))
-   (t (mv nil env (cx-err "premise (relations are T4)" pr cx)))))
+   ((and (is pr "RULE") (true-listp pr) (>= (len pr) 4))
+    (crule-premise pr env cx))
+   (t (mv nil env (cx-err "premise" pr cx)))))
 
 ;; Premises are not in dependency order in SpecTec. Schedule them: always
 ;; compile the first premise that compiles without errors under the current
@@ -885,20 +1126,25 @@
 ;; errors, when none is ready).
 (defun cprems (prs env cx)
   (if (endp prs) (mv nil env cx)
-    (let* ((k (first-ready prs 0 env cx))
+    (let* ((k (or (first-ready prs 0 env cx nil) (first-ready prs 0 env cx t) 0))
            (p (nth k prs))
            (rest (append (take k prs) (nthcdr (1+ k) prs))))
       (mv-let (s1 env cx) (cprem p env cx)
         (mv-let (s2 env cx) (cprems rest env cx)
           (mv (append s1 s2) env cx))))))
 
-(defun first-ready (prs i env cx)
-  (if (endp prs) 0
-    (mv-let (s e2 cx2) (cprem (car prs) env cx)
-      (declare (ignore s e2))
-      (if (equal (len (cx-get :errs cx2)) (len (cx-get :errs cx)))
-          i
-        (first-ready (cdr prs) (1+ i) env cx)))))
+;; index of the first premise that compiles cleanly; relation premises
+;; (expensive calls) only when ALLOW-RULES, so cheap tests run first
+(defun first-ready (prs i env cx allow-rules)
+  (cond ((endp prs) nil)
+        ((and (not allow-rules) (rule-prem-p (car prs)))
+         (first-ready (cdr prs) (1+ i) env cx allow-rules))
+        (t (mv-let (s e2 cx2) (cprem (car prs) env cx)
+             (declare (ignore s e2))
+             (if (equal (len (cx-get :errs cx2)) (len (cx-get :errs cx)))
+                 i
+               (first-ready (cdr prs) (1+ i) env cx allow-rules))))))
+
 )
 
 ; --- Recognizers for syntax definitions --------------------------------
@@ -912,11 +1158,6 @@
   (cond ((endp ps) nil)
         ((is (car ps) "TYP") (cons (second (car ps)) (typ-param-names (cdr ps))))
         (t (typ-param-names (cdr ps)))))
-
-(defun exp-args (as)
-  (cond ((endp as) nil)
-        ((is (car as) "EXP") (cons (second (car as)) (exp-args (cdr as))))
-        (t (exp-args (cdr as)))))
 
 (defun cpat-args (pats formals env cx)
   ;; match each arg pattern against its formal
@@ -1048,7 +1289,7 @@
     (mv-let (s1 env cx) (cpat-args (exp-args as) formals nil cx)
       (mv-let (s2 env cx) (cprems prs env cx)
         (mv-let (r cx) (cexp e env cx)
-          (mv (build-steps (append s1 s2) (list 'list r)) cx))))))
+          (build-steps-cx (append s1 s2) (list 'list r) cx))))))
 
 (defun cclauses (cls formals cx)
   (if (endp cls) (mv nil cx)
@@ -1074,6 +1315,181 @@
         (mv-let (body cx) (cclauses cls formals cx)
           (mv (mk-defun name formals body) nil cx))))))
 
+; Body of a definition that could not be translated (listed in the header).
+(defun stub-defun (name formals)
+  (mk-defun name formals
+            (list (quote prog2$)
+                  (list (quote er) (quote acl2::hard?) (list (quote quote) name)
+                        "Not translated (see the stub list in the file header).")
+                  nil)))
+
+; --- Relations (plan §2.5) ----------------------------------------------
+;
+; Mode :fun   R(inputs) = (list output) for the first rule that applies, or
+;             nil; the last component is the output.
+; Mode :check R(all components) = t iff some rule applies.
+; Mode :closure  refl/trans shape: R(x) = (list y), y the normal form of
+;             iterating the step relation from x (bounded by (%FUEL)).
+
+(defun rel-parts (x)
+  ;; (rel id params... mixop typ rules...) -> (mv arity rules)
+  (mv-let (ps more) (def-parts x)
+    (declare (ignore ps))
+    (let ((ty (second more)))
+      (mv (if (and (is ty "TUP") (true-listp ty)) (len (cdr ty)) 1)
+          (cddr more)))))
+
+(defun rule-parts (r)
+  ;; (rule id params... mixop exp prems...) -> (mv comps prems)
+  (let* ((rest (cddr r)) (ps (take-while-params rest)) (more (nthcdr (len ps) rest))
+         (e (second more)))
+    (mv (if (and (is e "TUP") (true-listp e)) (cdr e) (list e)) (cddr more))))
+
+; refl/trans closure of a step relation: (mv step-rel-id-or-nil)
+(defun closure-step (x)
+  (mv-let (n rules) (rel-parts x)
+    (and (= n 2) (= (len rules) 2)
+         (mv-let (c1 p1) (rule-parts (first rules))
+           (mv-let (c2 p2) (rule-parts (second rules))
+             (declare (ignore c2))
+             (and (null p1) (equal (first c1) (second c1))
+                  (= (len p2) 2)
+                  (is (first p2) "RULE") (is (second p2) "RULE")
+                  (equal (second (second p2)) (second x))
+                  (second (first p2))))))))
+
+(defun crule (r mode formals rel cx)
+  ;; (mv term cx): (list output) / (list t) if rule R applies, else nil
+  (mv-let (comps prems) (rule-parts r)
+    (let* ((ins (if (eq mode :fun) (butlast comps 1) comps))
+           (cx (cx-put :redex (and (member-equal (cons rel (second r)) (cx-get :split-rules cx)) t) cx)))
+      (mv-let (s1 env cx) (cpat-args ins formals nil cx)
+        (let ((cx (cx-put :redex nil cx)))
+          (mv-let (s2 env cx) (cprems prems env cx)
+            (mv-let (out cx) (if (eq mode :fun) (cexp (car (last comps)) env cx) (mv t cx))
+              (build-steps-cx (append s1 s2) (list 'list out) cx))))))))
+
+(defun crules (rs mode formals rel cx)
+  (if (endp rs) (mv nil cx)
+    (mv-let (c cx) (crule (car rs) mode formals rel cx)
+      (mv-let (rest cx) (crules (cdr rs) mode formals rel cx)
+        (mv (cons c rest) cx)))))
+
+(defun chain-results (cs)
+  ;; first non-nil of the rule results, still wrapped: (list output) or nil,
+  ;; so that an empty output (e.g. NOP ~> eps) is distinguishable from failure
+  (if (endp cs) nil
+    (if (and (consp (car cs)) (eq (car (car cs)) 'list) (= (len (car cs)) 2))
+        (car cs)                         ; unconditional rule
+      (let ((r (gsym "%R")))
+        (list 'let (list (list r (car cs))) (ignorable-decl (list r))
+              (list 'if r r (chain-results (cdr cs))))))))
+
+; (mv defuns cx) for one relation in the given mode
+(defun crel (x mode cx)
+  (mv-let (n rules) (rel-parts x)
+    (let* ((name (fn-sym :rel (second x) cx))
+           (cx (cx-put :fn (cdr name) cx)) (cx (cx-put :n 0 cx)) (cx (cx-put :aux nil cx))
+           (cx (cx-put :tparams nil cx)))
+      (if (eq mode :closure)
+          (let* ((step (fn-sym :rel (closure-step x) cx))
+                 (fuel (gsym "%FUEL")) (a (gsym "%A0")) (r (gsym "%R"))
+                 (aux (gsym (concatenate 'string (cdr name) "/%FUEL"))))
+            (mv (list (mk-defun-measure aux (list fuel a) (list 'nfix fuel)
+                                        (list 'if (list 'zp fuel) nil
+                                              (list 'let (list (list r (list step a)))
+                                                    (ignorable-decl (list r))
+                                                    (list 'if r (list aux (list '1- fuel) (list 'car r))
+                                                          (list 'list a)))))
+                      (mk-defun name (list a) (list aux (list (gsym "%FUEL")) a)))
+                cx))
+        (let ((formals (gsyms-prefixed "%A" (if (eq mode :fun) (1- n) n))))
+          (mv-let (cs cx) (crules rules mode formals (second x) cx)
+            (mv (append (reverse (cx-get :aux cx))
+                        (list (mk-defun name formals
+                                        (if (eq mode :fun) (chain-results cs)
+                                          (list 'if (chain-results cs) t nil)))))
+                cx)))))))
+
+(defun rel-members (x) (if (is x "REC") (cdr x) (list x)))
+
+(defun set-modes (xs mode cx)
+  (if (endp xs) cx
+    (let ((m (if (closure-step (car xs)) :closure mode)))
+      (set-modes (cdr xs) mode
+                 (cx-put :modes (put-assoc-equal (second (car xs))
+                                                 (cons (if (eq m :check) :check :fun) m)
+                                                 (cx-get :modes cx))
+                         cx)))))
+
+(defun mode-of (id cx) (cdr (cdr (assoc-equal id (cx-get :modes cx)))))
+
+; Compile members with their registered modes; (mv defuns erroring-ids cx)
+(defun crel-members (xs cx)
+  (if (endp xs) (mv nil nil cx)
+    (let ((nerr (len (cx-get :errs cx))))
+      (mv-let (d1 cx) (crel (car xs) (mode-of (second (car xs)) cx) cx)
+        (let ((bad (if (equal (len (cx-get :errs cx)) nerr) nil (list (second (car xs))))))
+          (mv-let (d2 b2 cx) (crel-members (cdr xs) cx)
+            (mv (append d1 d2) (append bad b2) cx)))))))
+
+(defun set-mode-ids (ids mode cx)
+  (if (endp ids) cx
+    (set-mode-ids (cdr ids) mode
+                  (cx-put :modes (put-assoc-equal (car ids) (cons mode mode) (cx-get :modes cx)) cx))))
+
+(defun rel-stubs (xs bad cx)
+  ;; stub defuns for erroring relations (right arity for their mode)
+  (if (endp xs) nil
+    (append (if (member-equal (second (car xs)) bad)
+                (mv-let (n rules) (rel-parts (car xs))
+                  (declare (ignore rules))
+                  (let ((k (if (eq (mode-of (second (car xs)) cx) :check) n (1- n))))
+                    (list (stub-defun (fn-sym :rel (second (car xs)) cx) (gsyms-prefixed "%A" k)))))
+              nil)
+            (rel-stubs (cdr xs) bad cx))))
+
+(defun member-equal-prefix (nm names)
+  (and (consp names)
+       (or (and (< (length (car names)) (length nm))
+                (equal (subseq nm 0 (1+ (length (car names))))
+                       (concatenate 'string (car names) "/")))
+           (member-equal-prefix nm (cdr names)))))
+
+(defun drop-defuns-of (ds names)
+  ;; drop the main defuns (and their aux) of the named relations
+  (cond ((endp ds) nil)
+        ((let ((nm (cdr (second (car ds)))))
+           (or (member-equal nm names)
+               (member-equal-prefix nm names)))
+         (drop-defuns-of (cdr ds) names))
+        (t (cons (car ds) (drop-defuns-of (cdr ds) names)))))
+
+(defun rel-mangled (ids cx)
+  (if (endp ids) nil (cons (tbl-name :rel (car ids) cx) (rel-mangled (cdr ids) cx))))
+
+; A relation (or REC group of relations): try :fun; members with errors are
+; retried as :check; members still failing become stubs. (mv events cx)
+(defun crel-form (x cx)
+  (let* ((xs (rel-members x))
+         (cx (set-modes xs :fun cx))
+         (errs0 (cx-get :errs cx)))
+    (mv-let (ds bad cx) (crel-members xs cx)
+      (if (null bad)
+          (mv ds cx)
+        (let* ((errs1 (cx-get :errs cx))          ; errors of the :fun attempt
+               (cx (cx-put :errs errs0 cx))
+               (cx (set-mode-ids bad :check cx)))
+          (mv-let (ds2 bad2 cx) (crel-members xs cx)
+            (if (null bad2)
+                (mv ds2 cx)
+              ;; neither mode works: report the :fun errors, stub in :fun mode
+              (let* ((cx (cx-put :errs errs1 cx))
+                     (cx (set-modes xs :fun cx))
+                     (names (rel-mangled bad cx))
+                     (ds (append (drop-defuns-of ds names) (rel-stubs xs bad cx))))
+                (mv ds (cx-put :stubs (append (cx-get :stubs cx) names) cx))))))))))
+
 ; --- Top-level forms ---------------------------------------------------
 
 (defun form-base (x cx)
@@ -1086,12 +1502,6 @@
 ; A form that hits an unsupported construct is emitted as an explicit stub
 ; (its aux functions are dropped) and listed in :stubs; a def named in the
 ; config :overrides is treated like a builtin (hand-written in rt/).
-(defun stub-defun (name formals)
-  (mk-defun name formals
-            (list (quote prog2$)
-                  (list (quote er) (quote acl2::hard?) (list (quote quote) name)
-                        "Not translated (see the stub list in the file header).")
-                  nil)))
 
 (defun cmember (x cx)
   (let* ((cx (cx-put :fn (form-base x cx) cx))
@@ -1123,9 +1533,12 @@
 
 ; (mv events builtins skipped cx)
 (defun cform (x cx)
-  (cond ((or (is x "REL") (is x "GRAM")
-             (and (is x "REC") (or (is (cadr x) "REL") (is (cadr x) "GRAM"))))
+  (cond ((or (is x "GRAM") (and (is x "REC") (is (cadr x) "GRAM")))
          (mv nil nil (list x) cx))
+        ((or (is x "REL") (and (is x "REC") (is (cadr x) "REL")))
+         (mv-let (ds cx) (crel-form x cx)
+           (mv (if (and (is x "REC") (consp (cdr ds))) (list (cons 'mutual-recursion ds)) ds)
+               nil nil cx)))
         ((is x "REC")
          (mv-let (ds bs cx) (cmembers (cdr x) cx)
            (mv (if (consp (cdr ds)) (list (cons 'mutual-recursion ds)) ds) bs nil cx)))
