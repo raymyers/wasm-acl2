@@ -429,7 +429,14 @@ input/output mode makes deterministic:
   not computable, and in checking mode the intermediate stacks are not known.
 
 A complete checker needs bidirectional mode inference with stack
-polymorphism, i.e. a validation *algorithm*. SpecTec does not derive one
+polymorphism, i.e. a validation *algorithm*.
+
+`Module_ok` has a second, independent problem: a cyclic dependency. The
+context `C = {TYPES ft'*, FUNCS ift* ft*, ...}` contains `ft*`, and `ft*` is
+the *output* of the premises `(Func_ok: C |- func : ft)*`, which take `C` as
+input. Mode analysis cannot schedule this. Breaking the cycle needs the
+insight that `Func_ok`'s output `C.TYPES[x]` depends only on `C.TYPES`, i.e.
+partial evaluation or laziness, not a mode. SpecTec does not derive one
 either: the AL (`--print-al`, Strategy B) calls `$Module_ok` as an opaque
 function, and SpecTec's interpreter backend validates with the hand-written
 OCaml reference validator. Options, none taken yet (each is a decision for
@@ -477,16 +484,30 @@ faithfully:
   IL has `len = 0`: elaboration loses `||·||`. Handled by `:sized`: the item
   after `len` is parsed from exactly `len` bytes.
 
-### T8: Logic mode, guards, reasoning
-- [ ] Move generated functions from `:program` to logic mode. Termination comes
-      from `acl2-count` by default; measures go in config when that fails
-- [ ] Guard verification wherever it is achievable
-- [ ] Generated or hand-written proofs over the generated defs: the analogs of
-      WASM1's `add-correct` and `div-by-zero-traps`
-- [ ] Prove the split strategy in §2.5 complete
+### T8: Logic mode, guards, reasoning 🔶 Partial
+- [~] Move generated functions from `:program` to logic mode. Termination comes
+      from `acl2-count` by default; measures go in config when that fails.
+      Done generically via `%try-logic` (`:ruler-extenders :all`, bounded
+      prover steps): 312 of 332 in logic mode. Left: the `STEP` mutual
+      recursion (with its search/prefix aux functions) and its callers. Its
+      termination needs a lexicographic measure across `STEP` and the search
+      function, plus the fact that the `ctxt-instrs` side condition makes the
+      inner instruction list strictly shorter. That is proof work for config
+      measures, not done yet
+- [ ] Guard verification wherever it is achievable (not attempted)
+- [x] Generated or hand-written proofs over the generated defs: the analogs of
+      WASM1's `add-correct` and `div-by-zero-traps`. `tests/sem/t8-proofs.lisp`,
+      all for all inputs: `$idiv_`/`$irem_` by zero have no result; the
+      generated `STEP_PURE` reduces `i32.const a; i32.const b; i32.add` to
+      `i32.const (a+b mod 2^32)`, traps `div_u` by zero, and selects
+      correctly. Proofs expand the lifted search functions by name, collected
+      from `gen/wasm1.lisp`. Also `compare/c2-int-equiv.lisp` (T9)
+- [ ] Prove the split strategy in §2.5 complete (needs `STEP` in logic mode)
 
 **Exit**: the share of the generated semantics in logic mode is recorded and
-increasing; the first `run`-level theorem is proved.
+increasing; the first `run`-level theorem is proved. *Status*: share recorded
+(312/332); theorems are at the `Step_pure` level, since `STEP`/`STEPS` are
+still `:program`, so no `run`-level theorem yet.
 
 ### T9: Side-by-side comparison with WASM1 (`translate/compare/`) 🔶 Partial
 - [~] **Differential testing**: run the same oracle corpus through both
