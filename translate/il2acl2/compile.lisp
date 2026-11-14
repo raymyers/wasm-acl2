@@ -870,6 +870,13 @@
           (or (name-in (third p) '("LIST" "LIST1" "OPT")) (nodep (third p) "LISTN" 1))
           (has-unbound p env))
      (citer-pat (second p) (third p) (cdddr p) s env cx))
+    ((and (is p "ITER") (true-listp p) (= (len p) 3) (atom-is (third p) "OPT")
+          (null (unbound-vars (remove-duplicates-equal (fv-exp (second p))) env)))
+     ;; e? with no iteration variables (e.g. MUT? in globaltype): as a
+     ;; pattern it matches either no element or exactly e. (As an expression
+     ;; the iteration would always produce e, wrongly forcing MUT.)
+     (mv-let (v cx) (cexp (second p) env cx)
+       (mv (list (list :test (list 'or (list 'null s) (list 'equal s (list 'list v))))) env cx)))
     ((null (unbound-vars (remove-duplicates-equal (fv-exp p)) env))
      ;; a fully determined expression: compare
      (mv-let (v cx) (cexp p env cx)
@@ -1039,6 +1046,46 @@
                                   (list (quote and) (list (quote equal) ca oa) (list (quote <) cb ob))))))
       nil)))
 
+;; Output of a :multi premise c(a, b) with b unbound: the output variant
+;; computes b, but it drops the stack-polymorphic rules (unreachable, br,
+;; br_table, return), so e.g. Instrs_ok/seq cannot get the intermediate stack
+;; t_2* after a br (dead code). Fallback, sound because every candidate is
+;; CHECKED with the check variant: b ranges over the empty list and the list
+;; variables (names ending in *) already bound in the rule. A search point:
+;; candidate 0 is the output variant's result, candidate k > 0 is the k-th list.
+(defun list-var-terms (env)
+  (cond ((endp env) nil)
+        ((let ((nm (car (car env))))
+           (and (stringp nm) (< 0 (length nm)) (eql (char nm (1- (length nm))) #\*)))
+         (cons (cdr (car env)) (list-var-terms (cdr env))))
+        (t (list-var-terms (cdr env)))))
+
+(defun strip-cadrs-of (l) (if (endp l) nil (cons (cadr (car l)) (strip-cadrs-of (cdr l)))))
+
+(defun size-tests-term (steps)
+  ;; (:test e)... -> (and e...)
+  (cons (quote and) (strip-cadrs-of steps)))
+
+(defun multi-candidate-steps (rel comps ts tv sb cands env cx)
+  (let* ((l (car (last comps)))
+         (lc (list (first l) (second l) (list (first (third l)) (second (third l)) (list (quote var) "%CAND"))))
+         (cs (gsym "%CAND")) (kv (gsym "%C"))
+         (cands (cons nil cands)))                    ; the empty list first
+    (mv-let (tsc cx) (cexps (append (butlast comps 1) (list lc)) (acons "%CAND" cs env) cx)
+      (let ((split (list (quote and) (size-tests-term (rec-size-check rel ts cx))
+                         (cons (split-name rel cx) ts)))
+            (check (list (quote and) (size-tests-term (rec-size-check rel tsc cx))
+                         (cons (fn-sym :rel rel cx) tsc)
+                         (list (quote list) cs))))
+        (mv-let (s1 env cx) (cpat sb (list (quote car) tv) env cx)
+          (mv (append (list (list :choose kv 0 (len cands) nil)
+                            (list* :bind cs (list (quote if) (list (quote zp) kv) nil
+                                                  (list (quote nth) (list (quote 1-) kv) (cons (quote list) cands))))
+                            (list* :bind tv (list (quote if) (list (quote zp) kv) split check))
+                            (list :test tv))
+                      s1)
+              env cx))))))
+
 ;; a relation premise, possibly iterated
 (defun crule-premise (pr env cx)
   (let* ((rel (second pr)) (rest (cddr pr)) (n (len rest))
@@ -1062,12 +1109,14 @@
                 (mv nil env (cx-err "relation inputs unbound" pr cx))
               (mv-let (ts cx) (cexps ins env cx)
                 (mv-let (tname cx) (cx-fresh "%T" cx)
-                  (let ((tv (gsym tname)))
-                    (mv-let (s1 env cx) (cpat sb (list (quote car) tv) env cx)
-                      (mv (append (rec-size-check rel ts cx)
-                                  (list (list* :bind tv (cons (split-name rel cx) ts)) (list :test tv))
-                                  s1)
-                          env cx))))))))))
+                  (let ((tv (gsym tname)) (cands (list-var-terms env)))
+                    (if (and sa cands)
+                        (multi-candidate-steps rel comps ts tv sb cands env cx)
+                      (mv-let (s1 env cx) (cpat sb (list (quote car) tv) env cx)
+                        (mv (append (rec-size-check rel ts cx)
+                                    (list (list* :bind tv (cons (split-name rel cx) ts)) (list :test tv))
+                                    s1)
+                            env cx)))))))))))
      ((eq (car mode) :fun)
       (let ((ins (butlast comps 1)) (out (car (last comps))))
         (if (has-unbound (cons (quote list) ins) env)
@@ -1644,13 +1693,27 @@
 ; retried as :check; members still failing become stubs. (mv events cx)
 (defun strip-seconds (l) (if (endp l) nil (cons (second (car l)) (strip-seconds (cdr l)))))
 
+(defun calls-multi (x cx)
+  ;; does IL term x contain a premise (rule "Rel" ...) of a :multi relation?
+  (cond ((atom x) nil)
+        ((and (is x "RULE") (stringp (second x)) (eq (mode-of (second x) cx) :multi)) t)
+        (t (or (calls-multi (car x) cx) (calls-multi (cdr x) cx)))))
+
 (defun crel-form-1 (x cx)
   (let* ((xs (rel-members x))
          (cx (set-modes xs :fun cx))
          (errs0 (cx-get :errs cx)))
     (mv-let (ds bad cx) (crel-members xs cx)
       (if (null bad)
-          (mv ds cx)
+          ;; multi-mode propagates: a :fun relation that calls a :multi one
+          ;; (e.g. Expr_ok -> Instrs_ok) is also compiled :multi, so callers
+          ;; that know its output (Func_ok knows t_2?) use the check variant,
+          ;; which keeps the rules the output variant drops (return, br, ...)
+          (if (calls-multi (rel-members x) cx)
+              (mv-let (dsm badm cxm)
+                (crel-members xs (set-mode-ids (strip-seconds xs) :multi (cx-put :errs errs0 cx)))
+                (if (null badm) (mv dsm cxm) (mv ds cx)))
+            (mv ds cx))
         (let* ((errs1 (cx-get :errs cx))          ; errors of the :fun attempt
                (cx (cx-put :errs errs0 cx))
                (cx (set-mode-ids bad :check cx)))

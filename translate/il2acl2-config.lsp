@@ -41,7 +41,7 @@
          (and r rest (list (cons (car r) (car rest)))))))
    (defun module_ok/%globals (c gs)             ; (Global_ok: C' |- global : gt)*
      (if (atom gs) (list nil)
-       (let ((r (global_ok c (car gs))) (rest (module_ok/%globals c (cdr gs))))
+       (let ((r (global_ok/split c (car gs))) (rest (module_ok/%globals c (cdr gs))))
          (and r rest (list (cons (car r) (car rest)))))))
    (defun module_ok/%tables (c ts)              ; (Table_ok: C |- table : tt)*
      (if (atom ts) (list nil)
@@ -58,7 +58,7 @@
               (list (cons (nth x fts1) (car rest)))))))
    (defun module_ok/%funcs-ok (c fs fts)        ; (Func_ok: C |- func : ft)*, checked
      (if (atom fs) t
-       (and (equal (func_ok c (car fs)) (list (car fts)))
+       (and (func_ok c (car fs) (car fts))         ; the check variant (Func_ok is multi-mode)
             (module_ok/%funcs-ok c (cdr fs) (cdr fts)))))
    (defun module_ok/%elems-ok (c es)            ; (Elem_ok: C |- elem : OK)*
      (if (atom es) t (and (elem_ok c (car es)) (module_ok/%elems-ok c (cdr es)))))

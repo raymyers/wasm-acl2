@@ -5071,8 +5071,8 @@
               (DECLARE (IGNORABLE %A0))
               (IF (LET ((%R (AND (TRUE-LISTP %A0)
                                  (EQUAL (ACL2::LEN %A0) 2)
-                                 (EQUAL (CAR %A0)
-                                        (IF (AND) (LIST (LIST :MUT)) NIL))
+                                 (OR (NULL (CAR %A0))
+                                     (EQUAL (CAR %A0) (LIST (LIST :MUT))))
                                  (LET* ((T^R (CAR (CDR %A0))))
                                    (DECLARE (IGNORABLE T^R))
                                    (LIST T)))))
@@ -8998,7 +8998,69 @@
                                                              (IGNORABLE %R))
                                                         (IF %R %R
                                                          NIL)))))))))))))))))))))))))))))))))))))))))))))))))))))))
-  (DEFUN INSTRS_OK/SEARCH11 (%K %LO %HI %A1 %A2 C^U %A0)
+  (DEFUN INSTRS_OK/SEARCH11 (%K %LO %HI T_3-STAR T_1-STAR INSTR_2-STAR
+                                INSTR_1-STAR %A1 C^U %A0 %A2)
+   (DECLARE (IGNORABLE %K
+                       %LO %HI T_3-STAR T_1-STAR INSTR_2-STAR
+                       INSTR_1-STAR %A1 C^U %A0 %A2))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (%SIZE (LIST %A0 %A1 %A2))
+                                  (NFIX (- (1+ %HI) %K)))))
+   (IF
+    (AND (NATP %K)
+         (NATP %LO)
+         (NATP %HI)
+         (<= %LO %K)
+         (<= %K %HI))
+    (LET
+     ((%R
+       (LET ((%C %K))
+        (DECLARE (IGNORABLE %C))
+        (LET*
+         ((%CAND (IF (ZP %C)
+                     NIL
+                   (NTH (1- %C)
+                        (LIST NIL T_3-STAR
+                              T_1-STAR INSTR_2-STAR INSTR_1-STAR))))
+          (%T9
+           (IF (ZP %C)
+               (AND (AND (OR (< (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                             (AND (EQUAL (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                                  (< (%SIZE (LIST C^U INSTR_1-STAR T_1-STAR))
+                                     (%SIZE (LIST %A0 %A1 %A2))))))
+                    (INSTRS_OK/SPLIT C^U INSTR_1-STAR T_1-STAR))
+             (AND (AND (OR (< (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                           (AND (EQUAL (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                                (< (%SIZE (LIST C^U INSTR_1-STAR
+                                                (LIST :%->% T_1-STAR %CAND)))
+                                   (%SIZE (LIST %A0 %A1 %A2))))))
+                  (INSTRS_OK C^U INSTR_1-STAR
+                             (LIST :%->% T_1-STAR %CAND))
+                  (LIST %CAND)))))
+         (DECLARE (IGNORABLE %CAND %T9))
+         (AND
+          %T9
+          (LET* ((%T10 (CAR %T9)))
+           (DECLARE (IGNORABLE %T10))
+           (AND
+             (TRUE-LISTP %T10)
+             (LET* ((T_2-STAR %T10))
+               (DECLARE (IGNORABLE T_2-STAR))
+               (AND (OR (< (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                        (AND (EQUAL (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                             (< (%SIZE (LIST C^U INSTR_2-STAR
+                                             (LIST :%->% T_2-STAR T_3-STAR)))
+                                (%SIZE (LIST %A0 %A1 %A2)))))
+                    (INSTRS_OK C^U INSTR_2-STAR
+                               (LIST :%->% T_2-STAR T_3-STAR))
+                    (LIST T))))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+       (INSTRS_OK/SEARCH11 (1+ %K)
+                           %LO %HI T_3-STAR T_1-STAR INSTR_2-STAR
+                           INSTR_1-STAR %A1 C^U %A0 %A2)))
+    NIL))
+  (DEFUN INSTRS_OK/SEARCH12 (%K %LO %HI %A1 %A2 C^U %A0)
    (DECLARE (IGNORABLE %K %LO %HI %A1 %A2 C^U %A0))
    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
                                   (%SIZE (LIST %A0 %A1 %A2))
@@ -9037,43 +9099,20 @@
                        (%T8 (CAR (CDR (CDR %A2)))))
                  (DECLARE (IGNORABLE T_1-STAR %T8))
                  (AND
-                  (TRUE-LISTP %T8)
-                  (LET* ((T_3-STAR %T8))
-                   (DECLARE (IGNORABLE T_3-STAR))
-                   (AND
-                    (OR (< (%SIZE INSTR_1-STAR) (%SIZE %A1))
-                        (AND (EQUAL (%SIZE INSTR_1-STAR) (%SIZE %A1))
-                             (< (%SIZE (LIST C^U INSTR_1-STAR T_1-STAR))
-                                (%SIZE (LIST %A0 %A1 %A2)))))
-                    (LET* ((%T9 (INSTRS_OK/SPLIT C^U INSTR_1-STAR T_1-STAR)))
-                     (DECLARE (IGNORABLE %T9))
-                     (AND
-                      %T9
-                      (LET* ((%T10 (CAR %T9)))
-                       (DECLARE (IGNORABLE %T10))
-                       (AND
-                        (TRUE-LISTP %T10)
-                        (LET* ((T_2-STAR %T10))
-                         (DECLARE (IGNORABLE T_2-STAR))
-                         (AND
-                          (OR
-                           (< (%SIZE INSTR_2-STAR) (%SIZE %A1))
-                           (AND
-                             (EQUAL (%SIZE INSTR_2-STAR) (%SIZE %A1))
-                             (< (%SIZE (LIST C^U INSTR_2-STAR
-                                             (LIST :%->% T_2-STAR T_3-STAR)))
-                                (%SIZE (LIST %A0 %A1 %A2)))))
-                          (INSTRS_OK C^U INSTR_2-STAR
-                                     (LIST :%->% T_2-STAR T_3-STAR))
-                          (LIST T))))))))))))))))))))))
+                     (TRUE-LISTP %T8)
+                     (LET* ((T_3-STAR %T8))
+                       (DECLARE (IGNORABLE T_3-STAR))
+                       (INSTRS_OK/SEARCH11 0 0 5 T_3-STAR
+                                           T_1-STAR INSTR_2-STAR INSTR_1-STAR
+                                           %A1 C^U %A0 %A2)))))))))))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R
-       (INSTRS_OK/SEARCH11 (1+ %K)
+       (INSTRS_OK/SEARCH12 (1+ %K)
                            %LO %HI %A1 %A2 C^U %A0)))
     NIL))
-  (DEFUN INSTRS_OK/SEARCH20 (%K %LO %HI %T16 T-STAR
+  (DEFUN INSTRS_OK/SEARCH21 (%K %LO %HI %T17 T-STAR
                                 INSTR-STAR %A1 C^U T_1-STAR %A0 %A2)
-   (DECLARE (IGNORABLE %K %LO %HI %T16 T-STAR
+   (DECLARE (IGNORABLE %K %LO %HI %T17 T-STAR
                        INSTR-STAR %A1 C^U T_1-STAR %A0 %A2))
    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
                                   (%SIZE (LIST %A0 %A1 %A2))
@@ -9086,18 +9125,18 @@
          (<= %K %HI))
     (LET
      ((%R
-       (LET ((%T17 %K))
-        (DECLARE (IGNORABLE %T17))
-        (LET* ((%T18 (TAKE %T17 %T16)))
-         (DECLARE (IGNORABLE %T18))
+       (LET ((%T18 %K))
+        (DECLARE (IGNORABLE %T18))
+        (LET* ((%T19 (TAKE %T18 %T17)))
+         (DECLARE (IGNORABLE %T19))
          (AND
-          (TRUE-LISTP %T18)
-          (EQUAL %T18 T-STAR)
-          (LET* ((%T19 (NTHCDR %T17 %T16)))
-           (DECLARE (IGNORABLE %T19))
+          (TRUE-LISTP %T19)
+          (EQUAL %T19 T-STAR)
+          (LET* ((%T20 (NTHCDR %T18 %T17)))
+           (DECLARE (IGNORABLE %T20))
            (AND
-             (TRUE-LISTP %T19)
-             (LET* ((T_2-STAR %T19))
+             (TRUE-LISTP %T20)
+             (LET* ((T_2-STAR %T20))
                (DECLARE (IGNORABLE T_2-STAR))
                (AND (OR (< (%SIZE INSTR-STAR) (%SIZE %A1))
                         (AND (EQUAL (%SIZE INSTR-STAR) (%SIZE %A1))
@@ -9109,13 +9148,13 @@
                     (LIST T))))))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R
-       (INSTRS_OK/SEARCH20 (1+ %K)
-                           %LO %HI %T16 T-STAR
+       (INSTRS_OK/SEARCH21 (1+ %K)
+                           %LO %HI %T17 T-STAR
                            INSTR-STAR %A1 C^U T_1-STAR %A0 %A2)))
     NIL))
-  (DEFUN INSTRS_OK/SEARCH21 (%K %LO %HI %T12 %A2 INSTR-STAR %A1 C^U %A0)
+  (DEFUN INSTRS_OK/SEARCH22 (%K %LO %HI %T13 %A2 INSTR-STAR %A1 C^U %A0)
    (DECLARE (IGNORABLE %K %LO
-                       %HI %T12 %A2 INSTR-STAR %A1 C^U %A0))
+                       %HI %T13 %A2 INSTR-STAR %A1 C^U %A0))
    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
                                   (%SIZE (LIST %A0 %A1 %A2))
                                   (NFIX (- (1+ %HI) %K)))))
@@ -9127,28 +9166,28 @@
          (<= %K %HI))
     (LET
      ((%R
-       (LET ((%T13 %K))
-        (DECLARE (IGNORABLE %T13))
-        (LET* ((%T14 (TAKE %T13 %T12)))
-         (DECLARE (IGNORABLE %T14))
+       (LET ((%T14 %K))
+        (DECLARE (IGNORABLE %T14))
+        (LET* ((%T15 (TAKE %T14 %T13)))
+         (DECLARE (IGNORABLE %T15))
          (AND
-          (TRUE-LISTP %T14)
-          (LET* ((T-STAR %T14)
-                 (%T15 (NTHCDR %T13 %T12)))
-           (DECLARE (IGNORABLE T-STAR %T15))
-           (AND (TRUE-LISTP %T15)
-                (LET* ((T_1-STAR %T15)
-                       (%T16 (CAR (CDR (CDR %A2)))))
-                  (DECLARE (IGNORABLE T_1-STAR %T16))
-                  (AND (TRUE-LISTP %T16)
-                       (INSTRS_OK/SEARCH20 0 0 (ACL2::LEN %T16)
-                                           %T16 T-STAR INSTR-STAR
+          (TRUE-LISTP %T15)
+          (LET* ((T-STAR %T15)
+                 (%T16 (NTHCDR %T14 %T13)))
+           (DECLARE (IGNORABLE T-STAR %T16))
+           (AND (TRUE-LISTP %T16)
+                (LET* ((T_1-STAR %T16)
+                       (%T17 (CAR (CDR (CDR %A2)))))
+                  (DECLARE (IGNORABLE T_1-STAR %T17))
+                  (AND (TRUE-LISTP %T17)
+                       (INSTRS_OK/SEARCH21 0 0 (ACL2::LEN %T17)
+                                           %T17 T-STAR INSTR-STAR
                                            %A1 C^U T_1-STAR %A0 %A2))))))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R
-       (INSTRS_OK/SEARCH21 (1+ %K)
+       (INSTRS_OK/SEARCH22 (1+ %K)
                            %LO
-                           %HI %T12 %A2 INSTR-STAR %A1 C^U %A0)))
+                           %HI %T13 %A2 INSTR-STAR %A1 C^U %A0)))
     NIL))
   (DEFUN INSTRS_OK (%A0 %A1 %A2)
     (DECLARE (IGNORABLE %A0 %A1 %A2))
@@ -9224,7 +9263,7 @@
         (LET ((%R (LET* ((C^U %A0))
                     (DECLARE (IGNORABLE C^U))
                     (AND (TRUE-LISTP %A1)
-                         (INSTRS_OK/SEARCH11 0 0 (ACL2::LEN %A1)
+                         (INSTRS_OK/SEARCH12 0 0 (ACL2::LEN %A1)
                                              %A1 %A2 C^U %A0)))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
@@ -9240,17 +9279,175 @@
                          (EQ (CAR %A2) :%->%)
                          (TRUE-LISTP (CDR %A2))
                          (EQUAL (ACL2::LEN (CDR %A2)) 2)
-                         (LET* ((%T12 (CAR (CDR %A2))))
-                           (DECLARE (IGNORABLE %T12))
-                           (AND (TRUE-LISTP %T12)
-                                (INSTRS_OK/SEARCH21
-                                     0 0 (ACL2::LEN %T12)
-                                     %T12 %A2 INSTR-STAR %A1 C^U %A0)))))))))
+                         (LET* ((%T13 (CAR (CDR %A2))))
+                           (DECLARE (IGNORABLE %T13))
+                           (AND (TRUE-LISTP %T13)
+                                (INSTRS_OK/SEARCH22
+                                     0 0 (ACL2::LEN %T13)
+                                     %T13 %A2 INSTR-STAR %A1 C^U %A0)))))))))
            (DECLARE (IGNORABLE %R))
            (IF %R %R NIL))))))))
     T
     NIL))
-  (DEFUN INSTRS_OK/SPLIT/SEARCH9 (%K %LO %HI %A1 %A2 C^U %A0)
+  (DEFUN INSTRS_OK/SPLIT/SEARCH2 (%K %LO %HI T_1-STAR INSTR %A1 C^U %A0 %A2)
+   (DECLARE (IGNORABLE %K
+                       %LO %HI T_1-STAR INSTR %A1 C^U %A0 %A2))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (%SIZE (LIST %A0 %A1 %A2))
+                                  (NFIX (- (1+ %HI) %K)))))
+   (IF
+    (AND (NATP %K)
+         (NATP %LO)
+         (NATP %HI)
+         (<= %LO %K)
+         (<= %K %HI))
+    (LET
+     ((%R
+       (LET ((%C %K))
+        (DECLARE (IGNORABLE %C))
+        (LET*
+         ((%CAND (IF (ZP %C)
+                     NIL
+                   (NTH (1- %C) (LIST NIL T_1-STAR))))
+          (%T0
+           (IF (ZP %C)
+               (AND (AND (OR (< (%SIZE INSTR) (%SIZE %A1))
+                             (AND (EQUAL (%SIZE INSTR) (%SIZE %A1))
+                                  (< (%SIZE (LIST C^U INSTR T_1-STAR))
+                                     (%SIZE (LIST %A0 %A1 %A2))))))
+                    (INSTR_OK/SPLIT C^U INSTR T_1-STAR))
+            (AND
+             (AND
+              (OR
+                 (< (%SIZE INSTR) (%SIZE %A1))
+                 (AND (EQUAL (%SIZE INSTR) (%SIZE %A1))
+                      (< (%SIZE (LIST C^U INSTR (LIST :%->% T_1-STAR %CAND)))
+                         (%SIZE (LIST %A0 %A1 %A2))))))
+             (INSTR_OK C^U INSTR (LIST :%->% T_1-STAR %CAND))
+             (LIST %CAND)))))
+         (DECLARE (IGNORABLE %CAND %T0))
+         (AND %T0
+              (LET* ((%T1 (CAR %T0)))
+                (DECLARE (IGNORABLE %T1))
+                (AND (TRUE-LISTP %T1)
+                     (LET* ((T_2-STAR %T1))
+                       (DECLARE (IGNORABLE T_2-STAR))
+                       (LIST T_2-STAR)))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+       (INSTRS_OK/SPLIT/SEARCH2 (1+ %K)
+                                %LO
+                                %HI T_1-STAR INSTR %A1 C^U %A0 %A2)))
+    NIL))
+  (DEFUN INSTRS_OK/SPLIT/SEARCH10 (%K %LO %HI T_2-STAR T_1-STAR INSTR_2-STAR
+                                      INSTR_1-STAR %A1 C^U %A0 %A2)
+   (DECLARE (IGNORABLE %K
+                       %LO %HI T_2-STAR T_1-STAR INSTR_2-STAR
+                       INSTR_1-STAR %A1 C^U %A0 %A2))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (%SIZE (LIST %A0 %A1 %A2))
+                                  (NFIX (- (1+ %HI) %K)))))
+   (IF
+    (AND (NATP %K)
+         (NATP %LO)
+         (NATP %HI)
+         (<= %LO %K)
+         (<= %K %HI))
+    (LET
+     ((%R
+       (LET ((%C %K))
+        (DECLARE (IGNORABLE %C))
+        (LET*
+         ((%CAND (IF (ZP %C)
+                     NIL
+                   (NTH (1- %C)
+                        (LIST NIL T_2-STAR
+                              T_1-STAR INSTR_2-STAR INSTR_1-STAR))))
+          (%T8
+           (IF (ZP %C)
+               (AND (AND (OR (< (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                             (AND (EQUAL (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                                  (< (%SIZE (LIST C^U INSTR_2-STAR T_2-STAR))
+                                     (%SIZE (LIST %A0 %A1 %A2))))))
+                    (INSTRS_OK/SPLIT C^U INSTR_2-STAR T_2-STAR))
+             (AND (AND (OR (< (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                           (AND (EQUAL (%SIZE INSTR_2-STAR) (%SIZE %A1))
+                                (< (%SIZE (LIST C^U INSTR_2-STAR
+                                                (LIST :%->% T_2-STAR %CAND)))
+                                   (%SIZE (LIST %A0 %A1 %A2))))))
+                  (INSTRS_OK C^U INSTR_2-STAR
+                             (LIST :%->% T_2-STAR %CAND))
+                  (LIST %CAND)))))
+         (DECLARE (IGNORABLE %CAND %T8))
+         (AND %T8
+              (LET* ((%T9 (CAR %T8)))
+                (DECLARE (IGNORABLE %T9))
+                (AND (TRUE-LISTP %T9)
+                     (LET* ((T_3-STAR %T9))
+                       (DECLARE (IGNORABLE T_3-STAR))
+                       (LIST T_3-STAR)))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+       (INSTRS_OK/SPLIT/SEARCH10 (1+ %K)
+                                 %LO %HI T_2-STAR T_1-STAR INSTR_2-STAR
+                                 INSTR_1-STAR %A1 C^U %A0 %A2)))
+    NIL))
+  (DEFUN INSTRS_OK/SPLIT/SEARCH11 (%K %LO %HI T_1-STAR INSTR_2-STAR
+                                      INSTR_1-STAR %A1 C^U %A0 %A2)
+   (DECLARE (IGNORABLE %K %LO %HI T_1-STAR INSTR_2-STAR
+                       INSTR_1-STAR %A1 C^U %A0 %A2))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (%SIZE (LIST %A0 %A1 %A2))
+                                  (NFIX (- (1+ %HI) %K)))))
+   (IF
+    (AND (NATP %K)
+         (NATP %LO)
+         (NATP %HI)
+         (<= %LO %K)
+         (<= %K %HI))
+    (LET
+     ((%R
+       (LET ((%C %K))
+        (DECLARE (IGNORABLE %C))
+        (LET*
+         ((%CAND (IF (ZP %C)
+                     NIL
+                   (NTH (1- %C)
+                        (LIST NIL
+                              T_1-STAR INSTR_2-STAR INSTR_1-STAR))))
+          (%T6
+           (IF (ZP %C)
+               (AND (AND (OR (< (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                             (AND (EQUAL (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                                  (< (%SIZE (LIST C^U INSTR_1-STAR T_1-STAR))
+                                     (%SIZE (LIST %A0 %A1 %A2))))))
+                    (INSTRS_OK/SPLIT C^U INSTR_1-STAR T_1-STAR))
+             (AND (AND (OR (< (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                           (AND (EQUAL (%SIZE INSTR_1-STAR) (%SIZE %A1))
+                                (< (%SIZE (LIST C^U INSTR_1-STAR
+                                                (LIST :%->% T_1-STAR %CAND)))
+                                   (%SIZE (LIST %A0 %A1 %A2))))))
+                  (INSTRS_OK C^U INSTR_1-STAR
+                             (LIST :%->% T_1-STAR %CAND))
+                  (LIST %CAND)))))
+         (DECLARE (IGNORABLE %CAND %T6))
+         (AND
+          %T6
+          (LET* ((%T7 (CAR %T6)))
+           (DECLARE (IGNORABLE %T7))
+           (AND
+            (TRUE-LISTP %T7)
+            (LET* ((T_2-STAR %T7))
+              (DECLARE (IGNORABLE T_2-STAR))
+              (INSTRS_OK/SPLIT/SEARCH10 0 0 5 T_2-STAR T_1-STAR INSTR_2-STAR
+                                        INSTR_1-STAR %A1 C^U %A0 %A2)))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+       (INSTRS_OK/SPLIT/SEARCH11 (1+ %K)
+                                 %LO %HI T_1-STAR INSTR_2-STAR
+                                 INSTR_1-STAR %A1 C^U %A0 %A2)))
+    NIL))
+  (DEFUN INSTRS_OK/SPLIT/SEARCH12 (%K %LO %HI %A1 %A2 C^U %A0)
    (DECLARE (IGNORABLE %K %LO %HI %A1 %A2 C^U %A0))
    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
                                   (%SIZE (LIST %A0 %A1 %A2))
@@ -9263,59 +9460,83 @@
          (<= %K %HI))
     (LET
      ((%R
-       (LET ((%T2 %K))
-        (DECLARE (IGNORABLE %T2))
-        (LET* ((%T3 (TAKE %T2 %A1)))
-         (DECLARE (IGNORABLE %T3))
-         (AND
-          (TRUE-LISTP %T3)
-          (LET* ((INSTR_1-STAR %T3)
-                 (%T4 (NTHCDR %T2 %A1)))
-           (DECLARE (IGNORABLE INSTR_1-STAR %T4))
-           (AND
-            (TRUE-LISTP %T4)
-            (LET* ((INSTR_2-STAR %T4))
-             (DECLARE (IGNORABLE INSTR_2-STAR))
-             (AND
-              (TRUE-LISTP %A2)
-              (LET* ((T_1-STAR %A2))
-               (DECLARE (IGNORABLE T_1-STAR))
-               (AND
-                (OR (< (%SIZE INSTR_1-STAR) (%SIZE %A1))
-                    (AND (EQUAL (%SIZE INSTR_1-STAR) (%SIZE %A1))
-                         (< (%SIZE (LIST C^U INSTR_1-STAR T_1-STAR))
-                            (%SIZE (LIST %A0 %A1 %A2)))))
-                (LET* ((%T5 (INSTRS_OK/SPLIT C^U INSTR_1-STAR T_1-STAR)))
-                 (DECLARE (IGNORABLE %T5))
-                 (AND
-                  %T5
-                  (LET* ((%T6 (CAR %T5)))
-                   (DECLARE (IGNORABLE %T6))
-                   (AND
-                    (TRUE-LISTP %T6)
-                    (LET* ((T_2-STAR %T6))
-                     (DECLARE (IGNORABLE T_2-STAR))
-                     (AND
-                       (OR (< (%SIZE INSTR_2-STAR) (%SIZE %A1))
-                           (AND (EQUAL (%SIZE INSTR_2-STAR) (%SIZE %A1))
-                                (< (%SIZE (LIST C^U INSTR_2-STAR T_2-STAR))
-                                   (%SIZE (LIST %A0 %A1 %A2)))))
-                       (LET*
-                          ((%T7 (INSTRS_OK/SPLIT C^U INSTR_2-STAR T_2-STAR)))
-                         (DECLARE (IGNORABLE %T7))
-                         (AND %T7
-                              (LET* ((%T8 (CAR %T7)))
-                                (DECLARE (IGNORABLE %T8))
-                                (AND (TRUE-LISTP %T8)
-                                     (LET* ((T_3-STAR %T8))
-                                       (DECLARE (IGNORABLE T_3-STAR))
-                                       (LIST T_3-STAR)))))))))))))))))))))))
+        (LET ((%T3 %K))
+          (DECLARE (IGNORABLE %T3))
+          (LET* ((%T4 (TAKE %T3 %A1)))
+            (DECLARE (IGNORABLE %T4))
+            (AND (TRUE-LISTP %T4)
+                 (LET* ((INSTR_1-STAR %T4)
+                        (%T5 (NTHCDR %T3 %A1)))
+                   (DECLARE (IGNORABLE INSTR_1-STAR %T5))
+                   (AND (TRUE-LISTP %T5)
+                        (LET* ((INSTR_2-STAR %T5))
+                          (DECLARE (IGNORABLE INSTR_2-STAR))
+                          (AND (TRUE-LISTP %A2)
+                               (LET* ((T_1-STAR %A2))
+                                 (DECLARE (IGNORABLE T_1-STAR))
+                                 (INSTRS_OK/SPLIT/SEARCH11
+                                      0 0 4 T_1-STAR INSTR_2-STAR
+                                      INSTR_1-STAR %A1 C^U %A0 %A2)))))))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R
-       (INSTRS_OK/SPLIT/SEARCH9 (1+ %K)
-                                %LO %HI %A1 %A2 C^U %A0)))
+       (INSTRS_OK/SPLIT/SEARCH12 (1+ %K)
+                                 %LO %HI %A1 %A2 C^U %A0)))
     NIL))
-  (DEFUN INSTRS_OK/SPLIT/SEARCH15 (%K %LO %HI %A2 INSTR-STAR %A1 C^U %A0)
+  (DEFUN INSTRS_OK/SPLIT/SEARCH18 (%K %LO %HI T_1-STAR
+                                      T-STAR INSTR-STAR %A1 C^U %A0 %A2)
+   (DECLARE (IGNORABLE %K %LO %HI T_1-STAR
+                       T-STAR INSTR-STAR %A1 C^U %A0 %A2))
+   (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
+                                  (%SIZE (LIST %A0 %A1 %A2))
+                                  (NFIX (- (1+ %HI) %K)))))
+   (IF
+    (AND (NATP %K)
+         (NATP %LO)
+         (NATP %HI)
+         (<= %LO %K)
+         (<= %K %HI))
+    (LET
+     ((%R
+       (LET ((%C %K))
+        (DECLARE (IGNORABLE %C))
+        (LET*
+         ((%CAND (IF (ZP %C)
+                     NIL
+                   (NTH (1- %C)
+                        (LIST NIL T_1-STAR T-STAR INSTR-STAR))))
+          (%T16
+           (IF (ZP %C)
+               (AND (AND (OR (< (%SIZE INSTR-STAR) (%SIZE %A1))
+                             (AND (EQUAL (%SIZE INSTR-STAR) (%SIZE %A1))
+                                  (< (%SIZE (LIST C^U INSTR-STAR T_1-STAR))
+                                     (%SIZE (LIST %A0 %A1 %A2))))))
+                    (INSTRS_OK/SPLIT C^U INSTR-STAR T_1-STAR))
+            (AND
+             (AND
+              (OR
+                (< (%SIZE INSTR-STAR) (%SIZE %A1))
+                (AND (EQUAL (%SIZE INSTR-STAR) (%SIZE %A1))
+                     (< (%SIZE (LIST C^U
+                                     INSTR-STAR (LIST :%->% T_1-STAR %CAND)))
+                        (%SIZE (LIST %A0 %A1 %A2))))))
+             (INSTRS_OK C^U
+                        INSTR-STAR (LIST :%->% T_1-STAR %CAND))
+             (LIST %CAND)))))
+         (DECLARE (IGNORABLE %CAND %T16))
+         (AND %T16
+              (LET* ((%T17 (CAR %T16)))
+                (DECLARE (IGNORABLE %T17))
+                (AND (TRUE-LISTP %T17)
+                     (LET* ((T_2-STAR %T17))
+                       (DECLARE (IGNORABLE T_2-STAR))
+                       (LIST (APPEND T-STAR T_2-STAR))))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+       (INSTRS_OK/SPLIT/SEARCH18 (1+ %K)
+                                 %LO %HI T_1-STAR
+                                 T-STAR INSTR-STAR %A1 C^U %A0 %A2)))
+    NIL))
+  (DEFUN INSTRS_OK/SPLIT/SEARCH19 (%K %LO %HI %A2 INSTR-STAR %A1 C^U %A0)
    (DECLARE (IGNORABLE %K %LO %HI %A2 INSTR-STAR %A1 C^U %A0))
    (DECLARE (XARGS :MEASURE (%OM3 (%SIZE %A1)
                                   (%SIZE (LIST %A0 %A1 %A2))
@@ -9328,35 +9549,23 @@
          (<= %K %HI))
     (LET
      ((%R
-       (LET ((%T10 %K))
-        (DECLARE (IGNORABLE %T10))
-        (LET* ((%T11 (TAKE %T10 %A2)))
-         (DECLARE (IGNORABLE %T11))
+       (LET ((%T13 %K))
+        (DECLARE (IGNORABLE %T13))
+        (LET* ((%T14 (TAKE %T13 %A2)))
+         (DECLARE (IGNORABLE %T14))
          (AND
-          (TRUE-LISTP %T11)
-          (LET* ((T-STAR %T11) (%T12 (NTHCDR %T10 %A2)))
-           (DECLARE (IGNORABLE T-STAR %T12))
+          (TRUE-LISTP %T14)
+          (LET* ((T-STAR %T14) (%T15 (NTHCDR %T13 %A2)))
+           (DECLARE (IGNORABLE T-STAR %T15))
            (AND
-            (TRUE-LISTP %T12)
-            (LET* ((T_1-STAR %T12))
-             (DECLARE (IGNORABLE T_1-STAR))
-             (AND
-                (OR (< (%SIZE INSTR-STAR) (%SIZE %A1))
-                    (AND (EQUAL (%SIZE INSTR-STAR) (%SIZE %A1))
-                         (< (%SIZE (LIST C^U INSTR-STAR T_1-STAR))
-                            (%SIZE (LIST %A0 %A1 %A2)))))
-                (LET* ((%T13 (INSTRS_OK/SPLIT C^U INSTR-STAR T_1-STAR)))
-                  (DECLARE (IGNORABLE %T13))
-                  (AND %T13
-                       (LET* ((%T14 (CAR %T13)))
-                         (DECLARE (IGNORABLE %T14))
-                         (AND (TRUE-LISTP %T14)
-                              (LET* ((T_2-STAR %T14))
-                                (DECLARE (IGNORABLE T_2-STAR))
-                                (LIST (APPEND T-STAR T_2-STAR))))))))))))))))
+              (TRUE-LISTP %T15)
+              (LET* ((T_1-STAR %T15))
+                (DECLARE (IGNORABLE T_1-STAR))
+                (INSTRS_OK/SPLIT/SEARCH18 0 0 4 T_1-STAR T-STAR
+                                          INSTR-STAR %A1 C^U %A0 %A2)))))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R
-       (INSTRS_OK/SPLIT/SEARCH15 (1+ %K)
+       (INSTRS_OK/SPLIT/SEARCH19 (1+ %K)
                                  %LO %HI %A2 INSTR-STAR %A1 C^U %A0)))
     NIL))
   (DEFUN INSTRS_OK/SPLIT (%A0 %A1 %A2)
@@ -9381,37 +9590,25 @@
                     (LIST NIL)))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R
-     (LET
-      ((%R
-        (LET* ((C^U %A0))
-         (DECLARE (IGNORABLE C^U))
-         (AND (TRUE-LISTP %A1)
-              (EQUAL (ACL2::LEN %A1) 1)
-              (LET* ((INSTR (CAR %A1)))
-                (DECLARE (IGNORABLE INSTR))
-                (AND (TRUE-LISTP %A2)
-                     (LET* ((T_1-STAR %A2))
-                       (DECLARE (IGNORABLE T_1-STAR))
-                       (AND (OR (< (%SIZE INSTR) (%SIZE %A1))
-                                (AND (EQUAL (%SIZE INSTR) (%SIZE %A1))
-                                     (< (%SIZE (LIST C^U INSTR T_1-STAR))
-                                        (%SIZE (LIST %A0 %A1 %A2)))))
-                            (LET* ((%T0 (INSTR_OK/SPLIT C^U INSTR T_1-STAR)))
-                              (DECLARE (IGNORABLE %T0))
-                              (AND %T0
-                                   (LET* ((%T1 (CAR %T0)))
-                                     (DECLARE (IGNORABLE %T1))
-                                     (AND (TRUE-LISTP %T1)
-                                          (LET* ((T_2-STAR %T1))
-                                            (DECLARE (IGNORABLE T_2-STAR))
-                                            (LIST T_2-STAR))))))))))))))
+     (LET ((%R (LET* ((C^U %A0))
+                 (DECLARE (IGNORABLE C^U))
+                 (AND (TRUE-LISTP %A1)
+                      (EQUAL (ACL2::LEN %A1) 1)
+                      (LET* ((INSTR (CAR %A1)))
+                        (DECLARE (IGNORABLE INSTR))
+                        (AND (TRUE-LISTP %A2)
+                             (LET* ((T_1-STAR %A2))
+                               (DECLARE (IGNORABLE T_1-STAR))
+                               (INSTRS_OK/SPLIT/SEARCH2
+                                    0 0
+                                    2 T_1-STAR INSTR %A1 C^U %A0 %A2))))))))
       (DECLARE (IGNORABLE %R))
       (IF %R %R
        (LET ((%R (LET* ((C^U %A0))
                    (DECLARE (IGNORABLE C^U))
                    (AND (TRUE-LISTP %A1)
-                        (INSTRS_OK/SPLIT/SEARCH9 0 0 (ACL2::LEN %A1)
-                                                 %A1 %A2 C^U %A0)))))
+                        (INSTRS_OK/SPLIT/SEARCH12 0 0 (ACL2::LEN %A1)
+                                                  %A1 %A2 C^U %A0)))))
         (DECLARE (IGNORABLE %R))
         (IF %R %R
          (LET
@@ -9424,7 +9621,7 @@
                (DECLARE (IGNORABLE INSTR-STAR))
                (AND
                   (TRUE-LISTP %A2)
-                  (INSTRS_OK/SPLIT/SEARCH15 0 0 (ACL2::LEN %A2)
+                  (INSTRS_OK/SPLIT/SEARCH19 0 0 (ACL2::LEN %A2)
                                             %A2 INSTR-STAR %A1 C^U %A0)))))))
           (DECLARE (IGNORABLE %R))
           (IF %R %R NIL)))))))))))
@@ -9441,29 +9638,87 @@
 (MEMOIZE 'INSTRS_OK/SPLIT/%M)
 
 (%TRY-LOGIC
-     (DEFUN EXPR_OK (%A0 %A1)
+ (DEFUN EXPR_OK (%A0 %A1 %A2)
+  (DECLARE (IGNORABLE %A0 %A1 %A2))
+  (IF
+   (LET
+    ((%R
+       (LET* ((C^U %A0))
+         (DECLARE (IGNORABLE C^U))
+         (AND (TRUE-LISTP %A1)
+              (LET* ((INSTR-STAR %A1))
+                (DECLARE (IGNORABLE INSTR-STAR))
+                (AND (OR (NULL %A2)
+                         (AND (CONSP %A2) (NULL (CDR %A2))))
+                     (LET* ((T-OPT %A2))
+                       (DECLARE (IGNORABLE T-OPT))
+                       (AND (INSTRS_OK C^U INSTR-STAR (LIST :%->% NIL T-OPT))
+                            (LIST T)))))))))
+    (DECLARE (IGNORABLE %R))
+    (IF %R %R NIL))
+   T
+   NIL)))
+
+
+(%TRY-GUARDS EXPR_OK)
+
+(%TRY-LOGIC
+ (DEFUN EXPR_OK/SPLIT/SEARCH2 (%K %LO %HI INSTR-STAR C^U)
+  (DECLARE (IGNORABLE %K %LO %HI INSTR-STAR C^U))
+  (DECLARE (XARGS :MEASURE (NFIX (- (1+ %HI) %K))))
+  (IF
+   (AND (NATP %K)
+        (NATP %LO)
+        (NATP %HI)
+        (<= %LO %K)
+        (<= %K %HI))
+   (LET
+    ((%R
+       (LET ((%C %K))
+         (DECLARE (IGNORABLE %C))
+         (LET* ((%CAND (IF (ZP %C)
+                           NIL
+                         (NTH (1- %C) (LIST NIL INSTR-STAR))))
+                (%T0 (IF (ZP %C)
+                         (AND (AND)
+                              (INSTRS_OK/SPLIT C^U INSTR-STAR NIL))
+                       (AND (AND)
+                            (INSTRS_OK C^U INSTR-STAR (LIST :%->% NIL %CAND))
+                            (LIST %CAND)))))
+           (DECLARE (IGNORABLE %CAND %T0))
+           (AND %T0
+                (LET* ((%T1 (CAR %T0)))
+                  (DECLARE (IGNORABLE %T1))
+                  (AND (TRUE-LISTP %T1)
+                       (<= (ACL2::LEN %T1) 1)
+                       (OR (NULL %T1)
+                           (AND (CONSP %T1) (NULL (CDR %T1))))
+                       (LET* ((T-OPT %T1))
+                         (DECLARE (IGNORABLE T-OPT))
+                         (LIST T-OPT)))))))))
+    (DECLARE (IGNORABLE %R))
+    (IF %R %R
+      (EXPR_OK/SPLIT/SEARCH2 (1+ %K)
+                             %LO %HI INSTR-STAR C^U)))
+   NIL)))
+
+
+(%TRY-GUARDS EXPR_OK/SPLIT/SEARCH2)
+
+(%TRY-LOGIC
+     (DEFUN EXPR_OK/SPLIT (%A0 %A1)
        (DECLARE (IGNORABLE %A0 %A1))
        (LET ((%R (LET* ((C^U %A0))
                    (DECLARE (IGNORABLE C^U))
                    (AND (TRUE-LISTP %A1)
-                        (LET* ((INSTR-STAR %A1)
-                               (%T0 (INSTRS_OK/SPLIT C^U INSTR-STAR NIL)))
-                          (DECLARE (IGNORABLE INSTR-STAR %T0))
-                          (AND %T0
-                               (LET* ((%T1 (CAR %T0)))
-                                 (DECLARE (IGNORABLE %T1))
-                                 (AND (TRUE-LISTP %T1)
-                                      (<= (ACL2::LEN %T1) 1)
-                                      (OR (NULL %T1)
-                                          (AND (CONSP %T1) (NULL (CDR %T1))))
-                                      (LET* ((T-OPT %T1))
-                                        (DECLARE (IGNORABLE T-OPT))
-                                        (LIST T-OPT))))))))))
+                        (LET* ((INSTR-STAR %A1))
+                          (DECLARE (IGNORABLE INSTR-STAR))
+                          (EXPR_OK/SPLIT/SEARCH2 0 0 2 INSTR-STAR C^U))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
 
 
-(%TRY-GUARDS EXPR_OK)
+(%TRY-GUARDS EXPR_OK/SPLIT)
 
 (%TRY-LOGIC
  (DEFUN INSTR_CONST (%A0 %A1)
@@ -9535,11 +9790,30 @@
 
 (%TRY-GUARDS EXPR_CONST)
 
-(%TRY-LOGIC (DEFUN EXPR_OK_CONST (%A0 %A1)
+(%TRY-LOGIC (DEFUN EXPR_OK_CONST (%A0 %A1 %A2)
+              (DECLARE (IGNORABLE %A0 %A1 %A2))
+              (IF (LET ((%R (LET* ((C^U %A0) (EXPR %A1))
+                              (DECLARE (IGNORABLE C^U EXPR))
+                              (AND (OR (NULL %A2)
+                                       (AND (CONSP %A2) (NULL (CDR %A2))))
+                                   (LET* ((T-OPT %A2))
+                                     (DECLARE (IGNORABLE T-OPT))
+                                     (AND (EXPR_OK C^U EXPR T-OPT)
+                                          (EXPR_CONST C^U EXPR)
+                                          (LIST T)))))))
+                    (DECLARE (IGNORABLE %R))
+                    (IF %R %R NIL))
+                  T
+                NIL)))
+
+
+(%TRY-GUARDS EXPR_OK_CONST)
+
+(%TRY-LOGIC (DEFUN EXPR_OK_CONST/SPLIT (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
               (LET ((%R (LET* ((C^U %A0)
                                (EXPR %A1)
-                               (%T0 (EXPR_OK C^U EXPR)))
+                               (%T0 (EXPR_OK/SPLIT C^U EXPR)))
                           (DECLARE (IGNORABLE C^U EXPR %T0))
                           (AND %T0
                                (LET* ((%T1 (CAR %T0)))
@@ -9554,7 +9828,7 @@
                 (IF %R %R NIL))))
 
 
-(%TRY-GUARDS EXPR_OK_CONST)
+(%TRY-GUARDS EXPR_OK_CONST/SPLIT)
 
 (%TRY-LOGIC (DEFUN TYPE_OK (%A0)
               (DECLARE (IGNORABLE %A0))
@@ -9593,8 +9867,97 @@
 (%TRY-GUARDS FUNC_OK/MATCH2)
 
 (%TRY-LOGIC
- (DEFUN FUNC_OK (%A0 %A1)
-  (DECLARE (IGNORABLE %A0 %A1))
+ (DEFUN FUNC_OK (%A0 %A1 %A2)
+  (DECLARE (IGNORABLE %A0 %A1 %A2))
+  (IF
+   (LET
+    ((%R
+      (LET* ((C^U %A0))
+       (DECLARE (IGNORABLE C^U))
+       (AND
+        (CONSP %A1)
+        (EQ (CAR %A1) :FUNC)
+        (TRUE-LISTP (CDR %A1))
+        (EQUAL (ACL2::LEN (CDR %A1)) 3)
+        (LET* ((X (CAR (CDR %A1)))
+               (%T0 (CAR (CDR (CDR %A1)))))
+         (DECLARE (IGNORABLE X %T0))
+         (AND
+          (TRUE-LISTP %T0)
+          (LET* ((%T1 (FUNC_OK/MATCH2 %T0)))
+           (DECLARE (IGNORABLE %T1))
+           (AND
+            %T1
+            (LET* ((T-STAR (CAR (CAR %T1)))
+                   (EXPR (CAR (CDR (CDR (CDR %A1))))))
+             (DECLARE (IGNORABLE T-STAR EXPR))
+             (AND
+              (CONSP %A2)
+              (EQ (CAR %A2) :%->%)
+              (TRUE-LISTP (CDR %A2))
+              (EQUAL (ACL2::LEN (CDR %A2)) 2)
+              (LET* ((%T4 (CAR (CDR %A2))))
+               (DECLARE (IGNORABLE %T4))
+               (AND
+                (TRUE-LISTP %T4)
+                (LET* ((T_1-STAR %T4)
+                       (%T5 (CAR (CDR (CDR %A2)))))
+                 (DECLARE (IGNORABLE T_1-STAR %T5))
+                 (AND
+                  (TRUE-LISTP %T5)
+                  (<= (ACL2::LEN %T5) 1)
+                  (OR (NULL %T5)
+                      (AND (CONSP %T5) (NULL (CDR %T5))))
+                  (LET* ((T_2-OPT %T5))
+                   (DECLARE (IGNORABLE T_2-OPT))
+                   (AND
+                    (< X (ACL2::LEN (%GET-FIELD C^U :TYPES)))
+                    (EQUAL (NTH X (%GET-FIELD C^U :TYPES))
+                           (LIST :%->% T_1-STAR T_2-OPT))
+                    (EXPR_OK
+                         (%COMP C^U
+                                (LIST :%REC (CONS :TYPES NIL)
+                                      (CONS :FUNCS NIL)
+                                      (CONS :GLOBALS NIL)
+                                      (CONS :TABLES NIL)
+                                      (CONS :MEMS NIL)
+                                      (CONS :LOCALS (APPEND T_1-STAR T-STAR))
+                                      (CONS :LABELS (LIST T_2-OPT))
+                                      (CONS :RETURN (LIST T_2-OPT))))
+                         EXPR T_2-OPT)
+                    (LIST T)))))))))))))))))
+    (DECLARE (IGNORABLE %R))
+    (IF %R %R NIL))
+   T
+   NIL)))
+
+
+(%TRY-GUARDS FUNC_OK)
+
+(%TRY-LOGIC
+     (DEFUN FUNC_OK/SPLIT/MATCH2 (%S)
+       (DECLARE (IGNORABLE %S))
+       (IF (ATOM %S)
+           (IF (NULL %S) (LIST (LIST NIL)) NIL)
+         (LET ((%R (FUNC_OK/SPLIT/MATCH2 (CDR %S))))
+           (DECLARE (IGNORABLE %R))
+           (AND %R
+                (LET* ((%T3 (CAR %S)))
+                  (DECLARE (IGNORABLE %T3))
+                  (AND (CONSP %T3)
+                       (EQ (CAR %T3) :LOCAL)
+                       (TRUE-LISTP (CDR %T3))
+                       (EQUAL (ACL2::LEN (CDR %T3)) 1)
+                       (LET* ((T^R (CAR (CDR %T3))))
+                         (DECLARE (IGNORABLE T^R))
+                         (LIST (LIST (CONS T^R (CAR (CAR %R)))))))))))))
+
+
+(%TRY-GUARDS FUNC_OK/SPLIT/MATCH2)
+
+(%TRY-LOGIC
+ (DEFUN FUNC_OK/SPLIT (%A0 %A1 %A2)
+  (DECLARE (IGNORABLE %A0 %A1 %A2))
   (LET
    ((%R
      (LET* ((C^U %A0))
@@ -9609,7 +9972,7 @@
         (DECLARE (IGNORABLE X %T0))
         (AND
          (TRUE-LISTP %T0)
-         (LET* ((%T1 (FUNC_OK/MATCH2 %T0)))
+         (LET* ((%T1 (FUNC_OK/SPLIT/MATCH2 %T0)))
           (DECLARE (IGNORABLE %T1))
           (AND
            %T1
@@ -9617,30 +9980,34 @@
                   (EXPR (CAR (CDR (CDR (CDR %A1))))))
             (DECLARE (IGNORABLE T-STAR EXPR))
             (AND
-             (< X (ACL2::LEN (%GET-FIELD C^U :TYPES)))
-             (LET* ((%T4 (NTH X (%GET-FIELD C^U :TYPES))))
-              (DECLARE (IGNORABLE %T4))
+             (TRUE-LISTP %A2)
+             (LET* ((T_1-STAR %A2))
+              (DECLARE (IGNORABLE T_1-STAR))
               (AND
-               (CONSP %T4)
-               (EQ (CAR %T4) :%->%)
-               (TRUE-LISTP (CDR %T4))
-               (EQUAL (ACL2::LEN (CDR %T4)) 2)
-               (LET* ((%T5 (CAR (CDR %T4))))
-                (DECLARE (IGNORABLE %T5))
+               (< X (ACL2::LEN (%GET-FIELD C^U :TYPES)))
+               (LET* ((%T4 (NTH X (%GET-FIELD C^U :TYPES))))
+                (DECLARE (IGNORABLE %T4))
                 (AND
-                 (TRUE-LISTP %T5)
-                 (LET* ((T_1-STAR %T5)
-                        (%T6 (CAR (CDR (CDR %T4)))))
-                  (DECLARE (IGNORABLE T_1-STAR %T6))
+                 (CONSP %T4)
+                 (EQ (CAR %T4) :%->%)
+                 (TRUE-LISTP (CDR %T4))
+                 (EQUAL (ACL2::LEN (CDR %T4)) 2)
+                 (LET* ((%T5 (CAR (CDR %T4))))
+                  (DECLARE (IGNORABLE %T5))
                   (AND
-                   (TRUE-LISTP %T6)
-                   (<= (ACL2::LEN %T6) 1)
-                   (OR (NULL %T6)
-                       (AND (CONSP %T6) (NULL (CDR %T6))))
-                   (LET*
-                    ((T_2-OPT %T6)
-                     (%T7
-                      (EXPR_OK
+                   (TRUE-LISTP %T5)
+                   (EQUAL %T5 T_1-STAR)
+                   (LET* ((%T6 (CAR (CDR (CDR %T4)))))
+                    (DECLARE (IGNORABLE %T6))
+                    (AND
+                     (TRUE-LISTP %T6)
+                     (<= (ACL2::LEN %T6) 1)
+                     (OR (NULL %T6)
+                         (AND (CONSP %T6) (NULL (CDR %T6))))
+                     (LET* ((T_2-OPT %T6))
+                      (DECLARE (IGNORABLE T_2-OPT))
+                      (AND
+                       (EXPR_OK
                          (%COMP C^U
                                 (LIST :%REC (CONS :TYPES NIL)
                                       (CONS :FUNCS NIL)
@@ -9650,25 +10017,44 @@
                                       (CONS :LOCALS (APPEND T_1-STAR T-STAR))
                                       (CONS :LABELS (LIST T_2-OPT))
                                       (CONS :RETURN (LIST T_2-OPT))))
-                         EXPR)))
-                    (DECLARE (IGNORABLE T_2-OPT %T7))
-                    (AND
-                     %T7
-                     (LET* ((%T8 (CAR %T7)))
-                      (DECLARE (IGNORABLE %T8))
-                      (AND (OR (NULL %T8)
-                               (AND (CONSP %T8) (NULL (CDR %T8))))
-                           (EQUAL %T8 T_2-OPT)
-                           (LIST (LIST :%->%
-                                       T_1-STAR T_2-OPT))))))))))))))))))))))
+                         EXPR T_2-OPT)
+                       (LIST T_2-OPT)))))))))))))))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
 
-(%TRY-GUARDS FUNC_OK)
+(%TRY-GUARDS FUNC_OK/SPLIT)
 
 (%TRY-LOGIC
-     (DEFUN GLOBAL_OK (%A0 %A1)
+    (DEFUN GLOBAL_OK (%A0 %A1 %A2)
+      (DECLARE (IGNORABLE %A0 %A1 %A2))
+      (IF (LET ((%R (LET* ((C^U %A0))
+                      (DECLARE (IGNORABLE C^U))
+                      (AND (CONSP %A1)
+                           (EQ (CAR %A1) :GLOBAL)
+                           (TRUE-LISTP (CDR %A1))
+                           (EQUAL (ACL2::LEN (CDR %A1)) 2)
+                           (LET* ((GT (CAR (CDR %A1)))
+                                  (EXPR (CAR (CDR (CDR %A1)))))
+                             (DECLARE (IGNORABLE GT EXPR))
+                             (AND (EQUAL %A2 GT)
+                                  (TRUE-LISTP GT)
+                                  (EQUAL (ACL2::LEN GT) 2)
+                                  (LET* ((MUT (CAR GT)) (T^R (CAR (CDR GT))))
+                                    (DECLARE (IGNORABLE MUT T^R))
+                                    (AND (GLOBALTYPE_OK GT)
+                                         (EXPR_OK_CONST C^U EXPR (LIST T^R))
+                                         (LIST T)))))))))
+            (DECLARE (IGNORABLE %R))
+            (IF %R %R NIL))
+          T
+        NIL)))
+
+
+(%TRY-GUARDS GLOBAL_OK)
+
+(%TRY-LOGIC
+     (DEFUN GLOBAL_OK/SPLIT (%A0 %A1)
        (DECLARE (IGNORABLE %A0 %A1))
        (LET ((%R (LET* ((C^U %A0))
                    (DECLARE (IGNORABLE C^U))
@@ -9684,19 +10070,13 @@
                                (LET* ((MUT (CAR GT)) (T^R (CAR (CDR GT))))
                                  (DECLARE (IGNORABLE MUT T^R))
                                  (AND (GLOBALTYPE_OK GT)
-                                      (LET* ((%T0 (EXPR_OK_CONST C^U EXPR)))
-                                        (DECLARE (IGNORABLE %T0))
-                                        (AND %T0
-                                             (LET* ((%T1 (CAR %T0)))
-                                               (DECLARE (IGNORABLE %T1))
-                                               (AND (CONSP %T1)
-                                                    (EQUAL (CAR %T1) T^R)
-                                                    (LIST GT)))))))))))))
+                                      (EXPR_OK_CONST C^U EXPR (LIST T^R))
+                                      (LIST GT)))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
 
 
-(%TRY-GUARDS GLOBAL_OK)
+(%TRY-GUARDS GLOBAL_OK/SPLIT)
 
 (%TRY-LOGIC (DEFUN TABLE_OK (%A0 %A1)
               (DECLARE (IGNORABLE %A0 %A1))
@@ -9780,32 +10160,19 @@
           (LET* ((X-STAR %T0))
            (DECLARE (IGNORABLE X-STAR))
            (AND
-            (< 0 (ACL2::LEN (%GET-FIELD C^U :TABLES)))
-            (LET* ((TT (NTH 0 (%GET-FIELD C^U :TABLES))))
-             (DECLARE (IGNORABLE TT))
-             (AND
-              (ELEM_OK/ALL1 X-STAR C^U)
-              (LET* ((%T3 (ELEM_OK/MAP2 X-STAR C^U)))
-               (DECLARE (IGNORABLE %T3))
-               (AND
-                  %T3
-                  (LET* ((FT-STAR (CAR (CAR %T3))))
-                    (DECLARE (IGNORABLE FT-STAR))
-                    (AND (EQUAL (ACL2::LEN FT-STAR)
-                                (ACL2::LEN X-STAR))
-                         (LET* ((%T4 (EXPR_OK_CONST C^U EXPR)))
-                           (DECLARE (IGNORABLE %T4))
-                           (AND %T4
-                                (LET* ((%T5 (CAR %T4)))
-                                  (DECLARE (IGNORABLE %T5))
-                                  (AND (CONSP %T5)
-                                       (LET* ((%T6 (CAR %T5)))
-                                         (DECLARE (IGNORABLE %T6))
-                                         (AND (CONSP %T6)
-                                              (EQ (CAR %T6) :I32)
-                                              (TRUE-LISTP (CDR %T6))
-                                              (EQUAL (ACL2::LEN (CDR %T6)) 0)
-                                              (LIST T)))))))))))))))))))))
+             (< 0 (ACL2::LEN (%GET-FIELD C^U :TABLES)))
+             (LET* ((TT (NTH 0 (%GET-FIELD C^U :TABLES))))
+               (DECLARE (IGNORABLE TT))
+               (AND (ELEM_OK/ALL1 X-STAR C^U)
+                    (LET* ((%T3 (ELEM_OK/MAP2 X-STAR C^U)))
+                      (DECLARE (IGNORABLE %T3))
+                      (AND %T3
+                           (LET* ((FT-STAR (CAR (CAR %T3))))
+                             (DECLARE (IGNORABLE FT-STAR))
+                             (AND (EQUAL (ACL2::LEN FT-STAR)
+                                         (ACL2::LEN X-STAR))
+                                  (EXPR_OK_CONST C^U EXPR (LIST (LIST :I32)))
+                                  (LIST T)))))))))))))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R NIL))
    T
@@ -9821,33 +10188,22 @@
    (LET
     ((%R
       (LET* ((C^U %A0))
-       (DECLARE (IGNORABLE C^U))
-       (AND
-           (CONSP %A1)
-           (EQ (CAR %A1) :DATA)
-           (TRUE-LISTP (CDR %A1))
-           (EQUAL (ACL2::LEN (CDR %A1)) 2)
-           (LET* ((EXPR (CAR (CDR %A1)))
-                  (%T0 (CAR (CDR (CDR %A1)))))
-             (DECLARE (IGNORABLE EXPR %T0))
-             (AND (TRUE-LISTP %T0)
-                  (LET* ((B-STAR %T0))
-                    (DECLARE (IGNORABLE B-STAR))
-                    (AND (< 0 (ACL2::LEN (%GET-FIELD C^U :MEMS)))
-                         (LET* ((LIM (NTH 0 (%GET-FIELD C^U :MEMS)))
-                                (%T1 (EXPR_OK_CONST C^U EXPR)))
-                           (DECLARE (IGNORABLE LIM %T1))
-                           (AND %T1
-                                (LET* ((%T2 (CAR %T1)))
-                                  (DECLARE (IGNORABLE %T2))
-                                  (AND (CONSP %T2)
-                                       (LET* ((%T3 (CAR %T2)))
-                                         (DECLARE (IGNORABLE %T3))
-                                         (AND (CONSP %T3)
-                                              (EQ (CAR %T3) :I32)
-                                              (TRUE-LISTP (CDR %T3))
-                                              (EQUAL (ACL2::LEN (CDR %T3)) 0)
-                                              (LIST T)))))))))))))))
+        (DECLARE (IGNORABLE C^U))
+        (AND (CONSP %A1)
+             (EQ (CAR %A1) :DATA)
+             (TRUE-LISTP (CDR %A1))
+             (EQUAL (ACL2::LEN (CDR %A1)) 2)
+             (LET* ((EXPR (CAR (CDR %A1)))
+                    (%T0 (CAR (CDR (CDR %A1)))))
+               (DECLARE (IGNORABLE EXPR %T0))
+               (AND (TRUE-LISTP %T0)
+                    (LET* ((B-STAR %T0))
+                      (DECLARE (IGNORABLE B-STAR))
+                      (AND (< 0 (ACL2::LEN (%GET-FIELD C^U :MEMS)))
+                           (LET* ((LIM (NTH 0 (%GET-FIELD C^U :MEMS))))
+                             (DECLARE (IGNORABLE LIM))
+                             (AND (EXPR_OK_CONST C^U EXPR (LIST (LIST :I32)))
+                                  (LIST T)))))))))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R NIL))
    T
@@ -10011,7 +10367,7 @@
 (%TRY-LOGIC (DEFUN MODULE_OK/%GLOBALS (C GS)
               (IF (ATOM GS)
                   (LIST NIL)
-                (LET ((R (GLOBAL_OK C (CAR GS)))
+                (LET ((R (GLOBAL_OK/SPLIT C (CAR GS)))
                       (REST (MODULE_OK/%GLOBALS C (CDR GS))))
                   (AND R REST
                        (LIST (CONS (CAR R) (CAR REST))))))))
@@ -10057,8 +10413,7 @@
 (%TRY-LOGIC (DEFUN MODULE_OK/%FUNCS-OK (C FS FTS)
               (IF (ATOM FS)
                   T
-                (AND (EQUAL (FUNC_OK C (CAR FS))
-                            (LIST (CAR FTS)))
+                (AND (FUNC_OK C (CAR FS) (CAR FTS))
                      (MODULE_OK/%FUNCS-OK C (CDR FS)
                                           (CDR FTS))))))
 
