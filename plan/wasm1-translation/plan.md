@@ -271,16 +271,26 @@ left as it is.
 
 **Exit**: `nix build .#spectec` works, and the IL is checked in and reproducible.
 
-### T1: IL reader and schema
-- [ ] `read.lisp`: read every top-level form of the `.sexp` with the ACL2 reader
-- [ ] `schema.lisp`: a recognizer for the IL S-expr grammar, mirroring
+### T1: IL reader and schema ✅ (2026-11-13)
+- [x] `read.lisp`: read every top-level form of the `.sexp` with the ACL2 reader
+- [x] `schema.lisp`: a recognizer for the IL S-expr grammar, mirroring
       `spectec/src/il/ast.ml` and `backend-ast/print.ml`. It rejects any form
       it does not know, so a SpecTec upgrade that changes the IL fails loudly
-- [ ] `mangle.lisp`: injective naming, plus a collision report
-- [ ] Dependency order: the IL is already topologically sorted and `rec` groups
+- [x] `mangle.lisp`: injective naming, plus a collision report
+- [x] Dependency order: the IL is already topologically sorted and `rec` groups
       are explicit. Assert this; don't recompute it
 
 **Exit**: all 318 top-level forms parse and pass the schema check.
+
+**Result** (`make -C translate test` certifies `tests/t1-il.lisp`): 318 top-level
+forms, 0 schema or order errors. Counting `rec` members (the §0 spike
+counted top-level forms only): 90 typ, 132 def, 36 rel, 61 gram; 137 rules,
+359 variables, 118 constructor atoms. Mangling is injective and needs only 13
+suffixes (`t` → `T^R`, `state` → `STATE^R`, type `N` → `N^U-P` beside `n`, …);
+no two mixops share a tag. Notes for T2: mangled names that clash with
+`*acl2-exports*` are `STATE-P` (fn) and `LEN LOCAL TABLE TYPE CHAR W` (vars),
+so the generated `W1T` package must leave those out of its imports. Unnamed
+rules (`rule Limits_ok:`) mangle to `LIMITS_OK/`.
 
 ### T2: Syntax → recognizers (`gen/syntax.lisp`, `gen/runtime.lisp`)
 - [ ] 88 `typ` definitions: variants, records, aliases, and indexed families
