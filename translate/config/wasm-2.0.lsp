@@ -30,4 +30,8 @@
  (:sized "||BX||"
   :pairs (("Bsection_" . "len") ("Bcode" . "len"))
   :reason "The source premise `len = ||BX||` (byte length of what BX matched) elaborates to `len = 0` in the IL, which would reject every non-empty section. In these grammars the item after `len` is parsed from exactly `len` bytes instead, and the `len = 0` premise is dropped.")
+ (:modes "declared modes"
+  :pairs (("Instr_ok" . :multi) ("Instrs_ok" . :multi))
+  :reason "Instruction typing is :multi, as WASM 1.0 infers it (the check variant keeps the stack-polymorphic rules, the split variant computes output stacks); the 2.0 inference does not find it (wasm3 prep P4). Replace by the mode table (W1).")
+
 )

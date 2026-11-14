@@ -250,6 +250,11 @@
                   (probe-tally (probe-err-kinds es) nil) (third (car es)))
               (probe-print-rule-errs (cdr l))))))
 
+(defun probe-mode-ids (modes m)
+  (cond ((endp modes) nil)
+        ((eq (cddr (car modes)) m) (cons (car (car modes)) (probe-mode-ids (cdr modes) m)))
+        (t (probe-mode-ids (cdr modes) m))))
+
 (defun probe-run (il-file config-file names drop errors-file rt-names state)
   (mv-let (erp forms hints state) (read-il il-file state)
     (if erp (mv erp state)
@@ -270,6 +275,7 @@
                                (cons :decreasing (decreasing-pairs (config-entries config :decreasing)))
                                (cons :rel-overrides (rel-override-alist (config-entries config :rel-override)))
                                (cons :memo (memo-rels (config-entries config :memoize)))
+                               (cons :declared-modes (declared-mode-pairs (config-entries config :modes)))
                                (cons :gram-defs (gram-defs forms)))))
                 (mv-let (events builtins skipped cx) (time$ (cforms forms cx))
                   (let* ((stubs (reverse (cx-get :stubs cx)))
@@ -307,6 +313,11 @@
                       (cw "~%Relations emitted without some rules (per-rule stubs): ~x0, rules dropped: ~x1~%"
                           (len (cx-get :partial cx)) (probe-partial-dropped (cx-get :partial cx)))
                       (probe-print-partial (cx-get :partial cx))
+                      (let ((ms (reverse (cx-get :modes cx))))
+                        (cw "~%Relation modes (final): :fun ~x0, :check ~x1, :multi ~x2, :closure ~x3; declared ~x4~%  :check: ~s5~%  :multi: ~s6~%"
+                            (len (probe-mode-ids ms :fun)) (len (probe-mode-ids ms :check)) (len (probe-mode-ids ms :multi))
+                            (len (probe-mode-ids ms :closure)) (len (cx-get :declared-modes cx))
+                            (join-words (probe-mode-ids ms :check)) (join-words (probe-mode-ids ms :multi))))
                       (cw "~%Relation groups where no mode compiles every rule: ~x0~%" (len (cx-get :attempt-log cx)))
                       (cw "  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):~%")
                       (probe-print-lines (cx-get :attempt-log cx))

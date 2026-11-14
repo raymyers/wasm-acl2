@@ -135,3 +135,38 @@ each candidate: continuation-style compilation like the existing split
 searches (`/SEARCHn`). Its rules fail only in `:multi`. The emitted mode for
 typing is `:fun` until the mode table exists, so fixing G8 now changes no
 emitted code. Do it together with the mode table.
+
+## 2026-11-14: W1 first step, declared modes
+
+Not the mode table design (still a Fable session, model-choice item 1),
+only its "overridable by a counted config entry" part:
+
+- Config `(:modes "label" :pairs (("Rel" . :fun|:check|:multi) ...) :reason ...)`,
+  validated (relation exists, mode known). `set-modes`/`set-mode-ids` apply
+  a declared mode in every attempt, so the inference varies only the
+  undeclared members. The probe prints the final mode of every relation.
+  1.0 (nothing declared): 13 `:fun`, 15 `:check`, 7 `:multi`, 1 `:closure`;
+  output unchanged.
+- 3.0 experiments (D3 scope, data in `data/probe-P4-modes-2026-11-14/`):
+
+| Declared | Stubs | Dropped rules | Errors |
+|---|---|---|---|
+| nothing (before) | 8 | 36 | 156 |
+| type group (19) `:check` | 4 | 26 | 135 |
+| type group (19) `:multi` | 4 | 18 | 105 |
+| type group `:check`, `Instr_ok`/`Instrs_ok` `:multi` (**committed**) | **4** | **7** | **68** |
+
+  `:check` was chosen over `:multi` for the type group: under `:check`,
+  `Heaptype_sub/trans` fails visibly (its intermediate is unbound), while
+  `:multi` compiles it with a single witness (P1-typing-root-causes).
+- Left in 3.0 (D3 scope): stubs `Module_ok` (S4), `$evalexprs` and
+  `$evalglobals` (G2, two outputs), `$utf8single` (S5); dropped rules
+  `Deftype_sub/super`, `Heaptype_sub/rec-sub` (G8), `Heaptype_sub/trans`
+  (existential), `Instr_ok/select-impl`, `array.new_data`,
+  `array.init_data` (G5), `Step_read/array.new_data-num` (nested inverse).
+  Full 3.0: 78 stubs (70 of them text grammars, `6.*`).
+- 2.0 with `Instr_ok`/`Instrs_ok` `:multi`: 2 stubs (`Module_ok`,
+  `GRAM/Binstr`), 1 dropped rule (`Instr_ok/select-impl`, G5), 32 errors.
+- What the mode table still has to do: infer these instead of declaring
+  them, allow several outputs (G2), and decide existentials (G5, G8,
+  `trans`).

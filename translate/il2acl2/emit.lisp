@@ -381,6 +381,21 @@
                   (t nil))
             (check-sized e (cdr ps) forms tbl))))
 
+(defun declared-mode-pairs (es)
+  ;; (:modes "label" :pairs (("Rel" . :check) ...) ...)
+  (if (endp es) nil
+    (append (cadr (member :pairs (car es))) (declared-mode-pairs (cdr es)))))
+
+(defun check-mode-pairs (e ps tbl)
+  (cond ((endp ps) nil)
+        ((not (tbl-has :rel (car (car ps)) tbl))
+         (cons (cfg-err e (concatenate 'string "relation " (car (car ps)) " not in the IL"))
+               (check-mode-pairs e (cdr ps) tbl)))
+        ((not (member-eq (cdr (car ps)) '(:fun :check :multi)))
+         (cons (cfg-err e (concatenate 'string "mode of " (car (car ps)) " is not :fun, :check or :multi"))
+               (check-mode-pairs e (cdr ps) tbl)))
+        (t (check-mode-pairs e (cdr ps) tbl))))
+
 (defun config-entry-errors (e forms tbl overrides)
   (case (car e)
     (:def (check-names e :def (list (second e)) tbl "def"))
@@ -391,6 +406,7 @@
     (:inverse (check-inverse-pairs e (cadr (member :pairs e)) overrides tbl))
     (:decreasing (check-decreasing e (cadr (member :pairs e)) forms tbl))
     (:sized (check-sized e (cadr (member :pairs e)) forms tbl))
+    (:modes (check-mode-pairs e (cadr (member :pairs e)) tbl))
     (:builtins (let ((ids (append (cadr (member :choice e)) (cadr (member :host e))
                                   (cadr (member :notation e)) (cadr (member :numeric e))))
                      (cl (clauseless-defs forms)))
@@ -514,6 +530,7 @@
                              (cons :decreasing (decreasing-pairs (config-entries config :decreasing)))
                              (cons :rel-overrides (rel-override-alist (config-entries config :rel-override)))
                              (cons :memo (memo-rels (config-entries config :memoize)))
+                             (cons :declared-modes (declared-mode-pairs (config-entries config :modes)))
                              (cons :gram-defs (gram-defs forms)))))
               (mv-let (parts builtins skipped cx)
                 (let ((files (or (decl-files decls nil) (list "all"))))

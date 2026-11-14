@@ -27,8 +27,9 @@ A new session starts here.
 - **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅, P5 ✅ (spec-test-1:
   10,848 of 11,606 commands reached pass; spec-test-3 decode 98.3% by
   experiment).
-  P6 ✅ (runtime baseline). P4 🔶: G1 (53 specializations), G3, G4, G9 done;
-  G5, G8 and W1/G2 wait for the mode table. P7 not started
+  P6 ✅ (runtime baseline). P4 🔶: G1 (53 specializations), G3, G4, G9 and
+  declared modes done (3.0 D3 scope: 4 stubs, 7 dropped rules);
+  G5, G8 and the W1/G2 inference wait for the mode table design. P7 not started
 - **Next action**: the mode table design (W1/G2, with G5 and G8): a Fable session;
   the 2.0 gate needs the `rt/` decision. P7 needs P4 and D1-D6
 - **In progress / uncommitted**: nothing for this plan. The old single-book
@@ -345,7 +346,13 @@ missing inverse pair. *Met 2026-11-14: the 17 remaining "pattern" errors are S5,
       the 16 defs had compiled silently wrong (calls to `%UNKNOWN-f_`)*
 - [ ] W1/G2: explicit mode table per relation (input and output positions),
       inferred where the current heuristic works, overridable by a counted
-      config entry; modes solved per relation, not per attempt per group
+      config entry; modes solved per relation, not per attempt per group.
+      *First step done 2026-11-14 ([P4-generic-gaps](notes/P4-generic-gaps.md)):
+      declared modes (counted `:modes` entry) and a printed mode table.
+      With the type group `:check` and instruction typing `:multi`, 3.0 (D3
+      scope) has 4 stubs and 7 dropped rules (was 8 and 36); 2.0 has 2
+      stubs and 1 dropped rule. Inference per relation and several outputs
+      (G2) are the Fable design session*
 - [ ] G3, G4 iterated premises; G5 disjunctions. *G3 done 2026-11-14
       (count-only iteration, an aux loop; full 3.0 stubs 83 → 81). G5 is not
       mechanical: `t'` is existential, so it goes with the mode table

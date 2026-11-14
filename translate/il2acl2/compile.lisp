@@ -1792,9 +1792,16 @@
 
 (defun rel-members (x) (if (is x "REC") (cdr x) (list x)))
 
+; Declared modes (wasm3 prep P4, W1 first step): config (:modes ... :pairs
+; (("Rel" . :check) ...)) fixes the mode of a relation in every attempt; the
+; attempts of crel-form-1 then vary only the undeclared members. A counted,
+; reviewed exception like any config entry; the inference stays as it was.
+(defun declared-mode (id mode cx)
+  (or (cdr (assoc-equal id (cx-get :declared-modes cx))) mode))
+
 (defun set-modes (xs mode cx)
   (if (endp xs) cx
-    (let ((m (if (closure-step (car xs)) :closure mode)))
+    (let ((m (declared-mode (second (car xs)) (if (closure-step (car xs)) :closure mode) cx)))
       (set-modes (cdr xs) mode
                  (cx-put :modes (put-assoc-equal (second (car xs))
                                                  (cons (if (eq m :check) :check :fun) m)
@@ -1815,7 +1822,11 @@
 (defun set-mode-ids (ids mode cx)
   (if (endp ids) cx
     (set-mode-ids (cdr ids) mode
-                  (cx-put :modes (put-assoc-equal (car ids) (cons mode mode) (cx-get :modes cx)) cx))))
+                  (cx-put :modes (put-assoc-equal (car ids)
+                                                  (let ((m (declared-mode (car ids) mode cx)))
+                                                    (cons (if (eq m :fun) :fun m) m))
+                                                  (cx-get :modes cx))
+                          cx))))
 
 (defun rel-stubs (xs bad cx)
   ;; stub defuns for erroring relations (right arity for their mode)
