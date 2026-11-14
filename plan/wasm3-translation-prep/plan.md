@@ -26,9 +26,9 @@ A new session starts here.
 - **Last updated**: 2026-11-14
 - **Milestones**: P0 ✅, P1 ✅, P2 ✅ (SPEC parameter and per-version
   layout, config validation, one book per source file, mode manifest,
-  flake checks). P3-P7 not started
-- **Next action**: P3, first item (patch `backend-ast/print.ml` to emit
-  hints). P5 and P6 can also start (they need only P2). P4 needs the mode
+  flake checks). P3 in progress: item 1 (hints in the IL) done. P4-P7 not started
+- **Next action**: P3 item 2 (`:inverse` config entries replaced by pairs
+  read from the IL). P5 and P6 can also start (they need only P2). P4 needs the mode
   table design first (a Fable session, see below)
 - **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
   files in `translate/tests/spec/`, `flake.nix` and the `spec`/`spec-data`
@@ -36,7 +36,7 @@ A new session starts here.
   include paths were updated in the working tree for the `gen/wasm-1.0/` move)
 - **Decisions D1-D6**: none confirmed by the user yet; §4 holds recommendations only.
   Assumed so far, reversible: D2 (layout in P2), D3 (3.0 IL file list in the
-  flake). P1 decided (translator-internal): per-rule stubs keep the `:fun`
+  flake), D5 (hint patch in the flake). P1 decided (translator-internal): per-rule stubs keep the `:fun`
   interface when it can be saved; modes are P4's
 - **Blocked on**: nothing for P3. Certifying 2.0/3.0 needs a decision on the
   runtime's package (`rt/` is in `W1T`), see [P2-layout](notes/P2-layout.md); ask
@@ -308,7 +308,10 @@ parts) and two header lines; `make check` (now with `t0-modes`) and
 **Notes**: `notes/P2-layout.md` (final directory, package and flake naming).
 
 ### P3: Hints at the hand-off (W6, S1, S7, D5)
-- [ ] Patch `backend-ast/print.ml` to emit hint definitions; schema and reader accept them
+- [x] Patch `backend-ast/print.ml` to emit hint definitions; schema and reader accept them.
+      *Done 2026-11-14 ([P3-hints](notes/P3-hints.md)): 15-line patch in
+      `nix/`; 1.0 IL +244 hint lines, otherwise identical; generated code
+      unchanged. 3.0 IL carries all 16 inverse pairs*
 - [ ] `:inverse` config entries are replaced by pairs read from the IL
 - [ ] Builtin classification from `hint(builtin)`: numeric builtin (must be in
       `rt/`), choice parameter (D4), host hook (`hostcall`), notation

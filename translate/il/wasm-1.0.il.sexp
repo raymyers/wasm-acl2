@@ -1,8 +1,13 @@
 (typ "MUT" (inst (variant (case "MUT" (tup)))))
+(hint typ "MUT" (show "MUT"))
 (typ "N" (inst (alias nat)))
+(hint typ "N" (macro "{}"))
 (typ "M" (inst (alias nat)))
+(hint typ "M" (macro "{}"))
 (typ "n" (inst (alias nat)))
+(hint typ "n" (macro "{}"))
 (typ "m" (inst (alias nat)))
+(hint typ "m" (macro "{}"))
 (def "Ki" nat (clause (num (nat 1024))))
 (def
   "min"
@@ -59,6 +64,7 @@
     (opt (var "w"))
   )
 )
+(hint def "opt_" (show "%2"))
 (def
   "list_"
   (typ "X")
@@ -73,6 +79,7 @@
     (list (var "w"))
   )
 )
+(hint def "list_" (show "%2"))
 (rec
   (def
     "concat_"
@@ -112,6 +119,7 @@
     )
   )
 )
+(hint def "concat_" (show "$concat(%2)"))
 (rec
   (def
     "disjoint_"
@@ -142,6 +150,7 @@
     )
   )
 )
+(hint def "disjoint_" (show "{%2 $disjoint}") (macro "none"))
 (typ
   "list"
   (typ "X")
@@ -183,6 +192,7 @@
     )
   )
 )
+(hint typ "byte" (desc "\"byte\""))
 (typ
   "uN"
   (exp "N" (var "N"))
@@ -219,6 +229,7 @@
     )
   )
 )
+(hint typ "uN" (desc "\"unsigned integer\"") (show "u#%"))
 (typ
   "sN"
   (exp "N" (var "N"))
@@ -316,11 +327,13 @@
     )
   )
 )
+(hint typ "sN" (desc "\"signed integer\"") (show "s#%"))
 (typ
   "iN"
   (exp "N" (var "N"))
   (inst (exp "N" (var "N")) (exp (var "N")) (alias (var "uN" (exp (var "N")))))
 )
+(hint typ "iN" (desc "\"integer\"") (show "i#%"))
 (typ "u31" (inst (alias (var "uN" (exp (num (nat 31)))))))
 (typ "u32" (inst (alias (var "uN" (exp (num (nat 32)))))))
 (typ "u64" (inst (alias (var "uN" (exp (num (nat 64)))))))
@@ -346,12 +359,14 @@
   nat
   (clause (exp "N" (var "N")) (exp (var "N")) (call "signif" (exp (var "N"))))
 )
+(hint def "M" (show "M"))
 (def
   "E"
   (exp "N" (var "N"))
   nat
   (clause (exp "N" (var "N")) (exp (var "N")) (call "expon" (exp (var "N"))))
 )
+(hint def "E" (show "E"))
 (typ "exp" (inst (alias int)))
 (typ
   "fNmag"
@@ -517,6 +532,9 @@
     )
   )
 )
+(hint typ "fN" (desc "\"floating-point number\"") (show "f#%"))
+(hint typ "exp" (show "e"))
+(hint typ "fNmag" (desc "\"floating-point magnitude\"") (show "fNmag"))
 (typ "f32" (inst (alias (var "fN" (exp (num (nat 32)))))))
 (typ "f64" (inst (alias (var "fN" (exp (num (nat 64)))))))
 (def
@@ -529,6 +547,7 @@
     (case "POS" (case "SUBNORM" (tup (num (nat 0)))))
   )
 )
+(hint def "fzero" (show "+ 0"))
 (def
   "fone"
   (exp "N" (var "N"))
@@ -539,6 +558,7 @@
     (case "POS" (case "NORM" (tup (num (nat 1)) (cvt nat int (num (nat 0))))))
   )
 )
+(hint def "fone" (show "+ 1"))
 (def
   "canon_"
   (exp "N" (var "N"))
@@ -592,6 +612,7 @@
     )
   )
 )
+(hint typ "char" (desc "\"character\""))
 (rec
   (def
     "utf8"
@@ -886,14 +907,23 @@
     )
   )
 )
+(hint typ "name" (desc "\"name\""))
 (typ "idx" (inst (alias (var "u32"))))
+(hint typ "idx" (desc "\"index\""))
 (typ "typeidx" (inst (alias (var "idx"))))
+(hint typ "typeidx" (desc "\"type index\""))
 (typ "funcidx" (inst (alias (var "idx"))))
+(hint typ "funcidx" (desc "\"function index\""))
 (typ "globalidx" (inst (alias (var "idx"))))
+(hint typ "globalidx" (desc "\"global index\""))
 (typ "tableidx" (inst (alias (var "idx"))))
+(hint typ "tableidx" (desc "\"table index\""))
 (typ "memidx" (inst (alias (var "idx"))))
+(hint typ "memidx" (desc "\"memory index\""))
 (typ "labelidx" (inst (alias (var "idx"))))
+(hint typ "labelidx" (desc "\"label index\""))
 (typ "localidx" (inst (alias (var "idx"))))
+(hint typ "localidx" (desc "\"local index\""))
 (typ
   "valtype"
   (inst
@@ -905,9 +935,13 @@
     )
   )
 )
+(hint typ "valtype" (desc "\"number type\""))
 (typ "Inn" (inst (variant (case "I32" (tup)) (case "I64" (tup)))))
+(hint typ "Inn" (show "I#n"))
 (typ "Fnn" (inst (variant (case "F32" (tup)) (case "F64" (tup)))))
+(hint typ "Fnn" (show "F#n"))
 (typ "resulttype" (inst (alias (iter (var "valtype") opt))))
+(hint typ "resulttype" (desc "\"result type\""))
 (typ "mut" (inst (alias (iter (var "MUT") opt))))
 (typ
   "limits"
@@ -920,6 +954,7 @@
     )
   )
 )
+(hint typ "limits" (desc "\"limits\""))
 (typ
   "globaltype"
   (inst
@@ -931,6 +966,7 @@
     )
   )
 )
+(hint typ "globaltype" (desc "\"global type\""))
 (typ
   "functype"
   (inst
@@ -945,8 +981,11 @@
     )
   )
 )
+(hint typ "functype" (desc "\"function type\""))
 (typ "tabletype" (inst (alias (var "limits"))))
+(hint typ "tabletype" (desc "\"table type\""))
 (typ "memtype" (inst (alias (var "limits"))))
+(hint typ "memtype" (desc "\"memory type\""))
 (typ
   "externtype"
   (inst
@@ -958,6 +997,7 @@
     )
   )
 )
+(hint typ "externtype" (desc "\"external type\""))
 (typ
   "moduletype"
   (inst
@@ -972,6 +1012,7 @@
     )
   )
 )
+(hint typ "moduletype" (desc "\"module type\""))
 (def
   "size"
   (exp "valtype" (var "valtype"))
@@ -981,6 +1022,7 @@
   (clause (exp (case "F32" (tup))) (num (nat 32)))
   (clause (exp (case "F64" (tup))) (num (nat 64)))
 )
+(hint def "size" (show "|%|"))
 (typ
   "val_"
   (exp "valtype" (var "valtype"))
@@ -1006,6 +1048,7 @@
   )
 )
 (typ "sx" (inst (variant (case "U" (tup)) (case "S" (tup)))))
+(hint typ "sx" (desc "\"signedness\""))
 (typ
   "sz"
   (inst
@@ -1035,6 +1078,7 @@
     )
   )
 )
+(hint typ "sz" (desc "\"pack size\""))
 (typ
   "unop_"
   (exp "valtype" (var "valtype"))
@@ -1147,6 +1191,7 @@
   "memarg"
   (inst (struct (field "ALIGN" (var "u32")) (field "OFFSET" (var "u32"))))
 )
+(hint typ "memarg" (desc "\"memory argument\""))
 (typ
   "loadop_"
   (exp "valtype" (var "valtype"))
@@ -1170,6 +1215,7 @@
   )
 )
 (typ "blocktype" (inst (alias (iter (var "valtype") opt))))
+(hint typ "blocktype" (desc "\"block type\""))
 (rec
   (typ
     "instr"
@@ -1311,9 +1357,21 @@
     )
   )
 )
+(hint typ "instr" (desc "\"parametric instruction\""))
+(hint typ "instr" (desc "\"block instruction\""))
+(hint typ "instr" (desc "\"branch instruction\""))
+(hint typ "instr" (desc "\"call instruction\""))
+(hint typ "instr" (desc "\"numeric instruction\""))
+(hint typ "instr" (desc "\"local instruction\""))
+(hint typ "instr" (desc "\"global instruction\""))
+(hint typ "instr" (desc "\"memory instruction\""))
 (typ "expr" (inst (alias (iter (var "instr") list))))
+(hint typ "expr" (desc "\"expression\""))
+(hint typ "instr" (desc "\"instruction\""))
 (typ "type" (inst (variant (case "TYPE" (var "functype")))))
+(hint typ "type" (desc "\"type\""))
 (typ "local" (inst (variant (case "LOCAL" (var "valtype")))))
+(hint typ "local" (desc "\"local\""))
 (typ
   "func"
   (inst
@@ -1329,6 +1387,7 @@
     )
   )
 )
+(hint typ "func" (desc "\"function\""))
 (typ
   "global"
   (inst
@@ -1340,8 +1399,11 @@
     )
   )
 )
+(hint typ "global" (desc "\"global\""))
 (typ "table" (inst (variant (case "TABLE" (var "tabletype")))))
+(hint typ "table" (desc "\"table\""))
 (typ "mem" (inst (variant (case "MEMORY" (var "memtype")))))
+(hint typ "mem" (desc "\"memory\""))
 (typ
   "elem"
   (inst
@@ -1356,6 +1418,7 @@
     )
   )
 )
+(hint typ "elem" (desc "\"table segment\""))
 (typ
   "data"
   (inst
@@ -1367,7 +1430,9 @@
     )
   )
 )
+(hint typ "data" (desc "\"memory segment\""))
 (typ "start" (inst (variant (case "START" (var "funcidx")))))
+(hint typ "start" (desc "\"start function\""))
 (typ
   "externidx"
   (inst
@@ -1379,6 +1444,7 @@
     )
   )
 )
+(hint typ "externidx" (desc "\"external index\""))
 (typ
   "export"
   (inst
@@ -1390,6 +1456,7 @@
     )
   )
 )
+(hint typ "export" (desc "\"export\""))
 (typ
   "import"
   (inst
@@ -1405,6 +1472,7 @@
     )
   )
 )
+(hint typ "import" (desc "\"import\""))
 (typ
   "module"
   (inst
@@ -1427,6 +1495,7 @@
     )
   )
 )
+(hint typ "module" (desc "\"module\""))
 (rec
   (def
     "funcsxt"
@@ -1461,6 +1530,7 @@
     )
   )
 )
+(hint def "funcsxt" (show "$funcs(%)"))
 (rec
   (def
     "globalsxt"
@@ -1495,6 +1565,7 @@
     )
   )
 )
+(hint def "globalsxt" (show "$globals(%)"))
 (rec
   (def
     "tablesxt"
@@ -1529,6 +1600,7 @@
     )
   )
 )
+(hint def "tablesxt" (show "$tables(%)"))
 (rec
   (def
     "memsxt"
@@ -1563,6 +1635,7 @@
     )
   )
 )
+(hint def "memsxt" (show "$mems(%)"))
 (def
   "memarg0"
   (var "memarg")
@@ -1573,6 +1646,7 @@
     )
   )
 )
+(hint def "memarg0" (show "{}"))
 (def
   "bool"
   (exp "bool" bool)
@@ -1581,6 +1655,7 @@
   (clause (exp (bool true)) (num (nat 1)))
 )
 (def "truncz" (exp "rat" rat) int)
+(hint def "truncz" (builtin "{}"))
 (def
   "signed_"
   (exp "N" (var "N"))
@@ -1645,6 +1720,7 @@
     )
   )
 )
+(hint def "signed_" (inverse "$inv_signed_"))
 (def
   "inv_signed_"
   (exp "N" (var "N"))
@@ -1740,6 +1816,7 @@
     )
   )
 )
+(hint def "inv_signed_" (show "$signed_(%)^(- 1)#((%))"))
 (def
   "fabs_"
   (exp "N" (var "N"))
@@ -1933,6 +2010,7 @@
     )
   )
 )
+(hint def "unop_" (show "%2#$_(%1)#((%3))"))
 (def
   "fadd_"
   (exp "N" (var "N"))
@@ -2891,6 +2969,7 @@
     )
   )
 )
+(hint def "binop_" (show "%2#$_(%1)#(%3, %4)"))
 (def
   "ieqz_"
   (exp "N" (var "N"))
@@ -2931,6 +3010,7 @@
     )
   )
 )
+(hint def "testop_" (show "%2#$_(%1)#((%3))"))
 (def
   "feq_"
   (exp "N" (var "N"))
@@ -3537,6 +3617,7 @@
     )
   )
 )
+(hint def "relop_" (show "%2#$_(%1)#(%3, %4)"))
 (def
   "convert__"
   (exp "M" (var "M"))
@@ -3741,48 +3822,74 @@
     )
   )
 )
+(hint def "cvtop__" (show "%3#$__(%1, %2)#((%4))"))
+(hint def "extend__" (show "$extend__(%, %)^(%)#((%))"))
+(hint def "trunc__" (show "$trunc__(%, %)^(%)#((%))"))
+(hint def "convert__" (show "$convert__(%, %)^(%)#((%))"))
+(hint def "wrap__" (builtin "{}"))
+(hint def "extend__" (builtin "{}"))
+(hint def "trunc__" (builtin "{}"))
+(hint def "demote__" (builtin "{}"))
+(hint def "promote__" (builtin "{}"))
+(hint def "convert__" (builtin "{}"))
+(hint def "reinterpret__" (builtin "{}"))
 (def
   "ibytes_"
   (exp "N" (var "N"))
   (exp "iN" (var "iN" (exp (var "N"))))
   (iter (var "byte") list)
 )
+(hint def "ibytes_" (show "$bytes_(I#%, %)") (inverse "$inv_ibytes_"))
 (def
   "fbytes_"
   (exp "N" (var "N"))
   (exp "fN" (var "fN" (exp (var "N"))))
   (iter (var "byte") list)
 )
+(hint def "fbytes_" (show "$bytes_(F#%, %)") (inverse "$inv_fbytes_"))
 (def
   "bytes_"
   (exp "valtype" (var "valtype"))
   (exp "val_" (var "val_" (exp (var "valtype"))))
   (iter (var "byte") list)
 )
+(hint def "bytes_" (inverse "$inv_bytes_"))
 (def
   "inv_ibytes_"
   (exp "N" (var "N"))
   (exp "_" (iter (var "byte") list))
   (var "iN" (exp (var "N")))
 )
+(hint def "inv_ibytes_" (show "$bytes_(I#%, %)"))
 (def
   "inv_fbytes_"
   (exp "N" (var "N"))
   (exp "_" (iter (var "byte") list))
   (var "fN" (exp (var "N")))
 )
+(hint def "inv_fbytes_" (show "$bytes_(F#%, %)"))
 (def
   "inv_bytes_"
   (exp "valtype" (var "valtype"))
   (exp "_" (iter (var "byte") list))
   (var "val_" (exp (var "valtype")))
 )
+(hint def "inv_bytes_" (show "$bytes_(%, %)"))
+(hint def "ibytes_" (builtin "{}"))
+(hint def "fbytes_" (builtin "{}"))
+(hint def "bytes_" (builtin "{}"))
+(hint def "inv_ibytes_" (builtin "{}"))
+(hint def "inv_fbytes_" (builtin "{}"))
+(hint def "inv_bytes_" (builtin "{}"))
+(hint def "idiv_" (show "$idiv_(%)^(%)#((%, %))"))
+(hint def "irem_" (show "$irem_(%)^(%)#((%, %))"))
 (def
   "inot_"
   (exp "N" (var "N"))
   (exp "iN" (var "iN" (exp (var "N"))))
   (var "iN" (exp (var "N")))
 )
+(hint def "ishr_" (show "$ishr_(%)^(%)#((%, %))"))
 (def
   "inez_"
   (exp "N" (var "N"))
@@ -3804,11 +3911,51 @@
     )
   )
 )
+(hint def "ilt_" (show "$ilt_(%)^(%)#((%, %))"))
+(hint def "igt_" (show "$igt_(%)^(%)#((%, %))"))
+(hint def "ile_" (show "$ile_(%)^(%)#((%, %))"))
+(hint def "ige_" (show "$ige_(%)^(%)#((%, %))"))
+(hint def "inot_" (builtin "{}"))
+(hint def "iand_" (builtin "{}"))
+(hint def "ior_" (builtin "{}"))
+(hint def "ixor_" (builtin "{}"))
+(hint def "ishl_" (builtin "{}"))
+(hint def "ishr_" (builtin "{}"))
+(hint def "irotl_" (builtin "{}"))
+(hint def "irotr_" (builtin "{}"))
+(hint def "iclz_" (builtin "{}"))
+(hint def "ictz_" (builtin "{}"))
+(hint def "ipopcnt_" (builtin "{}"))
+(hint def "fadd_" (builtin "{}"))
+(hint def "fsub_" (builtin "{}"))
+(hint def "fmul_" (builtin "{}"))
+(hint def "fdiv_" (builtin "{}"))
+(hint def "fmin_" (builtin "{}"))
+(hint def "fmax_" (builtin "{}"))
+(hint def "fcopysign_" (builtin "{}"))
+(hint def "fabs_" (builtin "{}"))
+(hint def "fneg_" (builtin "{}"))
+(hint def "fsqrt_" (builtin "{}"))
+(hint def "fceil_" (builtin "{}"))
+(hint def "ffloor_" (builtin "{}"))
+(hint def "ftrunc_" (builtin "{}"))
+(hint def "fnearest_" (builtin "{}"))
+(hint def "feq_" (builtin "{}"))
+(hint def "fne_" (builtin "{}"))
+(hint def "flt_" (builtin "{}"))
+(hint def "fgt_" (builtin "{}"))
+(hint def "fle_" (builtin "{}"))
+(hint def "fge_" (builtin "{}"))
 (typ "addr" (inst (alias nat)))
+(hint typ "addr" (desc "\"address\""))
 (typ "funcaddr" (inst (alias (var "addr"))))
+(hint typ "funcaddr" (desc "\"function address\""))
 (typ "globaladdr" (inst (alias (var "addr"))))
+(hint typ "globaladdr" (desc "\"global address\""))
 (typ "tableaddr" (inst (alias (var "addr"))))
+(hint typ "tableaddr" (desc "\"table address\""))
 (typ "memaddr" (inst (alias (var "addr"))))
+(hint typ "memaddr" (desc "\"memory address\""))
 (typ
   "externaddr"
   (inst
@@ -3820,6 +3967,7 @@
     )
   )
 )
+(hint typ "externaddr" (desc "\"external value\""))
 (typ
   "val"
   (inst
@@ -3834,10 +3982,12 @@
     )
   )
 )
+(hint typ "val" (desc "\"value\""))
 (typ
   "result"
   (inst (variant (case "_VALS" (iter (var "val") list)) (case "TRAP" (tup))))
 )
+(hint typ "result" (desc "\"result\""))
 (typ
   "exportinst"
   (inst (struct (field "NAME" (var "name")) (field "ADDR" (var "externaddr"))))
@@ -3865,10 +4015,12 @@
     )
   )
 )
+(hint typ "funcinst" (desc "\"function instance\""))
 (typ
   "globalinst"
   (inst (struct (field "TYPE" (var "globaltype")) (field "VALUE" (var "val"))))
 )
+(hint typ "globalinst" (desc "\"global instance\""))
 (typ
   "tableinst"
   (inst
@@ -3878,6 +4030,7 @@
     )
   )
 )
+(hint typ "tableinst" (desc "\"table instance\""))
 (typ
   "meminst"
   (inst
@@ -3887,6 +4040,9 @@
     )
   )
 )
+(hint typ "meminst" (desc "\"memory instance\""))
+(hint typ "exportinst" (desc "\"export instance\""))
+(hint typ "moduleinst" (desc "\"module instance\""))
 (typ
   "store"
   (inst
@@ -3898,6 +4054,7 @@
     )
   )
 )
+(hint typ "store" (desc "\"store\""))
 (typ
   "frame"
   (inst
@@ -3907,6 +4064,7 @@
     )
   )
 )
+(hint typ "frame" (desc "\"frame\""))
 (typ
   "state"
   (inst
@@ -3918,6 +4076,7 @@
     )
   )
 )
+(hint typ "state" (desc "\"state\""))
 (rec
   (typ
     "admininstr"
@@ -4091,6 +4250,8 @@
     )
   )
 )
+(hint typ "config" (desc "\"configuration\""))
+(hint typ "admininstr" (show "instr") (desc "\"administrative instruction\""))
 (def
   "default_"
   (exp "valtype" (var "valtype"))
@@ -4146,6 +4307,7 @@
     )
   )
 )
+(hint def "funcsxa" (show "$funcs(%)"))
 (rec
   (def
     "globalsxa"
@@ -4180,6 +4342,7 @@
     )
   )
 )
+(hint def "globalsxa" (show "$globals(%)"))
 (rec
   (def
     "tablesxa"
@@ -4214,6 +4377,7 @@
     )
   )
 )
+(hint def "tablesxa" (show "$tables(%)"))
 (rec
   (def
     "memsxa"
@@ -4248,6 +4412,7 @@
     )
   )
 )
+(hint def "memsxa" (show "$mems(%)"))
 (def
   "store"
   (exp "state" (var "state"))
@@ -4259,6 +4424,7 @@
     (var "s")
   )
 )
+(hint def "store" (show "%.STORE"))
 (def
   "frame"
   (exp "state" (var "state"))
@@ -4270,6 +4436,7 @@
     (var "f")
   )
 )
+(hint def "frame" (show "%.FRAME"))
 (def
   "funcaddr"
   (exp "state" (var "state"))
@@ -4281,6 +4448,7 @@
     (dot (dot (var "f") "MODULE") "FUNCS")
   )
 )
+(hint def "funcaddr" (show "%.MODULE.FUNCS"))
 (def
   "funcinst"
   (exp "state" (var "state"))
@@ -4292,6 +4460,7 @@
     (dot (var "s") "FUNCS")
   )
 )
+(hint def "funcinst" (show "%.FUNCS"))
 (def
   "globalinst"
   (exp "state" (var "state"))
@@ -4303,6 +4472,7 @@
     (dot (var "s") "GLOBALS")
   )
 )
+(hint def "globalinst" (show "%.GLOBALS"))
 (def
   "tableinst"
   (exp "state" (var "state"))
@@ -4314,6 +4484,7 @@
     (dot (var "s") "TABLES")
   )
 )
+(hint def "tableinst" (show "%.TABLES"))
 (def
   "meminst"
   (exp "state" (var "state"))
@@ -4325,6 +4496,7 @@
     (dot (var "s") "MEMS")
   )
 )
+(hint def "meminst" (show "%.MEMS"))
 (def
   "moduleinst"
   (exp "state" (var "state"))
@@ -4336,6 +4508,7 @@
     (dot (var "f") "MODULE")
   )
 )
+(hint def "moduleinst" (show "%.MODULE"))
 (def
   "type"
   (exp "state" (var "state"))
@@ -4350,6 +4523,7 @@
     (idx (dot (dot (var "f") "MODULE") "TYPES") (proj (uncase (var "x") "%") 0))
   )
 )
+(hint def "type" (show "%.TYPES[%]"))
 (def
   "func"
   (exp "state" (var "state"))
@@ -4370,6 +4544,7 @@
     )
   )
 )
+(hint def "func" (show "%.FUNCS[%]"))
 (def
   "global"
   (exp "state" (var "state"))
@@ -4390,6 +4565,7 @@
     )
   )
 )
+(hint def "global" (show "%.GLOBALS[%]"))
 (def
   "table"
   (exp "state" (var "state"))
@@ -4410,6 +4586,7 @@
     )
   )
 )
+(hint def "table" (show "%.TABLES[%]"))
 (def
   "mem"
   (exp "state" (var "state"))
@@ -4430,6 +4607,7 @@
     )
   )
 )
+(hint def "mem" (show "%.MEMS[%]"))
 (def
   "local"
   (exp "state" (var "state"))
@@ -4444,6 +4622,7 @@
     (idx (dot (var "f") "LOCALS") (proj (uncase (var "x") "%") 0))
   )
 )
+(hint def "local" (show "%.LOCALS[%]"))
 (def
   "with_local"
   (exp "state" (var "state"))
@@ -4471,6 +4650,7 @@
     )
   )
 )
+(hint def "with_local" (show "%[LOCALS[%] = %]"))
 (def
   "with_global"
   (exp "state" (var "state"))
@@ -4507,6 +4687,7 @@
     )
   )
 )
+(hint def "with_global" (show "%[GLOBALS[%].VALUE = %]"))
 (def
   "with_table"
   (exp "state" (var "state"))
@@ -4549,6 +4730,7 @@
     )
   )
 )
+(hint def "with_table" (show "%[TABLES[%].REFS[%] = %]"))
 (def
   "with_tableinst"
   (exp "state" (var "state"))
@@ -4582,6 +4764,7 @@
     )
   )
 )
+(hint def "with_tableinst" (show "%[TABLES[%] = %]"))
 (def
   "with_mem"
   (exp "state" (var "state"))
@@ -4628,6 +4811,7 @@
     )
   )
 )
+(hint def "with_mem" (show "%[MEMS[%].BYTES[% : %] = %]"))
 (def
   "with_meminst"
   (exp "state" (var "state"))
@@ -4661,6 +4845,7 @@
     )
   )
 )
+(hint def "with_meminst" (show "%[MEMS[%] = %]"))
 (def
   "growtable"
   (exp "tableinst" (var "tableinst"))
@@ -4743,6 +4928,7 @@
     (opt)
   )
 )
+(hint def "growtable" (partial "{}"))
 (def
   "growmemory"
   (exp "meminst" (var "meminst"))
@@ -4852,6 +5038,7 @@
     (opt)
   )
 )
+(hint def "growmemory" (partial "{}"))
 (typ
   "context"
   (inst
@@ -4867,6 +5054,7 @@
     )
   )
 )
+(hint typ "context" (desc "\"context\""))
 (rel
   "Limits_ok"
   "|-%:%"
@@ -4902,6 +5090,7 @@
     )
   )
 )
+(hint rel "Limits_ok" (show "\"K-limits\""))
 (rel
   "Functype_ok"
   "|-%:OK"
@@ -4922,6 +5111,7 @@
     )
   )
 )
+(hint rel "Functype_ok" (show "\"K-func\""))
 (rel
   "Globaltype_ok"
   "|-%:OK"
@@ -4933,6 +5123,7 @@
     (tup (case "%%" (tup (iter (case "MUT" (tup)) opt) (var "t"))))
   )
 )
+(hint rel "Globaltype_ok" (show "\"K-global\""))
 (rel
   "Tabletype_ok"
   "|-%:OK"
@@ -4961,6 +5152,7 @@
     )
   )
 )
+(hint rel "Tabletype_ok" (show "\"K-table\""))
 (rel
   "Memtype_ok"
   "|-%:OK"
@@ -4977,6 +5169,7 @@
     )
   )
 )
+(hint rel "Memtype_ok" (show "\"K-mem\""))
 (rel
   "Externtype_ok"
   "|-%:OK"
@@ -5010,6 +5203,7 @@
     (rule "Memtype_ok" "|-%:OK" (tup (var "memtype")))
   )
 )
+(hint rel "Externtype_ok" (show "\"K-extern\""))
 (rel
   "Limits_sub"
   "|-%<:%"
@@ -5053,18 +5247,21 @@
     (if (cmp ge nat (var "n_1") (var "n_2")))
   )
 )
+(hint rel "Limits_sub" (show "\"S-limits\""))
 (rel
   "Functype_sub"
   "|-%<:%"
   (tup (bind "_" (var "functype")) (bind "_" (var "functype")))
   (rule "" (exp "ft" (var "functype")) "|-%<:%" (tup (var "ft") (var "ft")))
 )
+(hint rel "Functype_sub" (show "\"S-func\""))
 (rel
   "Globaltype_sub"
   "|-%<:%"
   (tup (bind "_" (var "globaltype")) (bind "_" (var "globaltype")))
   (rule "" (exp "gt" (var "globaltype")) "|-%<:%" (tup (var "gt") (var "gt")))
 )
+(hint rel "Globaltype_sub" (show "\"S-global\""))
 (rel
   "Tabletype_sub"
   "|-%<:%"
@@ -5078,6 +5275,7 @@
     (rule "Limits_sub" "|-%<:%" (tup (var "lim_1") (var "lim_2")))
   )
 )
+(hint rel "Tabletype_sub" (show "\"S-table\""))
 (rel
   "Memtype_sub"
   "|-%<:%"
@@ -5091,6 +5289,7 @@
     (rule "Limits_sub" "|-%<:%" (tup (var "lim_1") (var "lim_2")))
   )
 )
+(hint rel "Memtype_sub" (show "\"S-mem\""))
 (rel
   "Externtype_sub"
   "|-%<:%"
@@ -5128,6 +5327,7 @@
     (rule "Memtype_sub" "|-%<:%" (tup (var "mt_1") (var "mt_2")))
   )
 )
+(hint rel "Externtype_sub" (show "\"S-extern\""))
 (rec
   (rel
     "Instr_ok"
@@ -6193,6 +6393,8 @@
     )
   )
 )
+(hint rel "Instr_ok" (show "\"T\""))
+(hint rel "Instrs_ok" (show "\"T*\""))
 (rel
   "Expr_ok"
   "%|-%:%"
@@ -6226,6 +6428,7 @@
     )
   )
 )
+(hint rel "Expr_ok" (show "\"T-expr\""))
 (rel
   "Instr_const"
   "%|-%CONST"
@@ -6263,6 +6466,7 @@
     )
   )
 )
+(hint rel "Instr_const" (show "\"C-instr\""))
 (rel
   "Expr_const"
   "%|-%CONST"
@@ -6280,6 +6484,7 @@
     )
   )
 )
+(hint rel "Expr_const" (show "\"C-expr\""))
 (rel
   "Expr_ok_const"
   "%|-%:%CONST"
@@ -6303,6 +6508,7 @@
     (rule "Expr_const" "%|-%CONST" (tup (var "C") (var "expr")))
   )
 )
+(hint rel "Expr_ok_const" (show "\"TC-expr\""))
 (rel
   "Type_ok"
   "|-%:%"
@@ -6315,6 +6521,7 @@
     (rule "Functype_ok" "|-%:OK" (tup (var "ft")))
   )
 )
+(hint rel "Type_ok" (show "\"T-type\""))
 (rel
   "Func_ok"
   "%|-%:%"
@@ -6402,6 +6609,7 @@
     )
   )
 )
+(hint rel "Func_ok" (show "\"T-func\""))
 (rel
   "Global_ok"
   "%|-%:%"
@@ -6428,6 +6636,7 @@
     )
   )
 )
+(hint rel "Global_ok" (show "\"T-global\""))
 (rel
   "Table_ok"
   "%|-%:%"
@@ -6445,6 +6654,7 @@
     (rule "Tabletype_ok" "|-%:OK" (tup (var "tt")))
   )
 )
+(hint rel "Table_ok" (show "\"T-table\""))
 (rel
   "Mem_ok"
   "%|-%:%"
@@ -6462,6 +6672,7 @@
     (rule "Memtype_ok" "|-%:OK" (tup (var "mt")))
   )
 )
+(hint rel "Mem_ok" (show "\"T-mem\""))
 (rel
   "Elem_ok"
   "%|-%:OK"
@@ -6516,6 +6727,7 @@
     )
   )
 )
+(hint rel "Elem_ok" (show "\"T-elem\""))
 (rel
   "Data_ok"
   "%|-%:OK"
@@ -6543,6 +6755,7 @@
     )
   )
 )
+(hint rel "Data_ok" (show "\"T-data\""))
 (rel
   "Start_ok"
   "%|-%:OK"
@@ -6566,6 +6779,7 @@
     )
   )
 )
+(hint rel "Start_ok" (show "\"T-start\""))
 (rel
   "Import_ok"
   "%|-%:%"
@@ -6589,6 +6803,7 @@
     (rule "Externtype_ok" "|-%:OK" (tup (var "xt")))
   )
 )
+(hint rel "Import_ok" (show "\"T-import\""))
 (rel
   "Externidx_ok"
   "%|-%:%"
@@ -6709,6 +6924,8 @@
     (rule "Externidx_ok" "%|-%:%" (tup (var "C") (var "externidx") (var "xt")))
   )
 )
+(hint rel "Export_ok" (show "\"T-export\""))
+(hint rel "Externidx_ok" (show "\"T-externidx\""))
 (rel
   "Module_ok"
   "|-%:%"
@@ -6975,6 +7192,7 @@
     )
   )
 )
+(hint rel "Module_ok" (show "\"T-module\""))
 (rel
   "Step_pure"
   "%~>%"
@@ -9240,6 +9458,9 @@
     )
   )
 )
+(hint rel "Step" (show "\"E\"") (tabular "{}"))
+(hint rel "Step_pure" (show "\"E\"") (tabular "{}"))
+(hint rel "Step_read" (show "\"E\"") (tabular "{}"))
 (rec
   (rel
     "Steps"
@@ -9367,6 +9588,7 @@
     )
   )
 )
+(hint rel "Steps" (show "\"E\"") (tabular "{}"))
 (rel
   "Eval_expr"
   "%;%~>*%;%"
@@ -9419,6 +9641,7 @@
     )
   )
 )
+(hint rel "Eval_expr" (show "\"E-expr\"") (tabular "{}"))
 (rec
   (rel
     "Externaddr_ok"
@@ -9513,6 +9736,7 @@
     )
   )
 )
+(hint rel "Externaddr_ok" (macro "\"%externaddr\""))
 (rec
   (def
     "funcs"
@@ -11242,6 +11466,7 @@
   )
 )
 (typ "startopt" (inst (alias (iter (var "start") list))))
+(hint typ "startopt" (show "start?"))
 (typ
   "code"
   (inst
@@ -11362,6 +11587,7 @@
     (iter (var "el") (listn (var "n")) (dom "el" (var "el*")))
   )
 )
+(hint gram "BuN" (show "Bu#%"))
 (rec
   (gram
     "BsN"
@@ -11533,6 +11759,7 @@
     )
   )
 )
+(hint gram "BsN" (show "Bs#%"))
 (gram
   "BiN"
   (exp "N" (var "N"))
@@ -11552,6 +11779,7 @@
     )
   )
 )
+(hint gram "BiN" (show "Bi#%"))
 (gram
   "BfN"
   (exp "N" (var "N"))
@@ -11578,6 +11806,7 @@
     )
   )
 )
+(hint gram "BfN" (show "Bf#%"))
 (gram
   "Bu64"
   (var "u64")
@@ -12783,11 +13012,13 @@
   )
   (prod eps (list))
 )
+(hint gram "Bsection_" (desc "\"section\""))
 (gram
   "Bcustom"
   (iter (tup) list)
   (prod (seq (seq (var "Bname")) (seq (iter (var "Bbyte") list))) (list))
 )
+(hint gram "Bcustom" (desc "\"custom data\""))
 (gram
   "Bcustomsec"
   (tup)
@@ -12796,6 +13027,7 @@
     (proj (tup (tup) (tup)) 1)
   )
 )
+(hint gram "Bcustomsec" (desc "\"custom section\""))
 (gram
   "Btype"
   (var "type")
@@ -12822,6 +13054,7 @@
     (iter (var "ty") list (dom "ty" (var "ty*")))
   )
 )
+(hint gram "Btypesec" (desc "\"type section\""))
 (gram
   "Bimport"
   (var "import")
@@ -12854,6 +13087,7 @@
     (iter (var "im") list (dom "im" (var "im*")))
   )
 )
+(hint gram "Bimportsec" (desc "\"import section\""))
 (gram
   "Bfuncsec"
   (iter (var "typeidx") list)
@@ -12871,6 +13105,7 @@
     (iter (var "x") list (dom "x" (var "x*")))
   )
 )
+(hint gram "Bfuncsec" (desc "\"function section\""))
 (gram
   "Btable"
   (var "table")
@@ -12897,6 +13132,7 @@
     (iter (var "tab") list (dom "tab" (var "tab*")))
   )
 )
+(hint gram "Btablesec" (desc "\"table section\""))
 (gram
   "Bmem"
   (var "mem")
@@ -12923,6 +13159,7 @@
     (iter (var "mem") list (dom "mem" (var "mem*")))
   )
 )
+(hint gram "Bmemsec" (desc "\"memory section\""))
 (gram
   "Bglobal"
   (var "global")
@@ -12953,6 +13190,7 @@
     (iter (var "glob") list (dom "glob" (var "glob*")))
   )
 )
+(hint gram "Bglobalsec" (desc "\"global section\""))
 (gram
   "Bexport"
   (var "export")
@@ -12983,6 +13221,7 @@
     (iter (var "ex") list (dom "ex" (var "ex*")))
   )
 )
+(hint gram "Bexportsec" (desc "\"export section\""))
 (gram
   "Bstart"
   (iter (var "start") list)
@@ -13009,6 +13248,7 @@
     (call "opt_" (typ (var "start")) (exp (var "startopt")))
   )
 )
+(hint gram "Bstartsec" (desc "\"start section\""))
 (gram
   "Belem"
   (var "elem")
@@ -13045,6 +13285,7 @@
     (iter (var "elem") list (dom "elem" (var "elem*")))
   )
 )
+(hint gram "Belemsec" (desc "\"element section\""))
 (gram
   "Blocals"
   (iter (var "local") list)
@@ -13058,6 +13299,7 @@
     (iter (case "LOCAL" (var "t")) (listn (var "n")))
   )
 )
+(hint gram "Blocals" (desc "\"local\""))
 (gram
   "Bfunc"
   (var "code")
@@ -13124,6 +13366,7 @@
     (iter (var "code") list (dom "code" (var "code*")))
   )
 )
+(hint gram "Bcodesec" (desc "\"code section\""))
 (gram
   "Bdata"
   (var "data")
@@ -13160,6 +13403,7 @@
     (iter (var "data") list (dom "data" (var "data*")))
   )
 )
+(hint gram "Bdatasec" (desc "\"data section\""))
 (gram
   "Bmodule"
   (var "module")

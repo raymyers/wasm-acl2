@@ -251,7 +251,7 @@
               (probe-print-rule-errs (cdr l))))))
 
 (defun probe-run (il-file config-file names drop errors-file state)
-  (mv-let (erp forms state) (read-il-file il-file state)
+  (mv-let (erp forms hints state) (read-il il-file state)
     (if erp (mv erp state)
       (mv-let (erp cfg state) (read-il-file config-file state)
         (if erp (mv erp state)
@@ -277,7 +277,7 @@
                     (prog2$
                      (progn$
                       (cw "~%PROBE-REPORT-BEGIN~%")
-                      (cw "IL forms (top level): ~x0~%" (len forms))
+                      (cw "IL forms (top level): ~x0, hint forms: ~x1~%" (len forms) (len hints))
                       (cw "IL forms by kind (rec members counted): ~x0~%" (count-heads forms nil))
                       (cw "IL names: ~x0~%" (probe-name-counts tbl))
                       (probe-print-il-stats forms)

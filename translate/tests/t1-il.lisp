@@ -40,3 +40,14 @@
             (equal (atom-tag "MEMORY.GROW") "MEMORY.GROW"))
        '(value-triple :t1-mangle-ok)
      (er hard 't1 "mangle examples failed: ~x0" m))))
+
+; Hint forms (wasm3 prep P3): well-formed hints for defined names pass;
+; malformed ones and hints for undefined names fail.
+(make-event
+ (if (and (null (check-hints '((hint def "f" (inverse "$g")) (hint rule "R" "r" (show "x")))
+                             '((:def . "f") (:rel . "R")) nil))
+          (check-hints '((hint def "nope" (builtin "{}"))) '((:def . "f")) nil)
+          (check-hints '((hint def "f" (inverse))) '((:def . "f")) nil)
+          (check-hints '((hint frob "f" (inverse "$g"))) '((:def . "f")) nil))
+     '(value-triple :t1-hints-ok)
+   (er hard 't1 "hint checks failed")))

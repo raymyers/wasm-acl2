@@ -97,6 +97,9 @@
             pname = "spectec";
             version = "0.5-${builtins.substring 0 7 wasm-spec.rev}";
             src = wasm-spec;
+            # Print hint definitions in the --ast output (wasm3 prep P3, D5):
+            # hint(inverse), hint(builtin), ... reach the translator.
+            patches = [ ./nix/spectec-ast-print-hints.patch ];
             nativeBuildInputs = [
               ocp.ocaml
               ocp.dune_3

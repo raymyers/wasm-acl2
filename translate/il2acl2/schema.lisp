@@ -476,3 +476,53 @@
         (t (let ((h (head (car forms))))
              (count-heads (cdr forms)
                           (put-assoc-equal h (1+ (or (cdr (assoc-equal h acc)) 0)) acc))))))
+
+; --- Hint definitions (wasm3 prep P3; printed by the flake's SpecTec patch) ---
+;
+; (hint <kind> "<id>" ["<rule id>"] (<name> "<EL expression text>") ...),
+; kind one of typ rel def gram rule. They are split off right after reading:
+; everything else in the translator sees only definitions.
+
+(defun hint-entries-p (l)
+  (or (null l)
+      (and (consp l) (true-listp (car l)) (= (len (car l)) 2)
+           (sym-name (car (car l))) (stringp (second (car l)))
+           (hint-entries-p (cdr l)))))
+
+(defun hint-form-p (x)
+  (and (is x "HINT") (true-listp x)
+       (let ((k (sym-name (second x))))
+         (cond ((member-equal k '("TYP" "REL" "DEF" "GRAM"))
+                (and (stringp (third x)) (hint-entries-p (cdddr x))))
+               ((equal k "RULE")
+                (and (stringp (third x)) (stringp (fourth x)) (hint-entries-p (cddddr x))))
+               (t nil)))))
+
+(defun split-hints (forms)
+  ;; (mv definitions hints), each in IL order
+  (if (endp forms) (mv nil nil)
+    (mv-let (ds hs) (split-hints (cdr forms))
+      (if (is (car forms) "HINT")
+          (mv ds (cons (car forms) hs))
+        (mv (cons (car forms) ds) hs)))))
+
+(defun hint-target (h)
+  ;; (ns . id) of the definition a hint form annotates
+  (let ((k (sym-name (second h))))
+    (cons (cond ((equal k "TYP") :typ) ((equal k "REL") :rel) ((equal k "DEF") :def)
+                ((equal k "GRAM") :gram) (t :rule))
+          (third h))))
+
+(defun check-hints (hints names acc)
+  ;; names: (NS . NAME) pairs of every definition (rule hints: their relation)
+  (if (endp hints) (reverse acc)
+    (let ((h (car hints)))
+      (check-hints (cdr hints) names
+                   (cond ((not (hint-form-p h)) (err :hint "hint form" h acc))
+                         ((let ((tg (hint-target h)))
+                            (not (member-equal (if (eq (car tg) :rule) (cons :rel (cdr tg)) tg) names)))
+                          (err :hint "hint for an undefined name" h acc))
+                         (t acc))))))
+
+(defun all-def-names (forms)
+  (if (endp forms) nil (append (def-names (car forms)) (all-def-names (cdr forms)))))
