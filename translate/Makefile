@@ -18,6 +18,7 @@
 #   make test        certify the translator, gen/, rt/ and every test book
 #   make compare     T9 reports: run the WASM1 tree on the same oracle vectors
 #   make probe SPEC=3.0  probe table for one spec version (plan/wasm3-translation-prep P0)
+#   make modes       rewrite gen/wasm-1.0/modes.lsp from certified books (t0-modes checks it)
 #   make check       check-il + check-gen + test
 
 NIX  ?= nix
@@ -38,7 +39,7 @@ TARGET := (assign il2acl2-target (quote (:version "$(SPEC)" :pkg "$(PKG)" :il "$
 GEN_PATTERNS := *.lisp *.lsp *.acl2
 TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 
-.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors probe
+.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors probe modes
 
 il:
 	$(NIX) build ..#wasm$(SPEC_MAJOR)-il --no-link --print-out-paths > .il-out
@@ -70,7 +71,7 @@ check-gen: translator
 	  cp -R il config package.lsp portcullis.acl2 portcullis.lisp cert.acl2 $$d/; \
 	  cp il2acl2/*.lisp il2acl2/*.lsp il2acl2/cert.acl2 $$d/il2acl2/; \
 	  (cd $$d && { echo '$(TARGET)'; cat il2acl2/run.lsp; } | $(ACL2) > gen.log 2>&1) || { tail -40 $$d/gen.log; exit 1; }; \
-	  test "$$(cd $$d/$(GEN) && ls)" = "$$(cd $(GEN) && ls $(GEN_PATTERNS) 2> /dev/null)" \
+	  test "$$(cd $$d/$(GEN) && ls)" = "$$(cd $(GEN) && ls $(GEN_PATTERNS) 2> /dev/null | grep -v '^modes.lsp$$')" \
 	    || { echo "file list of $(GEN)/ differs from a fresh run"; exit 1; }; \
 	  for f in $$(cd $$d/$(GEN) && ls); do cmp $$d/$(GEN)/$$f $(GEN)/$$f; done; \
 	done; rm -rf .check-gen-1 .check-gen-2
@@ -90,6 +91,13 @@ invoke-vectors:
 
 test:
 	$(CERT) --acl2 $(ACL2) -j $(JOBS) $(TEST_BOOKS)
+
+# Rewrite gen/wasm-1.0/modes.lsp (the mode manifest that tests/sem/t0-modes
+# checks) from freshly certified books. Run after an intended mode change.
+modes:
+	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-1.0/wasm1 tests/sem/modes-lib
+	cd tests/sem && $(ACL2) < modes-write.lsp > modes-write.log 2>&1 || { tail -30 modes-write.log; exit 1; }
+	@grep -o "modes.lsp: .*" tests/sem/modes-write.log
 
 # T9 side-by-side reports (include the WASM1 tree; see the .cert.out files).
 compare:

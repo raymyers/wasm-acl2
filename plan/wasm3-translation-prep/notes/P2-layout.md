@@ -133,3 +133,28 @@ No measurements beyond the probe comparison (identical to
   `4_3-execution_instructions` 61,035. The chain gives no parallelism, and
   the binary-instruction part dominates. A finer split (by rec group or
   size) is possible later with the same labelling rule.
+
+## 2026-11-14: item 4, mode manifest
+
+- Modes are decided at certification time (`%TRY-LOGIC`, `%TRY-GUARDS`), so
+  the translator cannot write them and `check-gen` cannot compare them.
+  Instead:
+  - `gen/wasm-1.0/modes.lsp` (checked in): every generated function, per
+    part in IL order, as `:GUARDS` / `:LOGIC` / `:PROGRAM`, read from the
+    certified world (`symbol-class`).
+  - `tests/sem/t0-modes.lisp` (part of `make test`, so of `make check`)
+    fails certification when the certified modes differ, listing
+    `(name recorded certified)`. Tested: one entry flipped to `:PROGRAM`
+    gives `((MUT^UUU-P :PROGRAM :GUARDS))` and a failed certification.
+  - `make modes` rewrites the manifest (`tests/sem/modes-write.lsp`);
+    `check-gen` ignores `modes.lsp` when it compares file lists.
+  - Stubs and dropped rules stay in the generated header, which `check-gen`
+    already compares.
+- 1.0 measured: 503 functions, **160 guard-verified, 308 logic, 35
+  program**. The wasm1 plan's T8 entry (491 / 466 logic / 25 program,
+  counted by hand) is stale. The 35 are the same groups it lists (the
+  instruction-typing clique, `Expr_ok`, `Expr_ok_const`, `Func_ok`,
+  `Global_ok`, `Elem_ok`, `Data_ok`, the `Module_ok` override functions,
+  `$instantiate`), plus the `/SPLIT` variants of the callers.
+- Only for 1.0: the test books are 1.0's. A 2.0/3.0 manifest needs those
+  targets to certify (the `rt/` package question).

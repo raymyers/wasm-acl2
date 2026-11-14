@@ -23,6 +23,7 @@ translate/gen.log
 translate/.check-gen-*/
 translate/.il-out
 translate/.probe/
+translate/tests/sem/modes-write.log
 # 2.0/3.0 targets are not checked in until they are tested (wasm3 prep P2/P4)
 translate/il/wasm-2.0.il.sexp
 translate/il/wasm-3.0.il.sexp

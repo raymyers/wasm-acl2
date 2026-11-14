@@ -25,9 +25,9 @@ A new session starts here.
 
 - **Last updated**: 2026-11-14
 - **Milestones**: P0 ✅, P1 ✅. P2 in progress: items 1 (SPEC parameter,
-  per-version layout), 2 (config validation) and 3 (one book per source
-  file) done; items 4-5 open. P3-P7 not started
-- **Next action**: P2 item 4 (generated mode manifest compared by `check-gen`)
+  per-version layout), 2 (config validation), 3 (one book per source
+  file), 4 (mode manifest) done; item 5 open. P3-P7 not started
+- **Next action**: P2 item 5 (`check-gen` as a flake check)
 - **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
   files in `translate/tests/spec/`, `flake.nix` and the `spec`/`spec-data`
   targets in `translate/Makefile` are uncommitted; P5 picks them up. Their
@@ -287,8 +287,13 @@ output is unchanged: `make check` passes, `gen/` byte-identical.
       IL order; the top book stays `wasm1.lisp`. 1.0 events byte-identical,
       10 parts; 3.0 24 parts, of which `5.3-binary.instructions` is 68% of
       the lines*
-- [ ] Generated mode manifest (`gen/.../modes.lsp`: logic / guards / program
-      per function, stubs, dropped rules), checked in and compared by `check-gen`
+- [x] Generated mode manifest (`gen/.../modes.lsp`: logic / guards / program
+      per function, stubs, dropped rules), checked in and compared by `check-gen`.
+      *Done 2026-11-14 ([P2-layout](notes/P2-layout.md)) with one change: modes
+      exist only after certification, so a test book (`t0-modes`, in `make
+      check`) compares them, and `make modes` rewrites the file; stubs and
+      dropped rules stay in the header that `check-gen` compares. 1.0: 503
+      functions, 160 guards / 308 logic / 35 program*
 - [ ] `check-gen` per target as a flake check
 
 **Notes**: `notes/P2-layout.md` (final directory, package and flake naming).
