@@ -178,46 +178,48 @@
 
 (%TRY-GUARDS $LIST_)
 
-(%TRY-LOGIC
- (MUTUAL-RECURSION
-  (DEFUN $CONCAT_/ITER2 (%L0)
-    (DECLARE (IGNORABLE %L0))
-    (IF (OR (ATOM %L0))
-        NIL
-      (LET* ((W-PRIME-STAR (CAR %L0)))
-        (DECLARE (IGNORABLE W-PRIME-STAR))
-        (CONS W-PRIME-STAR
-              ($CONCAT_/ITER2 (CDR %L0))))))
-  (DEFUN $CONCAT_ (%A0)
-   (DECLARE (IGNORABLE %A0))
-   (LET ((%R (AND (TRUE-LISTP %A0)
-                  (EQUAL (ACL2::LEN %A0) 0)
-                  (LIST NIL))))
-    (DECLARE (IGNORABLE %R))
-    (IF %R (CAR %R)
-     (LET
-      ((%R
-        (AND
-         (CONSP %A0)
-         (LET* ((%T0 (CAR %A0)))
-          (DECLARE (IGNORABLE %T0))
-          (AND
-           (TRUE-LISTP %T0)
-           (LET* ((W-STAR %T0) (%T1 (CDR %A0)))
-            (DECLARE (IGNORABLE W-STAR %T1))
-            (AND
-             (TRUE-LISTP %T1)
-             (LET* ((W-PRIME-STAR-STAR %T1))
-              (DECLARE (IGNORABLE W-PRIME-STAR-STAR))
-              (LIST
-                 (APPEND
-                      W-STAR
-                      ($CONCAT_ ($CONCAT_/ITER2 W-PRIME-STAR-STAR))))))))))))
-      (DECLARE (IGNORABLE %R))
-      (IF %R (CAR %R) NIL)))))))
+(%TRY-LOGIC (DEFUN $CONCAT_/ITER2 (%L0)
+              (DECLARE (IGNORABLE %L0))
+              (IF (OR (ATOM %L0))
+                  NIL
+                (LET* ((W-PRIME-STAR (CAR %L0)))
+                  (DECLARE (IGNORABLE W-PRIME-STAR))
+                  (CONS W-PRIME-STAR
+                        ($CONCAT_/ITER2 (CDR %L0)))))))
 
 
 (%TRY-GUARDS $CONCAT_/ITER2)
+
+(%TRY-LOGIC
+ (DEFUN $CONCAT_ (%A0)
+  (DECLARE (IGNORABLE %A0))
+  (LET ((%R (AND (TRUE-LISTP %A0)
+                 (EQUAL (ACL2::LEN %A0) 0)
+                 (LIST NIL))))
+   (DECLARE (IGNORABLE %R))
+   (IF %R (CAR %R)
+    (LET
+     ((%R
+       (AND
+        (CONSP %A0)
+        (LET* ((%T0 (CAR %A0)))
+         (DECLARE (IGNORABLE %T0))
+         (AND
+          (TRUE-LISTP %T0)
+          (LET* ((W-STAR %T0) (%T1 (CDR %A0)))
+           (DECLARE (IGNORABLE W-STAR %T1))
+           (AND
+            (TRUE-LISTP %T1)
+            (LET* ((W-PRIME-STAR-STAR %T1))
+             (DECLARE (IGNORABLE W-PRIME-STAR-STAR))
+             (LIST
+              (APPEND W-STAR
+                      ($CONCAT_ ($CONCAT_/ITER2 W-PRIME-STAR-STAR))))))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R (CAR %R) NIL))))))
+
+
+(%TRY-GUARDS $CONCAT_)
 
 (%TRY-LOGIC
  (DEFUN $DISJOINT_ (%A0)
@@ -1203,6 +1205,16 @@
 
 (%TRY-GUARDS BLOCKTYPE-P)
 
+(%TRY-LOGIC (DEFUN INSTR-P/ITER4 (%X)
+              (DECLARE (IGNORABLE %X))
+              (IF (ATOM %X)
+                  (NULL %X)
+                (AND (LABELIDX-P (CAR %X))
+                     (INSTR-P/ITER4 (CDR %X))))))
+
+
+(%TRY-GUARDS INSTR-P/ITER4)
+
 (%TRY-LOGIC
  (MUTUAL-RECURSION
   (DEFUN INSTR-P/ITER0 (%X)
@@ -1229,12 +1241,6 @@
         (NULL %X)
       (AND (INSTR-P (CAR %X))
            (INSTR-P/ITER3 (CDR %X)))))
-  (DEFUN INSTR-P/ITER4 (%X)
-    (DECLARE (IGNORABLE %X))
-    (IF (ATOM %X)
-        (NULL %X)
-      (AND (LABELIDX-P (CAR %X))
-           (INSTR-P/ITER4 (CDR %X)))))
   (DEFUN INSTR-P (%X)
    (DECLARE (IGNORABLE %X))
    (OR
@@ -3630,44 +3636,68 @@
 
 (%TRY-GUARDS STATE-P)
 
+(%TRY-LOGIC (DEFUN ADMININSTR-P/ITER0 (%X)
+              (DECLARE (IGNORABLE %X))
+              (IF (ATOM %X)
+                  (NULL %X)
+                (AND (INSTR-P (CAR %X))
+                     (ADMININSTR-P/ITER0 (CDR %X))))))
+
+
+(%TRY-GUARDS ADMININSTR-P/ITER0)
+
+(%TRY-LOGIC (DEFUN ADMININSTR-P/ITER1 (%X)
+              (DECLARE (IGNORABLE %X))
+              (IF (ATOM %X)
+                  (NULL %X)
+                (AND (INSTR-P (CAR %X))
+                     (ADMININSTR-P/ITER1 (CDR %X))))))
+
+
+(%TRY-GUARDS ADMININSTR-P/ITER1)
+
+(%TRY-LOGIC (DEFUN ADMININSTR-P/ITER2 (%X)
+              (DECLARE (IGNORABLE %X))
+              (IF (ATOM %X)
+                  (NULL %X)
+                (AND (INSTR-P (CAR %X))
+                     (ADMININSTR-P/ITER2 (CDR %X))))))
+
+
+(%TRY-GUARDS ADMININSTR-P/ITER2)
+
+(%TRY-LOGIC (DEFUN ADMININSTR-P/ITER3 (%X)
+              (DECLARE (IGNORABLE %X))
+              (IF (ATOM %X)
+                  (NULL %X)
+                (AND (INSTR-P (CAR %X))
+                     (ADMININSTR-P/ITER3 (CDR %X))))))
+
+
+(%TRY-GUARDS ADMININSTR-P/ITER3)
+
+(%TRY-LOGIC (DEFUN ADMININSTR-P/ITER4 (%X)
+              (DECLARE (IGNORABLE %X))
+              (IF (ATOM %X)
+                  (NULL %X)
+                (AND (LABELIDX-P (CAR %X))
+                     (ADMININSTR-P/ITER4 (CDR %X))))))
+
+
+(%TRY-GUARDS ADMININSTR-P/ITER4)
+
+(%TRY-LOGIC (DEFUN ADMININSTR-P/ITER7 (%X)
+              (DECLARE (IGNORABLE %X))
+              (IF (ATOM %X)
+                  (NULL %X)
+                (AND (INSTR-P (CAR %X))
+                     (ADMININSTR-P/ITER7 (CDR %X))))))
+
+
+(%TRY-GUARDS ADMININSTR-P/ITER7)
+
 (%TRY-LOGIC
  (MUTUAL-RECURSION
-  (DEFUN ADMININSTR-P/ITER0 (%X)
-    (DECLARE (IGNORABLE %X))
-    (IF (ATOM %X)
-        (NULL %X)
-      (AND (INSTR-P (CAR %X))
-           (ADMININSTR-P/ITER0 (CDR %X)))))
-  (DEFUN ADMININSTR-P/ITER1 (%X)
-    (DECLARE (IGNORABLE %X))
-    (IF (ATOM %X)
-        (NULL %X)
-      (AND (INSTR-P (CAR %X))
-           (ADMININSTR-P/ITER1 (CDR %X)))))
-  (DEFUN ADMININSTR-P/ITER2 (%X)
-    (DECLARE (IGNORABLE %X))
-    (IF (ATOM %X)
-        (NULL %X)
-      (AND (INSTR-P (CAR %X))
-           (ADMININSTR-P/ITER2 (CDR %X)))))
-  (DEFUN ADMININSTR-P/ITER3 (%X)
-    (DECLARE (IGNORABLE %X))
-    (IF (ATOM %X)
-        (NULL %X)
-      (AND (INSTR-P (CAR %X))
-           (ADMININSTR-P/ITER3 (CDR %X)))))
-  (DEFUN ADMININSTR-P/ITER4 (%X)
-    (DECLARE (IGNORABLE %X))
-    (IF (ATOM %X)
-        (NULL %X)
-      (AND (LABELIDX-P (CAR %X))
-           (ADMININSTR-P/ITER4 (CDR %X)))))
-  (DEFUN ADMININSTR-P/ITER7 (%X)
-    (DECLARE (IGNORABLE %X))
-    (IF (ATOM %X)
-        (NULL %X)
-      (AND (INSTR-P (CAR %X))
-           (ADMININSTR-P/ITER7 (CDR %X)))))
   (DEFUN ADMININSTR-P/ITER8 (%X)
     (DECLARE (IGNORABLE %X))
     (IF (ATOM %X)
@@ -3968,7 +3998,7 @@
          T)))))
 
 
-(%TRY-GUARDS ADMININSTR-P/ITER0)
+(%TRY-GUARDS ADMININSTR-P/ITER8)
 
 (%TRY-LOGIC (DEFUN CONFIG-P/ITER0 (%X)
               (DECLARE (IGNORABLE %X))
@@ -8700,40 +8730,53 @@
 
 (%TRY-GUARDS STEP_READ)
 
+(%TRY-LOGIC (DEFUN STEP/PREFIX22 (%S)
+              (DECLARE (IGNORABLE %S))
+              (IF (ATOM %S)
+                  0
+                (IF (LET* ((%T23 (CAR %S)))
+                      (DECLARE (IGNORABLE %T23))
+                      (AND (VAL-P %T23)
+                           (LET* ((VAL %T23))
+                             (DECLARE (IGNORABLE VAL))
+                             T)))
+                    (+ 1 (STEP/PREFIX22 (CDR %S)))
+                  0))))
+
+
+(%TRY-GUARDS STEP/PREFIX22)
+
+(%TRY-LOGIC
+     (DEFUN STEP/MATCH28 (%S)
+       (DECLARE (IGNORABLE %S))
+       (IF (ATOM %S)
+           (IF (NULL %S) (LIST (LIST NIL)) NIL)
+         (LET ((%R (STEP/MATCH28 (CDR %S))))
+           (DECLARE (IGNORABLE %R))
+           (AND %R
+                (LET* ((%T29 (CAR %S)))
+                  (DECLARE (IGNORABLE %T29))
+                  (AND (VAL-P %T29)
+                       (LET* ((VAL %T29))
+                         (DECLARE (IGNORABLE VAL))
+                         (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))
+
+
+(%TRY-GUARDS STEP/MATCH28)
+
+(%TRY-LOGIC (DEFUN STEP/ITER35 (%L0)
+              (DECLARE (IGNORABLE %L0))
+              (IF (OR (ATOM %L0))
+                  NIL
+                (LET* ((VAL (CAR %L0)))
+                  (DECLARE (IGNORABLE VAL))
+                  (CONS VAL (STEP/ITER35 (CDR %L0)))))))
+
+
+(%TRY-GUARDS STEP/ITER35)
+
 (%TRY-LOGIC
  (MUTUAL-RECURSION
-  (DEFUN STEP/PREFIX22 (%S)
-    (DECLARE (IGNORABLE %S))
-    (IF (ATOM %S)
-        0
-      (IF (LET* ((%T23 (CAR %S)))
-            (DECLARE (IGNORABLE %T23))
-            (AND (VAL-P %T23)
-                 (LET* ((VAL %T23))
-                   (DECLARE (IGNORABLE VAL))
-                   T)))
-          (+ 1 (STEP/PREFIX22 (CDR %S)))
-        0)))
-  (DEFUN STEP/MATCH28 (%S)
-    (DECLARE (IGNORABLE %S))
-    (IF (ATOM %S)
-        (IF (NULL %S) (LIST (LIST NIL)) NIL)
-      (LET ((%R (STEP/MATCH28 (CDR %S))))
-        (DECLARE (IGNORABLE %R))
-        (AND %R
-             (LET* ((%T29 (CAR %S)))
-               (DECLARE (IGNORABLE %T29))
-               (AND (VAL-P %T29)
-                    (LET* ((VAL %T29))
-                      (DECLARE (IGNORABLE VAL))
-                      (LIST (LIST (CONS VAL (CAR (CAR %R))))))))))))
-  (DEFUN STEP/ITER35 (%L0)
-    (DECLARE (IGNORABLE %L0))
-    (IF (OR (ATOM %L0))
-        NIL
-      (LET* ((VAL (CAR %L0)))
-        (DECLARE (IGNORABLE VAL))
-        (CONS VAL (STEP/ITER35 (CDR %L0))))))
   (DEFUN STEP/SEARCH36 (%K %LO %HI %T21 %T24 Z)
    (DECLARE (IGNORABLE %K %LO %HI %T21 %T24 Z))
    (DECLARE (XARGS :MEASURE (NFIX (- (1+ %K) %LO))))
@@ -9437,24 +9480,27 @@
                               NIL)))))))))))))))))))))))))))))
 
 
-(%TRY-GUARDS STEP/PREFIX22)
+(%TRY-GUARDS STEP/SEARCH36)
 
-(%TRY-LOGIC (MUTUAL-RECURSION
-              (DEFUN STEPS/%FUEL (%FUEL %A0)
-                (DECLARE (IGNORABLE %FUEL %A0))
-                (DECLARE (XARGS :MEASURE (NFIX %FUEL)))
-                (IF (ZP %FUEL)
-                    NIL
-                  (LET ((%R (STEP %A0)))
-                    (DECLARE (IGNORABLE %R))
-                    (IF %R (STEPS/%FUEL (1- %FUEL) (CAR %R))
-                      (LIST %A0)))))
-              (DEFUN STEPS (%A0)
-                (DECLARE (IGNORABLE %A0))
-                (STEPS/%FUEL (%FUEL) %A0))))
+(%TRY-LOGIC (DEFUN STEPS/%FUEL (%FUEL %A0)
+              (DECLARE (IGNORABLE %FUEL %A0))
+              (DECLARE (XARGS :MEASURE (NFIX %FUEL)))
+              (IF (ZP %FUEL)
+                  NIL
+                (LET ((%R (STEP %A0)))
+                  (DECLARE (IGNORABLE %R))
+                  (IF %R (STEPS/%FUEL (1- %FUEL) (CAR %R))
+                    (LIST %A0))))))
 
 
 (%TRY-GUARDS STEPS/%FUEL)
+
+(%TRY-LOGIC (DEFUN STEPS (%A0)
+              (DECLARE (IGNORABLE %A0))
+              (STEPS/%FUEL (%FUEL) %A0)))
+
+
+(%TRY-GUARDS STEPS)
 
 (%TRY-LOGIC (DEFUN EVAL_EXPR/ITER0 (%L0)
               (DECLARE (IGNORABLE %L0))
@@ -10792,173 +10838,182 @@
 
 (%TRY-GUARDS $ALLOCMODULE)
 
+(%TRY-LOGIC (DEFUN $INITELEM/ITER3 (%L0)
+              (DECLARE (IGNORABLE %L0))
+              (IF (OR (ATOM %L0))
+                  NIL
+                (LET* ((A (CAR %L0)))
+                  (DECLARE (IGNORABLE A))
+                  (CONS (LIST A)
+                        ($INITELEM/ITER3 (CDR %L0)))))))
+
+
+(%TRY-GUARDS $INITELEM/ITER3)
+
+(%TRY-LOGIC (DEFUN $INITELEM/ITER4 (%L0)
+              (DECLARE (IGNORABLE %L0))
+              (IF (OR (ATOM %L0))
+                  NIL
+                (LET* ((A-PRIME-STAR (CAR %L0)))
+                  (DECLARE (IGNORABLE A-PRIME-STAR))
+                  (CONS A-PRIME-STAR
+                        ($INITELEM/ITER4 (CDR %L0)))))))
+
+
+(%TRY-GUARDS $INITELEM/ITER4)
+
 (%TRY-LOGIC
- (MUTUAL-RECURSION
-  (DEFUN $INITELEM/ITER3 (%L0)
-    (DECLARE (IGNORABLE %L0))
-    (IF (OR (ATOM %L0))
-        NIL
-      (LET* ((A (CAR %L0)))
-        (DECLARE (IGNORABLE A))
-        (CONS (LIST A)
-              ($INITELEM/ITER3 (CDR %L0))))))
-  (DEFUN $INITELEM/ITER4 (%L0)
-    (DECLARE (IGNORABLE %L0))
-    (IF (OR (ATOM %L0))
-        NIL
-      (LET* ((A-PRIME-STAR (CAR %L0)))
-        (DECLARE (IGNORABLE A-PRIME-STAR))
-        (CONS A-PRIME-STAR
-              ($INITELEM/ITER4 (CDR %L0))))))
-  (DEFUN $INITELEM (%A0 %A1 %A2 %A3)
-   (DECLARE (IGNORABLE %A0 %A1 %A2 %A3))
-   (LET ((%R (LET* ((S %A0) (MODULEINST %A1))
-               (DECLARE (IGNORABLE S MODULEINST))
-               (AND (TRUE-LISTP %A2)
-                    (EQUAL (ACL2::LEN %A2) 0)
-                    (TRUE-LISTP %A3)
-                    (EQUAL (ACL2::LEN %A3) 0)
-                    (LIST S)))))
-    (DECLARE (IGNORABLE %R))
-    (IF %R (CAR %R)
-     (LET
-      ((%R
-        (LET* ((S %A0) (MODULEINST %A1))
-         (DECLARE (IGNORABLE S MODULEINST))
-         (AND
-          (CONSP %A2)
-          (LET* ((I (CAR %A2)) (%T0 (CDR %A2)))
-           (DECLARE (IGNORABLE I %T0))
-           (AND
-            (TRUE-LISTP %T0)
-            (LET* ((I-PRIME-STAR %T0))
-             (DECLARE (IGNORABLE I-PRIME-STAR))
-             (AND
-              (CONSP %A3)
-              (LET* ((%T1 (CAR %A3)))
-               (DECLARE (IGNORABLE %T1))
-               (AND
-                (TRUE-LISTP %T1)
-                (LET* ((A-STAR %T1) (%T2 (CDR %A3)))
-                 (DECLARE (IGNORABLE A-STAR %T2))
-                 (AND
-                  (TRUE-LISTP %T2)
-                  (LET*
-                   ((A-PRIME-STAR-STAR %T2)
-                    (S_1
-                     (%PUT-FIELD
-                      S
-                      :TABLES
-                      (UPDATE-NTH
-                       (NTH 0 (%GET-FIELD MODULEINST :TABLES))
-                       (%PUT-FIELD
-                        (NTH (NTH 0 (%GET-FIELD MODULEINST :TABLES))
-                             (%GET-FIELD S :TABLES))
-                        :REFS
-                        (APPEND
-                         (TAKE
+ (DEFUN $INITELEM (%A0 %A1 %A2 %A3)
+  (DECLARE (IGNORABLE %A0 %A1 %A2 %A3))
+  (LET ((%R (LET* ((S %A0) (MODULEINST %A1))
+              (DECLARE (IGNORABLE S MODULEINST))
+              (AND (TRUE-LISTP %A2)
+                   (EQUAL (ACL2::LEN %A2) 0)
+                   (TRUE-LISTP %A3)
+                   (EQUAL (ACL2::LEN %A3) 0)
+                   (LIST S)))))
+   (DECLARE (IGNORABLE %R))
+   (IF %R (CAR %R)
+    (LET
+     ((%R
+       (LET* ((S %A0) (MODULEINST %A1))
+        (DECLARE (IGNORABLE S MODULEINST))
+        (AND
+         (CONSP %A2)
+         (LET* ((I (CAR %A2)) (%T0 (CDR %A2)))
+          (DECLARE (IGNORABLE I %T0))
+          (AND
+           (TRUE-LISTP %T0)
+           (LET* ((I-PRIME-STAR %T0))
+            (DECLARE (IGNORABLE I-PRIME-STAR))
+            (AND
+             (CONSP %A3)
+             (LET* ((%T1 (CAR %A3)))
+              (DECLARE (IGNORABLE %T1))
+              (AND
+               (TRUE-LISTP %T1)
+               (LET* ((A-STAR %T1) (%T2 (CDR %A3)))
+                (DECLARE (IGNORABLE A-STAR %T2))
+                (AND
+                 (TRUE-LISTP %T2)
+                 (LET*
+                  ((A-PRIME-STAR-STAR %T2)
+                   (S_1
+                    (%PUT-FIELD
+                     S
+                     :TABLES
+                     (UPDATE-NTH
+                      (NTH 0 (%GET-FIELD MODULEINST :TABLES))
+                      (%PUT-FIELD
+                       (NTH (NTH 0 (%GET-FIELD MODULEINST :TABLES))
+                            (%GET-FIELD S :TABLES))
+                       :REFS
+                       (APPEND
+                        (TAKE
                             I
                             (%GET-FIELD
                                  (NTH (NTH 0 (%GET-FIELD MODULEINST :TABLES))
                                       (%GET-FIELD S :TABLES))
                                  :REFS))
-                         ($INITELEM/ITER3 A-STAR)
-                         (NTHCDR
+                        ($INITELEM/ITER3 A-STAR)
+                        (NTHCDR
                             (+ I (ACL2::LEN A-STAR))
                             (%GET-FIELD
                                  (NTH (NTH 0 (%GET-FIELD MODULEINST :TABLES))
                                       (%GET-FIELD S :TABLES))
                                  :REFS))))
-                       (%GET-FIELD S :TABLES))))
-                    (S_2 ($INITELEM S_1 MODULEINST I-PRIME-STAR
-                                    ($INITELEM/ITER4 A-PRIME-STAR-STAR))))
-                   (DECLARE (IGNORABLE A-PRIME-STAR-STAR S_1 S_2))
-                   (LIST S_2))))))))))))))
-      (DECLARE (IGNORABLE %R))
-      (IF %R (CAR %R) NIL)))))))
+                      (%GET-FIELD S :TABLES))))
+                   (S_2 ($INITELEM S_1 MODULEINST I-PRIME-STAR
+                                   ($INITELEM/ITER4 A-PRIME-STAR-STAR))))
+                  (DECLARE (IGNORABLE A-PRIME-STAR-STAR S_1 S_2))
+                  (LIST S_2))))))))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R (CAR %R) NIL))))))
 
 
-(%TRY-GUARDS $INITELEM/ITER3)
+(%TRY-GUARDS $INITELEM)
+
+(%TRY-LOGIC (DEFUN $INITDATA/ITER3 (%L0)
+              (DECLARE (IGNORABLE %L0))
+              (IF (OR (ATOM %L0))
+                  NIL
+                (LET* ((B-PRIME-STAR (CAR %L0)))
+                  (DECLARE (IGNORABLE B-PRIME-STAR))
+                  (CONS B-PRIME-STAR
+                        ($INITDATA/ITER3 (CDR %L0)))))))
+
+
+(%TRY-GUARDS $INITDATA/ITER3)
 
 (%TRY-LOGIC
- (MUTUAL-RECURSION
-  (DEFUN $INITDATA/ITER3 (%L0)
-    (DECLARE (IGNORABLE %L0))
-    (IF (OR (ATOM %L0))
-        NIL
-      (LET* ((B-PRIME-STAR (CAR %L0)))
-        (DECLARE (IGNORABLE B-PRIME-STAR))
-        (CONS B-PRIME-STAR
-              ($INITDATA/ITER3 (CDR %L0))))))
-  (DEFUN $INITDATA (%A0 %A1 %A2 %A3)
-   (DECLARE (IGNORABLE %A0 %A1 %A2 %A3))
-   (LET ((%R (LET* ((S %A0) (MODULEINST %A1))
-               (DECLARE (IGNORABLE S MODULEINST))
-               (AND (TRUE-LISTP %A2)
-                    (EQUAL (ACL2::LEN %A2) 0)
-                    (TRUE-LISTP %A3)
-                    (EQUAL (ACL2::LEN %A3) 0)
-                    (LIST S)))))
-    (DECLARE (IGNORABLE %R))
-    (IF %R (CAR %R)
-     (LET
-      ((%R
-        (LET* ((S %A0) (MODULEINST %A1))
-         (DECLARE (IGNORABLE S MODULEINST))
-         (AND
-          (CONSP %A2)
-          (LET* ((I (CAR %A2)) (%T0 (CDR %A2)))
-           (DECLARE (IGNORABLE I %T0))
-           (AND
-            (TRUE-LISTP %T0)
-            (LET* ((I-PRIME-STAR %T0))
-             (DECLARE (IGNORABLE I-PRIME-STAR))
-             (AND
-              (CONSP %A3)
-              (LET* ((%T1 (CAR %A3)))
-               (DECLARE (IGNORABLE %T1))
-               (AND
-                (TRUE-LISTP %T1)
-                (LET* ((B-STAR %T1) (%T2 (CDR %A3)))
-                 (DECLARE (IGNORABLE B-STAR %T2))
-                 (AND
-                  (TRUE-LISTP %T2)
-                  (LET*
-                   ((B-PRIME-STAR-STAR %T2)
-                    (S_1
-                     (%PUT-FIELD
-                      S
-                      :MEMS
-                      (UPDATE-NTH
-                       (NTH 0 (%GET-FIELD MODULEINST :MEMS))
-                       (%PUT-FIELD
-                        (NTH (NTH 0 (%GET-FIELD MODULEINST :MEMS))
-                             (%GET-FIELD S :MEMS))
-                        :BYTES
-                        (APPEND
-                         (TAKE
-                              I
+ (DEFUN $INITDATA (%A0 %A1 %A2 %A3)
+  (DECLARE (IGNORABLE %A0 %A1 %A2 %A3))
+  (LET ((%R (LET* ((S %A0) (MODULEINST %A1))
+              (DECLARE (IGNORABLE S MODULEINST))
+              (AND (TRUE-LISTP %A2)
+                   (EQUAL (ACL2::LEN %A2) 0)
+                   (TRUE-LISTP %A3)
+                   (EQUAL (ACL2::LEN %A3) 0)
+                   (LIST S)))))
+   (DECLARE (IGNORABLE %R))
+   (IF %R (CAR %R)
+    (LET
+     ((%R
+       (LET* ((S %A0) (MODULEINST %A1))
+        (DECLARE (IGNORABLE S MODULEINST))
+        (AND
+         (CONSP %A2)
+         (LET* ((I (CAR %A2)) (%T0 (CDR %A2)))
+          (DECLARE (IGNORABLE I %T0))
+          (AND
+           (TRUE-LISTP %T0)
+           (LET* ((I-PRIME-STAR %T0))
+            (DECLARE (IGNORABLE I-PRIME-STAR))
+            (AND
+             (CONSP %A3)
+             (LET* ((%T1 (CAR %A3)))
+              (DECLARE (IGNORABLE %T1))
+              (AND
+               (TRUE-LISTP %T1)
+               (LET* ((B-STAR %T1) (%T2 (CDR %A3)))
+                (DECLARE (IGNORABLE B-STAR %T2))
+                (AND
+                 (TRUE-LISTP %T2)
+                 (LET*
+                  ((B-PRIME-STAR-STAR %T2)
+                   (S_1
+                    (%PUT-FIELD
+                     S
+                     :MEMS
+                     (UPDATE-NTH
+                      (NTH 0 (%GET-FIELD MODULEINST :MEMS))
+                      (%PUT-FIELD
+                       (NTH (NTH 0 (%GET-FIELD MODULEINST :MEMS))
+                            (%GET-FIELD S :MEMS))
+                       :BYTES
+                       (APPEND
+                        (TAKE I
                               (%GET-FIELD
                                    (NTH (NTH 0 (%GET-FIELD MODULEINST :MEMS))
                                         (%GET-FIELD S :MEMS))
                                    :BYTES))
-                         B-STAR
-                         (NTHCDR
-                              (+ I (ACL2::LEN B-STAR))
-                              (%GET-FIELD
-                                   (NTH (NTH 0 (%GET-FIELD MODULEINST :MEMS))
-                                        (%GET-FIELD S :MEMS))
-                                   :BYTES))))
-                       (%GET-FIELD S :MEMS))))
-                    (S_2 ($INITDATA S_1 MODULEINST I-PRIME-STAR
-                                    ($INITDATA/ITER3 B-PRIME-STAR-STAR))))
-                   (DECLARE (IGNORABLE B-PRIME-STAR-STAR S_1 S_2))
-                   (LIST S_2))))))))))))))
-      (DECLARE (IGNORABLE %R))
-      (IF %R (CAR %R) NIL)))))))
+                        B-STAR
+                        (NTHCDR
+                             (+ I (ACL2::LEN B-STAR))
+                             (%GET-FIELD
+                                  (NTH (NTH 0 (%GET-FIELD MODULEINST :MEMS))
+                                       (%GET-FIELD S :MEMS))
+                                  :BYTES))))
+                      (%GET-FIELD S :MEMS))))
+                   (S_2 ($INITDATA S_1 MODULEINST I-PRIME-STAR
+                                   ($INITDATA/ITER3 B-PRIME-STAR-STAR))))
+                  (DECLARE (IGNORABLE B-PRIME-STAR-STAR S_1 S_2))
+                  (LIST S_2))))))))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R (CAR %R) NIL))))))
 
 
-(%TRY-GUARDS $INITDATA/ITER3)
+(%TRY-GUARDS $INITDATA)
 
 (%TRY-LOGIC
      (DEFUN $INSTANTIATE/MATCH11 (%S)
@@ -11725,11 +11780,14 @@
 (%TRY-LOGIC
  (DEFUN GRAM/BUN (%S %A0)
   (DECLARE (IGNORABLE %S %A0))
+  (DECLARE (XARGS :MEASURE (* 2 (ACL2::LEN %S))))
   (LET* ((N^U %A0))
    (DECLARE (IGNORABLE N^U))
    (LET ((%R (LET* ((%T0 (GRAM/BBYTE %S)))
                (DECLARE (IGNORABLE %T0))
                (AND %T0
+                    (<= (ACL2::LEN (CADR %T0))
+                        (ACL2::LEN %S))
                     (LET* ((%T1 (CAR %T0))
                            (N %T1)
                            (%T2 (CADR %T0)))
@@ -11743,6 +11801,8 @@
         ((%R (LET* ((%T3 (GRAM/BBYTE %S)))
                (DECLARE (IGNORABLE %T3))
                (AND %T3
+                    (<= (ACL2::LEN (CADR %T3))
+                        (ACL2::LEN %S))
                     (LET* ((%T4 (CAR %T3))
                            (N %T4)
                            (%T5 (CADR %T3))
@@ -11750,6 +11810,8 @@
                            (%T7 (GRAM/BUN %T6 (- N^U 7))))
                       (DECLARE (IGNORABLE %T4 N %T5 %T6 %T7))
                       (AND %T7
+                           (<= (ACL2::LEN (CADR %T7))
+                               (ACL2::LEN %T6))
                            (LET* ((%T8 (CAR %T7))
                                   (M %T8)
                                   (%T9 (CADR %T7))
@@ -11773,6 +11835,8 @@
      ((%R (LET* ((%T0 (GRAM/BUN %S 32)))
             (DECLARE (IGNORABLE %T0))
             (AND %T0
+                 (<= (ACL2::LEN (CADR %T0))
+                     (ACL2::LEN %S))
                  (LET* ((%T1 (CAR %T0))
                         (-X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E- %T1)
                         (%T2 (CADR %T0)))
@@ -11790,11 +11854,14 @@
 (%TRY-LOGIC
  (DEFUN GRAM/BSN (%S %A0)
   (DECLARE (IGNORABLE %S %A0))
+  (DECLARE (XARGS :MEASURE (* 2 (ACL2::LEN %S))))
   (LET* ((N^U %A0))
    (DECLARE (IGNORABLE N^U))
    (LET ((%R (LET* ((%T0 (GRAM/BBYTE %S)))
                (DECLARE (IGNORABLE %T0))
                (AND %T0
+                    (<= (ACL2::LEN (CADR %T0))
+                        (ACL2::LEN %S))
                     (LET* ((%T1 (CAR %T0))
                            (N %T1)
                            (%T2 (CADR %T0)))
@@ -11807,6 +11874,8 @@
      (LET ((%R (LET* ((%T3 (GRAM/BBYTE %S)))
                  (DECLARE (IGNORABLE %T3))
                  (AND %T3
+                      (<= (ACL2::LEN (CADR %T3))
+                          (ACL2::LEN %S))
                       (LET* ((%T4 (CAR %T3))
                              (N %T4)
                              (%T5 (CADR %T3)))
@@ -11821,6 +11890,8 @@
         ((%R (LET* ((%T6 (GRAM/BBYTE %S)))
                (DECLARE (IGNORABLE %T6))
                (AND %T6
+                    (<= (ACL2::LEN (CADR %T6))
+                        (ACL2::LEN %S))
                     (LET* ((%T7 (CAR %T6))
                            (N %T7)
                            (%T8 (CADR %T6))
@@ -11828,6 +11899,8 @@
                            (%T10 (GRAM/BSN %T9 (- N^U 7))))
                       (DECLARE (IGNORABLE %T7 N %T8 %T9 %T10))
                       (AND %T10
+                           (<= (ACL2::LEN (CADR %T10))
+                               (ACL2::LEN %T9))
                            (LET* ((%T11 (CAR %T10))
                                   (I %T11)
                                   (%T12 (CADR %T10))
@@ -11851,6 +11924,8 @@
                 (LET ((%R (LET* ((%T0 (GRAM/BSN %S N^U)))
                             (DECLARE (IGNORABLE %T0))
                             (AND %T0
+                                 (<= (ACL2::LEN (CADR %T0))
+                                     (ACL2::LEN %S))
                                  (LET* ((%T1 (CAR %T0))
                                         (I %T1)
                                         (%T2 (CADR %T0)))
@@ -11871,6 +11946,8 @@
          (LET ((%E (LET* ((%T0 (GRAM/BBYTE %S)))
                      (DECLARE (IGNORABLE %T0))
                      (AND %T0
+                          (<= (ACL2::LEN (CADR %T0))
+                              (ACL2::LEN %S))
                           (LET* ((%P (CADR %T0)))
                             (DECLARE (IGNORABLE %P))
                             (LIST (LIST (CAR %T0)) %P))))))
@@ -11892,6 +11969,8 @@
                 (LET ((%R (LET* ((%T2 (GRAM/BFN/REP1 0 (/ N^U 8) %S)))
                             (DECLARE (IGNORABLE %T2))
                             (AND %T2
+                                 (<= (ACL2::LEN (CADR %T2))
+                                     (ACL2::LEN %S))
                                  (LET* ((%T3 (CAR (CAR %T2))))
                                    (DECLARE (IGNORABLE %T3))
                                    (AND (TRUE-LISTP %T3)
@@ -11912,6 +11991,8 @@
      ((%R (LET* ((%T0 (GRAM/BUN %S 64)))
             (DECLARE (IGNORABLE %T0))
             (AND %T0
+                 (<= (ACL2::LEN (CADR %T0))
+                     (ACL2::LEN %S))
                  (LET* ((%T1 (CAR %T0))
                         (-X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E- %T1)
                         (%T2 (CADR %T0)))
@@ -11933,6 +12014,8 @@
      ((%R (LET* ((%T0 (GRAM/BIN %S 32)))
             (DECLARE (IGNORABLE %T0))
             (AND %T0
+                 (<= (ACL2::LEN (CADR %T0))
+                     (ACL2::LEN %S))
                  (LET* ((%T1 (CAR %T0))
                         (-X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E- %T1)
                         (%T2 (CADR %T0)))
@@ -11954,6 +12037,8 @@
      ((%R (LET* ((%T0 (GRAM/BIN %S 64)))
             (DECLARE (IGNORABLE %T0))
             (AND %T0
+                 (<= (ACL2::LEN (CADR %T0))
+                     (ACL2::LEN %S))
                  (LET* ((%T1 (CAR %T0))
                         (-X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E- %T1)
                         (%T2 (CADR %T0)))
@@ -11975,6 +12060,8 @@
      ((%R (LET* ((%T0 (GRAM/BFN %S 32)))
             (DECLARE (IGNORABLE %T0))
             (AND %T0
+                 (<= (ACL2::LEN (CADR %T0))
+                     (ACL2::LEN %S))
                  (LET* ((%T1 (CAR %T0))
                         (-X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E- %T1)
                         (%T2 (CADR %T0)))
@@ -11996,6 +12083,8 @@
      ((%R (LET* ((%T0 (GRAM/BFN %S 64)))
             (DECLARE (IGNORABLE %T0))
             (AND %T0
+                 (<= (ACL2::LEN (CADR %T0))
+                     (ACL2::LEN %S))
                  (LET* ((%T1 (CAR %T0))
                         (-X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E- %T1)
                         (%T2 (CADR %T0)))
@@ -12019,6 +12108,8 @@
          (LET ((%E (LET* ((%T5 (GRAM/BBYTE %S)))
                      (DECLARE (IGNORABLE %T5))
                      (AND %T5
+                          (<= (ACL2::LEN (CADR %T5))
+                              (ACL2::LEN %S))
                           (LET* ((%T6 (CAR %T5))
                                  (EL %T6)
                                  (%P (CADR %T5)))
@@ -12059,6 +12150,8 @@
         (LET ((%R (LET* ((%T1 (GRAM/BU32 %T0)))
                     (DECLARE (IGNORABLE %T1))
                     (AND %T1
+                         (<= (ACL2::LEN (CADR %T1))
+                             (ACL2::LEN %T0))
                          (LET* ((%T2 (CAR %T1))
                                 (N %T2)
                                 (%T3 (CADR %T1))
@@ -12066,6 +12159,8 @@
                                 (%T8 (GRAM/BNAME/REP7 0 N %T4)))
                            (DECLARE (IGNORABLE %T2 N %T3 %T4 %T8))
                            (AND %T8
+                                (<= (ACL2::LEN (CADR %T8))
+                                    (ACL2::LEN %T4))
                                 (LET* ((EL-STAR (CAR (CDR (CAR %T8))))
                                        (%T9 (CADR %T8))
                                        (%T10 %T9)
@@ -12077,6 +12172,8 @@
           (IF %R %R NIL))))
       (DECLARE (IGNORABLE %T0 %T13))
       (AND %T13
+           (<= (ACL2::LEN (CADR %T13))
+               (ACL2::LEN %T0))
            (LET* ((%T14 (CAR %T13)))
              (DECLARE (IGNORABLE %T14))
              (AND (TRUE-LISTP %T14)
@@ -12098,6 +12195,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (X %T1)
                                       (%T2 (CADR %T0)))
@@ -12114,6 +12213,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (X %T1)
                                       (%T2 (CADR %T0)))
@@ -12130,6 +12231,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (X %T1)
                                       (%T2 (CADR %T0)))
@@ -12146,6 +12249,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (X %T1)
                                       (%T2 (CADR %T0)))
@@ -12162,6 +12267,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (X %T1)
                                       (%T2 (CADR %T0)))
@@ -12178,6 +12285,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (X %T1)
                                       (%T2 (CADR %T0)))
@@ -12194,6 +12303,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (X %T1)
                                       (%T2 (CADR %T0)))
@@ -12215,6 +12326,8 @@
                         (%T2 (GRAM/BFUNCIDX %T1)))
                    (DECLARE (IGNORABLE %T0 %T1 %T2))
                    (AND %T2
+                        (<= (ACL2::LEN (CADR %T2))
+                            (ACL2::LEN %T1))
                         (LET* ((%T3 (CAR %T2))
                                (X %T3)
                                (%T4 (CADR %T2))
@@ -12231,6 +12344,8 @@
                           (%T9 (GRAM/BTABLEIDX %T8)))
                      (DECLARE (IGNORABLE %T7 %T8 %T9))
                      (AND %T9
+                          (<= (ACL2::LEN (CADR %T9))
+                              (ACL2::LEN %T8))
                           (LET* ((%T10 (CAR %T9))
                                  (X %T10)
                                  (%T11 (CADR %T9))
@@ -12247,6 +12362,8 @@
                             (%T16 (GRAM/BMEMIDX %T15)))
                        (DECLARE (IGNORABLE %T14 %T15 %T16))
                        (AND %T16
+                            (<= (ACL2::LEN (CADR %T16))
+                                (ACL2::LEN %T15))
                             (LET* ((%T17 (CAR %T16))
                                    (X %T17)
                                    (%T18 (CADR %T16))
@@ -12263,6 +12380,8 @@
                                 (%T23 (GRAM/BGLOBALIDX %T22)))
                            (DECLARE (IGNORABLE %T21 %T22 %T23))
                            (AND %T23
+                                (<= (ACL2::LEN (CADR %T23))
+                                    (ACL2::LEN %T22))
                                 (LET* ((%T24 (CAR %T23))
                                        (X %T24)
                                        (%T25 (CADR %T23))
@@ -12319,6 +12438,8 @@
          (LET ((%E (LET* ((%T5 (GRAM/BVALTYPE %S)))
                      (DECLARE (IGNORABLE %T5))
                      (AND %T5
+                          (<= (ACL2::LEN (CADR %T5))
+                              (ACL2::LEN %S))
                           (LET* ((%T6 (CAR %T5))
                                  (EL %T6)
                                  (%P (CADR %T5)))
@@ -12361,6 +12482,8 @@
         (LET ((%R (LET* ((%T1 (GRAM/BU32 %T0)))
                     (DECLARE (IGNORABLE %T1))
                     (AND %T1
+                         (<= (ACL2::LEN (CADR %T1))
+                             (ACL2::LEN %T0))
                          (LET* ((%T2 (CAR %T1))
                                 (N %T2)
                                 (%T3 (CADR %T1))
@@ -12368,6 +12491,8 @@
                                 (%T8 (GRAM/BRESULTTYPE/REP7 0 N %T4)))
                            (DECLARE (IGNORABLE %T2 N %T3 %T4 %T8))
                            (AND %T8
+                                (<= (ACL2::LEN (CADR %T8))
+                                    (ACL2::LEN %T4))
                                 (LET* ((EL-STAR (CAR (CDR (CAR %T8))))
                                        (%T9 (CADR %T8))
                                        (%T10 %T9)
@@ -12379,6 +12504,8 @@
           (IF %R %R NIL))))
       (DECLARE (IGNORABLE %T0 %T13))
       (AND %T13
+           (<= (ACL2::LEN (CADR %T13))
+               (ACL2::LEN %T0))
            (LET* ((%T14 (CAR %T13)))
              (DECLARE (IGNORABLE %T14))
              (AND (TRUE-LISTP %T14)
@@ -12405,6 +12532,8 @@
        (DECLARE (IGNORABLE %T0 %T1 %T2))
        (AND
            %T2
+           (<= (ACL2::LEN (CADR %T2))
+               (ACL2::LEN %T1))
            (LET* ((%T3 (CAR %T2)))
              (DECLARE (IGNORABLE %T3))
              (AND (TRUE-LISTP %T3)
@@ -12414,6 +12543,8 @@
                          (%T6 (GRAM/BRESULTTYPE %T5)))
                     (DECLARE (IGNORABLE T_1-STAR %T4 %T5 %T6))
                     (AND %T6
+                         (<= (ACL2::LEN (CADR %T6))
+                             (ACL2::LEN %T5))
                          (LET* ((%T7 (CAR %T6)))
                            (DECLARE (IGNORABLE %T7))
                            (AND (TRUE-LISTP %T7)
@@ -12460,6 +12591,8 @@
                         (%T2 (GRAM/BU32 %T1)))
                    (DECLARE (IGNORABLE %T0 %T1 %T2))
                    (AND %T2
+                        (<= (ACL2::LEN (CADR %T2))
+                            (ACL2::LEN %T1))
                         (LET* ((%T3 (CAR %T2))
                                (N %T3)
                                (%T4 (CADR %T2))
@@ -12477,6 +12610,8 @@
                          (%T9 (GRAM/BU32 %T8)))
                     (DECLARE (IGNORABLE %T7 %T8 %T9))
                     (AND %T9
+                         (<= (ACL2::LEN (CADR %T9))
+                             (ACL2::LEN %T8))
                          (LET* ((%T10 (CAR %T9))
                                 (N %T10)
                                 (%T11 (CADR %T9))
@@ -12484,6 +12619,8 @@
                                 (%T13 (GRAM/BU32 %T12)))
                            (DECLARE (IGNORABLE %T10 N %T11 %T12 %T13))
                            (AND %T13
+                                (<= (ACL2::LEN (CADR %T13))
+                                    (ACL2::LEN %T12))
                                 (LET* ((%T14 (CAR %T13))
                                        (M %T14)
                                        (%T15 (CADR %T13))
@@ -12504,6 +12641,8 @@
        (LET ((%R (LET* ((%T0 (GRAM/BVALTYPE %S)))
                    (DECLARE (IGNORABLE %T0))
                    (AND %T0
+                        (<= (ACL2::LEN (CADR %T0))
+                            (ACL2::LEN %S))
                         (LET* ((%T1 (CAR %T0))
                                (T^R %T1)
                                (%T2 (CADR %T0))
@@ -12511,6 +12650,8 @@
                                (%T4 (GRAM/BMUT %T3)))
                           (DECLARE (IGNORABLE %T1 T^R %T2 %T3 %T4))
                           (AND %T4
+                               (<= (ACL2::LEN (CADR %T4))
+                                   (ACL2::LEN %T3))
                                (LET* ((%T5 (CAR %T4))
                                       (MUT %T5)
                                       (%T6 (CADR %T4))
@@ -12534,6 +12675,8 @@
                              (%T2 (GRAM/BLIMITS %T1)))
                         (DECLARE (IGNORABLE %T0 %T1 %T2))
                         (AND %T2
+                             (<= (ACL2::LEN (CADR %T2))
+                                 (ACL2::LEN %T1))
                              (LET* ((%T3 (CAR %T2))
                                     (LIM %T3)
                                     (%T4 (CADR %T2))
@@ -12552,6 +12695,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BLIMITS %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (LIM %T1)
                                       (%T2 (CADR %T0)))
@@ -12573,6 +12718,8 @@
                         (%T2 (GRAM/BFUNCTYPE %T1)))
                    (DECLARE (IGNORABLE %T0 %T1 %T2))
                    (AND %T2
+                        (<= (ACL2::LEN (CADR %T2))
+                            (ACL2::LEN %T1))
                         (LET* ((%T3 (CAR %T2))
                                (FT %T3)
                                (%T4 (CADR %T2))
@@ -12589,6 +12736,8 @@
                           (%T9 (GRAM/BTABLETYPE %T8)))
                      (DECLARE (IGNORABLE %T7 %T8 %T9))
                      (AND %T9
+                          (<= (ACL2::LEN (CADR %T9))
+                              (ACL2::LEN %T8))
                           (LET* ((%T10 (CAR %T9))
                                  (TT %T10)
                                  (%T11 (CADR %T9))
@@ -12605,6 +12754,8 @@
                             (%T16 (GRAM/BMEMTYPE %T15)))
                        (DECLARE (IGNORABLE %T14 %T15 %T16))
                        (AND %T16
+                            (<= (ACL2::LEN (CADR %T16))
+                                (ACL2::LEN %T15))
                             (LET* ((%T17 (CAR %T16))
                                    (MT %T17)
                                    (%T18 (CADR %T16))
@@ -12621,6 +12772,8 @@
                                (%T23 (GRAM/BGLOBALTYPE %T22)))
                           (DECLARE (IGNORABLE %T21 %T22 %T23))
                           (AND %T23
+                               (<= (ACL2::LEN (CADR %T23))
+                                   (ACL2::LEN %T22))
                                (LET* ((%T24 (CAR %T23))
                                       (GT %T24)
                                       (%T25 (CADR %T23))
@@ -12646,6 +12799,8 @@
                   (LET ((%R (LET* ((%T1 (GRAM/BVALTYPE %S)))
                               (DECLARE (IGNORABLE %T1))
                               (AND %T1
+                                   (<= (ACL2::LEN (CADR %T1))
+                                       (ACL2::LEN %S))
                                    (LET* ((%T2 (CAR %T1))
                                           (T^R %T2)
                                           (%T3 (CADR %T1)))
@@ -12663,6 +12818,8 @@
        (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
                    (DECLARE (IGNORABLE %T0))
                    (AND %T0
+                        (<= (ACL2::LEN (CADR %T0))
+                            (ACL2::LEN %S))
                         (LET* ((%T1 (CAR %T0))
                                (N %T1)
                                (%T2 (CADR %T0))
@@ -12670,6 +12827,8 @@
                                (%T4 (GRAM/BU32 %T3)))
                           (DECLARE (IGNORABLE %T1 N %T2 %T3 %T4))
                           (AND %T4
+                               (<= (ACL2::LEN (CADR %T4))
+                                   (ACL2::LEN %T3))
                                (LET* ((%T5 (CAR %T4))
                                       (M %T5)
                                       (%T6 (CADR %T4))
@@ -12686,13 +12845,56 @@
 (%TRY-GUARDS GRAM/BMEMARG)
 
 (%TRY-LOGIC
+     (DEFUN GRAM/BINSTR/REP93 (%K %N %S)
+       (DECLARE (IGNORABLE %K %N %S))
+       (DECLARE (XARGS :MEASURE (NFIX (- %N %K))))
+       (IF (NOT (AND (NATP %K) (NATP %N) (< %K %N)))
+           (LIST (LIST NIL NIL) %S)
+         (LET ((%E (LET* ((%T91 (GRAM/BLABELIDX %S)))
+                     (DECLARE (IGNORABLE %T91))
+                     (AND %T91
+                          (<= (ACL2::LEN (CADR %T91))
+                              (ACL2::LEN %S))
+                          (LET* ((%T92 (CAR %T91))
+                                 (EL %T92)
+                                 (%P (CADR %T91)))
+                            (DECLARE (IGNORABLE %T92 EL %P))
+                            (LIST (LIST %T92 EL) %P))))))
+           (DECLARE (IGNORABLE %E))
+           (AND %E
+                (LET ((%R (GRAM/BINSTR/REP93 (1+ %K)
+                                             %N (CADR %E))))
+                  (DECLARE (IGNORABLE %R))
+                  (AND %R
+                       (LIST (LIST (CONS (CAR (CAR %E)) (CAR (CAR %R)))
+                                   (CONS (CAR (CDR (CAR %E)))
+                                         (CAR (CDR (CAR %R)))))
+                             (CADR %R)))))))))
+
+
+(%TRY-GUARDS GRAM/BINSTR/REP93)
+
+(%TRY-LOGIC (DEFUN GRAM/BINSTR/ITER98 (%L0)
+              (DECLARE (IGNORABLE %L0))
+              (IF (OR (ATOM %L0))
+                  NIL
+                (LET* ((EL (CAR %L0)))
+                  (DECLARE (IGNORABLE EL))
+                  (CONS EL (GRAM/BINSTR/ITER98 (CDR %L0)))))))
+
+
+(%TRY-GUARDS GRAM/BINSTR/ITER98)
+
+(%TRY-LOGIC
  (MUTUAL-RECURSION
   (DEFUN GRAM/BINSTR/REP10 (%S)
     (DECLARE (IGNORABLE %S))
-    (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+    (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
     (LET ((%E (LET* ((%T8 (GRAM/BINSTR %S)))
                 (DECLARE (IGNORABLE %T8))
                 (AND %T8
+                     (<= (ACL2::LEN (CADR %T8))
+                         (ACL2::LEN %S))
                      (LET* ((%T9 (CAR %T8))
                             (IN %T9)
                             (%P (CADR %T8)))
@@ -12712,10 +12914,12 @@
         (LIST (LIST NIL NIL) %S))))
   (DEFUN GRAM/BINSTR/REP25 (%S)
     (DECLARE (IGNORABLE %S))
-    (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+    (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
     (LET ((%E (LET* ((%T23 (GRAM/BINSTR %S)))
                 (DECLARE (IGNORABLE %T23))
                 (AND %T23
+                     (<= (ACL2::LEN (CADR %T23))
+                         (ACL2::LEN %S))
                      (LET* ((%T24 (CAR %T23))
                             (IN %T24)
                             (%P (CADR %T23)))
@@ -12735,10 +12939,12 @@
         (LIST (LIST NIL NIL) %S))))
   (DEFUN GRAM/BINSTR/REP40 (%S)
     (DECLARE (IGNORABLE %S))
-    (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+    (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
     (LET ((%E (LET* ((%T38 (GRAM/BINSTR %S)))
                 (DECLARE (IGNORABLE %T38))
                 (AND %T38
+                     (<= (ACL2::LEN (CADR %T38))
+                         (ACL2::LEN %S))
                      (LET* ((%T39 (CAR %T38))
                             (IN %T39)
                             (%P (CADR %T38)))
@@ -12758,10 +12964,12 @@
         (LIST (LIST NIL NIL) %S))))
   (DEFUN GRAM/BINSTR/REP55 (%S)
     (DECLARE (IGNORABLE %S))
-    (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+    (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
     (LET ((%E (LET* ((%T53 (GRAM/BINSTR %S)))
                 (DECLARE (IGNORABLE %T53))
                 (AND %T53
+                     (<= (ACL2::LEN (CADR %T53))
+                         (ACL2::LEN %S))
                      (LET* ((%T54 (CAR %T53))
                             (IN_1 %T54)
                             (%P (CADR %T53)))
@@ -12781,10 +12989,12 @@
         (LIST (LIST NIL NIL) %S))))
   (DEFUN GRAM/BINSTR/REP63 (%S)
     (DECLARE (IGNORABLE %S))
-    (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+    (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
     (LET ((%E (LET* ((%T61 (GRAM/BINSTR %S)))
                 (DECLARE (IGNORABLE %T61))
                 (AND %T61
+                     (<= (ACL2::LEN (CADR %T61))
+                         (ACL2::LEN %S))
                      (LET* ((%T62 (CAR %T61))
                             (IN_2 %T62)
                             (%P (CADR %T61)))
@@ -12802,38 +13012,9 @@
                                    (CAR (CDR (CAR %R)))))
                        (CADR %R))))
         (LIST (LIST NIL NIL) %S))))
-  (DEFUN GRAM/BINSTR/REP93 (%K %N %S)
-    (DECLARE (IGNORABLE %K %N %S))
-    (DECLARE (XARGS :MEASURE (NFIX (- %N %K))))
-    (IF (NOT (AND (NATP %K) (NATP %N) (< %K %N)))
-        (LIST (LIST NIL NIL) %S)
-      (LET ((%E (LET* ((%T91 (GRAM/BLABELIDX %S)))
-                  (DECLARE (IGNORABLE %T91))
-                  (AND %T91
-                       (LET* ((%T92 (CAR %T91))
-                              (EL %T92)
-                              (%P (CADR %T91)))
-                         (DECLARE (IGNORABLE %T92 EL %P))
-                         (LIST (LIST %T92 EL) %P))))))
-        (DECLARE (IGNORABLE %E))
-        (AND %E
-             (LET ((%R (GRAM/BINSTR/REP93 (1+ %K)
-                                          %N (CADR %E))))
-               (DECLARE (IGNORABLE %R))
-               (AND %R
-                    (LIST (LIST (CONS (CAR (CAR %E)) (CAR (CAR %R)))
-                                (CONS (CAR (CDR (CAR %E)))
-                                      (CAR (CDR (CAR %R)))))
-                          (CADR %R))))))))
-  (DEFUN GRAM/BINSTR/ITER98 (%L0)
-    (DECLARE (IGNORABLE %L0))
-    (IF (OR (ATOM %L0))
-        NIL
-      (LET* ((EL (CAR %L0)))
-        (DECLARE (IGNORABLE EL))
-        (CONS EL (GRAM/BINSTR/ITER98 (CDR %L0))))))
   (DEFUN GRAM/BINSTR (%S)
    (DECLARE (IGNORABLE %S))
+   (DECLARE (XARGS :MEASURE (* 2 (ACL2::LEN %S))))
    (LET ((%R (AND (CONSP %S)
                   (EQUAL (CAR %S) 0)
                   (LET* ((%T0 (CDR %S)))
@@ -12856,6 +13037,8 @@
                          (%T4 (GRAM/BBLOCKTYPE %T3)))
                     (DECLARE (IGNORABLE %T2 %T3 %T4))
                     (AND %T4
+                         (<= (ACL2::LEN (CADR %T4))
+                             (ACL2::LEN %T3))
                          (LET* ((%T5 (CAR %T4))
                                 (BT %T5)
                                 (%T6 (CADR %T4))
@@ -12863,6 +13046,8 @@
                                 (%T11 (GRAM/BINSTR/REP10 %T7)))
                            (DECLARE (IGNORABLE %T5 BT %T6 %T7 %T11))
                            (AND %T11
+                                (<= (ACL2::LEN (CADR %T11))
+                                    (ACL2::LEN %T7))
                                 (LET* ((IN-STAR (CAR (CDR (CAR %T11))))
                                        (%T12 (CADR %T11))
                                        (%T13 %T12))
@@ -12886,6 +13071,8 @@
                          (%T19 (GRAM/BBLOCKTYPE %T18)))
                     (DECLARE (IGNORABLE %T17 %T18 %T19))
                     (AND %T19
+                         (<= (ACL2::LEN (CADR %T19))
+                             (ACL2::LEN %T18))
                          (LET* ((%T20 (CAR %T19))
                                 (BT %T20)
                                 (%T21 (CADR %T19))
@@ -12893,6 +13080,8 @@
                                 (%T26 (GRAM/BINSTR/REP25 %T22)))
                            (DECLARE (IGNORABLE %T20 BT %T21 %T22 %T26))
                            (AND %T26
+                                (<= (ACL2::LEN (CADR %T26))
+                                    (ACL2::LEN %T22))
                                 (LET* ((IN-STAR (CAR (CDR (CAR %T26))))
                                        (%T27 (CADR %T26))
                                        (%T28 %T27))
@@ -12917,6 +13106,8 @@
                          (%T34 (GRAM/BBLOCKTYPE %T33)))
                     (DECLARE (IGNORABLE %T32 %T33 %T34))
                     (AND %T34
+                         (<= (ACL2::LEN (CADR %T34))
+                             (ACL2::LEN %T33))
                          (LET* ((%T35 (CAR %T34))
                                 (BT %T35)
                                 (%T36 (CADR %T34))
@@ -12924,6 +13115,8 @@
                                 (%T41 (GRAM/BINSTR/REP40 %T37)))
                            (DECLARE (IGNORABLE %T35 BT %T36 %T37 %T41))
                            (AND %T41
+                                (<= (ACL2::LEN (CADR %T41))
+                                    (ACL2::LEN %T37))
                                 (LET* ((IN-STAR (CAR (CDR (CAR %T41))))
                                        (%T42 (CADR %T41))
                                        (%T43 %T42))
@@ -12949,6 +13142,8 @@
                   (DECLARE (IGNORABLE %T47 %T48 %T49))
                   (AND
                    %T49
+                   (<= (ACL2::LEN (CADR %T49))
+                       (ACL2::LEN %T48))
                    (LET* ((%T50 (CAR %T49))
                           (BT %T50)
                           (%T51 (CADR %T49))
@@ -12957,6 +13152,8 @@
                     (DECLARE (IGNORABLE %T50 BT %T51 %T52 %T56))
                     (AND
                      %T56
+                     (<= (ACL2::LEN (CADR %T56))
+                         (ACL2::LEN %T52))
                      (LET* ((IN_1-STAR (CAR (CDR (CAR %T56))))
                             (%T57 (CADR %T56))
                             (%T58 %T57))
@@ -12970,6 +13167,8 @@
                         (DECLARE (IGNORABLE %T59 %T60 %T64))
                         (AND
                          %T64
+                         (<= (ACL2::LEN (CADR %T64))
+                             (ACL2::LEN %T60))
                          (LET* ((IN_2-STAR (CAR (CDR (CAR %T64))))
                                 (%T65 (CADR %T64))
                                 (%T66 %T65))
@@ -12993,6 +13192,8 @@
                                 (%T72 (GRAM/BLABELIDX %T71)))
                            (DECLARE (IGNORABLE %T70 %T71 %T72))
                            (AND %T72
+                                (<= (ACL2::LEN (CADR %T72))
+                                    (ACL2::LEN %T71))
                                 (LET* ((%T73 (CAR %T72))
                                        (L %T73)
                                        (%T74 (CADR %T72))
@@ -13011,6 +13212,8 @@
                                 (%T79 (GRAM/BLABELIDX %T78)))
                            (DECLARE (IGNORABLE %T77 %T78 %T79))
                            (AND %T79
+                                (<= (ACL2::LEN (CADR %T79))
+                                    (ACL2::LEN %T78))
                                 (LET* ((%T80 (CAR %T79))
                                        (L %T80)
                                        (%T81 (CADR %T79))
@@ -13036,6 +13239,8 @@
                               (DECLARE (IGNORABLE %T87))
                               (AND
                                %T87
+                               (<= (ACL2::LEN (CADR %T87))
+                                   (ACL2::LEN %T86))
                                (LET* ((%T88 (CAR %T87))
                                       (N %T88)
                                       (%T89 (CADR %T87))
@@ -13044,6 +13249,8 @@
                                 (DECLARE (IGNORABLE %T88 N %T89 %T90 %T94))
                                 (AND
                                    %T94
+                                   (<= (ACL2::LEN (CADR %T94))
+                                       (ACL2::LEN %T90))
                                    (LET* ((EL-STAR (CAR (CDR (CAR %T94))))
                                           (%T95 (CADR %T94))
                                           (%T96 %T95)
@@ -13057,6 +13264,8 @@
                         (DECLARE (IGNORABLE %T84 %T85 %T86 %T99))
                         (AND
                          %T99
+                         (<= (ACL2::LEN (CADR %T99))
+                             (ACL2::LEN %T86))
                          (LET* ((%T100 (CAR %T99)))
                           (DECLARE (IGNORABLE %T100))
                           (AND
@@ -13068,6 +13277,8 @@
                             (DECLARE (IGNORABLE L-STAR %T101 %T102 %T103))
                             (AND
                               %T103
+                              (<= (ACL2::LEN (CADR %T103))
+                                  (ACL2::LEN %T102))
                               (LET* ((%T104 (CAR %T103))
                                      (L_N %T104)
                                      (%T105 (CADR %T103))
@@ -13097,6 +13308,8 @@
                             (DECLARE (IGNORABLE %T109 %T110 %T111))
                             (AND
                              %T111
+                             (<= (ACL2::LEN (CADR %T111))
+                                 (ACL2::LEN %T110))
                              (LET* ((%T112 (CAR %T111))
                                     (X %T112)
                                     (%T113 (CADR %T111))
@@ -13117,6 +13330,8 @@
                               (DECLARE (IGNORABLE %T116 %T117 %T118))
                               (AND
                                %T118
+                               (<= (ACL2::LEN (CADR %T118))
+                                   (ACL2::LEN %T117))
                                (LET* ((%T119 (CAR %T118))
                                       (X %T119)
                                       (%T120 (CADR %T118))
@@ -13158,6 +13373,8 @@
                                     (DECLARE (IGNORABLE %T127 %T128 %T129))
                                     (AND
                                      %T129
+                                     (<= (ACL2::LEN (CADR %T129))
+                                         (ACL2::LEN %T128))
                                      (LET* ((%T130 (CAR %T129))
                                             (X %T130)
                                             (%T131 (CADR %T129))
@@ -13179,6 +13396,8 @@
                                       (DECLARE (IGNORABLE %T134 %T135 %T136))
                                       (AND
                                        %T136
+                                       (<= (ACL2::LEN (CADR %T136))
+                                           (ACL2::LEN %T135))
                                        (LET* ((%T137 (CAR %T136))
                                               (X %T137)
                                               (%T138 (CADR %T136))
@@ -13203,6 +13422,8 @@
                                              (IGNORABLE %T141 %T142 %T143))
                                         (AND
                                          %T143
+                                         (<= (ACL2::LEN (CADR %T143))
+                                             (ACL2::LEN %T142))
                                          (LET* ((%T144 (CAR %T143))
                                                 (X %T144)
                                                 (%T145 (CADR %T143))
@@ -13228,6 +13449,8 @@
                                                (IGNORABLE %T148 %T149 %T150))
                                           (AND
                                            %T150
+                                           (<= (ACL2::LEN (CADR %T150))
+                                               (ACL2::LEN %T149))
                                            (LET* ((%T151 (CAR %T150))
                                                   (X %T151)
                                                   (%T152 (CADR %T150))
@@ -13253,6 +13476,8 @@
                                                (IGNORABLE %T155 %T156 %T157))
                                             (AND
                                              %T157
+                                             (<= (ACL2::LEN (CADR %T157))
+                                                 (ACL2::LEN %T156))
                                              (LET* ((%T158 (CAR %T157))
                                                     (X %T158)
                                                     (%T159 (CADR %T157))
@@ -13278,6 +13503,8 @@
                                                (IGNORABLE %T162 %T163 %T164))
                                               (AND
                                                %T164
+                                               (<= (ACL2::LEN (CADR %T164))
+                                                   (ACL2::LEN %T163))
                                                (LET* ((%T165 (CAR %T164))
                                                       (AO %T165)
                                                       (%T166 (CADR %T164))
@@ -13307,6 +13534,8 @@
                                                           %T169 %T170 %T171))
                                                 (AND
                                                  %T171
+                                                 (<= (ACL2::LEN (CADR %T171))
+                                                     (ACL2::LEN %T170))
                                                  (LET* ((%T172 (CAR %T171))
                                                         (AO %T172)
                                                         (%T173 (CADR %T171))
@@ -13337,6 +13566,9 @@
                                                           %T176 %T177 %T178))
                                                   (AND
                                                    %T178
+                                                   (<=
+                                                     (ACL2::LEN (CADR %T178))
+                                                     (ACL2::LEN %T177))
                                                    (LET*
                                                        ((%T179 (CAR %T178))
                                                         (AO %T179)
@@ -13368,6 +13600,9 @@
                                                           %T183 %T184 %T185))
                                                     (AND
                                                      %T185
+                                                     (<= (ACL2::LEN
+                                                              (CADR %T185))
+                                                         (ACL2::LEN %T184))
                                                      (LET*
                                                        ((%T186 (CAR %T185))
                                                         (AO %T186)
@@ -13400,6 +13635,9 @@
                                                           %T190 %T191 %T192))
                                                       (AND
                                                        %T192
+                                                       (<= (ACL2::LEN
+                                                                (CADR %T192))
+                                                           (ACL2::LEN %T191))
                                                        (LET*
                                                         ((%T193 (CAR %T192))
                                                          (AO %T193)
@@ -13435,6 +13673,10 @@
                                                           %T197 %T198 %T199))
                                                         (AND
                                                          %T199
+                                                         (<=
+                                                           (ACL2::LEN
+                                                                (CADR %T199))
+                                                           (ACL2::LEN %T198))
                                                          (LET*
                                                           ((%T200
                                                                 (CAR %T199))
@@ -13475,6 +13717,11 @@
                                                                 %T205 %T206))
                                                           (AND
                                                            %T206
+                                                           (<=
+                                                            (ACL2::LEN
+                                                                (CADR %T206))
+                                                            (ACL2::LEN
+                                                                 %T205))
                                                            (LET*
                                                             ((%T207
                                                                  (CAR %T206))
@@ -13518,6 +13765,11 @@
                                                                 %T212 %T213))
                                                             (AND
                                                              %T213
+                                                             (<=
+                                                              (ACL2::LEN
+                                                                (CADR %T213))
+                                                              (ACL2::LEN
+                                                                   %T212))
                                                              (LET*
                                                               ((%T214
                                                                  (CAR %T213))
@@ -13563,6 +13815,12 @@
                                                                 %T219 %T220))
                                                               (AND
                                                                %T220
+                                                               (<=
+                                                                (ACL2::LEN
+                                                                 (CADR
+                                                                      %T220))
+                                                                (ACL2::LEN
+                                                                     %T219))
                                                                (LET*
                                                                 ((%T221
                                                                   (CAR
@@ -13615,6 +13873,12 @@
                                                                   %T227))
                                                                 (AND
                                                                  %T227
+                                                                 (<=
+                                                                  (ACL2::LEN
+                                                                   (CADR
+                                                                      %T227))
+                                                                  (ACL2::LEN
+                                                                      %T226))
                                                                  (LET*
                                                                   ((%T228
                                                                     (CAR
@@ -13670,6 +13934,12 @@
                                                                       %T234))
                                                                   (AND
                                                                    %T234
+                                                                   (<=
+                                                                    (ACL2::LEN
+                                                                     (CADR
+                                                                      %T234))
+                                                                    (ACL2::LEN
+                                                                      %T233))
                                                                    (LET*
                                                                     ((%T235
                                                                       (CAR
@@ -13729,6 +13999,12 @@
                                                                       %T241))
                                                                     (AND
                                                                      %T241
+                                                                     (<=
+                                                                      (ACL2::LEN
+                                                                       (CADR
+                                                                        %T241))
+                                                                      (ACL2::LEN
+                                                                       %T240))
                                                                      (LET*
                                                                       ((%T242
                                                                         (CAR
@@ -13791,6 +14067,12 @@
                                                                         %T248))
                                                                       (AND
                                                                        %T248
+                                                                       (<=
+                                                                        (ACL2::LEN
+                                                                         (CADR
+                                                                          %T248))
+                                                                        (ACL2::LEN
+                                                                         %T247))
                                                                        (LET*
                                                                         ((%T249
                                                                           (CAR
@@ -13853,6 +14135,12 @@
                                                                           %T255))
                                                                         (AND
                                                                          %T255
+                                                                         (<=
+                                                                          (ACL2::LEN
+                                                                           (CADR
+                                                                            %T255))
+                                                                          (ACL2::LEN
+                                                                           %T254))
                                                                          (LET*
                                                                           ((%T256
                                                                             (CAR
@@ -13916,6 +14204,12 @@
                                                                             %T262))
                                                                           (AND
                                                                            %T262
+                                                                           (<=
+                                                                            (ACL2::LEN
+                                                                             (CADR
+                                                                              %T262))
+                                                                            (ACL2::LEN
+                                                                             %T261))
                                                                            (LET*
                                                                             ((%T263
                                                                               (CAR
@@ -13979,6 +14273,15 @@
                                                                               %T269))
                                                                             (AND
                                                                              %T269
+                                                                             (<=
+                                                                              (ACL2::LEN
+                                                                              
+ (CADR
+                                                                              
+  %T269))
+                                                                              (ACL2::LEN
+                                                                              
+ %T268))
                                                                              (LET*
                                                                               ((%T270
                                                                               
@@ -14075,6 +14378,18 @@
                                                                               (AND
                                                                               
  %T276
+                                                                              
+ (<=
+                                                                              
+  (ACL2::LEN
+                                                                              
+   (CADR
+                                                                              
+    %T276))
+                                                                              
+  (ACL2::LEN
+                                                                              
+   %T275))
                                                                               
  (LET*
                                                                               
@@ -14185,6 +14500,18 @@
                                                                               
    %T283
                                                                               
+   (<=
+                                                                              
+    (ACL2::LEN
+                                                                              
+     (CADR
+                                                                              
+      %T283))
+                                                                              
+    (ACL2::LEN
+                                                                              
+     %T282))
+                                                                              
    (LET*
                                                                               
     ((%T284
@@ -14294,6 +14621,18 @@
     (AND
                                                                               
      %T290
+                                                                              
+     (<=
+                                                                              
+      (ACL2::LEN
+                                                                              
+       (CADR
+                                                                              
+        %T290))
+                                                                              
+      (ACL2::LEN
+                                                                              
+       %T289))
                                                                               
      (LET*
                                                                               
@@ -14412,6 +14751,18 @@
       (AND
                                                                               
        %T297
+                                                                              
+       (<=
+                                                                              
+        (ACL2::LEN
+                                                                              
+         (CADR
+                                                                              
+          %T297))
+                                                                              
+        (ACL2::LEN
+                                                                              
+         %T296))
                                                                               
        (LET*
                                                                               
@@ -14533,6 +14884,18 @@
                                                                               
          %T304
                                                                               
+         (<=
+                                                                              
+          (ACL2::LEN
+                                                                              
+           (CADR
+                                                                              
+            %T304))
+                                                                              
+          (ACL2::LEN
+                                                                              
+           %T303))
+                                                                              
          (LET*
                                                                               
           ((%T305
@@ -14653,6 +15016,18 @@
                                                                               
            %T311
                                                                               
+           (<=
+                                                                              
+            (ACL2::LEN
+                                                                              
+             (CADR
+                                                                              
+              %T311))
+                                                                              
+            (ACL2::LEN
+                                                                              
+             %T310))
+                                                                              
            (LET*
                                                                               
             ((%T312
@@ -14772,6 +15147,18 @@
             (AND
                                                                               
              %T318
+                                                                              
+             (<=
+                                                                              
+              (ACL2::LEN
+                                                                              
+               (CADR
+                                                                              
+                %T318))
+                                                                              
+              (ACL2::LEN
+                                                                              
+               %T317))
                                                                               
              (LET*
                                                                               
@@ -15089,6 +15476,18 @@
                                                                               
                    %T335
                                                                               
+                   (<=
+                                                                              
+                    (ACL2::LEN
+                                                                              
+                     (CADR
+                                                                              
+                      %T335))
+                                                                              
+                    (ACL2::LEN
+                                                                              
+                     %T334))
+                                                                              
                    (LET*
                                                                               
                     ((%T336
@@ -15204,6 +15603,18 @@
                     (AND
                                                                               
                      %T342
+                                                                              
+                     (<=
+                                                                              
+                      (ACL2::LEN
+                                                                              
+                       (CADR
+                                                                              
+                        %T342))
+                                                                              
+                      (ACL2::LEN
+                                                                              
+                       %T341))
                                                                               
                      (LET*
                                                                               
@@ -15321,6 +15732,18 @@
                                                                               
                        %T349
                                                                               
+                       (<=
+                                                                              
+                        (ACL2::LEN
+                                                                              
+                         (CADR
+                                                                              
+                          %T349))
+                                                                              
+                        (ACL2::LEN
+                                                                              
+                         %T348))
+                                                                              
                        (LET*
                                                                               
                         ((%T350
@@ -15436,6 +15859,18 @@
                         (AND
                                                                               
                          %T356
+                                                                              
+                         (<=
+                                                                              
+                          (ACL2::LEN
+                                                                              
+                           (CADR
+                                                                              
+                            %T356))
+                                                                              
+                          (ACL2::LEN
+                                                                              
+                           %T355))
                                                                               
                          (LET*
                                                                               
@@ -28580,10 +29015,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BEXPR/REP2 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T0 (GRAM/BINSTR %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (IN %T1)
                                       (%P (CADR %T0)))
@@ -28611,6 +29048,8 @@
        (LET ((%R (LET* ((%T3 (GRAM/BEXPR/REP2 %S)))
                    (DECLARE (IGNORABLE %T3))
                    (AND %T3
+                        (<= (ACL2::LEN (CADR %T3))
+                            (ACL2::LEN %S))
                         (LET* ((IN-STAR (CAR (CDR (CAR %T3))))
                                (%T4 (CADR %T3))
                                (%T5 %T4))
@@ -28628,10 +29067,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BCUSTOM/REP4 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T3 (GRAM/BBYTE %S)))
                           (DECLARE (IGNORABLE %T3))
                           (AND %T3
+                               (<= (ACL2::LEN (CADR %T3))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T3)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T3)) %P))))))
@@ -28655,11 +29096,15 @@
        (LET ((%R (LET* ((%T0 (GRAM/BNAME %S)))
                    (DECLARE (IGNORABLE %T0))
                    (AND %T0
+                        (<= (ACL2::LEN (CADR %T0))
+                            (ACL2::LEN %S))
                         (LET* ((%T1 (CADR %T0))
                                (%T2 %T1)
                                (%T5 (GRAM/BCUSTOM/REP4 %T2)))
                           (DECLARE (IGNORABLE %T1 %T2 %T5))
                           (AND %T5
+                               (<= (ACL2::LEN (CADR %T5))
+                                   (ACL2::LEN %T2))
                                (LET* ((%T6 (CADR %T5)) (%T7 %T6) (%T8 %T7))
                                  (DECLARE (IGNORABLE %T6 %T7 %T8))
                                  (LIST NIL %T8))))))))
@@ -28684,6 +29129,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -28694,6 +29141,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -28706,6 +29155,8 @@
                           (%T10 (GRAM/BCUSTOM %T9)))
                     (DECLARE (IGNORABLE %T9 %T10))
                     (AND %T10
+                         (<= (ACL2::LEN (CADR %T10))
+                             (ACL2::LEN %T9))
                          (LET* ((%T11 (CAR %T10)))
                            (DECLARE (IGNORABLE %T11))
                            (AND (TRUE-LISTP %T11)
@@ -28724,6 +29175,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T15))
       (AND %T15
+           (<= (ACL2::LEN (CADR %T15))
+               (ACL2::LEN %T0))
            (LET* ((%T16 (CADR %T15)))
              (DECLARE (IGNORABLE %T16))
              (LIST (CAR (CDR (LIST NIL NIL)))
@@ -28739,6 +29192,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BFUNCTYPE %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (FT %T1)
                                       (%T2 (CADR %T0)))
@@ -28759,6 +29214,8 @@
          (LET ((%E (LET* ((%T15 (GRAM/BTYPE %S)))
                      (DECLARE (IGNORABLE %T15))
                      (AND %T15
+                          (<= (ACL2::LEN (CADR %T15))
+                              (ACL2::LEN %S))
                           (LET* ((%T16 (CAR %T15))
                                  (EL %T16)
                                  (%P (CADR %T15)))
@@ -28804,6 +29261,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -28814,6 +29273,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -28832,6 +29293,8 @@
                           (DECLARE (IGNORABLE %T11))
                           (AND
                            %T11
+                           (<= (ACL2::LEN (CADR %T11))
+                               (ACL2::LEN %T10))
                            (LET* ((%T12 (CAR %T11))
                                   (N %T12)
                                   (%T13 (CADR %T11))
@@ -28840,6 +29303,8 @@
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
                                %T18
+                               (<= (ACL2::LEN (CADR %T18))
+                                   (ACL2::LEN %T14))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
                                       (%T19 (CADR %T18))
                                       (%T20 %T19)
@@ -28851,6 +29316,8 @@
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
                     (AND %T23
+                         (<= (ACL2::LEN (CADR %T23))
+                             (ACL2::LEN %T10))
                          (LET* ((%T24 (CAR %T23)))
                            (DECLARE (IGNORABLE %T24))
                            (AND (TRUE-LISTP %T24)
@@ -28869,6 +29336,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
       (AND %T28
+           (<= (ACL2::LEN (CADR %T28))
+               (ACL2::LEN %T0))
            (LET* ((%T29 (CAR %T28)))
              (DECLARE (IGNORABLE %T29))
              (AND (TRUE-LISTP %T29)
@@ -28888,6 +29357,8 @@
       ((%R (LET* ((%T0 (GRAM/BNAME %S)))
              (DECLARE (IGNORABLE %T0))
              (AND %T0
+                  (<= (ACL2::LEN (CADR %T0))
+                      (ACL2::LEN %S))
                   (LET* ((%T1 (CAR %T0))
                          (NM_1 %T1)
                          (%T2 (CADR %T0))
@@ -28895,6 +29366,8 @@
                          (%T4 (GRAM/BNAME %T3)))
                     (DECLARE (IGNORABLE %T1 NM_1 %T2 %T3 %T4))
                     (AND %T4
+                         (<= (ACL2::LEN (CADR %T4))
+                             (ACL2::LEN %T3))
                          (LET* ((%T5 (CAR %T4))
                                 (NM_2 %T5)
                                 (%T6 (CADR %T4))
@@ -28902,6 +29375,8 @@
                                 (%T8 (GRAM/BEXTERNTYPE %T7)))
                            (DECLARE (IGNORABLE %T5 NM_2 %T6 %T7 %T8))
                            (AND %T8
+                                (<= (ACL2::LEN (CADR %T8))
+                                    (ACL2::LEN %T7))
                                 (LET* ((%T9 (CAR %T8))
                                        (XT %T9)
                                        (%T10 (CADR %T8))
@@ -28925,6 +29400,8 @@
          (LET ((%E (LET* ((%T15 (GRAM/BIMPORT %S)))
                      (DECLARE (IGNORABLE %T15))
                      (AND %T15
+                          (<= (ACL2::LEN (CADR %T15))
+                              (ACL2::LEN %S))
                           (LET* ((%T16 (CAR %T15))
                                  (EL %T16)
                                  (%P (CADR %T15)))
@@ -28971,6 +29448,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -28981,6 +29460,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -28999,6 +29480,8 @@
                           (DECLARE (IGNORABLE %T11))
                           (AND
                            %T11
+                           (<= (ACL2::LEN (CADR %T11))
+                               (ACL2::LEN %T10))
                            (LET* ((%T12 (CAR %T11))
                                   (N %T12)
                                   (%T13 (CADR %T11))
@@ -29007,6 +29490,8 @@
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
                                %T18
+                               (<= (ACL2::LEN (CADR %T18))
+                                   (ACL2::LEN %T14))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
                                       (%T19 (CADR %T18))
                                       (%T20 %T19)
@@ -29018,6 +29503,8 @@
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
                     (AND %T23
+                         (<= (ACL2::LEN (CADR %T23))
+                             (ACL2::LEN %T10))
                          (LET* ((%T24 (CAR %T23)))
                            (DECLARE (IGNORABLE %T24))
                            (AND (TRUE-LISTP %T24)
@@ -29036,6 +29523,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
       (AND %T28
+           (<= (ACL2::LEN (CADR %T28))
+               (ACL2::LEN %T0))
            (LET* ((%T29 (CAR %T28)))
              (DECLARE (IGNORABLE %T29))
              (AND (TRUE-LISTP %T29)
@@ -29057,6 +29546,8 @@
          (LET ((%E (LET* ((%T15 (GRAM/BTYPEIDX %S)))
                      (DECLARE (IGNORABLE %T15))
                      (AND %T15
+                          (<= (ACL2::LEN (CADR %T15))
+                              (ACL2::LEN %S))
                           (LET* ((%T16 (CAR %T15))
                                  (EL %T16)
                                  (%P (CADR %T15)))
@@ -29102,6 +29593,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -29112,6 +29605,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -29130,6 +29625,8 @@
                           (DECLARE (IGNORABLE %T11))
                           (AND
                            %T11
+                           (<= (ACL2::LEN (CADR %T11))
+                               (ACL2::LEN %T10))
                            (LET* ((%T12 (CAR %T11))
                                   (N %T12)
                                   (%T13 (CADR %T11))
@@ -29138,6 +29635,8 @@
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
                                %T18
+                               (<= (ACL2::LEN (CADR %T18))
+                                   (ACL2::LEN %T14))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
                                       (%T19 (CADR %T18))
                                       (%T20 %T19)
@@ -29149,6 +29648,8 @@
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
                     (AND %T23
+                         (<= (ACL2::LEN (CADR %T23))
+                             (ACL2::LEN %T10))
                          (LET* ((%T24 (CAR %T23)))
                            (DECLARE (IGNORABLE %T24))
                            (AND (TRUE-LISTP %T24)
@@ -29167,6 +29668,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
       (AND %T28
+           (<= (ACL2::LEN (CADR %T28))
+               (ACL2::LEN %T0))
            (LET* ((%T29 (CAR %T28)))
              (DECLARE (IGNORABLE %T29))
              (AND (TRUE-LISTP %T29)
@@ -29184,6 +29687,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BTABLETYPE %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (TT %T1)
                                       (%T2 (CADR %T0)))
@@ -29204,6 +29709,8 @@
          (LET ((%E (LET* ((%T15 (GRAM/BTABLE %S)))
                      (DECLARE (IGNORABLE %T15))
                      (AND %T15
+                          (<= (ACL2::LEN (CADR %T15))
+                              (ACL2::LEN %S))
                           (LET* ((%T16 (CAR %T15))
                                  (EL %T16)
                                  (%P (CADR %T15)))
@@ -29250,6 +29757,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -29260,6 +29769,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -29278,6 +29789,8 @@
                           (DECLARE (IGNORABLE %T11))
                           (AND
                            %T11
+                           (<= (ACL2::LEN (CADR %T11))
+                               (ACL2::LEN %T10))
                            (LET* ((%T12 (CAR %T11))
                                   (N %T12)
                                   (%T13 (CADR %T11))
@@ -29286,6 +29799,8 @@
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
                                %T18
+                               (<= (ACL2::LEN (CADR %T18))
+                                   (ACL2::LEN %T14))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
                                       (%T19 (CADR %T18))
                                       (%T20 %T19)
@@ -29297,6 +29812,8 @@
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
                     (AND %T23
+                         (<= (ACL2::LEN (CADR %T23))
+                             (ACL2::LEN %T10))
                          (LET* ((%T24 (CAR %T23)))
                            (DECLARE (IGNORABLE %T24))
                            (AND (TRUE-LISTP %T24)
@@ -29315,6 +29832,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
       (AND %T28
+           (<= (ACL2::LEN (CADR %T28))
+               (ACL2::LEN %T0))
            (LET* ((%T29 (CAR %T28)))
              (DECLARE (IGNORABLE %T29))
              (AND (TRUE-LISTP %T29)
@@ -29332,6 +29851,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BMEMTYPE %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (MT %T1)
                                       (%T2 (CADR %T0)))
@@ -29352,6 +29873,8 @@
          (LET ((%E (LET* ((%T15 (GRAM/BMEM %S)))
                      (DECLARE (IGNORABLE %T15))
                      (AND %T15
+                          (<= (ACL2::LEN (CADR %T15))
+                              (ACL2::LEN %S))
                           (LET* ((%T16 (CAR %T15))
                                  (EL %T16)
                                  (%P (CADR %T15)))
@@ -29397,6 +29920,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -29407,6 +29932,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -29425,6 +29952,8 @@
                           (DECLARE (IGNORABLE %T11))
                           (AND
                            %T11
+                           (<= (ACL2::LEN (CADR %T11))
+                               (ACL2::LEN %T10))
                            (LET* ((%T12 (CAR %T11))
                                   (N %T12)
                                   (%T13 (CADR %T11))
@@ -29433,6 +29962,8 @@
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
                                %T18
+                               (<= (ACL2::LEN (CADR %T18))
+                                   (ACL2::LEN %T14))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
                                       (%T19 (CADR %T18))
                                       (%T20 %T19)
@@ -29444,6 +29975,8 @@
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
                     (AND %T23
+                         (<= (ACL2::LEN (CADR %T23))
+                             (ACL2::LEN %T10))
                          (LET* ((%T24 (CAR %T23)))
                            (DECLARE (IGNORABLE %T24))
                            (AND (TRUE-LISTP %T24)
@@ -29462,6 +29995,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
       (AND %T28
+           (<= (ACL2::LEN (CADR %T28))
+               (ACL2::LEN %T0))
            (LET* ((%T29 (CAR %T28)))
              (DECLARE (IGNORABLE %T29))
              (AND (TRUE-LISTP %T29)
@@ -29480,6 +30015,8 @@
        (LET ((%R (LET* ((%T0 (GRAM/BGLOBALTYPE %S)))
                    (DECLARE (IGNORABLE %T0))
                    (AND %T0
+                        (<= (ACL2::LEN (CADR %T0))
+                            (ACL2::LEN %S))
                         (LET* ((%T1 (CAR %T0))
                                (GT %T1)
                                (%T2 (CADR %T0))
@@ -29487,6 +30024,8 @@
                                (%T4 (GRAM/BEXPR %T3)))
                           (DECLARE (IGNORABLE %T1 GT %T2 %T3 %T4))
                           (AND %T4
+                               (<= (ACL2::LEN (CADR %T4))
+                                   (ACL2::LEN %T3))
                                (LET* ((%T5 (CAR %T4))
                                       (E %T5)
                                       (%T6 (CADR %T4))
@@ -29509,6 +30048,8 @@
          (LET ((%E (LET* ((%T15 (GRAM/BGLOBAL %S)))
                      (DECLARE (IGNORABLE %T15))
                      (AND %T15
+                          (<= (ACL2::LEN (CADR %T15))
+                              (ACL2::LEN %S))
                           (LET* ((%T16 (CAR %T15))
                                  (EL %T16)
                                  (%P (CADR %T15)))
@@ -29555,6 +30096,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -29565,6 +30108,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -29583,6 +30128,8 @@
                           (DECLARE (IGNORABLE %T11))
                           (AND
                            %T11
+                           (<= (ACL2::LEN (CADR %T11))
+                               (ACL2::LEN %T10))
                            (LET* ((%T12 (CAR %T11))
                                   (N %T12)
                                   (%T13 (CADR %T11))
@@ -29591,6 +30138,8 @@
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
                                %T18
+                               (<= (ACL2::LEN (CADR %T18))
+                                   (ACL2::LEN %T14))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
                                       (%T19 (CADR %T18))
                                       (%T20 %T19)
@@ -29602,6 +30151,8 @@
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
                     (AND %T23
+                         (<= (ACL2::LEN (CADR %T23))
+                             (ACL2::LEN %T10))
                          (LET* ((%T24 (CAR %T23)))
                            (DECLARE (IGNORABLE %T24))
                            (AND (TRUE-LISTP %T24)
@@ -29620,6 +30171,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
       (AND %T28
+           (<= (ACL2::LEN (CADR %T28))
+               (ACL2::LEN %T0))
            (LET* ((%T29 (CAR %T28)))
              (DECLARE (IGNORABLE %T29))
              (AND (TRUE-LISTP %T29)
@@ -29638,6 +30191,8 @@
        (LET ((%R (LET* ((%T0 (GRAM/BNAME %S)))
                    (DECLARE (IGNORABLE %T0))
                    (AND %T0
+                        (<= (ACL2::LEN (CADR %T0))
+                            (ACL2::LEN %S))
                         (LET* ((%T1 (CAR %T0))
                                (NM %T1)
                                (%T2 (CADR %T0))
@@ -29645,6 +30200,8 @@
                                (%T4 (GRAM/BEXTERNIDX %T3)))
                           (DECLARE (IGNORABLE %T1 NM %T2 %T3 %T4))
                           (AND %T4
+                               (<= (ACL2::LEN (CADR %T4))
+                                   (ACL2::LEN %T3))
                                (LET* ((%T5 (CAR %T4))
                                       (XX %T5)
                                       (%T6 (CADR %T4))
@@ -29667,6 +30224,8 @@
          (LET ((%E (LET* ((%T15 (GRAM/BEXPORT %S)))
                      (DECLARE (IGNORABLE %T15))
                      (AND %T15
+                          (<= (ACL2::LEN (CADR %T15))
+                              (ACL2::LEN %S))
                           (LET* ((%T16 (CAR %T15))
                                  (EL %T16)
                                  (%P (CADR %T15)))
@@ -29713,6 +30272,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -29723,6 +30284,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -29741,6 +30304,8 @@
                           (DECLARE (IGNORABLE %T11))
                           (AND
                            %T11
+                           (<= (ACL2::LEN (CADR %T11))
+                               (ACL2::LEN %T10))
                            (LET* ((%T12 (CAR %T11))
                                   (N %T12)
                                   (%T13 (CADR %T11))
@@ -29749,6 +30314,8 @@
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
                                %T18
+                               (<= (ACL2::LEN (CADR %T18))
+                                   (ACL2::LEN %T14))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
                                       (%T19 (CADR %T18))
                                       (%T20 %T19)
@@ -29760,6 +30327,8 @@
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
                     (AND %T23
+                         (<= (ACL2::LEN (CADR %T23))
+                             (ACL2::LEN %T10))
                          (LET* ((%T24 (CAR %T23)))
                            (DECLARE (IGNORABLE %T24))
                            (AND (TRUE-LISTP %T24)
@@ -29778,6 +30347,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
       (AND %T28
+           (<= (ACL2::LEN (CADR %T28))
+               (ACL2::LEN %T0))
            (LET* ((%T29 (CAR %T28)))
              (DECLARE (IGNORABLE %T29))
              (AND (TRUE-LISTP %T29)
@@ -29795,6 +30366,8 @@
               (LET ((%R (LET* ((%T0 (GRAM/BFUNCIDX %S)))
                           (DECLARE (IGNORABLE %T0))
                           (AND %T0
+                               (<= (ACL2::LEN (CADR %T0))
+                                   (ACL2::LEN %S))
                                (LET* ((%T1 (CAR %T0))
                                       (X %T1)
                                       (%T2 (CADR %T0)))
@@ -29821,6 +30394,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -29831,6 +30406,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -29843,6 +30420,8 @@
                           (%T10 (GRAM/BSTART %T9)))
                     (DECLARE (IGNORABLE %T9 %T10))
                     (AND %T10
+                         (<= (ACL2::LEN (CADR %T10))
+                             (ACL2::LEN %T9))
                          (LET* ((%T11 (CAR %T10)))
                            (DECLARE (IGNORABLE %T11))
                            (AND (TRUE-LISTP %T11)
@@ -29861,6 +30440,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T15))
       (AND %T15
+           (<= (ACL2::LEN (CADR %T15))
+               (ACL2::LEN %T0))
            (LET* ((%T16 (CAR %T15))
                   (STARTOPT %T16)
                   (%T17 (CADR %T15)))
@@ -29881,6 +30462,8 @@
          (LET ((%E (LET* ((%T11 (GRAM/BFUNCIDX %S)))
                      (DECLARE (IGNORABLE %T11))
                      (AND %T11
+                          (<= (ACL2::LEN (CADR %T11))
+                              (ACL2::LEN %S))
                           (LET* ((%T12 (CAR %T11))
                                  (EL %T12)
                                  (%P (CADR %T11)))
@@ -29925,6 +30508,8 @@
        (DECLARE (IGNORABLE %T0 %T1 %T2))
        (AND
         %T2
+        (<= (ACL2::LEN (CADR %T2))
+            (ACL2::LEN %T1))
         (LET*
          ((%T3 (CAR %T2))
           (E %T3)
@@ -29936,6 +30521,8 @@
             ((%R (LET* ((%T7 (GRAM/BU32 %T6)))
                    (DECLARE (IGNORABLE %T7))
                    (AND %T7
+                        (<= (ACL2::LEN (CADR %T7))
+                            (ACL2::LEN %T6))
                         (LET* ((%T8 (CAR %T7))
                                (N %T8)
                                (%T9 (CADR %T7))
@@ -29943,6 +30530,8 @@
                                (%T14 (GRAM/BELEM/REP13 0 N %T10)))
                           (DECLARE (IGNORABLE %T8 N %T9 %T10 %T14))
                           (AND %T14
+                               (<= (ACL2::LEN (CADR %T14))
+                                   (ACL2::LEN %T10))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T14))))
                                       (%T15 (CADR %T14))
                                       (%T16 %T15)
@@ -29954,6 +30543,8 @@
             (IF %R %R NIL))))
          (DECLARE (IGNORABLE %T3 E %T4 %T5 %T6 %T19))
          (AND %T19
+              (<= (ACL2::LEN (CADR %T19))
+                  (ACL2::LEN %T6))
               (LET* ((%T20 (CAR %T19)))
                 (DECLARE (IGNORABLE %T20))
                 (AND (TRUE-LISTP %T20)
@@ -29979,6 +30570,8 @@
          (LET ((%E (LET* ((%T15 (GRAM/BELEM %S)))
                      (DECLARE (IGNORABLE %T15))
                      (AND %T15
+                          (<= (ACL2::LEN (CADR %T15))
+                              (ACL2::LEN %S))
                           (LET* ((%T16 (CAR %T15))
                                  (EL %T16)
                                  (%P (CADR %T15)))
@@ -30024,6 +30617,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -30034,6 +30629,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -30052,6 +30649,8 @@
                           (DECLARE (IGNORABLE %T11))
                           (AND
                            %T11
+                           (<= (ACL2::LEN (CADR %T11))
+                               (ACL2::LEN %T10))
                            (LET* ((%T12 (CAR %T11))
                                   (N %T12)
                                   (%T13 (CADR %T11))
@@ -30060,6 +30659,8 @@
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
                                %T18
+                               (<= (ACL2::LEN (CADR %T18))
+                                   (ACL2::LEN %T14))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
                                       (%T19 (CADR %T18))
                                       (%T20 %T19)
@@ -30071,6 +30672,8 @@
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
                     (AND %T23
+                         (<= (ACL2::LEN (CADR %T23))
+                             (ACL2::LEN %T10))
                          (LET* ((%T24 (CAR %T23)))
                            (DECLARE (IGNORABLE %T24))
                            (AND (TRUE-LISTP %T24)
@@ -30089,6 +30692,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
       (AND %T28
+           (<= (ACL2::LEN (CADR %T28))
+               (ACL2::LEN %T0))
            (LET* ((%T29 (CAR %T28)))
              (DECLARE (IGNORABLE %T29))
              (AND (TRUE-LISTP %T29)
@@ -30118,6 +30723,8 @@
        (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
                    (DECLARE (IGNORABLE %T0))
                    (AND %T0
+                        (<= (ACL2::LEN (CADR %T0))
+                            (ACL2::LEN %S))
                         (LET* ((%T1 (CAR %T0))
                                (N %T1)
                                (%T2 (CADR %T0))
@@ -30125,6 +30732,8 @@
                                (%T4 (GRAM/BVALTYPE %T3)))
                           (DECLARE (IGNORABLE %T1 N %T2 %T3 %T4))
                           (AND %T4
+                               (<= (ACL2::LEN (CADR %T4))
+                                   (ACL2::LEN %T3))
                                (LET* ((%T5 (CAR %T4))
                                       (T^R %T5)
                                       (%T6 (CADR %T4))
@@ -30148,6 +30757,8 @@
          (LET ((%E (LET* ((%T5 (GRAM/BLOCALS %S)))
                      (DECLARE (IGNORABLE %T5))
                      (AND %T5
+                          (<= (ACL2::LEN (CADR %T5))
+                              (ACL2::LEN %S))
                           (LET* ((%T6 (CAR %T5))
                                  (EL %T6)
                                  (%P (CADR %T5)))
@@ -30200,6 +30811,8 @@
         (LET ((%R (LET* ((%T1 (GRAM/BU32 %T0)))
                     (DECLARE (IGNORABLE %T1))
                     (AND %T1
+                         (<= (ACL2::LEN (CADR %T1))
+                             (ACL2::LEN %T0))
                          (LET* ((%T2 (CAR %T1))
                                 (N %T2)
                                 (%T3 (CADR %T1))
@@ -30207,6 +30820,8 @@
                                 (%T8 (GRAM/BFUNC/REP7 0 N %T4)))
                            (DECLARE (IGNORABLE %T2 N %T3 %T4 %T8))
                            (AND %T8
+                                (<= (ACL2::LEN (CADR %T8))
+                                    (ACL2::LEN %T4))
                                 (LET* ((EL-STAR (CAR (CDR (CAR %T8))))
                                        (%T9 (CADR %T8))
                                        (%T10 %T9)
@@ -30219,6 +30834,8 @@
       (DECLARE (IGNORABLE %T0 %T13))
       (AND
        %T13
+       (<= (ACL2::LEN (CADR %T13))
+           (ACL2::LEN %T0))
        (LET* ((%T14 (CAR %T13)))
         (DECLARE (IGNORABLE %T14))
         (AND
@@ -30229,6 +30846,8 @@
                  (%T17 (GRAM/BEXPR %T16)))
             (DECLARE (IGNORABLE LOCAL-STAR-STAR %T15 %T16 %T17))
             (AND %T17
+                 (<= (ACL2::LEN (CADR %T17))
+                     (ACL2::LEN %T16))
                  (LET* ((%T18 (CAR %T17))
                         (EXPR %T18)
                         (%T19 (CADR %T17))
@@ -30250,6 +30869,8 @@
        (LET ((%R (LET* ((%T0 (GRAM/BU32 %S)))
                    (DECLARE (IGNORABLE %T0))
                    (AND %T0
+                        (<= (ACL2::LEN (CADR %T0))
+                            (ACL2::LEN %S))
                         (LET* ((%T1 (CAR %T0))
                                (LEN %T1)
                                (%T2 (CADR %T0))
@@ -30261,6 +30882,8 @@
                                       (%T5 (GRAM/BFUNC %T4)))
                                  (DECLARE (IGNORABLE %T4 %T5))
                                  (AND %T5
+                                      (<= (ACL2::LEN (CADR %T5))
+                                          (ACL2::LEN %T4))
                                       (LET* ((%T6 (CAR %T5))
                                              (CODE %T6)
                                              (%T7 (CADR %T5)))
@@ -30284,6 +30907,8 @@
          (LET ((%E (LET* ((%T15 (GRAM/BCODE %S)))
                      (DECLARE (IGNORABLE %T15))
                      (AND %T15
+                          (<= (ACL2::LEN (CADR %T15))
+                              (ACL2::LEN %S))
                           (LET* ((%T16 (CAR %T15))
                                  (EL %T16)
                                  (%P (CADR %T15)))
@@ -30329,6 +30954,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -30339,6 +30966,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -30357,6 +30986,8 @@
                           (DECLARE (IGNORABLE %T11))
                           (AND
                            %T11
+                           (<= (ACL2::LEN (CADR %T11))
+                               (ACL2::LEN %T10))
                            (LET* ((%T12 (CAR %T11))
                                   (N %T12)
                                   (%T13 (CADR %T11))
@@ -30365,6 +30996,8 @@
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
                                %T18
+                               (<= (ACL2::LEN (CADR %T18))
+                                   (ACL2::LEN %T14))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
                                       (%T19 (CADR %T18))
                                       (%T20 %T19)
@@ -30376,6 +31009,8 @@
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
                     (AND %T23
+                         (<= (ACL2::LEN (CADR %T23))
+                             (ACL2::LEN %T10))
                          (LET* ((%T24 (CAR %T23)))
                            (DECLARE (IGNORABLE %T24))
                            (AND (TRUE-LISTP %T24)
@@ -30394,6 +31029,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
       (AND %T28
+           (<= (ACL2::LEN (CADR %T28))
+               (ACL2::LEN %T0))
            (LET* ((%T29 (CAR %T28)))
              (DECLARE (IGNORABLE %T29))
              (AND (TRUE-LISTP %T29)
@@ -30415,6 +31052,8 @@
          (LET ((%E (LET* ((%T11 (GRAM/BBYTE %S)))
                      (DECLARE (IGNORABLE %T11))
                      (AND %T11
+                          (<= (ACL2::LEN (CADR %T11))
+                              (ACL2::LEN %S))
                           (LET* ((%T12 (CAR %T11))
                                  (EL %T12)
                                  (%P (CADR %T11)))
@@ -30459,6 +31098,8 @@
        (DECLARE (IGNORABLE %T0 %T1 %T2))
        (AND
         %T2
+        (<= (ACL2::LEN (CADR %T2))
+            (ACL2::LEN %T1))
         (LET*
          ((%T3 (CAR %T2))
           (E %T3)
@@ -30470,6 +31111,8 @@
             ((%R (LET* ((%T7 (GRAM/BU32 %T6)))
                    (DECLARE (IGNORABLE %T7))
                    (AND %T7
+                        (<= (ACL2::LEN (CADR %T7))
+                            (ACL2::LEN %T6))
                         (LET* ((%T8 (CAR %T7))
                                (N %T8)
                                (%T9 (CADR %T7))
@@ -30477,6 +31120,8 @@
                                (%T14 (GRAM/BDATA/REP13 0 N %T10)))
                           (DECLARE (IGNORABLE %T8 N %T9 %T10 %T14))
                           (AND %T14
+                               (<= (ACL2::LEN (CADR %T14))
+                                   (ACL2::LEN %T10))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T14))))
                                       (%T15 (CADR %T14))
                                       (%T16 %T15)
@@ -30488,6 +31133,8 @@
             (IF %R %R NIL))))
          (DECLARE (IGNORABLE %T3 E %T4 %T5 %T6 %T19))
          (AND %T19
+              (<= (ACL2::LEN (CADR %T19))
+                  (ACL2::LEN %T6))
               (LET* ((%T20 (CAR %T19)))
                 (DECLARE (IGNORABLE %T20))
                 (AND (TRUE-LISTP %T20)
@@ -30513,6 +31160,8 @@
          (LET ((%E (LET* ((%T15 (GRAM/BDATA %S)))
                      (DECLARE (IGNORABLE %T15))
                      (AND %T15
+                          (<= (ACL2::LEN (CADR %T15))
+                              (ACL2::LEN %S))
                           (LET* ((%T16 (CAR %T15))
                                  (EL %T16)
                                  (%P (CADR %T15)))
@@ -30558,6 +31207,8 @@
             (DECLARE (IGNORABLE %T1))
             (AND
              %T1
+             (<= (ACL2::LEN (CADR %T1))
+                 (ACL2::LEN %T0))
              (LET* ((%T2 (CAR %T1)))
               (DECLARE (IGNORABLE %T2))
               (AND
@@ -30568,6 +31219,8 @@
                 (DECLARE (IGNORABLE %T3 %T4 %T5))
                 (AND
                  %T5
+                 (<= (ACL2::LEN (CADR %T5))
+                     (ACL2::LEN %T4))
                  (LET* ((%T6 (CAR %T5))
                         (LEN %T6)
                         (%T7 (CADR %T5))
@@ -30586,6 +31239,8 @@
                           (DECLARE (IGNORABLE %T11))
                           (AND
                            %T11
+                           (<= (ACL2::LEN (CADR %T11))
+                               (ACL2::LEN %T10))
                            (LET* ((%T12 (CAR %T11))
                                   (N %T12)
                                   (%T13 (CADR %T11))
@@ -30594,6 +31249,8 @@
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
                                %T18
+                               (<= (ACL2::LEN (CADR %T18))
+                                   (ACL2::LEN %T14))
                                (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
                                       (%T19 (CADR %T18))
                                       (%T20 %T19)
@@ -30605,6 +31262,8 @@
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
                     (AND %T23
+                         (<= (ACL2::LEN (CADR %T23))
+                             (ACL2::LEN %T10))
                          (LET* ((%T24 (CAR %T23)))
                            (DECLARE (IGNORABLE %T24))
                            (AND (TRUE-LISTP %T24)
@@ -30623,6 +31282,8 @@
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
       (AND %T28
+           (<= (ACL2::LEN (CADR %T28))
+               (ACL2::LEN %T0))
            (LET* ((%T29 (CAR %T28)))
              (DECLARE (IGNORABLE %T29))
              (AND (TRUE-LISTP %T29)
@@ -30637,10 +31298,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP14 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T13 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T13))
                           (AND %T13
+                               (<= (ACL2::LEN (CADR %T13))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T13)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T13)) %P))))))
@@ -30660,10 +31323,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP23 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T22 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T22))
                           (AND %T22
+                               (<= (ACL2::LEN (CADR %T22))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T22)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T22)) %P))))))
@@ -30683,10 +31348,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP32 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T31 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T31))
                           (AND %T31
+                               (<= (ACL2::LEN (CADR %T31))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T31)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T31)) %P))))))
@@ -30706,10 +31373,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP41 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T40 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T40))
                           (AND %T40
+                               (<= (ACL2::LEN (CADR %T40))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T40)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T40)) %P))))))
@@ -30729,10 +31398,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP50 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T49 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T49))
                           (AND %T49
+                               (<= (ACL2::LEN (CADR %T49))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T49)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T49)) %P))))))
@@ -30752,10 +31423,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP59 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T58 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T58))
                           (AND %T58
+                               (<= (ACL2::LEN (CADR %T58))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T58)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T58)) %P))))))
@@ -30775,10 +31448,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP68 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T67 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T67))
                           (AND %T67
+                               (<= (ACL2::LEN (CADR %T67))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T67)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T67)) %P))))))
@@ -30798,10 +31473,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP77 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T76 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T76))
                           (AND %T76
+                               (<= (ACL2::LEN (CADR %T76))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T76)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T76)) %P))))))
@@ -30821,10 +31498,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP86 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T85 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T85))
                           (AND %T85
+                               (<= (ACL2::LEN (CADR %T85))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T85)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T85)) %P))))))
@@ -30844,10 +31523,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP95 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T94 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T94))
                           (AND %T94
+                               (<= (ACL2::LEN (CADR %T94))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T94)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T94)) %P))))))
@@ -30892,10 +31573,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP108 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T107 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T107))
                           (AND %T107
+                               (<= (ACL2::LEN (CADR %T107))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T107)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T107)) %P))))))
@@ -30915,10 +31598,12 @@
 
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/REP117 (%S)
               (DECLARE (IGNORABLE %S))
-              (DECLARE (XARGS :MEASURE (ACL2::LEN %S)))
+              (DECLARE (XARGS :MEASURE (+ 1 (* 2 (ACL2::LEN %S)))))
               (LET ((%E (LET* ((%T116 (GRAM/BCUSTOMSEC %S)))
                           (DECLARE (IGNORABLE %T116))
                           (AND %T116
+                               (<= (ACL2::LEN (CADR %T116))
+                                   (ACL2::LEN %S))
                                (LET* ((%P (CADR %T116)))
                                  (DECLARE (IGNORABLE %P))
                                  (LIST (LIST (CAR %T116)) %P))))))
@@ -31004,12 +31689,16 @@
                      (DECLARE (IGNORABLE %T11 %T12 %T15))
                      (AND
                       %T15
+                      (<= (ACL2::LEN (CADR %T15))
+                          (ACL2::LEN %T12))
                       (LET* ((%T16 (CADR %T15))
                              (%T17 %T16)
                              (%T18 (GRAM/BTYPESEC %T17)))
                        (DECLARE (IGNORABLE %T16 %T17 %T18))
                        (AND
                         %T18
+                        (<= (ACL2::LEN (CADR %T18))
+                            (ACL2::LEN %T17))
                         (LET* ((%T19 (CAR %T18)))
                          (DECLARE (IGNORABLE %T19))
                          (AND
@@ -31021,12 +31710,16 @@
                            (DECLARE (IGNORABLE TYPE-STAR %T20 %T21 %T24))
                            (AND
                             %T24
+                            (<= (ACL2::LEN (CADR %T24))
+                                (ACL2::LEN %T21))
                             (LET* ((%T25 (CADR %T24))
                                    (%T26 %T25)
                                    (%T27 (GRAM/BIMPORTSEC %T26)))
                              (DECLARE (IGNORABLE %T25 %T26 %T27))
                              (AND
                               %T27
+                              (<= (ACL2::LEN (CADR %T27))
+                                  (ACL2::LEN %T26))
                               (LET* ((%T28 (CAR %T27)))
                                (DECLARE (IGNORABLE %T28))
                                (AND
@@ -31039,12 +31732,16 @@
                                       (IGNORABLE IMPORT-STAR %T29 %T30 %T33))
                                  (AND
                                   %T33
+                                  (<= (ACL2::LEN (CADR %T33))
+                                      (ACL2::LEN %T30))
                                   (LET* ((%T34 (CADR %T33))
                                          (%T35 %T34)
                                          (%T36 (GRAM/BFUNCSEC %T35)))
                                    (DECLARE (IGNORABLE %T34 %T35 %T36))
                                    (AND
                                     %T36
+                                    (<= (ACL2::LEN (CADR %T36))
+                                        (ACL2::LEN %T35))
                                     (LET* ((%T37 (CAR %T36)))
                                      (DECLARE (IGNORABLE %T37))
                                      (AND
@@ -31059,12 +31756,16 @@
                                                 TYPEIDX-STAR %T38 %T39 %T42))
                                        (AND
                                         %T42
+                                        (<= (ACL2::LEN (CADR %T42))
+                                            (ACL2::LEN %T39))
                                         (LET* ((%T43 (CADR %T42))
                                                (%T44 %T43)
                                                (%T45 (GRAM/BTABLESEC %T44)))
                                          (DECLARE (IGNORABLE %T43 %T44 %T45))
                                          (AND
                                           %T45
+                                          (<= (ACL2::LEN (CADR %T45))
+                                              (ACL2::LEN %T44))
                                           (LET* ((%T46 (CAR %T45)))
                                            (DECLARE (IGNORABLE %T46))
                                            (AND
@@ -31080,6 +31781,8 @@
                                                   TABLE-STAR %T47 %T48 %T51))
                                              (AND
                                               %T51
+                                              (<= (ACL2::LEN (CADR %T51))
+                                                  (ACL2::LEN %T48))
                                               (LET*
                                                 ((%T52 (CADR %T51))
                                                  (%T53 %T52)
@@ -31088,6 +31791,8 @@
                                                   (IGNORABLE %T52 %T53 %T54))
                                                (AND
                                                 %T54
+                                                (<= (ACL2::LEN (CADR %T54))
+                                                    (ACL2::LEN %T53))
                                                 (LET* ((%T55 (CAR %T54)))
                                                  (DECLARE (IGNORABLE %T55))
                                                  (AND
@@ -31103,6 +31808,9 @@
                                                              %T56 %T57 %T60))
                                                    (AND
                                                     %T60
+                                                    (<=
+                                                      (ACL2::LEN (CADR %T60))
+                                                      (ACL2::LEN %T57))
                                                     (LET* ((%T61 (CADR %T60))
                                                            (%T62 %T61)
                                                            (%T63 (GRAM/BGLOBALSEC
@@ -31112,6 +31820,9 @@
                                                              %T61 %T62 %T63))
                                                      (AND
                                                       %T63
+                                                      (<= (ACL2::LEN
+                                                               (CADR %T63))
+                                                          (ACL2::LEN %T62))
                                                       (LET*
                                                          ((%T64 (CAR %T63)))
                                                        (DECLARE
@@ -31130,6 +31841,10 @@
                                                              %T65 %T66 %T69))
                                                          (AND
                                                           %T69
+                                                          (<=
+                                                            (ACL2::LEN
+                                                                 (CADR %T69))
+                                                            (ACL2::LEN %T66))
                                                           (LET*
                                                            ((%T70
                                                                  (CADR %T69))
@@ -31142,6 +31857,11 @@
                                                              %T70 %T71 %T72))
                                                            (AND
                                                             %T72
+                                                            (<=
+                                                             (ACL2::LEN
+                                                                 (CADR %T72))
+                                                             (ACL2::LEN
+                                                                  %T71))
                                                             (LET*
                                                              ((%T73
                                                                  (CAR %T72)))
@@ -31167,6 +31887,12 @@
                                                                   %T75 %T78))
                                                                (AND
                                                                 %T78
+                                                                (<=
+                                                                 (ACL2::LEN
+                                                                  (CADR
+                                                                       %T78))
+                                                                 (ACL2::LEN
+                                                                      %T75))
                                                                 (LET*
                                                                  ((%T79
                                                                    (CADR
@@ -31181,6 +31907,12 @@
                                                                     %T81))
                                                                  (AND
                                                                   %T81
+                                                                  (<=
+                                                                   (ACL2::LEN
+                                                                    (CADR
+                                                                       %T81))
+                                                                   (ACL2::LEN
+                                                                       %T80))
                                                                   (LET*
                                                                    ((%T82
                                                                      (CAR
@@ -31217,6 +31949,12 @@
                                                                        %T87))
                                                                      (AND
                                                                       %T87
+                                                                      (<=
+                                                                       (ACL2::LEN
+                                                                        (CADR
+                                                                         %T87))
+                                                                       (ACL2::LEN
+                                                                        %T84))
                                                                       (LET*
                                                                        ((%T88
                                                                          (CADR
@@ -31233,6 +31971,12 @@
                                                                          %T90))
                                                                        (AND
                                                                         %T90
+                                                                        (<=
+                                                                         (ACL2::LEN
+                                                                          (CADR
+                                                                           %T90))
+                                                                         (ACL2::LEN
+                                                                          %T89))
                                                                         (LET*
                                                                          ((%T91
                                                                            (CAR
@@ -31262,6 +32006,13 @@
                                                                              %T96))
                                                                            (AND
                                                                             %T96
+                                                                            (<=
+                                                                             (ACL2::LEN
+                                                                              (CADR
+                                                                              
+ %T96))
+                                                                             (ACL2::LEN
+                                                                              %T93))
                                                                             (LET*
                                                                              ((%T97
                                                                               
@@ -31286,6 +32037,17 @@
  %T99))
                                                                              (AND
                                                                               %T99
+                                                                              (<=
+                                                                              
+ (ACL2::LEN
+                                                                              
+  (CADR
+                                                                              
+   %T99))
+                                                                              
+ (ACL2::LEN
+                                                                              
+  %T98))
                                                                               (LET*
                                                                               
  ((%T100
@@ -31378,6 +32140,18 @@
                                                                               
       %T109
                                                                               
+      (<=
+                                                                              
+       (ACL2::LEN
+                                                                              
+        (CADR
+                                                                              
+         %T109))
+                                                                              
+       (ACL2::LEN
+                                                                              
+        %T106))
+                                                                              
       (LET*
                                                                               
        ((%T110
@@ -31409,6 +32183,18 @@
        (AND
                                                                               
         %T112
+                                                                              
+        (<=
+                                                                              
+         (ACL2::LEN
+                                                                              
+          (CADR
+                                                                              
+           %T112))
+                                                                              
+         (ACL2::LEN
+                                                                              
+          %T111))
                                                                               
         (LET*
                                                                               
@@ -31467,6 +32253,18 @@
            (AND
                                                                               
             %T118
+                                                                              
+            (<=
+                                                                              
+             (ACL2::LEN
+                                                                              
+              (CADR
+                                                                              
+               %T118))
+                                                                              
+             (ACL2::LEN
+                                                                              
+              %T115))
                                                                               
             (LET*
                                                                               

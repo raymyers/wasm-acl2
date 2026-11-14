@@ -82,8 +82,31 @@
       (cons 'mutual-recursion (%logic-defuns (cdr ev)))
     (%logic-defun ev)))
 
+; Second logic alternative: prove termination in ACL2's ground-zero theory,
+; so the prover does not open (large) generated callees; parser loop
+; measures only need the generated progress checks about len.
+(defun %gz-defun (d)
+  (declare (xargs :guard t))
+  (if (and (true-listp d) (eq (car d) 'defun) (consp (cdr d)) (consp (cddr d)))
+      (list* 'defun (cadr d) (caddr d)
+             '(declare (xargs :ruler-extenders :all
+                              :hints (("Goal" :in-theory (theory 'acl2::ground-zero)))))
+             (cdddr d))
+    d))
+
+(defun %gz-defuns (ds)
+  (declare (xargs :guard t))
+  (if (atom ds) nil (cons (%gz-defun (car ds)) (%gz-defuns (cdr ds)))))
+
+(defun %gz-version (ev)
+  (declare (xargs :guard t))
+  (if (and (consp ev) (eq (car ev) 'mutual-recursion))
+      (cons 'mutual-recursion (%gz-defuns (cdr ev)))
+    (%gz-defun ev)))
+
 (defmacro %try-logic (ev)
   `(make-event '(:or (with-prover-step-limit 200000 ,(%logic-version ev))
+                     (with-prover-step-limit 200000 ,(%gz-version ev))
                      ,(%program-version ev))))
 
 ; Step bound for closure relations (Steps): R(x) iterates the step relation

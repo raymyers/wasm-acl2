@@ -488,7 +488,14 @@ faithfully:
 - [~] Move generated functions from `:program` to logic mode. Termination comes
       from `acl2-count` by default; measures go in config when that fails.
       Done generically via `%try-logic` (`:ruler-extenders :all`, bounded
-      prover steps): 312 of 332 in logic mode. Left: the `STEP` mutual
+      prover steps): 312 of 332 in logic mode at T4; now **446 of 462** (with
+      parsers) after three generic changes: (1) `mutual-recursion` holds only
+      the functions that really recurse (aux functions that never call back
+      are emitted first); (2) parsers carry always-true progress checks
+      `|rest| <= |input|` after every sub-parse, with measures 2|S| (grammar)
+      and 2|S|+1 (its loops); (3) a second logic attempt proves termination
+      in the `ground-zero` theory, so large callees are not opened. Left: the
+      16 functions of the `STEP` mutual
       recursion (with its search/prefix aux functions) and its callers. Its
       termination needs a lexicographic measure across `STEP` and the search
       function, plus the fact that the `ctxt-instrs` side condition makes the
@@ -496,11 +503,8 @@ faithfully:
       measures, not done yet
 - [x] Guard verification wherever it is achievable: each event is followed
       by `(%try-guards f)`, a step-bounded `verify-guards` that falls back
-      silently. Result (with parsers): **157** functions guard-verified
-      (`:common-lisp-compliant`), 255 logic-only, 50 `:program` of 462. The
-      `:program` ones: the `STEP` group and callers, `$concat_`, alloc/init and
-      `$instantiate`, and the recursive instruction parser `GRAM/BINSTR` with
-      the grammars above it (same byte-length-measure issue as `STEP`)
+      silently. Result: **164** functions guard-verified
+      (`:common-lisp-compliant`), 282 logic-only, 16 `:program`, of 462
 - [x] Generated or hand-written proofs over the generated defs: the analogs of
       WASM1's `add-correct` and `div-by-zero-traps`. `tests/sem/t8-proofs.lisp`,
       all for all inputs: `$idiv_`/`$irem_` by zero have no result; the
@@ -539,7 +543,7 @@ still `:program`, so no `run`-level theorem yet.
 | Execution rules covered | 170/170 instructions | all 58 reduction rules (Step_pure/read/Step) |
 | Validation | hand-written type checker | blocked (T6): non-instruction typing only |
 | Spec rules traceable to ACL2 defs | informal | 1:1 by name (`STEP_PURE/BINOP-VAL` ...) |
-| Logic-mode share | 100% | 412 / 462 functions (incl. parsers); 157 guard-verified |
+| Logic-mode share | 100% | 446 / 462 functions (incl. parsers); 164 guard-verified |
 | Numeric oracle agreement (8015 V8 vectors) | **6975** (all integer ops agree; floats disagree) | **8015** |
 | Effort to absorb a SpecTec update | manual | regenerate + review diff (`make check`) |
 

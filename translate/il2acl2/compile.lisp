@@ -1659,8 +1659,12 @@
          (mv-let (as cx) (cexps (gram-args-exps (cddr sym)) env cx)
            (mv-let (tname cx) (cx-fresh "%T" cx)
              (let ((tv (gsym tname)))
+               ;; progress check (always true): rest is no longer than the input,
+               ;; which makes parser termination syntactic (T8)
                (mv (list (list* :bind tv (list* (fn-sym :gram id cx) pos as))
-                         (list :test tv))
+                         (list :test tv)
+                         (list :test (list (quote <=) (list (quote len) (list (quote cadr) tv))
+                                           (list (quote len) pos))))
                    (list 'car tv) (list 'cadr tv) env cx))))))))
     ((nodep sym "ATTR" 2)
      (mv-let (steps v p env cx) (csym (third sym) pos env cx)
@@ -1748,7 +1752,7 @@
                                                (ignorable-decl (list rv))
                                                (list 'and rv (list 'list cols (list 'cadr rv)))))))))
                     (t
-                     (mk-defun-measure aux (cons sv fvs) (list 'len sv)
+                     (mk-defun-measure aux (cons sv fvs) (list '+ 1 (list '* 2 (list 'len sv)))
                        (list 'let (list (list e elem)) (ignorable-decl (list e))
                              (list 'if (list 'and e (list '< (list 'len (list 'cadr e)) (list 'len sv)))
                                    (list 'let (list (list rv (list* aux (list 'cadr e) fvs)))
@@ -1759,7 +1763,9 @@
                (mv-let (tname cx) (cx-fresh "%T" cx)
                  (let ((tv (gsym tname)))
                    (mv (append (list (list* :bind tv (if counted (list* aux 0 cnt pos fvs) (list* aux pos fvs)))
-                                     (list :test tv))
+                                     (list :test tv)
+                                     (list :test (list (quote <=) (list (quote len) (list (quote cadr) tv))
+                                                       (list (quote len) pos))))
                                (list-out-binds-from outs 1 tv cx))
                        (list 'car (list 'car tv))
                        (list 'cadr tv)
@@ -1786,7 +1792,9 @@
                      (let ((tv (gsym tname)))
                        (mv (append (list (list* :bind pv pos))
                                    bsteps
-                                   (list (list* :bind tv (chain-results terms)) (list :test tv)))
+                                   (list (list* :bind tv (chain-results terms)) (list :test tv)
+                                         (list :test (list (quote <=) (list (quote len) (list (quote cadr) tv))
+                                                           (list (quote len) pv)))))
                            (list 'car tv) (list 'cadr tv) env cx))))))))))))
 
  (defun cprods (prods pos env cx)
@@ -1821,8 +1829,13 @@
            (formals (gsyms-prefixed "%A" (len names))))
       (mv-let (bsteps benv) (bind-names-terms names formals cx)
         (mv-let (terms cx) (cprods (gram-prods x) sv benv cx)
-          (mv (mk-defun (fn-sym :gram (second x) cx) (cons sv formals)
-                        (build-steps bsteps (chain-results terms)))
+          (mv (if (cx-get :gram-rec cx)
+                  ;; recursive grammar: measure 2|S| (its loops use 2|S|+1)
+                  (mk-defun-measure (fn-sym :gram (second x) cx) (cons sv formals)
+                                    (list (quote *) 2 (list (quote len) sv))
+                                    (build-steps bsteps (chain-results terms)))
+                (mk-defun (fn-sym :gram (second x) cx) (cons sv formals)
+                          (build-steps bsteps (chain-results terms))))
               cx))))))
 
 (defun cgram-members (xs cx)
@@ -1883,18 +1896,76 @@
         (mv (append d1 d2) (append b1 b2) cx)))))
 
 ; (mv events builtins skipped cx)
+; --- Cliques: only functions that really recurse go in mutual-recursion ---
+
+(mutual-recursion
+(defun calls-of (x acc)
+  ;; generated function names called in term x
+  (cond ((atom x) acc)
+        ((gsym-p x) acc)
+        (t (let ((acc (if (and (gsym-p (car x)) (not (member-equal (cdr (car x)) acc)))
+                          (cons (cdr (car x)) acc)
+                        acc)))
+             (if (gsym-p (car x))
+                 (calls-of-list (cdr x) acc)
+               (calls-of-list x acc))))))
+
+(defun calls-of-list (l acc)
+  (if (atom l) acc (calls-of-list (cdr l) (calls-of (car l) acc)))))
+
+(defun defun-name (d) (cdr (second d)))
+(defun defun-calls (d) (calls-of (cdddr d) nil))
+
+(defun member-main-names (xs cx)
+  (cond ((endp xs) nil)
+        (t (cons (cond ((is (car xs) "TYP") (tbl-name :typ (second (car xs)) cx))
+                       ((is (car xs) "DEF") (tbl-name :def (second (car xs)) cx))
+                       ((is (car xs) "REL") (tbl-name :rel (second (car xs)) cx))
+                       (t (tbl-name :gram (second (car xs)) cx)))
+                 (member-main-names (cdr xs) cx)))))
+
+; names in DS (by name) that can reach a name in SET; iterate to a fixpoint
+(defun reaching-step (ds set)
+  (cond ((endp ds) set)
+        ((and (not (member-equal (defun-name (car ds)) set))
+              (intersection-equal (defun-calls (car ds)) set))
+         (reaching-step (cdr ds) (cons (defun-name (car ds)) set)))
+        (t (reaching-step (cdr ds) set))))
+
+(defun reaching (ds set fuel)
+  (if (zp fuel) set
+    (let ((set2 (reaching-step ds set)))
+      (if (equal (len set2) (len set)) set (reaching ds set2 (1- fuel))))))
+
+(defun split-clique (ds in)
+  ;; (mv outside inside), order preserved
+  (if (endp ds) (mv nil nil)
+    (mv-let (o i) (split-clique (cdr ds) in)
+      (if (member-equal (defun-name (car ds)) in)
+          (mv o (cons (car ds) i))
+        (mv (cons (car ds) o) i)))))
+
+(defun strip-defun-names (ds)
+  (if (endp ds) nil (cons (defun-name (car ds)) (strip-defun-names (cdr ds)))))
+
+(defun clique-events (x ds cx)
+  (if (not (is x "REC")) ds
+    (let* ((mains (member-main-names (cdr x) cx))
+           (in (reaching ds (intersection-equal mains (strip-defun-names ds)) (1+ (len ds)))))
+      (mv-let (outside inside) (split-clique ds in)
+        (append outside
+                (if (consp (cdr inside)) (list (cons 'mutual-recursion inside)) inside))))))
+
 (defun cform (x cx)
   (cond ((or (is x "GRAM") (and (is x "REC") (is (cadr x) "GRAM")))
-         (mv-let (ds cx) (cgram-members (rel-members x) cx)
-           (mv (if (and (is x "REC") (consp (cdr ds))) (list (cons 'mutual-recursion ds)) ds)
-               nil nil cx)))
+         (mv-let (ds cx) (cgram-members (rel-members x) (cx-put :gram-rec (is x "REC") cx))
+           (mv (clique-events x ds cx) nil nil (cx-put :gram-rec nil cx))))
         ((or (is x "REL") (and (is x "REC") (is (cadr x) "REL")))
          (mv-let (ds cx) (crel-form x cx)
-           (mv (if (and (is x "REC") (consp (cdr ds))) (list (cons 'mutual-recursion ds)) ds)
-               nil nil cx)))
+           (mv (clique-events x ds cx) nil nil cx)))
         ((is x "REC")
          (mv-let (ds bs cx) (cmembers (cdr x) cx)
-           (mv (if (consp (cdr ds)) (list (cons 'mutual-recursion ds)) ds) bs nil cx)))
+           (mv (clique-events x ds cx) bs nil cx)))
         (t (mv-let (ds bs cx) (cmember x cx) (mv ds bs nil cx)))))
 
 (defun cforms (xs cx)
