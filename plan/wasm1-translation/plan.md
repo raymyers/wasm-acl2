@@ -464,24 +464,41 @@ the project, not a mechanical next step):
 **Exit**: the share of the generated semantics in logic mode is recorded and
 increasing; the first `run`-level theorem is proved.
 
-### T9: Side-by-side comparison with WASM1 (`translate/compare/`)
-- [ ] **Differential testing**: run the same oracle corpus through both
-      semantics and diff the results
-- [ ] **Equivalence theorems** for numerics, e.g.
+### T9: Side-by-side comparison with WASM1 (`translate/compare/`) 🔶 Partial
+- [~] **Differential testing**: run the same oracle corpus through both
+      semantics and diff the results. *Numeric level done*
+      (`compare/c1-numerics-diff.lisp`, `make -C translate compare`): WASM1
+      runs the same 8015 V8 vectors as single-instruction programs. The
+      module-level corpus waits on T5
+- [~] **Equivalence theorems** for numerics, e.g.
       `(equal (W1T::$IADD_ 32 a b) (WASM::...i32.add... a b))`, plus the
-      float ops, modulo the encoding map between the two float representations
-- [ ] Metrics table:
+      float ops, modulo the encoding map between the two float representations.
+      *Integer part done* (`compare/c2-int-equiv.lisp`): 12 theorems, for all
+      inputs, that the generated `$binop_` equals the BV expressions WASM1's
+      `execute-i32.*`/`i64.*` use (add, sub, mul, and, or, xor). Float
+      equivalence is **false** (see below), so it is not attempted
+- [x] Metrics table (2026-11-13):
 
 | Metric | WASM1 (agentic) | W1T (translated) |
 |---|---|---|
-| Hand-written ACL2 lines | ~4,300 | builtins + prelude + config |
-| Generated lines | 0 | |
-| Config overrides | n/a | |
-| Instructions covered | 170/170 | |
-| Spec rules traceable to ACL2 defs | informal | 1:1 by name |
-| Logic-mode share | 100% | |
-| Oracle agreement | | |
-| Effort to absorb a SpecTec update | manual | regenerate + review diff |
+| Hand-written ACL2 lines | ~4,300 (`execution.lisp` 3717 + `validation.lisp` 594) | 390 (`rt/builtins.lisp` 299 + `rt/prelude.lisp` 91) + 16-line config |
+| Translator lines | n/a | ~2,550 (`il2acl2/`), WASM-agnostic |
+| Generated lines | 0 | 10,396 (`gen/wasm1.lisp`, 310 events) |
+| Config overrides | n/a | 3 (`$utf8`, `ctxt-instrs` split, `hint(inverse)` pairs) |
+| Execution rules covered | 170/170 instructions | all 58 reduction rules (Step_pure/read/Step) |
+| Validation | hand-written type checker | blocked (T6): non-instruction typing only |
+| Spec rules traceable to ACL2 defs | informal | 1:1 by name (`STEP_PURE/BINOP-VAL` ...) |
+| Logic-mode share | 100% | 312 / 332 functions (20 `:program`: `STEP` group + callers) |
+| Numeric oracle agreement (8015 V8 vectors) | **6975** (all integer ops agree; floats disagree) | **8015** |
+| Effort to absorb a SpecTec update | manual | regenerate + review diff (`make check`) |
+
+**Finding from the differential test**: WASM1's float arithmetic is exact
+rational arithmetic with no rounding to f32/f64 precision, e.g.
+`f32.add 1.0 4294967296.0` gives `(:F32.CONST 4294967297)` where IEEE (V8, W1T)
+gives 4294967296. Every float op that can round disagrees (add/sub/mul/div
+agree only on ~12-14/78 vectors; also sqrt, nearest/trunc/floor/ceil,
+demote, the int→float conversions, and some float→int truncations and
+reinterprets). All integer ops agree on all vectors.
 
 ---
 

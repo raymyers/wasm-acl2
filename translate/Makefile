@@ -9,6 +9,7 @@
 #   make check-gen   fail unless two fresh translator runs agree with gen/
 #   make vectors     regenerate tests/sem/numeric-vectors.lsp (WASM engine oracle)
 #   make test        certify the translator, gen/, rt/ and every test book
+#   make compare     T9 reports: run the WASM1 tree on the same oracle vectors
 #   make check       check-il + check-gen + test
 
 NIX  ?= nix
@@ -19,7 +20,7 @@ IL   := il/wasm-1.0.il.sexp
 GEN_FILES := package.lsp portcullis.acl2 portcullis.lisp cert.acl2 wasm1.lisp
 TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 
-.PHONY: il check-il gen check-gen test check clean translator vectors
+.PHONY: il check-il gen check-gen test check clean translator vectors compare
 
 il:
 	$(NIX) build ..#wasm1-il --no-link --print-out-paths > .il-out
@@ -59,6 +60,11 @@ vectors:
 
 test:
 	$(CERT) --acl2 $(ACL2) -j $(JOBS) $(TEST_BOOKS)
+
+# T9 side-by-side reports (include the WASM1 tree; see the .cert.out files).
+compare:
+	$(CERT) --acl2 $(ACL2) -j $(JOBS) $(patsubst %.lisp,%,$(wildcard compare/*.lisp))
+	grep -h -A3 "T9 " compare/*.cert.out
 
 check: check-il check-gen test
 
