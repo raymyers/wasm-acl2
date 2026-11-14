@@ -27,8 +27,8 @@ A new session starts here.
 - **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅. P5 🔶: items 1 (spec-test-1:
   10,848 of 11,606 commands reached pass) and 2 done; item 3 half done
   (wast2json counts), its decode count blocked on the `rt/` decision.
-  P6 ✅ (runtime baseline). P4 🔶: G1 (53 specializations) and G3 done. P7 not started
-- **Next action**: P4 G4, G8, G9 (Opus); the mode table (W1/G2, now with G5) needs a Fable session;
+  P6 ✅ (runtime baseline). P4 🔶: G1 (53 specializations), G3, G4 done. P7 not started
+- **Next action**: P4 G8, G9 (Opus); the mode table (W1/G2, now with G5) needs a Fable session;
   the 2.0 gate needs the `rt/` decision. P7 needs P4 and D1-D6
 - **In progress / uncommitted**: nothing for this plan. The old single-book
   driver `translate/tests/spec/t7-spec.lisp` (untracked, the user's) is
@@ -348,7 +348,8 @@ missing inverse pair. *Met 2026-11-14: the 17 remaining "pattern" errors are S5,
 - [ ] G3, G4 iterated premises; G5 disjunctions. *G3 done 2026-11-14
       (count-only iteration, an aux loop; full 3.0 stubs 83 → 81). G5 is not
       mechanical: `t'` is existential, so it goes with the mode table
-      ([P4-generic-gaps](notes/P4-generic-gaps.md)). G4 open*
+      ([P4-generic-gaps](notes/P4-generic-gaps.md)). G4 done too
+      (`Step_read` 102/103; 3.0 reduction failures 3 of 218)*
 - [ ] 2.0 as a full target: builtins for SIMD, saturating truncation and sign
       extension in `rt/`; Node/V8 numeric vectors for them (W11)
 
@@ -448,9 +449,9 @@ P5, P6 need only P2 and can run alongside P3/P4.
   schema need no redesign.
 - Syntax recognizers, plain defs and the binary grammar are close: no stubs
   among the 208 types or the 90 binary grammars, and 16 stubs among 462 defs.
-- Execution is closer than typing: 4 of 218 reduction rules fail in `:fun`
-  after P3 (10 in P1; the 6 S1 inverses were missing pairs): G9 2, G3 1,
-  G4 1. Since P1 the rest of
+- Execution is closer than typing: 3 of 218 reduction rules fail in `:fun`
+  after P4 G3/G4 (10 in P1; the 6 S1 inverses were missing pairs): G9 2 and
+  one nested inverse. Since P1 the rest of
   `Step`, `Step_read`, `Step_pure` is emitted.
 - Typing is mostly a mode problem (P1): in `:multi` the type-validation and
   subtyping group fails 2 rules (G8) and instruction typing 3 (G5). The

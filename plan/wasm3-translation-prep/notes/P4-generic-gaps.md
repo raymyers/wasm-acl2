@@ -4,7 +4,7 @@
   iterated premises; G5 disjunctions; and the P1-found G8, G9)
 - Date: 2026-11-14
 - Repo commit: 3d79703 plus this note's commit
-- Status: draft (G1, G3 done; G5 reassigned to the mode table; G4, G8, G9 open)
+- Status: draft (G1, G3, G4 done; G5 reassigned to the mode table; G8, G9 open)
 - Feeds wasm3 plan: scheme delta (function arguments), gap list, config budget
 - Incorporated in wasm3 plan: no
 
@@ -93,3 +93,15 @@ finite types `numtype` ∪ `vectype`, or the split variant of `Valtype_sub`
 as a single witness (incomplete, as with `Heaptype_sub/trans`). That is a
 mode and premise-ordering decision, so it goes with the mode table (W1),
 not with G5's mechanical fix.
+
+## 2026-11-14: G4 (counted iteration whose domains are outputs)
+
+- `cprem`: `(ITER prem (LISTN n ["k"]) (dom x xs)...)` with every domain an
+  output (no input list) loops over k = 0 .. n-1 with an aux `<fn>/UPTO`.
+  It runs the inner premise with k bound and collects each iteration's
+  outputs into the output lists, like the existing list case (`/MAP`).
+- Effect, 3.0 D3 scope: `Step_read/vload-pack-val` compiles
+  (`Step_read` 101 → 102 of 103); errors 173 → 170. Reduction rules failing
+  in 3.0: **3 of 218** (`Step_pure/vsplat`, `vreplace_lane`: G9;
+  `Step_read/array.new_data-num`: nested inverse).
+- 1.0 unchanged; `make check` passes.

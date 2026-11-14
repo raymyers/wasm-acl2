@@ -1234,6 +1234,38 @@
            (ins (doms-bound doms env t)) (outs (doms-bound doms env nil))
            (in-names (dom-names ins)))
       (cond
+       ((and (endp ins) (consp outs) (is it "LISTN") (true-listp it) (not (has-unbound (second it) env)))
+        ;; G4 (wasm3 prep P4): a counted iteration whose domains are all
+        ;; outputs, e.g. (if $ibytes_(K, j) = ...)^(k<M) binding j*: loop over
+        ;; k = 0 .. n-1, run the inner premise with k bound, and collect the
+        ;; outputs of each iteration into the output lists.
+        (let* ((n-e (second it)) (kname (and (stringp (third it)) (third it)))
+               (knames (and kname (list kname)))
+               (fvs (bound-in (set-difference-equal (fv-prem inner) (append knames (dom-names outs))) env))
+               (fvsyms (env-terms fvs env))
+               (ksym (if kname (var-sym kname cx) (gsym "%K"))) (nsym (gsym "%N")) (rv (gsym "%R"))
+               (ienv (env-add-vars knames (env-restrict fvs env) cx)))
+          (mv-let (nv cx) (cexp n-e env cx)
+            (mv-let (isteps env3 cx) (cprem inner ienv cx)
+              (let ((otms (env-terms (dom-names outs) env3)))
+                (if (member-equal nil otms)
+                    (mv nil env (cx-err "iterated premise output not bound" pr cx))
+                  (mv-let (aux-name cx) (cx-fresh (concatenate 'string (cx-get :fn cx) "/UPTO") cx)
+                    (mv-let (tname cx) (cx-fresh "%T" cx)
+                      (let* ((aux (gsym aux-name)) (tv (gsym tname))
+                             (rec-call (list* aux (list '1+ (list 'nfix ksym)) nsym fvsyms))
+                             (def (mk-defun-measure
+                                   aux (list* ksym nsym fvsyms)
+                                   (list 'nfix (list '- (list 'nfix nsym) (list 'nfix ksym)))
+                                   (list 'if (list '<= (list 'nfix nsym) (list 'nfix ksym))
+                                         (list 'list (cons 'list (make-list (len outs))))
+                                         (build-steps isteps
+                                                      (list 'let (list (list rv rec-call)) (ignorable-decl (list rv))
+                                                            (list 'and rv (list 'list (cons 'list (cons-cols otms 0 rv))))))))))
+                        (mv (append (list (list* :bind tv (list* aux 0 nv fvsyms)) (list :test tv))
+                                    (list-out-binds outs 0 tv cx))
+                            (env-add-out-lists outs env cx)
+                            (cx-add-aux def cx)))))))))))
        ((endp ins) (mv nil env (cx-err "iterated premise without inputs" pr cx)))
        ((atom-is it "OPT")
         (mv-let (ds cx) (cexps (strip-thirds ins) env cx)
