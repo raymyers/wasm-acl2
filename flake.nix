@@ -3,10 +3,17 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    # SpecTec + the WASM 1.0 SpecTec source, pinned. Input to the
+    # deterministic translation in translate/ (plan/wasm1-translation).
+    wasm-spec = {
+      url = "github:WebAssembly/spec/943c5df07e84f11d2b83078964df5812530afbd2";
+      flake = false;
+    };
   };
 
   outputs =
-    { self, nixpkgs }:
+    { self, nixpkgs, wasm-spec }:
     let
       systems = [
         "x86_64-linux"
@@ -60,6 +67,58 @@
     {
       packages = forAllSystems (pkgs: rec {
         default = wasm-acl2;
+
+        # SpecTec (the WASM spec DSL toolchain) at the pinned wasm-spec rev.
+        # Mirrors spectec/Makefile: the reference interpreter is copied into
+        # the backend-interpreter tree before `dune build`.
+        spectec =
+          let
+            ocp = pkgs.ocaml-ng.ocamlPackages_5_4;
+          in
+          pkgs.stdenv.mkDerivation {
+            pname = "spectec";
+            version = "0.5-${builtins.substring 0 7 wasm-spec.rev}";
+            src = wasm-spec;
+            nativeBuildInputs = [
+              ocp.ocaml
+              ocp.dune_3
+              ocp.findlib
+              ocp.menhir
+            ];
+            buildInputs = [
+              ocp.menhirLib
+              ocp.zarith
+            ];
+            buildPhase = ''
+              runHook preBuild
+              cd spectec
+              ref=src/backend-interpreter/reference-interpreter
+              rm -rf $ref
+              cp -R ../interpreter $ref
+              chmod -R u+w $ref
+              rm -r $ref/dune-project $ref/jslib
+              cp src/backend-interpreter/dune-ref-interp $ref/dune
+              dune build --profile release src/exe-spectec/main.exe
+              runHook postBuild
+            '';
+            installPhase = ''
+              runHook preInstall
+              install -Dm755 _build/default/src/exe-spectec/main.exe $out/bin/spectec
+              mkdir -p $out/share/spectec
+              cp -R ../specification/wasm-1.0 $out/share/spectec/wasm-1.0
+              echo ${wasm-spec.rev} > $out/share/spectec/REV
+              runHook postInstall
+            '';
+            meta.description = "SpecTec ${wasm-spec.rev} with the WASM 1.0 spec sources";
+          };
+
+        # The WASM 1.0 IL as S-expressions: the contract between SpecTec and
+        # the ACL2 translator. translate/il/wasm-1.0.il.sexp must equal this.
+        wasm1-il = pkgs.runCommand "wasm1-il" { } ''
+          mkdir -p $out
+          ${spectec}/bin/spectec --ast --all-passes \
+            ${spectec}/share/spectec/wasm-1.0/*.spectec > $out/wasm-1.0.il.sexp
+        '';
 
         # ACL2 plus just the community books this project depends on.
         #
@@ -139,6 +198,8 @@
               !(builtins.elem base [
                 ".git"
                 "result"
+                "translate"
+                "plan"
               ]);
           };
 
@@ -186,6 +247,21 @@
 
       checks = forAllSystems (pkgs: {
         inherit (self.packages.${pkgs.stdenv.hostPlatform.system}) wasm-acl2;
+
+        # Determinism of the SpecTec -> IL step: two independent runs agree,
+        # and both equal the IL checked in under translate/il/.
+        translate-il =
+          let
+            spectec = self.packages.${pkgs.stdenv.hostPlatform.system}.spectec;
+          in
+          pkgs.runCommand "translate-il-check" { } ''
+            src=${spectec}/share/spectec/wasm-1.0
+            ${spectec}/bin/spectec --ast --all-passes $src/*.spectec > a.sexp
+            ${spectec}/bin/spectec --ast --all-passes $src/*.spectec > b.sexp
+            cmp a.sexp b.sexp
+            cmp a.sexp ${./translate/il/wasm-1.0.il.sexp}
+            touch $out
+          '';
       });
 
       devShells = forAllSystems (pkgs: {

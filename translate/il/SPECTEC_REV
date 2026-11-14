@@ -1,0 +1,5 @@
+# Pinned SpecTec input for translate/il/wasm-1.0.il.sexp.
+# The rev is locked by the `wasm-spec` input in ../../flake.nix / flake.lock.
+rev: 943c5df07e84f11d2b83078964df5812530afbd2
+spectec: 0.5 (built from spectec/ at that rev, OCaml 5.4)
+command: spectec --ast --all-passes specification/wasm-1.0/*.spectec

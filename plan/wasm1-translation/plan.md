@@ -260,12 +260,14 @@ left as it is.
 
 ## 4. Milestones
 
-### T0: Toolchain and pinned IL
-- [ ] Nix derivation for SpecTec at the pinned rev (recipe from the spike:
+### T0: Toolchain and pinned IL ✅ (2026-11-13)
+- [x] Nix derivation for SpecTec at the pinned rev (recipe from the spike:
       ocaml 5.4 + dune + menhir + menhirLib + zarith, `interpreter/` copied to
       `src/backend-interpreter/reference-interpreter`)
-- [ ] `make -C translate il` regenerates `il/wasm-1.0.il.sexp`; check it in
-- [ ] CI: regenerating gives byte-identical output
+- [x] `make -C translate il` regenerates `il/wasm-1.0.il.sexp`; check it in
+- [x] CI: regenerating gives byte-identical output. `nix flake check` runs
+      `checks.translate-il` (two runs agree and both equal the checked-in IL);
+      `make -C translate check-il` does the same locally
 
 **Exit**: `nix build .#spectec` works, and the IL is checked in and reproducible.
 

@@ -18,7 +18,25 @@
     },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "wasm-spec": "wasm-spec"
+      }
+    },
+    "wasm-spec": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794303605,
+        "narHash": "sha256-QzJC14jYWEMOuZ5lrq3XetPT4mCHFi2G3HurKlijHcQ=",
+        "owner": "WebAssembly",
+        "repo": "spec",
+        "rev": "943c5df07e84f11d2b83078964df5812530afbd2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "WebAssembly",
+        "repo": "spec",
+        "rev": "943c5df07e84f11d2b83078964df5812530afbd2",
+        "type": "github"
       }
     }
   },
