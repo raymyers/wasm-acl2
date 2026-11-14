@@ -1199,6 +1199,33 @@
        (t (mv-let (c cx) (cexp e env cx) (mv (list (list :test c)) env cx))))))
    ((nodep pr "LET" 2)
     (mv-let (v cx) (cexp (third pr) env cx) (cpat (second pr) v env cx)))
+   ((and (is pr "ITER") (true-listp pr) (= (len pr) 3) (is (third pr) "LISTN") (true-listp (third pr)))
+    ;; G3 (wasm3 prep P4): prem^(k<n) with no list domain, only a count n
+    ;; (and possibly a counter k): holds iff prem holds for k = 0 .. n-1.
+    ;; An aux function loops over k; the inner premise may not bind variables.
+    (let* ((inner (second pr)) (n-e (second (third pr)))
+           (kname (and (stringp (third (third pr))) (third (third pr))))
+           (knames (and kname (list kname))))
+      (if (has-unbound n-e env)
+          (mv nil env (cx-err "iterated premise with an unbound count" pr cx))
+        (let* ((fvs (bound-in (set-difference-equal (fv-prem inner) knames) env))
+               (fvsyms (env-terms fvs env))
+               (ksym (if kname (var-sym kname cx) (gsym "%K")))
+               (nsym (gsym "%N"))
+               (ienv (env-add-vars knames (env-restrict fvs env) cx)))
+          (mv-let (nv cx) (cexp n-e env cx)
+            (mv-let (isteps env3 cx) (cprem inner ienv cx)
+              (if (not (equal (len env3) (len ienv)))
+                  (mv nil env (cx-err "iterated premise with a count binds variables" pr cx))
+                (mv-let (aux-name cx) (cx-fresh (concatenate 'string (cx-get :fn cx) "/UPTO") cx)
+                  (let* ((aux (gsym aux-name))
+                         (def (mk-defun-measure
+                               aux (list* ksym nsym fvsyms)
+                               (list 'nfix (list '- (list 'nfix nsym) (list 'nfix ksym)))
+                               (list 'if (list '<= (list 'nfix nsym) (list 'nfix ksym)) t
+                                     (build-steps isteps
+                                                  (list* aux (list '1+ (list 'nfix ksym)) nsym fvsyms))))))
+                    (mv (list (list :test (list* aux 0 nv fvsyms))) env (cx-add-aux def cx)))))))))))
    ((and (is pr "ITER") (true-listp pr) (>= (len pr) 4))
     ;; prem*{x <- xs, ...} / prem?{...}. Doms whose list is unbound are
     ;; outputs; they are only supported for ? iteration, where each output is

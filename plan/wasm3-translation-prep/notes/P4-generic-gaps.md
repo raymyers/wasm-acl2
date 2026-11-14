@@ -4,7 +4,7 @@
   iterated premises; G5 disjunctions; and the P1-found G8, G9)
 - Date: 2026-11-14
 - Repo commit: 3d79703 plus this note's commit
-- Status: draft (G1 done; the rest open)
+- Status: draft (G1, G3 done; G5 reassigned to the mode table; G4, G8, G9 open)
 - Feeds wasm3 plan: scheme delta (function arguments), gap list, config budget
 - Incorporated in wasm3 plan: no
 
@@ -51,8 +51,8 @@ defs did not stub. They compiled **silently wrong**, calling
 
 - W1/G2 mode table: the design is flagged for a Fable session
   (model-choice item 1). G2 (`$evalexprs`, `$evalglobals`) depends on it.
-- G3 (counter-only iterations, 1 rule), G4 (iterated `if` binding a list,
-  1 rule), G5 (disjunctions, 3 rules), G8 (existential index, 2 rules),
+- G3: done (section below). G4 (iterated `if` binding a list,
+  1 rule), G5 (3 rules; not mechanical, see below), G8 (existential index, 2 rules),
   G9 (list-pattern binding order, 2 rules): open; see
   [P1-gap-list.md](P1-gap-list.md).
 - 2.0 as a full target (builtins, oracle vectors, certification): needs the
@@ -62,3 +62,34 @@ defs did not stub. They compiled **silently wrong**, calling
 
 `data/probe-P4-G1-2026-11-14/`: `report-3.0.txt`, `report-3.0-core.txt`,
 `rules-3.0-core.txt` (`make probe SPEC=3.0 [EXCLUDE='X.* 6.* 7.*']`).
+
+## 2026-11-14: G3 (iterated premise with a count and no domain)
+
+- `compile.lisp` `cprem`: `(ITER prem (LISTN n ["k"]))` with no list domain
+  holds iff `prem` holds for k = 0 .. n-1. It compiles to an aux function
+  `<fn>/UPTO (k n free-vars...)` with measure `n - k`. If the inner premise
+  would bind variables, that is an error ("iterated premise with a count
+  binds variables"), not a guess. An unbound `n` gives "iterated premise
+  with an unbound count".
+- Effect (full 3.0): no "premise" error is left (34 sites before, from
+  `Extend_store`, `Store_ok` and one `Step_read` rule). Stubs 83 → 81:
+  `Store_ok` and `Extend_store` (`7.1`) now compile. In the D3 scope the
+  stub count stays 8 and errors fall 174 → 173.
+- `Step_read/array.new_data-num` still fails, for its second cause: `c*`
+  is bound only inside an iterated inverse, `$concatn_(byte,
+  $zbytes_(zt, c)^n, ...)`. That is a nested S1 case, which the inverse
+  mechanism (it solves `f(a.., x) = v` for a variable `x`) does not cover.
+- 1.0: no such premise; `make check` passes, `gen/` byte-identical.
+
+## 2026-11-14: G5 is not a plain test (correction to P1-gap-list)
+
+P1 said of `Instr_ok/select-impl`, `array.new_data` and `array.init_data`:
+"`t'` is bound by then: compile the disjunction as a test". That is wrong.
+In `select-impl`, `t'` occurs only in `Valtype_sub: C ⊢ t <: t'` and in
+`t' = numtype ∨ t' = vectype`, so it is existential. Neither premise
+binds it in check mode, and the disjunction's branches bind the fresh
+`numtype` / `vectype`. Translating it needs either an enumeration of the
+finite types `numtype` ∪ `vectype`, or the split variant of `Valtype_sub`
+as a single witness (incomplete, as with `Heaptype_sub/trans`). That is a
+mode and premise-ordering decision, so it goes with the mode table (W1),
+not with G5's mechanical fix.

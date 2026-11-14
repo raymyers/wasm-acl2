@@ -137,3 +137,10 @@ Resolved: the 8 G1 defs (`$vunop_` ... `$vextbinop__`). D3-scope stubs: 8
 (`Module_ok`, `Deftype_sub`, `Deftype_ok`, `Subtype_ok2`, `Resulttype_ok`,
 `$evalexprs`, `$evalglobals`, `$utf8single`). See
 [P4-generic-gaps.md](P4-generic-gaps.md).
+
+## 2026-11-14 corrections after P4 G3
+
+- G5 rows above: "t' is bound by then" is wrong; `t'` is existential. See
+  [P4-generic-gaps.md](P4-generic-gaps.md).
+- `Step_read/array.new_data-num`: G3 is fixed; it still fails on a nested
+  inverse (`$concatn_` of `$zbytes_` under an iteration).
