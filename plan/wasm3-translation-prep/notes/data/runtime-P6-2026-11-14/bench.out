@@ -1,0 +1,12 @@
+BENCH ...)
+BENCH
+BENCH loop-0.wasm n=20 steps 192 seconds 5863/1000000 ms/step 5863/192000 result ((:CONST (:I32) 20))
+BENCH loop-0.wasm n=80 steps 732 seconds 22349/1000000 ms/step 22349/732000 result ((:CONST (:I32) 80))
+BENCH loop-1.wasm n=20 steps 192 seconds 246773/125000 ms/step 246773/24000 result ((:CONST (:I32) 20))
+BENCH loop-1.wasm n=80 steps 732 seconds 1916621/250000 ms/step 1916621/183000 result ((:CONST (:I32) 80))
+BENCH loop-4.wasm n=20 steps 192 seconds 8280149/1000000 ms/step 8280149/192000 result ((:CONST (:I32) 20))
+BENCH loop-4.wasm n=80 steps 732 seconds 32582899/1000000 ms/step 32582899/732000 result ((:CONST (:I32) 80))
+BENCH loop-16.wasm n=20 steps 192 seconds 34108013/1000000 ms/step 34108013/192000 result ((:CONST (:I32) 20))
+BENCH loop-16.wasm n=80 steps 732 seconds 26512639/200000 ms/step 26512639/146400 result ((:CONST (:I32) 80))
+BENCH memloop-1.wasm n=20 steps 232 seconds 2591587/1000000 ms/step 2591587/232000 result ((:CONST (:I32) 20))
+BENCH memloop-1.wasm n=80 steps 892 seconds 405923/40000 ms/step 405923/35680 result ((:CONST (:I32) 80))

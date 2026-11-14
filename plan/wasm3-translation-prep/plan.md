@@ -27,9 +27,9 @@ A new session starts here.
 - **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅. P5 🔶: items 1 (spec-test-1:
   10,848 of 11,606 commands reached pass) and 2 done; item 3 half done
   (wast2json counts), its decode count blocked on the `rt/` decision.
-  P4, P6, P7 not started
-- **Next action**: P6 (runtime baseline; the P5 timeouts and crashes are its
-  cases). P4 needs the mode table design first (a Fable session, see below)
+  P6 ✅ (runtime baseline). P4, P7 not started
+- **Next action**: P4 (needs the mode table design: a Fable session, and
+  for the 2.0 gate the `rt/` decision). P7 needs P4 and D1-D6
 - **In progress / uncommitted**: nothing for this plan. The old single-book
   driver `translate/tests/spec/t7-spec.lisp` (untracked, the user's) is
   superseded by `t7-lib.lisp` + `run-all.sh` and was left in place
@@ -377,18 +377,31 @@ probe is re-run and its stub and dropped-rule counts recorded.
 **Exit**: spec-test-1 result recorded ✅; a decode-only pass rate for
 spec-test-3 recorded (blocked, see item 3).
 
-### P6: Runtime baseline (W9)
-- [ ] Measure steps per second and the cost per memory access on the 1.0
-      corpus; profile one spec-test-1 script that is slow
-- [ ] Decide and write down the 3.0 approach: keep the byte-list encoding
+### P6: Runtime baseline (W9) ✅ (2026-11-14, [P6-runtime-baseline](notes/P6-runtime-baseline.md))
+- [x] Measure steps per second and the cost per memory access on the 1.0
+      corpus; profile one spec-test-1 script that is slow. *Done: 0.03 ms
+      per step without memory, about 10.4 ms per 64 KiB page per step with
+      memory (1 page 15 ms, 16 pages 181 ms), about 19 whole-configuration
+      `%SIZE` traversals per step (the termination checks), memory access
+      itself about 1 ms; spec-test-1 averages 0.22 s CPU per command*
+- [x] Decide and write down the 3.0 approach: keep the byte-list encoding
       (spec-faithful) with an execution-only fast path proved or tested
-      equal, or accept a time budget and a skip list
-- [ ] List the places where `:program`-mode code can crash on ill-formed
-      input, and whether guards or a well-formedness check in the driver covers them
+      equal, or accept a time budget and a skip list. *Recommended: keep
+      byte lists; make the generated `Step` termination checks ignore the
+      store (expected about 300× at 1 page), else `mbe` with a proof;
+      driver limits for huge locals and growth*
+- [x] List the places where `:program`-mode code can crash on ill-formed
+      input, and whether guards or a well-formedness check in the driver covers them.
+      *Done: the 5 spec-test-1 crashes are all list-size limits in logic
+      code (locals, `memory.grow`, segment bounds); the 35 `:program`
+      functions get only parser output; a `MODULE-P` check in the driver is
+      proposed*
 
 **Notes**: `notes/P6-runtime-baseline.md`.
 
-**Exit**: a time estimate for running spec-test-3, with the measurements behind it.
+**Exit** ✅: a time estimate for running spec-test-3, with the measurements
+behind it: about 1.5-2 h wall with 8 sessions at today's speed, plus a tail
+of about 7 scripts at the 1 h limit.
 
 ### P7: Write `plan/wasm3-translation/plan.md`
 - [ ] Walk the index in `notes/README.md` row by row. Each note is either
