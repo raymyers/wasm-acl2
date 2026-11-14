@@ -1,0 +1,21 @@
+(ld "package.lsp")
+(include-book "il2acl2/top")
+(in-package "IL2ACL2")
+(set-state-ok t) (program)
+(defun summarize-errs (errs acc)
+  (if (endp errs) acc
+    (let* ((e (car errs)) (k (list (third e) (if (consp (fourth e)) (if (symbolp (car (fourth e))) (car (fourth e)) :list) (fourth e))))
+           (old (cdr (assoc-equal k acc))))
+      (summarize-errs (cdr errs) (put-assoc-equal k (cons (second e) (take (min 3 (len old)) old)) acc)))))
+(defun run-check (f state)
+  (mv-let (erp forms state) (read-il-file f state)
+    (if erp (mv erp nil state)
+      (let* ((errs (check-il-forms forms nil nil))
+             (table (mangle-table forms)))
+        (mv-let (collisions renamed atom-collisions) (mangle-report table)
+          (prog2$ (cw "~%FILE ~s0~%forms ~x1 heads ~x2~%nerrs ~x3~%errsummary ~x4~%collisions ~x5~%nrenamed ~x6 atomcoll ~x7~%names ~x8~%"
+               f (len forms) (count-heads forms nil) (len errs) (summarize-errs errs nil) collisions (len renamed) atom-collisions
+               (list :typ (len (cdr (assoc :typ table))) :def (len (cdr (assoc :def table))) :rel (len (cdr (assoc :rel table))) :rule (len (cdr (assoc :rule table))) :gram (len (cdr (assoc :gram table))) :var (len (cdr (assoc :var table))) :atom (len (cdr (assoc :atom table)))))
+            (mv nil nil state)))))))
+(run-check "SCRATCH/wasm-2.0.il.sexp" state)
+(run-check "SCRATCH/wasm-3.0.il.sexp" state)

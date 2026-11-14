@@ -46,6 +46,18 @@ when the reasoning is wrong is not.
 4. **Short review sessions** whenever a new override or a dropped rule is
    proposed (item 5).
 
+## How this is applied
+
+A session cannot change its own model; the user chooses it when starting the
+session. So this file is guidance for the user, not something a session
+enforces. "Current state" in plan.md has a "Next Fable session needed for"
+line as the reminder.
+
+A session can choose the model of a subagent it spawns, but a subagent gets
+only its brief and returns only a summary. That suits a bounded review
+(item 5) when the user allows it. It does not suit items 1-4, which need the
+full context and several rounds.
+
 ## Condition
 
 This split assumes the delegated work keeps two rules from the wasm1 plan:

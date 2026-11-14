@@ -1,0 +1,20 @@
+FILE SCRATCH/wasm-2.0.il.sexp
+forms 470 heads 
+(("TYP" . 145) ("DEF" . 214) ("REC" . 37) ("REL" . 41) ("GRAM" . 71))
+nerrs 0
+errsummary NIL
+collisions NIL
+nrenamed 19 atomcoll NIL
+names (:TYP 145 :DEF 214 :REL 41 :RULE 265 :GRAM 71 :VAR 521 :ATOM 196)
+ NIL
+IL2ACL2 p!>
+FILE SCRATCH/wasm-3.0.il.sexp
+forms 974 heads 
+(("TYP" . 208) ("DEF" . 462) ("REC" . 84) ("REL" . 125) ("GRAM" . 232))
+nerrs 3
+errsummary ((("sym num" NUM) "Tchar" "Tchar" "Tchar"))
+collisions NIL
+nrenamed 27 atomcoll NIL
+names (:TYP 208 :DEF 462 :REL 125 :RULE 567 :GRAM 232 :VAR 829 :ATOM 294)
+ NIL
+IL2ACL2 p!>Bye.

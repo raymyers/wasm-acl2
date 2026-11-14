@@ -18,10 +18,42 @@
 
 ---
 
+## Current state
+
+Update this block at the end of every session, in the same commit as the work.
+A new session starts here.
+
+- **Last updated**: 2026-11-14
+- **Milestones**: P0-P7 not started. The baseline probe is done and stored
+- **Next action**: P0, first item (`make probe`), porting the scripts in
+  `notes/data/probe-2026-11-14/`
+- **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
+  files in `translate/tests/spec/` and `flake.nix` are uncommitted; P5 picks them up)
+- **Decisions D1-D6**: none confirmed by the user yet; §4 holds recommendations only
+- **Blocked on**: nothing
+- **Next Fable session needed for**: after P1, the typing triage and the mode table design (model-choice items 1 and 2)
+
+### Where things are written down
+
+| What | Where |
+|---|---|
+| Plan, gap analysis, milestone checkboxes | this file |
+| Intermediate findings, designs, raw data, and the index of them | [notes/](notes/README.md) |
+| Which model to use for which task | [suggested-model-choice.md](suggested-model-choice.md) |
+| Per-session procedure | [step.md](step.md) |
+| The user's prompts that shaped this plan, in order | [seed.md](seed.md) (the user's file; do not edit) |
+
+Findings that are only in a conversation or a scratch directory are lost on
+resume. Every milestone item below that produces a finding names the note it
+goes to, and P7 consumes the notes index row by row.
+
+---
+
 ## 1. Probe (2026-11-14): what happens today
 
 Everything in §2-§4 comes from running the existing pipeline, unmodified, on
-the 2.0 and 3.0 sources. Reproduction is in §8.
+the 2.0 and 3.0 sources. The scripts and raw outputs are in
+[notes/P0-probe-2026-11-14.md](notes/P0-probe-2026-11-14.md); reproduction is in §8.
 
 ### 1.1 Size
 
@@ -149,6 +181,8 @@ Weaknesses in how the pipeline is built, independent of any single construct.
 ## 4. Decisions needed before the wasm3 plan is written
 
 Recommendations are first. Each one changes the size of the wasm3 plan.
+When the user decides one, record it with the date in `notes/decisions.md`
+and in "Current state".
 
 | # | Decision | Recommendation | Alternative |
 |---|---|---|---|
@@ -176,6 +210,7 @@ byte-identically, unless the milestone says the output changes.
       part only)
 
 **Exit**: the probe reproduces the §1 numbers for 1.0, 2.0 and 3.0 in one command each.
+**Notes**: probe output per spec version stored under `notes/data/`, and re-stored after every later milestone that changes it.
 
 ### P1: Diagnostics and granularity (W2, W3)
 - [ ] Every logged error carries relation, rule id and attempted mode
@@ -186,6 +221,9 @@ byte-identically, unless the milestone says the output changes.
       "rules translated / rules total" per relation
 - [ ] Re-run the probe and replace the S2 row with real root causes for the
       type-validation and subtyping groups
+
+**Notes**: `notes/P1-gap-list.md` (the per-rule list: rule id, cause, gap id
+from §2, proposal) and `notes/P1-typing-root-causes.md`.
 
 **Exit**: a per-rule gap list for 3.0 exists, each entry with a rule id and
 one cause. 1.0 output is unchanged (it has no dropped rules outside the known
@@ -204,6 +242,8 @@ split-variant list).
       per function, stubs, dropped rules), checked in and compared by `check-gen`
 - [ ] `check-gen` per target as a flake check
 
+**Notes**: `notes/P2-layout.md` (final directory, package and flake naming).
+
 **Exit**: 1.0 regenerates through the parameterized pipeline. Its generated
 definitions are unchanged apart from file boundaries, and all 1.0 tests pass.
 
@@ -214,6 +254,9 @@ definitions are unchanged apart from file boundaries, and all 1.0 tests pass.
       `rt/`), choice parameter (D4), host hook (`hostcall`), notation
       (ignored). A clause-less def in no category is a hard error
 - [ ] Generated inverses for finite functions (`$isize`, `$jsize`, `$fsize`, `$jsizenn`)
+
+**Notes**: `notes/P3-builtin-inventory.md` (every clause-less def of 3.0:
+category, status in `rt/`, oracle source).
 
 **Exit**: the 1.0 config loses its `:inverse` entry and the generated 1.0
 code is unchanged. The 3.0 probe shows no "pattern" errors caused by a
@@ -228,6 +271,9 @@ missing inverse pair.
 - [ ] 2.0 as a full target: builtins for SIMD, saturating truncation and sign
       extension in `rt/`; Node/V8 numeric vectors for them (W11)
 
+**Notes**: `notes/P4-mode-table-design.md` (design, alternatives rejected),
+`notes/P4-wasm2-result.md` (2.0 numbers), and an updated `notes/P1-gap-list.md`.
+
 **Exit**: 2.0 translates with stubs limited to `Module_ok` (pending its
 override) or fewer, certifies, and passes the 2.0 numeric vectors. The 3.0
 probe is re-run and its stub and dropped-rule counts recorded.
@@ -240,6 +286,8 @@ probe is re-run and its stub and dropped-rule counts recorded.
       modules the generated 3.0 binary parser accepts (the parser already
       compiles; this is its first real test)
 
+**Notes**: `notes/P5-conformance.md` (pass counts, skipped scripts and why).
+
 **Exit**: spec-test-1 result recorded; a decode-only pass rate for spec-test-3 recorded.
 
 ### P6: Runtime baseline (W9)
@@ -251,10 +299,15 @@ probe is re-run and its stub and dropped-rule counts recorded.
 - [ ] List the places where `:program`-mode code can crash on ill-formed
       input, and whether guards or a well-formedness check in the driver covers them
 
+**Notes**: `notes/P6-runtime-baseline.md`.
+
 **Exit**: a time estimate for running spec-test-3, with the measurements behind it.
 
 ### P7: Write `plan/wasm3-translation/plan.md`
-- [ ] Record D1-D6 as decided
+- [ ] Walk the index in `notes/README.md` row by row. Each note is either
+      incorporated (record the wasm3 plan section in its header and index
+      row) or dropped with a reason. No row may stay at `no`
+- [ ] Record D1-D6 as decided (from `notes/decisions.md`)
 - [ ] Refreshed probe table, and the per-rule gap list from P1/P4 as the work
       list, grouped by proposal (SIMD, bulk memory, reference types, tail
       calls, exceptions, GC, memory64, multi-memory, relaxed SIMD)
@@ -269,8 +322,8 @@ probe is re-run and its stub and dropped-rule counts recorded.
 - [ ] Risks, with the go/no-go points (instruction typing with subtyping is
       the likely one; Strategy B from wasm1 §1 remains the fallback for `Step`)
 
-**Exit**: the wasm3 plan exists, and every number in it comes from the probe
-or a test run.
+**Exit**: the wasm3 plan exists, every number in it comes from the probe or a
+test run and cites its note, and every row of the notes index is `yes` or `dropped`.
 
 ### Order and dependencies
 
