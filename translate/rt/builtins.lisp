@@ -5,7 +5,7 @@
 ; Encoding (plan §2.2): iN/uN/byte/char are naturals; fN is (:POS mag) or
 ; (:NEG mag) with mag = (:NORM m e) | (:SUBNORM m) | (:INF) | (:NAN m);
 ; a NAN payload m is the significand; ? and * are lists.
-(in-package "W1T")
+(in-package "WRT")
 
 (include-book "prelude")
 

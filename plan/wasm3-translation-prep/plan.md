@@ -39,10 +39,10 @@ A new session starts here.
   Assumed so far, reversible: D2 (layout in P2), D3 (3.0 IL file list in the
   flake), D5 (hint patch in the flake). P1 decided (translator-internal): per-rule stubs keep the `:fun`
   interface when it can be saved; modes are P4's
-- **Blocked on**: the user's decisions. (a) The runtime's package (`rt/` is
-  in `W1T`, see [P2-layout](notes/P2-layout.md)), together with D2: blocks
-  loading any 2.0/3.0 generated code, so P5 item 3's decode count and P4's
-  2.0 certification. (b) D1-D6 for P7
+- **Blocked on**: the user's decisions D1-D6 for P7. The runtime package was
+  decided provisionally (option A, `WRT`, [P2-layout](notes/P2-layout.md)); to
+  confirm with D2.
+
 - **Next Fable session needed for**: the typing triage
   (input: [P1-typing-root-causes](notes/P1-typing-root-causes.md), incl. whether
   `Heaptype_sub/trans` can be dropped) and the mode table design (model-choice items 1 and 2)

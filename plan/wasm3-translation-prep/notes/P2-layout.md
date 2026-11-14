@@ -178,3 +178,20 @@ the declared `inv_*` defs". Partly wrong: `inv_isize`, `inv_jsize`,
 `inv_fsize` and `inv_jsizenn` are *defined* in the spec (with clauses), so
 they need nothing. The other 12 are clause-less builtins. See
 [P3-builtin-inventory.md](P3-builtin-inventory.md).
+
+## 2026-11-14: option A implemented (assumed, reversible)
+
+To unblock the 2.0 gate (P4) the recommended option A was implemented. It is
+recorded as an assumption, like D2, D3 and D5, for the user to confirm.
+
+- `translate/package.lsp` defines `WRT` (`*acl2-exports*`); `rt/prelude.lisp`
+  and `rt/builtins.lisp` are in `WRT`; `rt/cert.acl2` includes
+  `../portcullis` (no generated package needed any more).
+- The generated `defpkg` imports `*acl2-exports*` minus the clash list,
+  plus every name `rt/` defines (`defun`, `defmacro`, `defthm`, `defconst`) as a
+  `WRT` symbol. The translator already reads that list for the builtin
+  check. The generated `portcullis.acl2` first loads `../../package.lsp`.
+- 1.0: generated books byte-identical (the symbols print the same in
+  `W1T`); `gen/wasm-1.0/package.lsp` gains the import list and
+  `portcullis.acl2` one line. `make check` (incl. `t0-modes`: modes
+  unchanged), `make compare` and the T7 driver pass.

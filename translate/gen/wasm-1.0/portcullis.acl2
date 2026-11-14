@@ -1,2 +1,3 @@
 ; GENERATED -- do not edit.
+(ld "../../package.lsp") ; IL2ACL2 and WRT
 (ld "package.lsp")

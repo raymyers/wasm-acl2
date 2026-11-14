@@ -36,7 +36,7 @@
 ; Every symbol in generated code must be a W1T, ACL2, or keyword symbol.
 (defun foreign-symbols (x pkg acc)
   (cond ((and (symbolp x) x (not (eq x t))
-              (not (member-equal (symbol-package-name x) (list pkg "ACL2" "KEYWORD" "COMMON-LISP"))))
+              (not (member-equal (symbol-package-name x) (list pkg "WRT" "ACL2" "KEYWORD" "COMMON-LISP"))))
          (if (member-eq x acc) acc (cons x acc)))
         ((consp x) (foreign-symbols (cdr x) pkg (foreign-symbols (car x) pkg acc)))
         (t acc)))
@@ -290,7 +290,7 @@
 ; Names defined by rt/ (DEFUN / DEFMACRO anywhere in its top-level forms)
 (defun defined-names (x acc)
   (cond ((atom x) acc)
-        ((and (member-equal (sym-name (car x)) '("DEFUN" "DEFMACRO" "DEFUND")) (consp (cdr x))
+        ((and (member-equal (sym-name (car x)) '("DEFUN" "DEFMACRO" "DEFUND" "DEFTHM" "DEFCONST")) (consp (cdr x))
               (sym-name (cadr x)))
          (cons (sym-name (cadr x)) acc))
         (t (defined-names (cdr x) (defined-names (car x) acc)))))
@@ -504,6 +504,14 @@
 
 ; Returns (mv erp state); stores the compiled results in state global
 ; IL2ACL2-GEN for phase 2.
+(defun wrt-symbols (names)
+  ;; the rt/ names as WRT symbols (those that are ACL2 symbols are already
+  ;; imported through *acl2-exports* or deliberately left out)
+  (cond ((endp names) nil)
+        ((equal (symbol-package-name (intern$ (car names) "WRT")) "WRT")
+         (cons (intern$ (car names) "WRT") (wrt-symbols (cdr names))))
+        (t (wrt-symbols (cdr names)))))
+
 (defun gen-phase1-1 (target decls rt-names state)
   (let ((il-file (tgt :il target)) (config-file (tgt :config target))
         (outdir (tgt :outdir target)) (pkg (tgt :pkg target)))
@@ -567,16 +575,18 @@
                            (concatenate 'string "; " pkg ": the package of the generated WASM "
                                         (tgt :version target) " semantics. It imports")
                            "; *acl2-exports* minus every export whose name the generated code"
-                           "; defines or binds."
+                           "; defines or binds, plus the names rt/ defines (package WRT)."
                            "(in-package \"ACL2\")")
                      (list (list 'defpkg pkg
+                                 (list 'append
                                  (list 'set-difference-eq '*acl2-exports*
-                                       (list 'quote (acl2::merge-sort-symbol< clash)))))
+                                       (list 'quote (acl2::merge-sort-symbol< clash)))
+                                 (list 'quote (acl2::merge-sort-symbol< (remove-duplicates-eq (wrt-symbols rt-names)))))))
                      state)
                     (if erp (mv erp state)
                       (mv-let (erp state)
                         (write-file (concatenate 'string outdir "portcullis.acl2")
-                                    (list "; GENERATED -- do not edit." "(ld \"package.lsp\")")
+                                    (list "; GENERATED -- do not edit." "(ld \"../../package.lsp\") ; IL2ACL2 and WRT" "(ld \"package.lsp\")")
                                     nil state)
                         (if erp (mv erp state)
                           (mv-let (erp state)

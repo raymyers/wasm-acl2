@@ -1,1 +1,1 @@
-(include-book "../gen/wasm-1.0/portcullis")
+(include-book "../portcullis")

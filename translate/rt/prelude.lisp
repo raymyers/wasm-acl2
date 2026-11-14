@@ -3,7 +3,7 @@
 ;
 ; Records are encoded (:%REC (:FIELD . value) ...) with fields in declaration
 ; order (plan §2.2).
-(in-package "W1T")
+(in-package "WRT")
 
 (defun %get-field (r k)
   (declare (xargs :guard t))
