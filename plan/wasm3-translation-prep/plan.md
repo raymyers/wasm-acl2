@@ -24,24 +24,23 @@ Update this block at the end of every session, in the same commit as the work.
 A new session starts here.
 
 - **Last updated**: 2026-11-14
-- **Milestones**: P0 ✅, P1 ✅, P2 ✅ (SPEC parameter and per-version
-  layout, config validation, one book per source file, mode manifest,
-  flake checks), P3 ✅ (hints in the IL, inverse pairs from hints, builtin
-  classification and inventory). P4-P7 not started
-- **Next action**: P5 first item (finish wasm1 T7: commit the driver,
-  record N/M for spec-test-1), or P6. P4 needs the mode
-  table design first (a Fable session, see below)
-- **In progress / uncommitted**: nothing for this plan. (The wasm1 T7 driver
-  files in `translate/tests/spec/`, `flake.nix` and the `spec`/`spec-data`
-  targets in `translate/Makefile` are uncommitted; P5 picks them up. Their
-  include paths were updated in the working tree for the `gen/wasm-1.0/` move)
+- **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅. P5 🔶: items 1 (spec-test-1:
+  10,848 of 11,606 commands reached pass) and 2 done; item 3 half done
+  (wast2json counts), its decode count blocked on the `rt/` decision.
+  P4, P6, P7 not started
+- **Next action**: P6 (runtime baseline; the P5 timeouts and crashes are its
+  cases). P4 needs the mode table design first (a Fable session, see below)
+- **In progress / uncommitted**: nothing for this plan. The old single-book
+  driver `translate/tests/spec/t7-spec.lisp` (untracked, the user's) is
+  superseded by `t7-lib.lisp` + `run-all.sh` and was left in place
 - **Decisions D1-D6**: none confirmed by the user yet; §4 holds recommendations only.
   Assumed so far, reversible: D2 (layout in P2), D3 (3.0 IL file list in the
   flake), D5 (hint patch in the flake). P1 decided (translator-internal): per-rule stubs keep the `:fun`
   interface when it can be saved; modes are P4's
-- **Blocked on**: nothing for P3. Certifying 2.0/3.0 needs a decision on the
-  runtime's package (`rt/` is in `W1T`), see [P2-layout](notes/P2-layout.md); ask
-  the user together with D2
+- **Blocked on**: the user's decisions. (a) The runtime's package (`rt/` is
+  in `W1T`, see [P2-layout](notes/P2-layout.md)), together with D2: blocks
+  loading any 2.0/3.0 generated code, so P5 item 3's decode count and P4's
+  2.0 certification. (b) D1-D6 for P7
 - **Next Fable session needed for**: the typing triage
   (input: [P1-typing-root-causes](notes/P1-typing-root-causes.md), incl. whether
   `Heaptype_sub/trans` can be dropped) and the mode table design (model-choice items 1 and 2)
@@ -354,17 +353,29 @@ missing inverse pair. *Met 2026-11-14: the 17 remaining "pattern" errors are S5,
 override) or fewer, certifies, and passes the 2.0 numeric vectors. The 3.0
 probe is re-run and its stub and dropped-rule counts recorded.
 
-### P5: Conformance driver (W10)
-- [ ] Finish wasm1 T7: commit the driver, record N/M for spec-test-1
-- [ ] Parameterize it by spec version and feature flags; assertion values for
-      multi-value, references and `v128`
+### P5: Conformance driver (W10) 🔶 (2026-11-14, [P5-conformance](notes/P5-conformance.md))
+- [x] Finish wasm1 T7: commit the driver, record N/M for spec-test-1.
+      *Done: one ACL2 session per script (a crash costs one script);
+      **10,848 of 11,606 commands reached pass** (of 12,014 countable);
+      40 of 67 scripts pass completely, 2 time out, 5 hit resource limits;
+      578 of the 758 failures are 9 scripts whose module instantiation
+      rejects (likely the dead-code typing incompleteness, W13)*
+- [x] Parameterize it by spec version and feature flags; assertion values for
+      multi-value, references and `v128`. *Done for the data: flake
+      `wasm1-spec-tests` (output unchanged) and `wasm3-spec-tests`;
+      `make spec-data SPEC=<v>`; the converter emits v128 lanes, references,
+      `assert_exception` and `:UNSUPPORTED` for the unknown. Comparing those
+      values in ACL2 needs a running 3.0 semantics*
 - [ ] Dry run on spec-test-3: how many scripts `wast2json` converts, how many
       modules the generated 3.0 binary parser accepts (the parser already
-      compiles; this is its first real test)
+      compiles; this is its first real test). *Half done: 228 of 259 scripts
+      convert (5,365 modules; GC 1 of 17). The parser count is **blocked** on
+      the `rt/` package decision (P2-layout): the 3.0 books cannot load yet*
 
 **Notes**: `notes/P5-conformance.md` (pass counts, skipped scripts and why).
 
-**Exit**: spec-test-1 result recorded; a decode-only pass rate for spec-test-3 recorded.
+**Exit**: spec-test-1 result recorded ✅; a decode-only pass rate for
+spec-test-3 recorded (blocked, see item 3).
 
 ### P6: Runtime baseline (W9)
 - [ ] Measure steps per second and the cost per memory access on the 1.0

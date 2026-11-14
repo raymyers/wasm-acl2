@@ -82,6 +82,33 @@
               ${spectec}/bin/spectec --ast --all-passes $files > $out/wasm-${v}.il.sexp
               sh ${./translate/il2acl2/spec-decls.sh} $files > $out/wasm-${v}.decls.lsp
             '';
+          # spec-test-<major> converted for the conformance driver (see below)
+          mkSpecTests =
+            major: flags: withSpectest:
+            pkgs.runCommand "wasm${major}-spec-tests"
+              {
+                nativeBuildInputs = [
+                  pkgs.wabt
+                  pkgs.nodejs
+                ];
+              }
+              ''
+                mkdir -p $out work
+                suite=${wasm-spec}/spectec/test-interpreter/spec-test-${major}
+                for f in $suite/*.wast $suite/*/*.wast; do
+                  [ -e "$f" ] || continue
+                  rel=''${f#$suite/}
+                  b=$(echo "''${rel%.wast}" | sed 's|/|--|g')
+                  mkdir -p work/$b
+                  if ! (cd work/$b && wast2json ${flags} $f -o $b.json > /dev/null 2>&1); then
+                    echo $b >> $out/SKIPPED
+                    rm -rf work/$b
+                  fi
+                done
+                for d in work/*; do cp $d/*.wasm $out/ 2> /dev/null || true; done
+                node ${./translate/tests/oracle/gen-spec-tests.mjs} work $out spec-test-${major}
+                ${lib.optionalString withSpectest "wat2wasm ${./translate/tests/spec/spectest.wat} -o $out/spectest.wasm"}
+              '';
         in
         rec {
         default = wasm-acl2;
@@ -153,6 +180,25 @@
           "6.*"
           "7.*"
         ];
+
+        # Conformance data (wasm1 T7, wasm3 prep P5): spec-test-<major> of the
+        # pinned spec as .wasm modules plus ACL2 command lists
+        # (translate/tests/oracle/gen-spec-tests.mjs). `make -C translate
+        # spec-data` copies 1.0's, with the `spectest` host module, to
+        # translate/tests/spec/data. Scripts that wast2json cannot read (1.0:
+        # the old assert_return_*_nan syntax; 3.0: wabt lacks some GC,
+        # exception and module-definition syntax) are left out and listed in
+        # SKIPPED. Scripts of a subdirectory (3.0's proposals) are DIR--NAME.
+        wasm1-spec-tests = mkSpecTests "1" (lib.concatStringsSep " " [
+          "--disable-saturating-float-to-int"
+          "--disable-sign-extension"
+          "--disable-multi-value"
+          "--disable-bulk-memory"
+          "--disable-reference-types"
+          "--disable-simd"
+          "--disable-mutable-globals"
+        ]) true;
+        wasm3-spec-tests = mkSpecTests "3" "--enable-all" false;
 
         # ACL2 plus just the community books this project depends on.
         #

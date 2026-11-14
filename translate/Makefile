@@ -17,6 +17,8 @@
 #   make invoke-vectors  regenerate tests/sem/invoke-vectors.lsp (V8 runs the corpus exports)
 #   make test        certify the translator, gen/, rt/ and every test book
 #   make compare     T9 reports: run the WASM1 tree on the same oracle vectors
+#   make spec-data   fetch the conformance data (Nix): 1.0 into tests/spec/data, else tests/spec/data-<v>
+#   make spec        T7 report: run spec-test-1 on the generated semantics (slow)
 #   make probe SPEC=3.0  probe table for one spec version (plan/wasm3-translation-prep P0)
 #   make modes       rewrite gen/wasm-1.0/modes.lsp from certified books (t0-modes checks it)
 #   make check       check-il + check-gen + test
@@ -39,7 +41,7 @@ TARGET := (assign il2acl2-target (quote (:version "$(SPEC)" :pkg "$(PKG)" :il "$
 GEN_PATTERNS := *.lisp *.lsp *.acl2
 TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 
-.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors probe modes
+.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors spec-data spec probe modes
 
 il:
 	$(NIX) build ..#wasm$(SPEC_MAJOR)-il --no-link --print-out-paths > .il-out
@@ -103,6 +105,25 @@ modes:
 compare:
 	$(CERT) --acl2 $(ACL2) -j $(JOBS) $(patsubst %.lisp,%,$(wildcard compare/*.lisp))
 	grep -h -A3 "T9 " compare/*.cert.out
+
+# T7 conformance (not part of check: it takes long). The data is built by the
+# flake from the pinned spec source; see tests/oracle/gen-spec-tests.mjs.
+# 1.0 data goes to tests/spec/data (the driver's input), other versions to
+# tests/spec/data-<v> (converted only; there is no 3.0 driver yet).
+SPEC_DATA := tests/spec/data$(if $(filter 1.0,$(SPEC)),,-$(SPEC))
+spec-data:
+	$(NIX) build ..#wasm$(SPEC_MAJOR)-spec-tests --no-link --print-out-paths > .spec-out
+	rm -rf $(SPEC_DATA) && mkdir -p $(SPEC_DATA)
+	cp $$(cat .spec-out)/* $(SPEC_DATA)/ && chmod -R u+w $(SPEC_DATA)
+	rm -f .spec-out
+
+# Each script runs in its own ACL2 session (SPEC_JOBS at a time, at most
+# SPEC_TIMEOUT seconds each); results in tests/spec/results/ (SUMMARY, TOTAL).
+SPEC_JOBS ?= 8
+SPEC_TIMEOUT ?= 3600
+spec:
+	$(CERT) --acl2 $(ACL2) tests/spec/t7-lib
+	cd tests/spec && sh run-all.sh $(ACL2) $(SPEC_JOBS) $(SPEC_TIMEOUT)
 
 # Probe (plan/wasm3-translation-prep P0): elaborate spec version SPEC with the
 # pinned SpecTec into .probe/<SPEC>/ and print the probe table (schema errors,

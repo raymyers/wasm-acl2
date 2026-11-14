@@ -73,3 +73,4 @@ says `yes` or `dropped` in the last column.
 | [P2-layout.md](P2-layout.md) | P2 (all items; `rt/` package question open) | final | scheme delta, decisions | no |
 | [P3-hints.md](P3-hints.md) | P3 (items 1-2: hint patch, IL hint forms, inverse pairs from hints) | final | scheme delta, builtin inventory, decisions | no |
 | [P3-builtin-inventory.md](P3-builtin-inventory.md) | P3 (items 3-4: builtin classification, inventory) | final | builtin inventory, config budget, decisions | no |
+| [P5-conformance.md](P5-conformance.md) | P5 (spec-test-1 result, 3.0 data, dry run partial) | draft | milestones, risks, probe table | no |

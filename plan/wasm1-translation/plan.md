@@ -538,10 +538,15 @@ breaks the cycle via `C.TYPES[x] = ft`, see the checked item above):
       and `$instantiate`'s own body)
 - [x] `.wasm` bytes → `PARSE-MODULE` → instantiate → invoke, with no JS
       involved: done by T5 (`tests/sem/t5-invoke.lisp`, 515/515 vectors)
-- [ ] Run a subset of `spectec/test-interpreter/spec-test-1` (the WASM 1.0 `.wast` suite).
-      Unblocked since T5, and imports work (T6 `Externaddr_ok`). Needs a `.wast`
-      driver (module definitions, `assert_return`/`assert_trap`, `register`,
-      the `spectest` host module)
+- [x] Run `spectec/test-interpreter/spec-test-1` (the WASM 1.0 `.wast` suite).
+      *Done 2026-11-14 (wasm3 prep P5, [P5-conformance](../wasm3-translation-prep/notes/P5-conformance.md)):
+      `make spec` runs 67 scripts, each in its own ACL2 session: **10,848 of
+      11,606 commands reached pass** (10,848 of the 12,014 countable
+      commands); 40 scripts pass completely; 2 time out after 1 h
+      (`call`, `call_indirect`), 5 stop on resource limits (`binary`,
+      `data`, `elem`, `memory_grow`, `memory_trap`). The largest block of
+      failures: modules rejected at instantiation in 9 scripts (`br`,
+      `br_table`, `return`, `select`, `unreachable`, `unwind`, `local_*`)*
 
 **Exit**: N of M spec-test-1 assertions pass (record N/M).
 

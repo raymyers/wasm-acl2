@@ -1,0 +1,1 @@
+T7 spec-test-1: 10848 of 11606 commands pass; scripts: 60 done, 2 timeout, 5 crashed
