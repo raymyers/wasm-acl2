@@ -5,7 +5,7 @@
 - Repo commit: d55e442 plus this note's commit
 - Status: final
 - Feeds wasm3 plan: milestones, builtin inventory, risks, config budget
-- Incorporated in wasm3 plan: no
+- Incorporated in wasm3 plan: yes (draft plan, §1 (D1), §6 (config budget))
 
 ## Summary
 
@@ -50,7 +50,7 @@ there took:
   (`Module_ok`), 2 dropped rules (`Instr_ok/select-impl`, G5, and
   `Instrs_ok/sub`), 32 errors. 3.0 D3 scope: 2 stubs
   (`Module_ok`, `$utf8single`), 7 dropped rules, 56 errors; full 3.0: 76
-  stubs (70 text grammars).
+  stubs (69 text grammars).
 - Vectors: `tests/sem-2.0/t3-numerics-2.0.lisp` runs the 1.0 vectors
   (8,015) plus `numeric-vectors-2.0.lsp` (709: 8 saturating truncations, 5
   sign extensions; `gen-numeric-vectors.mjs 2.0`; the 1.0 output of the

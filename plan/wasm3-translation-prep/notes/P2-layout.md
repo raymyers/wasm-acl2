@@ -5,7 +5,7 @@
 - Repo commit: ec20d63 plus this note's commit
 - Status: final for P2 (the `rt/` package question stays open, see below)
 - Feeds wasm3 plan: scheme delta (package and layout), decisions (D2)
-- Incorporated in wasm3 plan: no
+- Incorporated in wasm3 plan: yes (draft plan, §1 (D2), §4 (layout and packages))
 
 ## Summary
 

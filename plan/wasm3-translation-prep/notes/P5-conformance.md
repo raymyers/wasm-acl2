@@ -6,7 +6,7 @@
 - Repo commit: fa5d888 plus this note's commit
 - Status: final
 - Feeds wasm3 plan: milestones (conformance), risks, probe table
-- Incorporated in wasm3 plan: no
+- Incorporated in wasm3 plan: yes (draft plan, §2 (decode), §5 M2, M4, M8, §7)
 
 ## Summary
 

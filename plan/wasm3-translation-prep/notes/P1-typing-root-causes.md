@@ -7,7 +7,7 @@
 - Status: draft (input to the typing triage, model-choice item 2, and to the
   P4 mode table design)
 - Feeds wasm3 plan: gap list, risks, scheme delta (modes)
-- Incorporated in wasm3 plan: no
+- Incorporated in wasm3 plan: yes (draft plan, §3, §5 M5, §7 (risks))
 
 ## Summary
 

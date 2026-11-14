@@ -6,7 +6,7 @@
 - Repo commit: 3d79703 plus this note's commit
 - Status: draft (G1, G3, G4, G9 done; G5 and G8 go with the mode table)
 - Feeds wasm3 plan: scheme delta (function arguments), gap list, config budget
-- Incorporated in wasm3 plan: no
+- Incorporated in wasm3 plan: yes (draft plan, §3, §4 (modes, patterns), §5 M5)
 
 ## Summary
 
@@ -164,7 +164,7 @@ only its "overridable by a counted config entry" part:
   `Deftype_sub/super`, `Heaptype_sub/rec-sub` (G8), `Heaptype_sub/trans`
   (existential), `Instr_ok/select-impl`, `array.new_data`,
   `array.init_data` (G5), `Step_read/array.new_data-num` (nested inverse).
-  Full 3.0: 78 stubs (70 of them text grammars, `6.*`).
+  Full 3.0: 78 stubs (69 of them text grammars, `6.*`).
 - 2.0 with `Instr_ok`/`Instrs_ok` `:multi`: 2 stubs (`Module_ok`,
   `GRAM/Binstr`), 1 dropped rule (`Instr_ok/select-impl`, G5), 32 errors.
 - What the mode table still has to do: infer these instead of declaring
@@ -180,8 +180,8 @@ only its "overridable by a counted config entry" part:
 - 3.0 config declares `("Eval_expr" . :fun2)` (`z; expr ~>* z'; val*`).
   Generated: `EVAL_EXPR (z expr)` returns `(z' vals)`, and `$evalexprs` /
   `$evalglobals` destructure it. Effect, D3 scope: stubs 4 → **2**
-  (`Module_ok`, `$utf8single`), errors 68 → 56. Full 3.0: stubs 76 (70 text
-  grammars, 4 in `7.*`/`X.*`, plus the 2).
+  (`Module_ok`, `$utf8single`), errors 68 → 56. Full 3.0: stubs 76 (69 text
+  grammars, 5 in `7.*`/`X.*`, plus the 2).
 - Not general G2: outputs must be the last components, and only two. Any
   set of output positions is the mode table's (W1) job.
 - 1.0 unchanged; `make check` passes.

@@ -6,7 +6,7 @@
 - Status: final for the classification; the oracle column is a plan, not a
   measurement
 - Feeds wasm3 plan: builtin inventory, config budget, decisions (D4)
-- Incorporated in wasm3 plan: no
+- Incorporated in wasm3 plan: yes (draft plan, §2, §3, §5 M1)
 
 ## Summary
 

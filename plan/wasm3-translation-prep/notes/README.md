@@ -65,15 +65,16 @@ says `yes` or `dropped` in the last column.
 
 | Note | Milestone | Status | Feeds wasm3 plan | Incorporated |
 |---|---|---|---|---|
-| [P0-probe-2026-11-14.md](P0-probe-2026-11-14.md) | P0 (baseline, before any change) | final | probe table, gap list | no |
-| [P0-confidence-assessment.md](P0-confidence-assessment.md) | P0 (assessment) | draft | risks, milestone order | no |
-| [P0-probe-tool.md](P0-probe-tool.md) | P0 (all three items: `make probe`, G7, schema) | final | probe table, gap list | no |
-| [P1-gap-list.md](P1-gap-list.md) | P1 (per-rule gap list) | draft | gap list, milestones, config budget | no |
-| [P1-typing-root-causes.md](P1-typing-root-causes.md) | P1 (S2 root causes) | draft | gap list, risks, scheme delta | no |
-| [P2-layout.md](P2-layout.md) | P2 (all items; `rt/` package question open) | final | scheme delta, decisions | no |
-| [P3-hints.md](P3-hints.md) | P3 (items 1-2: hint patch, IL hint forms, inverse pairs from hints) | final | scheme delta, builtin inventory, decisions | no |
-| [P3-builtin-inventory.md](P3-builtin-inventory.md) | P3 (items 3-4: builtin classification, inventory) | final | builtin inventory, config budget, decisions | no |
-| [P5-conformance.md](P5-conformance.md) | P5 (spec-test-1 result, 3.0 data, dry run partial) | draft | milestones, risks, probe table | no |
-| [P6-runtime-baseline.md](P6-runtime-baseline.md) | P6 (all items: step cost, 3.0 approach, crash sites, spec-test-3 estimate) | final | risks, milestones, scheme delta | no |
-| [P4-wasm2-result.md](P4-wasm2-result.md) | P4 (2.0 full target, the P4 exit) | final | milestones, builtin inventory, risks, config budget | no |
-| [P4-generic-gaps.md](P4-generic-gaps.md) | P4 (G1, G3, G4, G9 done; G5, G8 with the mode table) | draft | scheme delta, gap list, config budget | no |
+| [P0-probe-2026-11-14.md](P0-probe-2026-11-14.md) | P0 (baseline, before any change) | final | probe table, gap list | yes (draft plan) |
+| [P0-confidence-assessment.md](P0-confidence-assessment.md) | P0 (assessment) | draft | risks, milestone order | yes (draft plan) |
+| [P0-probe-tool.md](P0-probe-tool.md) | P0 (all three items: `make probe`, G7, schema) | final | probe table, gap list | yes (draft plan) |
+| [P1-gap-list.md](P1-gap-list.md) | P1 (per-rule gap list) | draft | gap list, milestones, config budget | yes (draft plan) |
+| [P1-typing-root-causes.md](P1-typing-root-causes.md) | P1 (S2 root causes) | draft | gap list, risks, scheme delta | yes (draft plan) |
+| [P2-layout.md](P2-layout.md) | P2 (all items; `rt/` package question open) | final | scheme delta, decisions | yes (draft plan) |
+| [P3-hints.md](P3-hints.md) | P3 (items 1-2: hint patch, IL hint forms, inverse pairs from hints) | final | scheme delta, builtin inventory, decisions | yes (draft plan) |
+| [P3-builtin-inventory.md](P3-builtin-inventory.md) | P3 (items 3-4: builtin classification, inventory) | final | builtin inventory, config budget, decisions | yes (draft plan) |
+| [P5-conformance.md](P5-conformance.md) | P5 (spec-test-1 result, 3.0 data, dry run partial) | draft | milestones, risks, probe table | yes (draft plan) |
+| [P6-runtime-baseline.md](P6-runtime-baseline.md) | P6 (all items: step cost, 3.0 approach, crash sites, spec-test-3 estimate) | final | risks, milestones, scheme delta | yes (draft plan) |
+| [P4-wasm2-result.md](P4-wasm2-result.md) | P4 (2.0 full target, the P4 exit) | final | milestones, builtin inventory, risks, config budget | yes (draft plan) |
+| [P4-generic-gaps.md](P4-generic-gaps.md) | P4 (G1, G3, G4, G9 done; G5, G8 with the mode table) | draft | scheme delta, gap list, config budget | yes (draft plan) |
+| [decisions.md](decisions.md) | all (D1-D6) | draft (nothing confirmed) | decisions | yes (draft plan) |

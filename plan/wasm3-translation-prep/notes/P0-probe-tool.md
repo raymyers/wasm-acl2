@@ -8,7 +8,7 @@
 - SpecTec: `WebAssembly/spec@943c5df` (the flake pin)
 - Status: final
 - Feeds wasm3 plan: probe table, gap list
-- Incorporated in wasm3 plan: no
+- Incorporated in wasm3 plan: yes (draft plan, §2 (probe table), §8 notes)
 
 ## Summary
 

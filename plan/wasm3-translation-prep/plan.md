@@ -24,29 +24,23 @@ Update this block at the end of every session, in the same commit as the work.
 A new session starts here.
 
 - **Last updated**: 2026-11-14
-- **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅, P5 ✅ (spec-test-1:
-  10,848 of 11,606 commands reached pass; spec-test-3 decode 98.3% by
-  experiment).
-  P6 ✅ (runtime baseline). P4 exit ✅: 2.0 certifies with 1 stub and passes
-  8,724 scalar + 528 SIMD vectors; G1, G3, G4, G9 and
-  declared modes incl. `:fun2` done (3.0 D3 scope: 2 stubs, 7 dropped rules);
-  G5, G8 and the W1/G2 inference still wait for the mode table design. P7 not started
-- **Next action**: P7 (write the wasm3 plan; needs D1-D6). The mode table design (W1/G2, G5, G8) is a Fable session;
-  `make check-2.0` is the 2.0 regression
-- **In progress / uncommitted**: nothing for this plan. The old single-book
-  driver `translate/tests/spec/t7-spec.lisp` (untracked, the user's) is
-  superseded by `t7-lib.lisp` + `run-all.sh` and was left in place
-- **Decisions D1-D6**: none confirmed by the user yet; §4 holds recommendations only.
-  Assumed so far, reversible: D2 (layout in P2), D3 (3.0 IL file list in the
-  flake), D5 (hint patch in the flake). P1 decided (translator-internal): per-rule stubs keep the `:fun`
-  interface when it can be saved; modes are P4's
-- **Blocked on**: the user's decisions D1-D6 for P7. The runtime package was
-  decided provisionally (option A, `WRT`, [P2-layout](notes/P2-layout.md)); to
-  confirm with D2.
-
-- **Next Fable session needed for**: the typing triage
-  (input: [P1-typing-root-causes](notes/P1-typing-root-causes.md), incl. whether
-  `Heaptype_sub/trans` can be dropped) and the mode table design (model-choice items 1 and 2)
+- **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅, P5 ✅, P6 ✅. P4: exit ✅ (2.0
+  certifies with 1 stub; 8,724 scalar + 528 SIMD vectors agree with V8);
+  G1, G3, G4, G9, declared modes and `:fun2` done; the mode-table inference
+  (W1/G2), G5 and G8 open. P7 🔶: the wasm3 plan exists as a **draft**
+  ([plan/wasm3-translation/plan.md](../wasm3-translation/plan.md)); every
+  note is incorporated
+- **Next action**: the user decides D1-D6 ([decisions](notes/decisions.md));
+  a Fable session designs the mode table and reviews the wasm3 draft. After
+  that the draft becomes final and the wasm3 plan starts at its M0
+- **In progress / uncommitted**: nothing. The old single-book driver
+  `translate/tests/spec/t7-spec.lisp` (untracked, the user's) is superseded
+  by `t7-lib.lisp` + `run-all.sh` and was left in place
+- **Decisions D1-D6**: none confirmed by the user. Assumed and built on:
+  D1, D2 (incl. `rt/` in package `WRT`), D3, D5, D6; D4 open
+- **Blocked on**: the user's decisions (D1-D6) for the final wasm3 plan
+- **Regressions**: `make -C translate check` (1.0), `make -C translate check-2.0`
+  (2.0), flake checks `translate-il`, `translate-gen-wasm1`
 
 ### Where things are written down
 
@@ -430,27 +424,33 @@ spec-test-3 recorded (98.3%, by experiment: the `rt/` question is still open).
 behind it: about 1.5-2 h wall with 8 sessions at today's speed, plus a tail
 of about 7 scripts at the 1 h limit.
 
-### P7: Write `plan/wasm3-translation/plan.md`
-- [ ] Walk the index in `notes/README.md` row by row. Each note is either
+### P7: Write `plan/wasm3-translation/plan.md` 🔶 (2026-11-14: [draft](../wasm3-translation/plan.md))
+- [x] Walk the index in `notes/README.md` row by row. Each note is either
       incorporated (record the wasm3 plan section in its header and index
-      row) or dropped with a reason. No row may stay at `no`
-- [ ] Record D1-D6 as decided (from `notes/decisions.md`)
-- [ ] Refreshed probe table, and the per-rule gap list from P1/P4 as the work
+      row) or dropped with a reason. No row may stay at `no`. *Done: all 12
+      notes incorporated in the draft*
+- [ ] Record D1-D6 as decided (from `notes/decisions.md`). *Recorded as
+      assumed/open in [decisions](notes/decisions.md) and the draft's §1;
+      waits for the user*
+- [x] Refreshed probe table, and the per-rule gap list from P1/P4 as the work
       list, grouped by proposal (SIMD, bulk memory, reference types, tail
-      calls, exceptions, GC, memory64, multi-memory, relaxed SIMD)
-- [ ] Translation-scheme delta against wasm1 §2: modes, function arguments,
-      nondeterminism policy, typed recognizers, package and layout
-- [ ] Milestones with exit criteria in the wasm1 style, in the D6 order:
+      calls, exceptions, GC, memory64, multi-memory, relaxed SIMD). *Draft §2, §3*
+- [x] Translation-scheme delta against wasm1 §2: modes, function arguments,
+      nondeterminism policy, typed recognizers, package and layout. *Draft §4*
+- [x] Milestones with exit criteria in the wasm1 style, in the D6 order:
       syntax, numerics and builtins, binary decode, execution, instantiation,
       type validation and subtyping, instruction typing, `Module_ok`,
-      conformance, logic mode and proofs. Deferred: text format, soundness judgements
-- [ ] Builtin inventory with an oracle source for each
-- [ ] Config budget: expected counted overrides, each tied to a gap in §2
-- [ ] Risks, with the go/no-go points (instruction typing with subtyping is
-      the likely one; Strategy B from wasm1 §1 remains the fallback for `Step`)
+      conformance, logic mode and proofs. Deferred: text format, soundness judgements.
+      *Draft §5 (M0-M9)*
+- [x] Builtin inventory with an oracle source for each. *Draft §3/M1, table in P3-builtin-inventory*
+- [x] Config budget: expected counted overrides, each tied to a gap in §2. *Draft §6*
+- [x] Risks, with the go/no-go points (instruction typing with subtyping is
+      the likely one; Strategy B from wasm1 §1 remains the fallback for `Step`). *Draft §7*
 
 **Exit**: the wasm3 plan exists, every number in it comes from the probe or a
 test run and cites its note, and every row of the notes index is `yes` or `dropped`.
+*Met for the draft; the plan becomes final when D1-D6 are decided (and,
+per the model-choice note, after a Fable review of it and the mode-table design)*
 
 ### Order and dependencies
 

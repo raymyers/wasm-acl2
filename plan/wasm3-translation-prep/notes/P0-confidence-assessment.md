@@ -5,7 +5,7 @@
 - Repo commit: 7b513d8
 - Status: draft (revise after P1 and after the P5 decoder dry run)
 - Feeds wasm3 plan: risks, milestone order (D6)
-- Incorporated in wasm3 plan: no
+- Incorporated in wasm3 plan: yes (draft plan, §7 (risks))
 
 ## Summary
 

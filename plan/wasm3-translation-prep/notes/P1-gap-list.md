@@ -6,7 +6,7 @@
 - Status: draft (update after P4; the causes of S1 and G9 entries are to be
   confirmed when the fixes land)
 - Feeds wasm3 plan: gap list, milestones, config budget
-- Incorporated in wasm3 plan: no
+- Incorporated in wasm3 plan: yes (draft plan, §3 (work list))
 
 ## Summary
 

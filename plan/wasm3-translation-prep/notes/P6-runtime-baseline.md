@@ -7,7 +7,7 @@
 - Machine: 10-core aarch64-darwin, 69 GB, SBCL ACL2 8.7 (flake)
 - Status: final for the measurements; the approach is a recommendation
 - Feeds wasm3 plan: risks, milestones (runtime), scheme delta
-- Incorporated in wasm3 plan: no
+- Incorporated in wasm3 plan: yes (draft plan, §5 M3, M8 (estimate), §7)
 
 ## Summary
 

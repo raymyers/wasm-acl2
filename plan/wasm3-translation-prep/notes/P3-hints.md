@@ -6,7 +6,7 @@
 - Repo commit: f9c403e plus this note's commit
 - Status: final
 - Feeds wasm3 plan: scheme delta, builtin inventory, decisions (D5)
-- Incorporated in wasm3 plan: no
+- Incorporated in wasm3 plan: yes (draft plan, §1 (D5), §4 (hints))
 
 ## Summary
 
