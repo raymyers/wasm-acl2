@@ -202,6 +202,12 @@
 (defun atom-tests (lsyms)
   (if (endp lsyms) nil (cons (list 'atom (car lsyms)) (atom-tests (cdr lsyms)))))
 
+(defun iter-end (lsyms ok)
+  ;; base case of a lockstep iteration over several lists: the iteration
+  ;; domain requires equal lengths, so it succeeds (with OK) only if all lists
+  ;; end together (one list: always)
+  (if (consp (cdr lsyms)) (list 'if (cons 'and (atom-tests lsyms)) ok nil) ok))
+
 (defun env-add-vars (names env cx)
   (if (endp names) env
     (env-add-vars (cdr names) (acons (car names) (var-sym (car names) cx) env) cx)))
@@ -1048,8 +1054,11 @@
           (mv-let (ts cx) (cexps comps env cx)
             (mv (append (rec-size-check rel ts cx) (list (list :test (cons fn ts)))) env cx))
         (mv-let (sa sb) (split-last comps)
-          (let ((ins (append (butlast comps 1) (list sa))))
-            (if (or (null sa) (has-unbound (cons (quote list) ins) env))
+          ;; output variant: b of a last component c(a, b), else the whole
+          ;; last component (as in :fun mode)
+          (let* ((ins (if sa (append (butlast comps 1) (list sa)) (butlast comps 1)))
+                 (sb (if sa sb (car (last comps)))))
+            (if (has-unbound (cons (quote list) ins) env)
                 (mv nil env (cx-err "relation inputs unbound" pr cx))
               (mv-let (ts cx) (cexps ins env cx)
                 (mv-let (tname cx) (cx-fresh "%T" cx)
@@ -1185,7 +1194,7 @@
                              (rec-call (cons aux (append (cdr-terms lsyms) fvsyms)))
                              (def (mk-defun aux (append lsyms fvsyms)
                                             (list 'if (cons 'or (atom-tests lsyms))
-                                                  (list 'list (cons 'list (make-list (len outs))))
+                                                  (iter-end lsyms (list 'list (cons 'list (make-list (len outs)))))
                                                   (build-steps
                                                    (append (bind-steps (car-binds in-names lsyms cx)) isteps)
                                                    (list 'let (list (list rv rec-call)) (ignorable-decl (list rv))
@@ -1207,7 +1216,7 @@
                 (let* ((aux (gsym aux-name))
                        (rec-call (cons aux (append (cdr-terms lsyms) fvsyms)))
                        (def (mk-defun aux (append lsyms fvsyms)
-                                      (list 'if (cons 'or (atom-tests lsyms)) t
+                                      (list 'if (cons 'or (atom-tests lsyms)) (iter-end lsyms t)
                                             (build-steps (append (bind-steps (car-binds in-names lsyms cx))
                                                                  isteps)
                                                          rec-call)))))
@@ -1262,6 +1271,27 @@
     (mv-let (s1 env cx) (cpat (car pats) (car formals) env cx)
       (mv-let (s2 env cx) (cpat-args (cdr pats) (cdr formals) env cx)
         (mv (append s1 s2) env cx)))))
+
+(defun cpat-args-defer (pats formals env cx)
+  ;; like cpat-args, but an input pattern that cannot be compiled (e.g.
+  ;; FUNC funcinst.TYPE, a projection of a variable bound only by a later
+  ;; premise) is deferred: (mv steps env deferred cx), deferred = ((pat . formal) ...),
+  ;; to be checked as formal = pat after the premises
+  (if (or (endp pats) (endp formals)) (mv nil env nil cx)
+    (let ((errs0 (cx-get :errs cx)) (aux0 (cx-get :aux cx)))
+      (mv-let (s1 env1 cx1) (cpat (car pats) (car formals) env cx)
+        (if (equal (len (cx-get :errs cx1)) (len errs0))
+            (mv-let (s2 env dfr cx) (cpat-args-defer (cdr pats) (cdr formals) env1 cx1)
+              (mv (append s1 s2) env dfr cx))
+          (let ((cx (cx-put :aux aux0 (cx-put :errs errs0 cx1))))
+            (mv-let (s2 env dfr cx) (cpat-args-defer (cdr pats) (cdr formals) env cx)
+              (mv s2 env (cons (cons (car pats) (car formals)) dfr) cx))))))))
+
+(defun deferred-tests (dfr env cx)
+  (if (endp dfr) (mv nil cx)
+    (mv-let (e cx) (cexp (car (car dfr)) env cx)
+      (mv-let (rest cx) (deferred-tests (cdr dfr) env cx)
+        (mv (cons (list :test (list 'equal (cdr (car dfr)) e)) rest) cx)))))
 
 (defun crec-fields (fs i r cx)
   ;; record fields (field atom ty params... prems...) at positions i.. of alist r
@@ -1462,17 +1492,19 @@
   (mv-let (comps prems) (rule-parts r)
     (mv-let (sa sb) (split-last comps)
     (let* ((ins (cond ((eq mode :fun) (butlast comps 1))
-                      ((eq mode :split) (append (butlast comps 1) (list sa)))
+                      ((and (eq mode :split) sa) (append (butlast comps 1) (list sa)))
+                      ((eq mode :split) (butlast comps 1))   ; no c(a, b): output is the last component
                       (t comps)))
-           (cx (if (and (eq mode :split) (null sa)) (cx-err "split mode: last component is not c(a, b)" r cx) cx))
            (cx (cx-put :redex (and (member-equal (cons rel (second r)) (cx-get :split-rules cx)) t) cx)))
-      (mv-let (s1 env cx) (cpat-args ins formals nil cx)
+      (mv-let (s1 env dfr cx) (cpat-args-defer ins formals nil cx)
         (let ((cx (cx-put :redex nil cx)))
           (mv-let (s2 env cx) (cprems prems env cx)
+            (mv-let (s3 cx) (deferred-tests dfr env cx)
             (mv-let (out cx) (cond ((eq mode :fun) (cexp (car (last comps)) env cx))
-                                   ((eq mode :split) (cexp sb env cx))
+                                   ((and (eq mode :split) sa) (cexp sb env cx))
+                                   ((eq mode :split) (cexp (car (last comps)) env cx))
                                    (t (mv t cx)))
-              (build-steps-cx (append s1 s2) (list 'list out) cx)))))))))
+              (build-steps-cx (append s1 s2 s3) (list 'list out) cx))))))))))
 
 (defun crules (rs mode formals rel cx)
   ;; in :split mode a rule whose output cannot be computed (e.g. unreachable:
@@ -1500,6 +1532,13 @@
         (list 'let (list (list r (car cs))) (ignorable-decl (list r))
               (list 'if r r (chain-results (cdr cs))))))))
 
+(defun rules-split-p (rules)
+  ;; the output variant splits c(a, b) iff the (first) rule's last component does
+  (and (consp rules)
+       (mv-let (comps prems) (rule-parts (car rules))
+         (declare (ignore prems))
+         (mv-let (sa sb) (split-last comps) (declare (ignore sb)) (and sa t)))))
+
 ; (mv defuns cx) for one relation in the given mode
 (defun crel-1 (x mode cx)
   (mv-let (n rules) (rel-parts x)
@@ -1518,7 +1557,8 @@
                                                           (list 'list a)))))
                       (mk-defun name (list a) (list aux (list (gsym "%FUEL")) a)))
                 cx))
-        (let* ((formals (gsyms-prefixed "%A" (if (eq mode :fun) (1- n) n)))
+        (let* ((formals (gsyms-prefixed "%A" (if (or (eq mode :fun) (and (eq mode :split) (not (rules-split-p rules))))
+                                                 (1- n) n)))
                (cx (cx-put :rel-formals (and (member-equal (second x) (cx-get :rec-rels cx)) formals) cx))
                (cx (cx-put :cur-rel (second x) cx)))
           (mv-let (cs cx) (crules rules mode formals (second x) cx)

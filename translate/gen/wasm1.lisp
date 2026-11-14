@@ -66,7 +66,6 @@
 ;   SIZED ||BX||: The source premise `len = ||BX||` (byte length of what BX matched) elaborates to `len = 0` in the IL, which would reject every non-empty section. In these grammars the item after `len` is parsed from exactly `len` bytes instead, and the `len = 0` premise is dropped.
 ;
 ; Stubs (an unsupported construct; body signals an error):
-;   EXTERNADDR_OK
 ;
 ; Rules dropped from the R/SPLIT variants of multi-mode relations (their
 ; output is not computable from the inputs; the R check variants keep them):
@@ -74,10 +73,6 @@
 ;   Instr_ok/br
 ;   Instr_ok/br_table
 ;   Instr_ok/return
-;   Externaddr_ok/global
-;   Externaddr_ok/mem
-;   Externaddr_ok/table
-;   Externaddr_ok/func
 ;   Externaddr_ok/sub
 ;
 ; Not translated yet:
@@ -13844,11 +13839,175 @@
 (%TRY-GUARDS EVAL_EXPR)
 
 (%TRY-LOGIC
-     (DEFUN EXTERNADDR_OK (%A0 %A1)
-       (DECLARE (IGNORABLE %A0 %A1))
-       (PROG2$ (ER ACL2::HARD? 'EXTERNADDR_OK
-                   "Not translated (see the stub list in the file header).")
-               NIL)))
+ (MUTUAL-RECURSION
+  (DEFUN EXTERNADDR_OK (%A0 %A1 %A2)
+   (DECLARE (IGNORABLE %A0 %A1 %A2))
+   (DECLARE (XARGS :MEASURE (%OM3 0 (1+ (%SIZE (LIST %A0 %A1 %A2)))
+                                  0)))
+   (IF
+    (LET
+     ((%R
+       (LET* ((S %A0))
+        (DECLARE (IGNORABLE S))
+        (AND
+           (CONSP %A1)
+           (EQ (CAR %A1) :GLOBAL)
+           (TRUE-LISTP (CDR %A1))
+           (EQUAL (ACL2::LEN (CDR %A1)) 1)
+           (LET* ((A (CAR (CDR %A1))))
+             (DECLARE (IGNORABLE A))
+             (AND (< A (ACL2::LEN (%GET-FIELD S :GLOBALS)))
+                  (LET* ((GLOBALINST (NTH A (%GET-FIELD S :GLOBALS))))
+                    (DECLARE (IGNORABLE GLOBALINST))
+                    (AND (EQUAL %A2
+                                (LIST :GLOBAL (%GET-FIELD GLOBALINST :TYPE)))
+                         (LIST T)))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R
+      (LET
+       ((%R
+          (LET* ((S %A0))
+            (DECLARE (IGNORABLE S))
+            (AND (CONSP %A1)
+                 (EQ (CAR %A1) :MEM)
+                 (TRUE-LISTP (CDR %A1))
+                 (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                 (LET* ((A (CAR (CDR %A1))))
+                   (DECLARE (IGNORABLE A))
+                   (AND (< A (ACL2::LEN (%GET-FIELD S :MEMS)))
+                        (LET* ((MEMINST (NTH A (%GET-FIELD S :MEMS))))
+                          (DECLARE (IGNORABLE MEMINST))
+                          (AND (EQUAL %A2
+                                      (LIST :MEM (%GET-FIELD MEMINST :TYPE)))
+                               (LIST T)))))))))
+       (DECLARE (IGNORABLE %R))
+       (IF %R %R
+        (LET
+         ((%R
+           (LET* ((S %A0))
+            (DECLARE (IGNORABLE S))
+            (AND
+             (CONSP %A1)
+             (EQ (CAR %A1) :TABLE)
+             (TRUE-LISTP (CDR %A1))
+             (EQUAL (ACL2::LEN (CDR %A1)) 1)
+             (LET* ((A (CAR (CDR %A1))))
+               (DECLARE (IGNORABLE A))
+               (AND (< A (ACL2::LEN (%GET-FIELD S :TABLES)))
+                    (LET* ((TABLEINST (NTH A (%GET-FIELD S :TABLES))))
+                      (DECLARE (IGNORABLE TABLEINST))
+                      (AND (EQUAL %A2
+                                  (LIST :TABLE (%GET-FIELD TABLEINST :TYPE)))
+                           (LIST T)))))))))
+         (DECLARE (IGNORABLE %R))
+         (IF %R %R
+          (LET
+           ((%R
+             (LET* ((S %A0))
+              (DECLARE (IGNORABLE S))
+              (AND
+               (CONSP %A1)
+               (EQ (CAR %A1) :FUNC)
+               (TRUE-LISTP (CDR %A1))
+               (EQUAL (ACL2::LEN (CDR %A1)) 1)
+               (LET* ((A (CAR (CDR %A1))))
+                 (DECLARE (IGNORABLE A))
+                 (AND (< A (ACL2::LEN (%GET-FIELD S :FUNCS)))
+                      (LET* ((FUNCINST (NTH A (%GET-FIELD S :FUNCS))))
+                        (DECLARE (IGNORABLE FUNCINST))
+                        (AND (EQUAL %A2
+                                    (LIST :FUNC (%GET-FIELD FUNCINST :TYPE)))
+                             (LIST T)))))))))
+           (DECLARE (IGNORABLE %R))
+           (IF %R %R
+            (LET ((%R (LET* ((S %A0) (EXTERNADDR %A1) (XT %A2))
+                        (DECLARE (IGNORABLE S EXTERNADDR XT))
+                        (AND (OR (< 0 0)
+                                 (AND (EQUAL 0 0)
+                                      (< (%SIZE (LIST S EXTERNADDR))
+                                         (%SIZE (LIST %A0 %A1 %A2)))))
+                             (LET* ((%T0 (EXTERNADDR_OK/SPLIT S EXTERNADDR)))
+                               (DECLARE (IGNORABLE %T0))
+                               (AND %T0
+                                    (LET* ((XT-PRIME (CAR %T0)))
+                                      (DECLARE (IGNORABLE XT-PRIME))
+                                      (AND (EXTERNTYPE_OK XT)
+                                           (EXTERNTYPE_SUB XT-PRIME XT)
+                                           (LIST T)))))))))
+              (DECLARE (IGNORABLE %R))
+              (IF %R %R NIL))))))))))
+    T
+    NIL))
+  (DEFUN EXTERNADDR_OK/SPLIT (%A0 %A1)
+   (DECLARE (IGNORABLE %A0 %A1))
+   (DECLARE (XARGS :MEASURE (%OM3 0 (1+ (%SIZE (LIST %A0 %A1))) 0)))
+   (LET
+    ((%R
+      (LET* ((S %A0))
+       (DECLARE (IGNORABLE S))
+       (AND
+          (CONSP %A1)
+          (EQ (CAR %A1) :GLOBAL)
+          (TRUE-LISTP (CDR %A1))
+          (EQUAL (ACL2::LEN (CDR %A1)) 1)
+          (LET* ((A (CAR (CDR %A1))))
+            (DECLARE (IGNORABLE A))
+            (AND (< A (ACL2::LEN (%GET-FIELD S :GLOBALS)))
+                 (LET* ((GLOBALINST (NTH A (%GET-FIELD S :GLOBALS))))
+                   (DECLARE (IGNORABLE GLOBALINST))
+                   (LIST (LIST :GLOBAL (%GET-FIELD GLOBALINST :TYPE))))))))))
+    (DECLARE (IGNORABLE %R))
+    (IF %R %R
+     (LET
+      ((%R
+         (LET* ((S %A0))
+           (DECLARE (IGNORABLE S))
+           (AND (CONSP %A1)
+                (EQ (CAR %A1) :MEM)
+                (TRUE-LISTP (CDR %A1))
+                (EQUAL (ACL2::LEN (CDR %A1)) 1)
+                (LET* ((A (CAR (CDR %A1))))
+                  (DECLARE (IGNORABLE A))
+                  (AND (< A (ACL2::LEN (%GET-FIELD S :MEMS)))
+                       (LET* ((MEMINST (NTH A (%GET-FIELD S :MEMS))))
+                         (DECLARE (IGNORABLE MEMINST))
+                         (LIST (LIST :MEM (%GET-FIELD MEMINST :TYPE))))))))))
+      (DECLARE (IGNORABLE %R))
+      (IF %R %R
+       (LET
+        ((%R
+          (LET* ((S %A0))
+           (DECLARE (IGNORABLE S))
+           (AND
+            (CONSP %A1)
+            (EQ (CAR %A1) :TABLE)
+            (TRUE-LISTP (CDR %A1))
+            (EQUAL (ACL2::LEN (CDR %A1)) 1)
+            (LET* ((A (CAR (CDR %A1))))
+              (DECLARE (IGNORABLE A))
+              (AND (< A (ACL2::LEN (%GET-FIELD S :TABLES)))
+                   (LET* ((TABLEINST (NTH A (%GET-FIELD S :TABLES))))
+                     (DECLARE (IGNORABLE TABLEINST))
+                     (LIST (LIST :TABLE (%GET-FIELD TABLEINST :TYPE))))))))))
+        (DECLARE (IGNORABLE %R))
+        (IF %R %R
+         (LET
+          ((%R
+            (LET* ((S %A0))
+             (DECLARE (IGNORABLE S))
+             (AND
+              (CONSP %A1)
+              (EQ (CAR %A1) :FUNC)
+              (TRUE-LISTP (CDR %A1))
+              (EQUAL (ACL2::LEN (CDR %A1)) 1)
+              (LET* ((A (CAR (CDR %A1))))
+                (DECLARE (IGNORABLE A))
+                (AND (< A (ACL2::LEN (%GET-FIELD S :FUNCS)))
+                     (LET* ((FUNCINST (NTH A (%GET-FIELD S :FUNCS))))
+                       (DECLARE (IGNORABLE FUNCINST))
+                       (LIST (LIST :FUNC (%GET-FIELD FUNCINST :TYPE))))))))))
+          (DECLARE (IGNORABLE %R))
+          (IF %R %R NIL)))))))))))
 
 
 (%TRY-GUARDS EXTERNADDR_OK)
@@ -15407,158 +15566,157 @@
 
 (%TRY-GUARDS $INSTANTIATE/ITER26)
 
-(%TRY-LOGIC (DEFUN $INSTANTIATE/ALL32 (%L0 %L1 S)
+(%TRY-LOGIC (DEFUN $INSTANTIATE/ALL31 (%L0 %L1 S)
               (DECLARE (IGNORABLE %L0 %L1 S))
               (IF (OR (ATOM %L0) (ATOM %L1))
-                  T
+                  (IF (AND (ATOM %L0) (ATOM %L1)) T NIL)
                 (LET* ((EXTERNADDR (CAR %L0))
-                       (XT_I (CAR %L1))
-                       (%T31 (EXTERNADDR_OK S EXTERNADDR)))
-                  (DECLARE (IGNORABLE EXTERNADDR XT_I %T31))
-                  (AND %T31 (EQUAL (CAR %T31) XT_I)
-                       ($INSTANTIATE/ALL32 (CDR %L0)
+                       (XT_I (CAR %L1)))
+                  (DECLARE (IGNORABLE EXTERNADDR XT_I))
+                  (AND (EXTERNADDR_OK S EXTERNADDR XT_I)
+                       ($INSTANTIATE/ALL31 (CDR %L0)
                                            (CDR %L1)
                                            S))))))
 
 
-(%TRY-GUARDS $INSTANTIATE/ALL32)
+(%TRY-GUARDS $INSTANTIATE/ALL31)
 
 (%TRY-LOGIC
- (DEFUN $INSTANTIATE/MAP35 (%L0 Z)
+ (DEFUN $INSTANTIATE/MAP34 (%L0 Z)
    (DECLARE (IGNORABLE %L0 Z))
    (IF (OR (ATOM %L0))
        (LIST (LIST NIL))
      (LET* ((EXPR_G (CAR %L0))
-            (%T33 (EVAL_EXPR Z EXPR_G Z)))
-       (DECLARE (IGNORABLE EXPR_G %T33))
-       (AND %T33
-            (LET* ((%T34 (CAR %T33)))
-              (DECLARE (IGNORABLE %T34))
-              (AND (TRUE-LISTP %T34)
-                   (EQUAL (ACL2::LEN %T34) 1)
-                   (LET* ((VAL (CAR %T34)))
+            (%T32 (EVAL_EXPR Z EXPR_G Z)))
+       (DECLARE (IGNORABLE EXPR_G %T32))
+       (AND %T32
+            (LET* ((%T33 (CAR %T32)))
+              (DECLARE (IGNORABLE %T33))
+              (AND (TRUE-LISTP %T33)
+                   (EQUAL (ACL2::LEN %T33) 1)
+                   (LET* ((VAL (CAR %T33)))
                      (DECLARE (IGNORABLE VAL))
-                     (LET ((%R ($INSTANTIATE/MAP35 (CDR %L0) Z)))
+                     (LET ((%R ($INSTANTIATE/MAP34 (CDR %L0) Z)))
                        (DECLARE (IGNORABLE %R))
                        (AND %R
                             (LIST (LIST (CONS VAL (CAR (CAR %R)))))))))))))))
 
 
-(%TRY-GUARDS $INSTANTIATE/MAP35)
+(%TRY-GUARDS $INSTANTIATE/MAP34)
 
 (%TRY-LOGIC
- (DEFUN $INSTANTIATE/MAP42 (%L0 Z)
+ (DEFUN $INSTANTIATE/MAP41 (%L0 Z)
   (DECLARE (IGNORABLE %L0 Z))
   (IF (OR (ATOM %L0))
       (LIST (LIST NIL))
    (LET* ((EXPR_E (CAR %L0))
-          (%T38 (EVAL_EXPR Z EXPR_E Z)))
-    (DECLARE (IGNORABLE EXPR_E %T38))
+          (%T37 (EVAL_EXPR Z EXPR_E Z)))
+    (DECLARE (IGNORABLE EXPR_E %T37))
     (AND
-     %T38
-     (LET* ((%T39 (CAR %T38)))
-      (DECLARE (IGNORABLE %T39))
+     %T37
+     (LET* ((%T38 (CAR %T37)))
+      (DECLARE (IGNORABLE %T38))
       (AND
-       (TRUE-LISTP %T39)
-       (EQUAL (ACL2::LEN %T39) 1)
-       (LET* ((%T40 (CAR %T39)))
-        (DECLARE (IGNORABLE %T40))
+       (TRUE-LISTP %T38)
+       (EQUAL (ACL2::LEN %T38) 1)
+       (LET* ((%T39 (CAR %T38)))
+        (DECLARE (IGNORABLE %T39))
         (AND
-         (CONSP %T40)
-         (EQ (CAR %T40) :CONST)
-         (TRUE-LISTP (CDR %T40))
-         (EQUAL (ACL2::LEN (CDR %T40)) 2)
-         (LET* ((%T41 (CAR (CDR %T40))))
-          (DECLARE (IGNORABLE %T41))
-          (AND (CONSP %T41)
-               (EQ (CAR %T41) :I32)
-               (TRUE-LISTP (CDR %T41))
-               (EQUAL (ACL2::LEN (CDR %T41)) 0)
-               (LET* ((I_E (CAR (CDR (CDR %T40)))))
+         (CONSP %T39)
+         (EQ (CAR %T39) :CONST)
+         (TRUE-LISTP (CDR %T39))
+         (EQUAL (ACL2::LEN (CDR %T39)) 2)
+         (LET* ((%T40 (CAR (CDR %T39))))
+          (DECLARE (IGNORABLE %T40))
+          (AND (CONSP %T40)
+               (EQ (CAR %T40) :I32)
+               (TRUE-LISTP (CDR %T40))
+               (EQUAL (ACL2::LEN (CDR %T40)) 0)
+               (LET* ((I_E (CAR (CDR (CDR %T39)))))
                  (DECLARE (IGNORABLE I_E))
-                 (LET ((%R ($INSTANTIATE/MAP42 (CDR %L0) Z)))
+                 (LET ((%R ($INSTANTIATE/MAP41 (CDR %L0) Z)))
                    (DECLARE (IGNORABLE %R))
                    (AND %R
                         (LIST (LIST (CONS I_E (CAR (CAR %R)))))))))))))))))))
 
 
-(%TRY-GUARDS $INSTANTIATE/MAP42)
+(%TRY-GUARDS $INSTANTIATE/MAP41)
 
-(%TRY-LOGIC (DEFUN $INSTANTIATE/ITER45 (%L0 MODULEINST)
+(%TRY-LOGIC (DEFUN $INSTANTIATE/ITER44 (%L0 MODULEINST)
               (DECLARE (IGNORABLE %L0 MODULEINST))
               (IF (OR (ATOM %L0))
                   NIL
                 (LET* ((X (CAR %L0)))
                   (DECLARE (IGNORABLE X))
                   (CONS (NTH X (%GET-FIELD MODULEINST :FUNCS))
-                        ($INSTANTIATE/ITER45 (CDR %L0)
-                                             MODULEINST))))))
-
-
-(%TRY-GUARDS $INSTANTIATE/ITER45)
-
-(%TRY-LOGIC (DEFUN $INSTANTIATE/ITER44 (%L0 MODULEINST)
-              (DECLARE (IGNORABLE %L0 MODULEINST))
-              (IF (OR (ATOM %L0))
-                  NIL
-                (LET* ((X-STAR (CAR %L0)))
-                  (DECLARE (IGNORABLE X-STAR))
-                  (CONS ($INSTANTIATE/ITER45 X-STAR MODULEINST)
                         ($INSTANTIATE/ITER44 (CDR %L0)
                                              MODULEINST))))))
 
 
 (%TRY-GUARDS $INSTANTIATE/ITER44)
 
+(%TRY-LOGIC (DEFUN $INSTANTIATE/ITER43 (%L0 MODULEINST)
+              (DECLARE (IGNORABLE %L0 MODULEINST))
+              (IF (OR (ATOM %L0))
+                  NIL
+                (LET* ((X-STAR (CAR %L0)))
+                  (DECLARE (IGNORABLE X-STAR))
+                  (CONS ($INSTANTIATE/ITER44 X-STAR MODULEINST)
+                        ($INSTANTIATE/ITER43 (CDR %L0)
+                                             MODULEINST))))))
+
+
+(%TRY-GUARDS $INSTANTIATE/ITER43)
+
 (%TRY-LOGIC
- (DEFUN $INSTANTIATE/MAP50 (%L0 Z)
+ (DEFUN $INSTANTIATE/MAP49 (%L0 Z)
   (DECLARE (IGNORABLE %L0 Z))
   (IF (OR (ATOM %L0))
       (LIST (LIST NIL))
    (LET* ((EXPR_D (CAR %L0))
-          (%T46 (EVAL_EXPR Z EXPR_D Z)))
-    (DECLARE (IGNORABLE EXPR_D %T46))
+          (%T45 (EVAL_EXPR Z EXPR_D Z)))
+    (DECLARE (IGNORABLE EXPR_D %T45))
     (AND
-     %T46
-     (LET* ((%T47 (CAR %T46)))
-      (DECLARE (IGNORABLE %T47))
+     %T45
+     (LET* ((%T46 (CAR %T45)))
+      (DECLARE (IGNORABLE %T46))
       (AND
-       (TRUE-LISTP %T47)
-       (EQUAL (ACL2::LEN %T47) 1)
-       (LET* ((%T48 (CAR %T47)))
-        (DECLARE (IGNORABLE %T48))
+       (TRUE-LISTP %T46)
+       (EQUAL (ACL2::LEN %T46) 1)
+       (LET* ((%T47 (CAR %T46)))
+        (DECLARE (IGNORABLE %T47))
         (AND
-         (CONSP %T48)
-         (EQ (CAR %T48) :CONST)
-         (TRUE-LISTP (CDR %T48))
-         (EQUAL (ACL2::LEN (CDR %T48)) 2)
-         (LET* ((%T49 (CAR (CDR %T48))))
-          (DECLARE (IGNORABLE %T49))
-          (AND (CONSP %T49)
-               (EQ (CAR %T49) :I32)
-               (TRUE-LISTP (CDR %T49))
-               (EQUAL (ACL2::LEN (CDR %T49)) 0)
-               (LET* ((I_D (CAR (CDR (CDR %T48)))))
+         (CONSP %T47)
+         (EQ (CAR %T47) :CONST)
+         (TRUE-LISTP (CDR %T47))
+         (EQUAL (ACL2::LEN (CDR %T47)) 2)
+         (LET* ((%T48 (CAR (CDR %T47))))
+          (DECLARE (IGNORABLE %T48))
+          (AND (CONSP %T48)
+               (EQ (CAR %T48) :I32)
+               (TRUE-LISTP (CDR %T48))
+               (EQUAL (ACL2::LEN (CDR %T48)) 0)
+               (LET* ((I_D (CAR (CDR (CDR %T47)))))
                  (DECLARE (IGNORABLE I_D))
-                 (LET ((%R ($INSTANTIATE/MAP50 (CDR %L0) Z)))
+                 (LET ((%R ($INSTANTIATE/MAP49 (CDR %L0) Z)))
                    (DECLARE (IGNORABLE %R))
                    (AND %R
                         (LIST (LIST (CONS I_D (CAR (CAR %R)))))))))))))))))))
 
 
-(%TRY-GUARDS $INSTANTIATE/MAP50)
+(%TRY-GUARDS $INSTANTIATE/MAP49)
 
-(%TRY-LOGIC (DEFUN $INSTANTIATE/ITER52 (%L0)
+(%TRY-LOGIC (DEFUN $INSTANTIATE/ITER51 (%L0)
               (DECLARE (IGNORABLE %L0))
               (IF (OR (ATOM %L0))
                   NIL
                 (LET* ((B-STAR (CAR %L0)))
                   (DECLARE (IGNORABLE B-STAR))
                   (CONS B-STAR
-                        ($INSTANTIATE/ITER52 (CDR %L0)))))))
+                        ($INSTANTIATE/ITER51 (CDR %L0)))))))
 
 
-(%TRY-GUARDS $INSTANTIATE/ITER52)
+(%TRY-GUARDS $INSTANTIATE/ITER51)
 
 (%TRY-LOGIC
  (DEFUN $INSTANTIATE (%A0 %A1 %A2)
@@ -15810,24 +15968,24 @@
                                                              (IGNORABLE
                                                                   XT_E-STAR))
                                                           (AND
-                                                           ($INSTANTIATE/ALL32
+                                                           ($INSTANTIATE/ALL31
                                                               EXTERNADDR-STAR
                                                               XT_I-STAR S)
                                                            (LET*
-                                                            ((%T36
-                                                              ($INSTANTIATE/MAP35
+                                                            ((%T35
+                                                              ($INSTANTIATE/MAP34
                                                                   EXPR_G-STAR
                                                                   Z)))
                                                             (DECLARE
                                                                  (IGNORABLE
-                                                                      %T36))
+                                                                      %T35))
                                                             (AND
-                                                             %T36
+                                                             %T35
                                                              (LET*
                                                               ((VAL-STAR
                                                                 (CAR
-                                                                 (CAR %T36)))
-                                                               (%T37
+                                                                 (CAR %T35)))
+                                                               (%T36
                                                                 ($ALLOCMODULE
                                                                  S MODULE
                                                                  EXTERNADDR-STAR
@@ -15835,21 +15993,21 @@
                                                               (DECLARE
                                                                 (IGNORABLE
                                                                      VAL-STAR
-                                                                     %T37))
+                                                                     %T36))
                                                               (AND
                                                                (TRUE-LISTP
-                                                                    %T37)
+                                                                    %T36)
                                                                (EQUAL
                                                                    (ACL2::LEN
-                                                                        %T37)
+                                                                        %T36)
                                                                    2)
                                                                (LET*
                                                                 ((S_1
-                                                                  (CAR %T37))
+                                                                  (CAR %T36))
                                                                  (MODULEINST
                                                                   (CAR
                                                                    (CDR
-                                                                      %T37)))
+                                                                      %T36)))
                                                                  (F
                                                                   (LIST
                                                                    :%REC
@@ -15859,52 +16017,52 @@
                                                                    (CONS
                                                                     :MODULE
                                                                     MODULEINST)))
-                                                                 (%T43
-                                                                  ($INSTANTIATE/MAP42
+                                                                 (%T42
+                                                                  ($INSTANTIATE/MAP41
                                                                    EXPR_E-STAR
                                                                    Z)))
                                                                 (DECLARE
                                                                  (IGNORABLE
                                                                    S_1
                                                                    MODULEINST
-                                                                   F %T43))
+                                                                   F %T42))
                                                                 (AND
-                                                                 %T43
+                                                                 %T42
                                                                  (LET*
                                                                   ((I_E-STAR
                                                                     (CAR
                                                                      (CAR
-                                                                      %T43)))
+                                                                      %T42)))
                                                                    (S_2
                                                                     ($INITELEM
                                                                      S_1
                                                                      MODULEINST
                                                                      I_E-STAR
-                                                                     ($INSTANTIATE/ITER44
+                                                                     ($INSTANTIATE/ITER43
                                                                       X-STAR-STAR
                                                                       MODULEINST)))
-                                                                   (%T51
-                                                                    ($INSTANTIATE/MAP50
+                                                                   (%T50
+                                                                    ($INSTANTIATE/MAP49
                                                                      EXPR_D-STAR
                                                                      Z)))
                                                                   (DECLARE
                                                                    (IGNORABLE
                                                                      I_E-STAR
                                                                      S_2
-                                                                     %T51))
+                                                                     %T50))
                                                                   (AND
-                                                                   %T51
+                                                                   %T50
                                                                    (LET*
                                                                     ((I_D-STAR
                                                                       (CAR
                                                                        (CAR
-                                                                        %T51)))
+                                                                        %T50)))
                                                                      (S_3
                                                                       ($INITDATA
                                                                        S_2
                                                                        MODULEINST
                                                                        I_D-STAR
-                                                                       ($INSTANTIATE/ITER52
+                                                                       ($INSTANTIATE/ITER51
                                                                         B-STAR-STAR))))
                                                                     (DECLARE
                                                                      (IGNORABLE
@@ -35901,7 +36059,9 @@
 (%TRY-LOGIC (DEFUN GRAM/BMODULE/MAP122 (%L0 %L1 %L2)
               (DECLARE (IGNORABLE %L0 %L1 %L2))
               (IF (OR (ATOM %L0) (ATOM %L1) (ATOM %L2))
-                  (LIST (LIST NIL))
+                  (IF (AND (ATOM %L0) (ATOM %L1) (ATOM %L2))
+                      (LIST (LIST NIL))
+                    NIL)
                 (LET* ((EXPR (CAR %L0))
                        (LOCAL-STAR (CAR %L1))
                        (TYPEIDX (CAR %L2))

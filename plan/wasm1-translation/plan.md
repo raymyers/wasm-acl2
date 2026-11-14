@@ -413,10 +413,11 @@ generator. The generic ones would ask for ~2^16 iterations (e.g.
 fuel, and each step is O(memory) because memory is a byte list. The slowest
 vector (40 iterations with loads) takes ~8 s; the whole book ~26 s.
 
-### T6: Typing (`gen/wasm1.lisp`) ✅ exit met (2026-11-14; `Externaddr_ok` still a stub)
-- [~] All 76 typing rules as checkers or output-mode functions (§2.5).
-      Every typing relation translates except `Module_ok` and
-      `Externaddr_ok`. Instruction typing uses option 2 below, now
+### T6: Typing (`gen/wasm1.lisp`) ✅ (2026-11-14)
+- [x] All 76 typing rules as checkers or output-mode functions (§2.5).
+      Every typing relation translates (`Module_ok` via the override below;
+      `Externaddr_ok` via multi-mode, see the last item). The translator now reports **0 stubs and 0
+      unsupported constructs**. Instruction typing uses option 2 below, now
       implemented: a **multi-mode** translation. `Instr_ok`/`Instrs_ok` get a check
       variant `R` (all components given) and a split variant `R/SPLIT`
       (output = second half of the last component `t_1* -> t_2*`). Premise
@@ -459,6 +460,26 @@ vector (40 iterations with loads) takes ~8 s; the whole book ~26 s.
       because memo tables key unnormed conses by address, and the split
       searches build sub-lists with `TAKE` (before: 0 hits in 70K calls).
       With `Instr_ok`/`Instrs_ok` memoized, 60 instructions take 0.1 s and 200 take 11 s
+- [x] `Externaddr_ok` (9-module, used by `$instantiate` for imports), with two
+      generic translator extensions and no config. (1) The multi-mode output variant
+      `R/SPLIT` now also covers relations whose last component is not `c(a, b)`:
+      the whole last component is the output, as in `:fun`, and rules that
+      cannot compute it are dropped. `Externaddr_ok/sub` then types its
+      premise with the output variant (the exact type), and the check variant
+      keeps `/sub`. That is complete, since the exact type is the least one and
+      subtyping is transitive. (2) Input patterns that cannot be compiled before the
+      premises run (`FUNC funcinst.TYPE`, where `funcinst` is bound by
+      `s.FUNCS[a] = funcinst`) are deferred to an equality test after them.
+      `tests/sem/t5-imports.lisp` (9 checks): a module importing gcd from
+      an instantiated `gcd.wasm` calls it; a memory import from `hash.wasm`
+      reads its data, both exactly and by `/sub` (`[1..] <: [0..]`); and
+      wrong function type, out-of-range address, kind mismatch, missing import,
+      `[1..] </: [2..]` and `[1..] </: [1..1]` are rejected.
+      **Bug found and fixed on the way**: lockstep iterations over several
+      lists (`(Externaddr_ok: s |- externaddr : xt_I)*`, and the func/code zip
+      in `Bmodule`) truncated to the shorter list, so instantiating with too
+      few extern addresses succeeded. SpecTec's iteration domain requires equal
+      lengths; the generated `/ALL` and `/MAP` functions now check that
 
 **Exit**: every oracle module validates, and the deliberately ill-typed
 negative tests are rejected.
@@ -518,8 +539,9 @@ breaks the cycle via `C.TYPES[x] = ft`, see the checked item above):
 - [x] `.wasm` bytes → `PARSE-MODULE` → instantiate → invoke, with no JS
       involved: done by T5 (`tests/sem/t5-invoke.lisp`, 515/515 vectors)
 - [ ] Run a subset of `spectec/test-interpreter/spec-test-1` (the WASM 1.0 `.wast` suite).
-      Unblocked since T5. Needs a `.wast` driver (module definitions,
-      `assert_return`/`assert_trap`, registered imports, so `Externaddr_ok` too)
+      Unblocked since T5, and imports work (T6 `Externaddr_ok`). Needs a `.wast`
+      driver (module definitions, `assert_return`/`assert_trap`, `register`,
+      the `spectest` host module)
 
 **Exit**: N of M spec-test-1 assertions pass (record N/M).
 
@@ -618,7 +640,7 @@ stuck, and the opening lemmas of the generated fuel loop.
 | Generated lines | 0 | 10,396 (`gen/wasm1.lisp`, 310 events) |
 | Config overrides | n/a | 9 (`$utf8`, `ctxt-instrs` split, `hint(inverse)` pairs, `:il-patch` version bug, `:sized` section lengths, `:decreasing` typing order, `:rel-override` `Module_ok` (context cycle), `:memoize` typing search (performance only)) |
 | Execution rules covered | 170/170 instructions | all 58 reduction rules (Step_pure/read/Step) |
-| Validation | hand-written type checker | generated: all typing relations except `Externaddr_ok` (stub) and `Module_ok` (config override calling the generated relations); instruction typing via multi-mode (sound, incomplete only for mid-sequence dead code) |
+| Validation | hand-written type checker | generated: all typing relations, `Module_ok` via a config override calling the generated relations; instruction typing via multi-mode (sound, incomplete only for mid-sequence dead code); 0 stubs |
 | Spec rules traceable to ACL2 defs | informal | 1:1 by name (`STEP_PURE/BINOP-VAL` ...) |
 | Logic-mode share | 100% | 466 / 491 (all but the instruction-typing clique and its callers); 162 guard-verified |
 | Module-level oracle agreement (515 corpus invoke vectors, V8) | **335** agree, 24 disagree (floats), 156 inexpressible (NaN/Inf constants); runs only via a W1T-decoded bridge (no loader) | **515** (13/13 modules instantiate, from `.wasm` bytes) |
