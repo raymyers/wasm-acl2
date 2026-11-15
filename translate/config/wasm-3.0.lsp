@@ -45,4 +45,9 @@
 
  (:program "certification mode"
   :reason "Every generated event is admitted in :program mode (the book default `(program)`), not through %TRY-LOGIC/%TRY-GUARDS. Not a translation exception: it bounds certification time. With the logic attempts, one guard proof in 5_2-binary_types ran more than 15 CPU minutes (prep P5-conformance), and the prover step limits do not bound wall time. Execution is the same in both modes. Removed in wasm3 M9 (logic mode and proofs), which needs per-event time limits first.")
+
+ (:il-patch "Belem"
+  :old (list (iter (case "REF.FUNC" (var "y")) list (dom "y" (var "y*"))))
+  :new (iter (list (case "REF.FUNC" (var "y"))) list (dom "y" (var "y*")))
+  :reason "Elaboration of the source `ELEM rt (REF.FUNC y)* ...` (flags 0-3): the element list has type expr* = (instr*)*, and SpecTec coerces the whole instr* `(REF.FUNC y)*` into a one-element list, [(REF.FUNC y)*]: ONE expression holding every ref.func. The binary format (prose) and flags 4-7 give one expression per element, [REF.FUNC y]*. Unpatched, a decoded segment with n functions has 1 element of n instructions, which Elem_ok rejects and instantiation would get wrong. The patch writes the iteration of the singleton list (all 4 rules; 2.0's IL has the same shape). Found in wasm3 M2.")
 )

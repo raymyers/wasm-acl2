@@ -242,7 +242,19 @@
           "--disable-simd"
           "--disable-mutable-globals"
         ]) true false;
-        wasm3-spec-tests = mkSpecTests "3" "--enable-all" false true;
+        # The 3.0 proposals only. Not --enable-all: it includes compact imports (not
+        # in 3.0), which wabt then writes, and 70 modules no longer decode (wasm3 M2).
+        wasm3-spec-tests = mkSpecTests "3" (lib.concatStringsSep " " [
+          "--enable-annotations"
+          "--enable-exceptions"
+          "--enable-extended-const"
+          "--enable-function-references"
+          "--enable-gc"
+          "--enable-memory64"
+          "--enable-multi-memory"
+          "--enable-relaxed-simd"
+          "--enable-tail-call"
+        ]) false true;
 
         # ACL2 plus just the community books this project depends on.
         #

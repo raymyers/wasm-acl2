@@ -1,0 +1,5 @@
+:ASSERT_INVALID total 2728 parsed 2724 as-expected 2724
+:ASSERT_MALFORMED total 643 parsed 0 as-expected 643
+:ASSERT_UNINSTANTIABLE total 54 parsed 54 as-expected 54
+:ASSERT_UNLINKABLE total 200 parsed 200 as-expected 200
+:MODULE total 2250 parsed 2250 as-expected 2250

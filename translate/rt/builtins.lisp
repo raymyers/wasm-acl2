@@ -13,9 +13,15 @@
 ; Override: $utf8 (config/wasm-1.0.lsp). UTF-8 encoding of a char list,
 ; matching the four clauses of A-binary.spectec $utf8.
 
+; A value that is not a character (a surrogate U+D800-DFFF or above U+10FFFF:
+; char in the spec) encodes to 256, which is not a byte. So the generated
+; check $utf8(x) = bytes in Bname rejects every byte sequence whose
+; decoding ($inv_utf8 below) is not a character (wasm3 M2; before, such
+; names decoded: 39 assert_malformed cases of spec-test-1 and of spec-test-3).
 (defun %utf8-char (c)
   (declare (xargs :guard (natp c)))
-  (cond ((< c #x80) (list c))
+  (cond ((or (and (<= #xD800 c) (< c #xE000)) (>= c #x110000)) (list 256))
+        ((< c #x80) (list c))
         ((< c #x800) (list (+ #xC0 (floor c 64)) (+ #x80 (mod c 64))))
         ((< c #x10000) (list (+ #xE0 (floor c 4096))
                              (+ #x80 (mod (floor c 64) 64))

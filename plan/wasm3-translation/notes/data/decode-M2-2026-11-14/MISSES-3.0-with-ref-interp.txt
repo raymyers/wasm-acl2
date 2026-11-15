@@ -1,0 +1,4 @@
+:ASSERT_INVALID bulk-memory--memory_init bulk-memory--memory_init.4.wasm | ref-interp rejects: decoding error: data count section required
+:ASSERT_INVALID bulk-memory--memory_init bulk-memory--memory_init.14.wasm | ref-interp rejects: decoding error: data count section required
+:ASSERT_INVALID memory64--memory_init64 memory64--memory_init64.4.wasm | ref-interp rejects: decoding error: data count section required
+:ASSERT_INVALID memory64--memory_init64 memory64--memory_init64.14.wasm | ref-interp rejects: decoding error: data count section required

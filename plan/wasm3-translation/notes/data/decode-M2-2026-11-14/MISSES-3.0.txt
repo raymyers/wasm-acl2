@@ -1,0 +1,4 @@
+:ASSERT_INVALID bulk-memory--memory_init bulk-memory--memory_init.4.wasm
+:ASSERT_INVALID bulk-memory--memory_init bulk-memory--memory_init.14.wasm
+:ASSERT_INVALID memory64--memory_init64 memory64--memory_init64.4.wasm
+:ASSERT_INVALID memory64--memory_init64 memory64--memory_init64.14.wasm

@@ -100,3 +100,16 @@ wast2json cannot read.
 `data/spec-test-3-M0b-2026-11-14/`: `counts.sh` and `counts.txt` (the
 table above); `validate.sh` and `validate.txt` (the module check); `xcheck.sh` and `norm.mjs` (the cross-check), with
 `xcheck-differ.txt` (the 11 differing scripts, first diff lines).
+
+## Update 2026-11-14 (M2): wast2json flags
+
+The decode run of M2 found 70 modules that wabt had written with
+*compact imports*, a proposal outside 3.0 that `--enable-all` turns on.
+The reference interpreter rejects them too. The flake now gives wast2json
+the 3.0 proposals only. Exactly these 70 `.wasm` files change; the
+command lists and the routing (31 through the interpreter, 0 skipped)
+stay the same. So the "old 228 byte-identical" above holds for the
+`.lsp` files, not for those 70 modules. The same decode run found 4
+`assert_invalid` modules that wabt writes without the data count section
+they need. That is one more reason for the recommendation above
+([M2-decode](M2-decode.md)).

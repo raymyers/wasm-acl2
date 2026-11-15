@@ -20,6 +20,7 @@
 #   make compare     T9 reports: run the WASM1 tree on the same oracle vectors
 #   make spec-data   fetch the conformance data (Nix): 1.0 into tests/spec/data, else tests/spec/data-<v>
 #   make spec        T7 report: run spec-test-1 on the generated semantics (slow)
+#   make decode SPEC=3.0  decode every spec-test module with the generated parser (slow)
 #   make probe SPEC=3.0  probe table for one spec version (plan/wasm3-translation-prep P0)
 #   make modes       rewrite gen/wasm-1.0/modes.lsp from certified books (t0-modes checks it)
 #   make check       check-il + check-gen + test (1.0)
@@ -44,7 +45,7 @@ TARGET := (assign il2acl2-target (quote (:version "$(SPEC)" :pkg "$(PKG)" :il "$
 GEN_PATTERNS := *.lisp *.lsp *.acl2
 TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 
-.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors spec-data spec probe modes check-2.0 check-3.0
+.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors spec-data spec probe modes check-2.0 check-3.0 decode
 
 il:
 	$(NIX) build ..#wasm$(SPEC_MAJOR)-il --no-link --print-out-paths > .il-out
@@ -127,6 +128,14 @@ SPEC_TIMEOUT ?= 3600
 spec:
 	$(CERT) --acl2 $(ACL2) tests/spec/t7-lib
 	cd tests/spec && sh run-all.sh $(ACL2) $(SPEC_JOBS) $(SPEC_TIMEOUT)
+
+# Decode run (wasm3 M2): every module of the converted spec-test-<major> data
+# through the generated binary parser, one ACL2 session per script; results in
+# tests/spec/results/decode-<v>/ (TOTALS, MISSES, PER-SCRIPT). Needs
+# `make spec-data SPEC=<v>` first. Not part of check.
+decode:
+	$(CERT) --acl2 $(ACL2) -j $(JOBS) $(GEN)/$(BOOK)
+	sh tests/spec/decode/run-decode.sh $(ACL2) $(SPEC) $(SPEC_JOBS) $(SPEC_TIMEOUT)
 
 # Probe (plan/wasm3-translation-prep P0): elaborate spec version SPEC with the
 # pinned SpecTec into .probe/<SPEC>/ and print the probe table (schema errors,

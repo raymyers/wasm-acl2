@@ -26,7 +26,9 @@
   converted, 31 through the reference interpreter, among them 16 of 17 GC,
   [M0b-test-data](notes/M0b-test-data.md)); M1 ✅ (every builtin defined, in
   `rt/builtins-3.0.lisp`; 1 stub left, `Module_ok`; 8,724/8,724 numeric and
-  1,008/1,008 SIMD vectors incl. 480 relaxed, [M1-builtins](notes/M1-builtins.md)); M5 items 1 and 2 (mode table design
+  1,008/1,008 SIMD vectors incl. 480 relaxed, [M1-builtins](notes/M1-builtins.md)); M2 ✅ (spec-test-3 decodes in-tree: every
+  well-formed module but 4 that wabt writes malformed, every malformed one
+  rejected, [M2-decode](notes/M2-decode.md)); M5 items 1 and 2 (mode table design
   and core; `trans` triage) ✅; M6 items 1 and 2 (design session;
   decision) ✅
 - **New config entries in M0 (for the user)**: `:program` (every
@@ -56,9 +58,18 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now** (after M1): **1** stub (`Module_ok`), 0 builtins missing in `rt/`, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M2 (binary decode in-tree) and M5 `trans`; both need
-  only M1 (see "Order and dependencies"). M7 waits for the user's decision
-  above
+- **Next action**: M3 (execution: `Step_read/array.new_data-num`, the
+  store-free termination check, driver limits), and M5 `trans` on the
+  typing side. M7 waits for the user's decision above
+- **For the user (M2)**: new config entry `:il-patch "Belem"` (reason in the
+  config): SpecTec elaborates `ELEM rt (REF.FUNC y)*` (flags 0-3) as one
+  expression holding every `ref.func`; the patch gives one expression per
+  function index, as the prose does. 2.0's IL has the same shape and is
+  not patched (2.0 is a regression target; your call). Also open: the 1.0
+  parser rejects 54 spec-test-1 modules that the reference interpreter
+  decodes (mostly import sections; outside the 3.0 milestones). The UTF-8
+  fix is in the shared `rt/` and also fixes 1.0 (638/638 malformed
+  rejected); the 3.0 wast2json flags no longer include compact imports
 - **For the user (M1)**: new config entry `:def utf8single` (reason in the
   config). D4 read as: the semantics is the deterministic profile (`$ND`
   false, as in SpecTec's interpreter). `$R_*` record V8's choices on
@@ -112,7 +123,7 @@ From `make probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
 | Reduction rules (`Step`, `Step_read`, `Step_pure`) failing | **1 of 218** | about 10 |
 | Clause-less defs | 89 = 77 numeric + 11 choice + 1 host; since M1 all defined in `rt/` (13 numeric were missing) | |
 | Defs with function parameters | 16, replaced by 53 specializations | 16 compiled wrongly |
-| Decode experiment (spec-test-3) | 4,562 of 4,639 well-formed modules decode (98.3%), 604 of 643 malformed rejected | not measurable |
+| Decode experiment (spec-test-3) | 4,562 of 4,639 well-formed modules decode (98.3%), 604 of 643 malformed rejected; in-tree since M2: 5,228 of 5,232 and 643 of 643 ([M2-decode](notes/M2-decode.md)) | not measurable |
 
 Full 3.0 (all 37 files): 76 stubs, 69 of them text grammars (`6.*`).
 
@@ -126,7 +137,7 @@ From the P1 gap list as updated through P4
 |---|---|---|---|
 | core | `Module_ok` stub (tags, recursive types, staged contexts) | S4 | M7 |
 | core | `$utf8single` stub (result defined arithmetically) | S5 | M1 ✅ |
-| core | malformed UTF-8 in names accepted (39 decode cases; also in 1.0, 39 spec-test-1 failures) | `$utf8` inverse too lenient | M2 |
+| core | malformed UTF-8 in names accepted (39 decode cases; also in 1.0, 39 spec-test-1 failures) | `$utf8` inverse too lenient | M2 ✅ |
 | GC | `Heaptype_sub/trans`: existential intermediate, dropped. **Not admissible**: `I31 <: ANY`, `deftype <: EQ` have no other derivation ([M5-mode-table](notes/M5-mode-table.md)) | enumeration variant or override | M5 |
 | GC | `Step_read/array.new_data-num`: `c*` under `$concatn_($zbytes_(zt, c)^n)` | nested inverse (S1) | M3 |
 | GC / bulk memory | builtins `$zbytes_ $cbytes_ $inv_zbytes_ $inv_cbytes_ $inv_concatn_` | S7 | M1 ✅ |
@@ -222,11 +233,20 @@ scripts are available to M5, M6 and M7 as test data.
 480/480 relaxed vectors give V8's own result; 26/26 builtin cases.
 
 ### M2: Binary decode
-- [ ] Decode run on spec-test-3 in-tree (today 98.3% / 93.9% by
-      experiment); fix the `table_copy` misses (36) and stricter UTF-8
+- [x] Decode run on spec-test-3 in-tree (today 98.3% / 93.9% by
+      experiment); fix the `table_copy` misses (36) and stricter UTF-8.
+      Done 2026-11-14 ([M2-decode](notes/M2-decode.md)): `make decode SPEC=3.0`
+      (23 s). The `table_copy` misses and 34 more were wabt writing compact
+      imports (`--enable-all`; flake fixed); UTF-8: `rt/` `$utf8` no longer
+      encodes non-characters (1.0 gains: 638/638 malformed rejected); config
+      `:il-patch "Belem"` (elem segments of flags 0-3 decoded to one expression)
 
 **Exit**: every well-formed spec-test-3 module decodes; every binary
 malformed one is rejected, or the misses are listed with causes.
+**Met 2026-11-14**: 2,250/2,250 modules, 200/200 unlinkable, 54/54
+uninstantiable and 2,724/2,728 invalid decode; 643/643 malformed are rejected.
+The 4 left are binary-malformed as wabt wrote them (no data count section),
+as the reference interpreter also says.
 
 ### M3: Execution
 - [ ] `Step_read/array.new_data-num` (nested inverse)
@@ -375,15 +395,15 @@ M0 ──┬─ M0b ────────────────────
 
 ## 6. Config budget
 
-Today `config/wasm-3.0.lsp` has 10 entries: `:def utf8` (with `:inverse`), since M1 `:def utf8single`,
+Today `config/wasm-3.0.lsp` has 11 entries: `:def utf8` (with `:inverse`), since M1 `:def utf8single`, since M2 `:il-patch "Belem"`,
 `:split Step ctxt-instrs`, `:decreasing`, `:memoize` (since M0 with
 `:recursive nil`), `:sized`, `:builtins` (11 choice + 1 host +
 `$s33_to_u32`), `:witness` (4 relations), since M5 `:fuel` (the type
-group), and since M0 `:program` (certification mode, removed in M9), 10 in all. The `:modes` entry (22 pairs at the end of the prep) is gone
+group), and since M0 `:program` (certification mode, removed in M9), 11 in all. The `:modes` entry (22 pairs at the end of the prep) is gone
 since the mode table. 1.0 has 8 (the `:witness` entry is new), 2.0 has 9
 (two `:il-patch` for a 2.0 source bug; `:witness` replaced `:modes`).
 Expected additions for 3.0: `:rel-override Module_ok` unless M7 avoids it,
-possibly `:rel-override Heaptype_sub` (M5), about 11 or 12 entries in total
+possibly `:rel-override Heaptype_sub` (M5), about 12 or 13 entries in total
 (M9 removes `:program`).
 
 ## 7. Risks and go/no-go points
