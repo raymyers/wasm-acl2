@@ -30,7 +30,7 @@
 - **Last updated**: 2026-11-15
 - **Milestones**: W0 done, **go** ([W0-feasibility](notes/W0-feasibility.md#w0-exit-gono-go-per-risk-2026-11-15));
   W7 done ([W7-rule-tags](notes/W7-rule-tags.md)); W1 done, D5 final
-  ([W1-numbers-stack](notes/W1-numbers-stack.md))
+  ([W1-numbers-stack](notes/W1-numbers-stack.md)); W2 done ([W2-extractor](notes/W2-extractor.md))
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
@@ -45,8 +45,19 @@
   with rule names from translator tags (option 3a). D7, the translator may
   change generated output (1.0 included) for W7, provided all certifications
   and tests still pass.
-- **Next action**: W2 (extractor), then W3, W4, per the headless
-  order. Work for W2–W5 items 1–3 exists in the tree, uncommitted (it was
+- **Extractor (W2), for the user** (each with its reason in
+  `demo/extract/extract.lisp` and [W2-extractor](notes/W2-extractor.md)):
+  event table: drop `in-package`, prover settings and proof events,
+  `%TRY-GUARDS-T`, the `%TRY-*` and `%RULE` macros, the `%HOSTCALL-HOOK`
+  encapsulate; keep `%TRY-LOGIC-T`'s defun, `defun` (xargs stripped),
+  `mutual-recursion` as `progn`, `defconst` as `defparameter`; map
+  `defattach` to `%DEFATTACH`, `memoize` to `%MEMOIZE`. Printing: CL
+  numeric functions, `equal`, `append`, `reverse` as `ACL2::` (shim).
+  Rewrites: literals (`%Q`, `%BIG`), clause-chain flattening, the stack
+  rewrite (tail calls, CONS heads, continuations, calls inside clause
+  chains; the last two found by W4 on `br_table.0.wasm`).
+- **Next action**: W3 (shim), then W4, per the headless
+  order. Work for W3–W5 items 1–3 exists in the tree, uncommitted (it was
   built while the W7 spec reruns ran); each goes in with its own commit.
 - **Translator change (W7, for the user)**: `%RULE` (`rt/prelude.lisp`,
   a macro: `(%RULE name x)` = `x`) and two emitter changes in
@@ -304,27 +315,45 @@ only if a condition fails.
 measured.
 
 ### W2: Extractor
-1. [ ] `demo/extract` per §3: closed event table, include order, literal
+1. [x] `demo/extract` per §3: closed event table, include order, literal
        rewrite, qualified symbols, `make -C demo extract` writes
        `demo/build/lisp/`
-2. [ ] Report printed by every run: events per kind per book, dropped
+       **Done 2026-11-15** ([W2-extractor](notes/W2-extractor.md#event-table-closed-anything-else-is-an-error)):
+       27 books + `driver.lisp`; 1,515 `defun`, 1,298 `%TRY-LOGIC-T`, 12
+       `mutual-recursion`, 0 unknown events
+2. [x] Report printed by every run: events per kind per book, dropped
        events by kind, and ACL2 functions referenced but not defined by
        the books (the list that the shim must provide)
-3. [ ] Determinism: two runs are byte-identical (`make -C demo check-extract`)
-4. [ ] Named extraction of the pure driver helpers from
+       **Done 2026-11-15**: `REPORT` lists events per kind, dropped events,
+       rewrites, and the undefined names: 59 in ACL2 (the shim), 52 in
+       COMMON-LISP (JSCL), 3 elsewhere (`READ-BYTES`, `%HOSTCALL-HOOK`, `%RULE`)
+3. [x] Determinism: two runs are byte-identical (`make -C demo check-extract`)
+       **Done 2026-11-15**: 34 files identical; `translate/` clean after the runs
+4. [x] Named extraction of the pure driver helpers from
        `tests/spec/t7-lib-3.0.lisp`. A name that does not exist is an error
-5. [ ] Pruning (only if W0 item 3 said so): keep the `defun`s reachable
+       **Done 2026-11-15**: 34 names (incl. `run-cmd`, `instantiate`,
+       `do-action`, `spectest-env`) into `driver.lisp`
+5. [x] Pruning (only if W0 item 3 said so): keep the `defun`s reachable
        from the entry points. The kept/total count is in the report
-6. [ ] Stack rewrite (only if W1 chose (b))
-7. [ ] Clause-chain flattening (from W0 item 3): the translator's clause
+       **Not needed** (W0 item 3: 3.75 MB JS, 0.10 s load)
+6. [x] Stack rewrite (only if W1 chose (b))
+       **Done 2026-11-15** ([W2-extractor](notes/W2-extractor.md#rewrites-each-the-same-for-every-form)):
+       672 self-recursive defuns into loops (tail calls, CONS heads,
+       continuations, calls inside clause chains; the last two added for
+       W4's br_table.0.wasm), 34 left recursive with the reason in `REPORT`
+7. [x] Clause-chain flattening (from W0 item 3): the translator's clause
        chains `(LET ((%R Xi)) (DECLARE ...) (IF %R (CAR %R) rest))` and
        `(... (IF %R %R rest))` become one flat sequence, so that no form
        nests deeper than the JS parsers accept (decoder: 1,010 → 111). Same
        rewrite for every chain; a chain stops at an Xi that mentions `%R`.
        Checked by W3/W4 like the rest of the extraction
+       **Done 2026-11-15**: 104 chains, 1,579 links; decoder depth 111
 
 **Exit**: `demo/build/lisp/` regenerates deterministically. The report
 lists 0 unknown events. `git status translate/` is clean after the run.
+
+**W2 result (2026-11-15): exit met.** Deterministic, 0 unknown events,
+`translate/` clean (`make -C demo check-extract`).
 
 ### W3: Shim and numerics in node
 1. [ ] `demo/shim` per §3 and D5, covering the W2 item 2 list (0 left)

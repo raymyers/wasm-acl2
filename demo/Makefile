@@ -4,10 +4,15 @@
 BUILD   := build
 JSCL_XC ?= jscl-xc
 NODE    ?= node
+# The generated 3.0 semantics (not checked in): `make -C translate check-3.0`
+# or `make -C translate gen SPEC=3.0` regenerates it.
+GEN     ?= ../translate/gen/wasm-3.0
+SPECDIR ?= ../translate/tests/spec
+LISP    := $(BUILD)/lisp
 
-.PHONY: all check jscl-hello wabt-hello browser-hello clean
+.PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract clean
 
-all: $(BUILD)/hello.js
+all: $(BUILD)/hello.js extract
 
 $(BUILD)/jscl.js: $(JSCL_HOME)/dist/jscl.js
 	@mkdir -p $(BUILD)
@@ -30,7 +35,20 @@ browser-hello: $(BUILD)/hello.js
 wabt-hello:
 	$(NODE) test/wabt-hello.mjs
 
-check: jscl-hello wabt-hello browser-hello
+# W2: the books, rt/ and the driver helpers -> $(LISP)/ (REPORT, ORDER, NN-*.lisp).
+extract:
+	sh extract/run.sh $(GEN) $(SPECDIR) $(LISP)
+
+# W2 item 3: two runs are byte-identical, and translate/ is untouched.
+check-extract:
+	rm -r -f $(BUILD)/lisp-a $(BUILD)/lisp-b
+	sh extract/run.sh $(GEN) $(SPECDIR) $(BUILD)/lisp-a > /dev/null
+	sh extract/run.sh $(GEN) $(SPECDIR) $(BUILD)/lisp-b > /dev/null
+	diff -r -x extract.log $(BUILD)/lisp-a $(BUILD)/lisp-b
+	@echo "check-extract: two runs identical ($$(ls $(BUILD)/lisp-a | wc -l | tr -d ' ') files)"
+	@test -z "$$(git status --porcelain ../translate)" || { git status --short ../translate; echo "check-extract: translate/ changed"; exit 1; }
+
+check: jscl-hello wabt-hello browser-hello check-extract
 
 clean:
 	rm -r -f build
