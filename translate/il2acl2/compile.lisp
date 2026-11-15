@@ -1050,11 +1050,21 @@
         (t nil)))
 
 (defun split-last (comps)
-  ;; :split mode: last component (case m (tup a b)) -> (mv a b), else (mv nil nil)
+  ;; :split mode: last component (case m (tup a b)) -> (mv a b), else (mv nil nil).
+  ;; With more parts, (case m (tup a b c ..)) -> (mv a (tup b c ..)): the first
+  ;; part is the input and the others are the outputs (wasm3 M6: the 3.0
+  ;; instruction type t_1* ->_(x*) t_2*, whose output variant must take the
+  ;; input stack t_1* as WASM 1.0's does).
   (let ((l (car (last comps))))
-    (if (and (nodep l "CASE" 2) (is (third l) "TUP") (= (len (cdr (third l))) 2))
-        (mv (second (third l)) (third (third l)))
-      (mv nil nil))))
+    (cond ((not (and (nodep l "CASE" 2) (is (third l) "TUP") (true-listp (third l)))) (mv nil nil))
+          ((= (len (cdr (third l))) 2) (mv (second (third l)) (third (third l))))
+          ((> (len (cdr (third l))) 2) (mv (second (third l)) (cons (quote tup) (cddr (third l)))))
+          (t (mv nil nil)))))
+
+(defun split-last-2 (comps)
+  ;; the last component is c(a, b) with exactly two parts
+  (let ((l (car (last comps))))
+    (and (nodep l "CASE" 2) (is (third l) "TUP") (true-listp (third l)) (= (len (cdr (third l))) 2))))
 
 (defun split-name (id cx) (gsym (concatenate 'string (cdr (fn-sym :rel id cx)) "/SPLIT")))
 
@@ -1201,6 +1211,54 @@
             (cx-err what pr
                     (cx-put :demands (add-to-set-equal key (cx-get :demands cx)) cx)))))))
 
+;; Does the output variant R/SPLIT take the first part of the last component
+;; c(a, ..) as an input? Decided per relation, from the premises of R's own
+;; rules that call R: yes if one of them writes the last component as
+;; c(a, rest) with variables in rest (Instrs_ok/seq: t_1* ->_(x_1*) t_2*);
+;; else no if one passes a single term (Ref_ok/sub: rt'). Otherwise, as for
+;; a relation that never calls itself: by its first rule's conclusion (the WASM 1.0 criterion, which was used for every
+;; relation and gave Ref_ok a variant with the wrong arity in 3.0).
+(defun self-premises (x id)
+  ;; the premises (rule id ...) anywhere in IL term x
+  (cond ((atom x) nil)
+        ((and (is x "RULE") (true-listp x) (>= (len x) 4) (equal (second x) id)) (list x))
+        (t (append (self-premises (car x) id) (self-premises (cdr x) id)))))
+
+(defun prem-comps (pr)
+  (let ((e (car (last pr)))) (if (and (is e "TUP") (true-listp e)) (cdr e) (list e))))
+
+(defun some-prem-splits (prs)
+  ;; some premise writes the last component as c(a, rest) with variables in
+  ;; rest (a constant like REF ANY in Ref_ok/extern is a check, not a split)
+  (and (consp prs)
+       (or (mv-let (sa sb) (split-last (prem-comps (car prs))) (and sa (consp (fv-exp sb))))
+           (some-prem-splits (cdr prs)))))
+
+(defun some-prem-whole (prs)
+  ;; some premise passes the last component as one term that is not c(a, ..)
+  (and (consp prs)
+       (or (mv-let (sa sb) (split-last (prem-comps (car prs))) (declare (ignore sb)) (not sa))
+           (some-prem-whole (cdr prs)))))
+
+(defun rel-splits-p (x)
+  ;; x: the REL form
+  (let* ((rest (cddr x))
+         (rest (nthcdr (len (take-while-params rest)) rest))
+         (rules (cddr rest))
+         (prs (self-premises rules (second x))))
+    (cond
+     ((some-prem-splits prs) t)
+     ((some-prem-whole prs) nil)
+     (t
+      (and (consp rules)
+           (let* ((rr (cddr (car rules))) (more (nthcdr (len (take-while-params rr)) rr)) (e (second more))
+                  (comps (if (and (is e "TUP") (true-listp e)) (cdr e) (list e))))
+             (mv-let (sa sb) (split-last comps) (declare (ignore sb)) (and sa t))))))))
+
+(defun callee-splits (rel cx)
+  (let ((x (cdr (assoc-equal rel (cx-get :rel-defs cx)))))
+    (and x (rel-splits-p x))))
+
 ;; a relation premise, possibly iterated
 (defun crule-premise (pr env cx)
   (let* ((rel (second pr)) (rest (cddr pr)) (n (len rest))
@@ -1218,18 +1276,25 @@
         (mv-let (sa sb) (split-last comps)
           ;; output variant: b of a last component c(a, b), else the whole
           ;; last component (as in :fun mode)
-          (let* ((ins (if sa (append (butlast comps 1) (list sa)) (butlast comps 1)))
+          (let* ((csp (callee-splits rel cx))
+                 (sa0 sa)
+                 (sa (and csp sa))
+                 (ins (if sa (append (butlast comps 1) (list sa)) (butlast comps 1)))
                  (sb (if sa sb (car (last comps)))))
             (cond
              ((has-unbound (cons (quote list) ins) env)
               (mv nil env (cx-err "relation inputs unbound" pr cx)))
+             ((and (null sa0) csp)
+              ;; R/SPLIT takes the first part of c(a, ..) as an input, and
+              ;; this premise gives the whole component as one unbound term
+              (mv nil env (cx-err "output variant needs the input part of the last component" pr cx)))
              ((witness-choice-p rel cx)
               (mv nil env (cx-err "witness choice (the output variant drops rules)" pr cx)))
              (t
               (mv-let (ts cx) (cexps ins env cx)
                 (mv-let (tname cx) (cx-fresh "%T" cx)
                   (let ((tv (gsym tname)) (cands (list-var-terms env)))
-                    (if (and sa cands)
+                    (if (and sa cands (split-last-2 comps))
                         (multi-candidate-steps rel comps ts tv sb cands env cx)
                       (mv-let (s1 env cx) (cpat sb (list (quote car) tv) env cx)
                         (mv (append (rec-size-check rel ts cx)
@@ -1911,7 +1976,7 @@
     (let* ((ins (cond ((out-mode-p mode) (drop-positions comps (cdr mode) 0))
                       ((eq mode :fun) (butlast comps 1))
                       ((eq mode :fun2) (butlast comps 2))     ; declared: two outputs (G2)
-                      ((and (eq mode :split) sa) (append (butlast comps 1) (list sa)))
+                      ((and (eq mode :split) sa (cx-get :split-shape cx)) (append (butlast comps 1) (list sa)))
                       ((eq mode :split) (butlast comps 1))   ; no c(a, b): output is the last component
                       (t comps)))
            (cx (cx-put :redex (and (member-equal (cons rel (second r)) (cx-get :split-rules cx)) t) cx)))
@@ -1922,7 +1987,7 @@
             (mv-let (out cx) (cond ((out-mode-p mode) (cexp (out-exp comps (cdr mode)) env cx))
                                    ((eq mode :fun) (cexp (car (last comps)) env cx))
                                    ((eq mode :fun2) (cexp (cons (quote tup) (nthcdr (- (len comps) 2) comps)) env cx))
-                                   ((and (eq mode :split) sa) (cexp sb env cx))
+                                   ((and (eq mode :split) sa (cx-get :split-shape cx)) (cexp sb env cx))
                                    ((eq mode :split) (cexp (car (last comps)) env cx))
                                    (t (mv t cx)))
               (build-steps-cx (append s1 s2 s3) (list 'list out) cx))))))))))
@@ -1976,7 +2041,8 @@
                        ((eq mode :split) (split-name (second x) cx))
                        (t (fn-sym :rel (second x) cx))))
            (cx (cx-put :fn (cdr name) cx)) (cx (cx-put :n 0 cx)) (cx (cx-put :aux nil cx))
-           (cx (cx-put :tparams nil cx)))
+           (cx (cx-put :tparams nil cx))
+           (cx (cx-put :split-shape (rel-splits-p x) cx)))
       (cond
        ((zerop n)
         ;; arity 0 (e.g. the notation relation `relation R: ...` with the
@@ -1997,7 +2063,7 @@
        (t
         (let* ((formals (gsyms-prefixed "%A" (if (out-mode-p mode) (nfix (- n (len (cdr mode))))
                                              (if (eq mode :fun2) (nfix (- n 2))
-                                               (if (or (eq mode :fun) (and (eq mode :split) (not (rules-split-p rules))))
+                                               (if (or (eq mode :fun) (and (eq mode :split) (not (rel-splits-p x))))
                                                  (1- n) n)))))
                (cx (cx-put :rel-formals (and (member-equal (second x) (cx-get :rec-rels cx)) formals) cx))
                (cx (cx-put :cur-rel (second x) cx)))

@@ -11,3 +11,4 @@ Raw data goes under `data/<name>/` with the script that made it.
 | Note | Milestone | Status | What it holds |
 |---|---|---|---|
 | [M5-mode-table](M5-mode-table.md) | M5 item 1 | final (design and core); hand-over list open | Mode table design; what is implemented; measured results; `Heaptype_sub/trans` is not admissible |
+| [M6-instruction-typing-strategy](M6-instruction-typing-strategy.md) | M6 item 1 | findings and fix final; strategy awaits the user's decision | First run of generated 3.0 typing (13 of 23 cases right, 18 after the fix); why subsumption has no mechanical reading; proposer and checker recommended |

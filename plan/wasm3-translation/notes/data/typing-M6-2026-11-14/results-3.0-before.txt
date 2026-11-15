@@ -1,0 +1,29 @@
+; 3.0 at 56837fd (before the output-variant fix); the S cases were called without an input stack
+CASE sub I31<:EQ: expected T, got T
+CASE sub I31<:ANY (needs trans): expected T, got NIL
+CASE sub I31<:FUNC: expected NIL, got NIL
+CASE A const : eps->i32: expected T, got T
+CASE A' const : eps->i64: expected NIL, got NIL
+CASE B const const add : eps->i32: expected T, got NIL
+CASE B2 add : i32 i32->i32: expected T, got T
+CASE B3 add framed : i32 i32 i32->i32 i32: expected T, got T
+CASE B4 const framed : i32->i32 i32: expected T, got T
+CASE B5 const add : i32->i32: expected T, got NIL
+CASE C const drop : eps->eps: expected T, got T
+CASE D nop nop : eps->eps: expected T, got T
+CASE E block(i32){const} : eps->i32: expected T, got T
+CASE F block(i32){const const add}: expected T, got NIL
+CASE G const ref.i31 : eps->(ref i31): expected T, got T
+CASE G2 const ref.i31 : eps->(ref null i31) (subsumption): expected T, got NIL
+CASE G3 const ref.i31 : eps->anyref (subsumption+trans): expected T, got NIL
+CASE H block(ref null i31){const ref.i31}: expected T, got NIL
+CASE J unreachable add : eps->i32 (dead code): expected T, got NIL
+CASE K const const const add add: expected T, got NIL
+CASE L const const : eps->i32 (ill-typed): expected NIL, got NIL
+CASE M add : eps->i32 (ill-typed): expected NIL, got NIL
+CASE S1 split const: expected :SOME, got ((:%->_%% NIL NIL ((:I32))))
+CASE S2 split const const add: expected :SOME, got NIL
+CASE S3 split const add: expected :SOME, got NIL
+CASE X expr_ok/split const const add: expected :SOME, got NIL
+CASE X2 expr_ok const const add : i32: expected T, got NIL
+

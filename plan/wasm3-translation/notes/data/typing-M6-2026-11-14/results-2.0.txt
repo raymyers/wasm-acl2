@@ -1,0 +1,9 @@
+; 2.0 (gen/wasm-2.0 as certified by make check-2.0)
+CASE 2.0 A const: expected T, got T
+CASE 2.0 B const const add: expected T, got T
+CASE 2.0 K const const const add add: expected T, got T
+CASE 2.0 F block{const const add}: expected T, got T
+CASE 2.0 J unreachable add: expected T, got NIL
+CASE 2.0 L const const (ill-typed): expected NIL, got NIL
+CASE 2.0 split const const add from eps: expected :SOME, got (((:I32)))
+

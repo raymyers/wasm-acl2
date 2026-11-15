@@ -21,7 +21,14 @@
 
 - **Last updated**: 2026-11-14
 - **Milestones**: M5 items 1 and 2 (mode table design and core; `trans`
-  triage) ✅; nothing else started
+  triage) ✅; M6 item 1 (design session) held, **decision pending**
+- **Waiting for the user**: the instruction-typing strategy
+  ([M6-instruction-typing-strategy](notes/M6-instruction-typing-strategy.md)).
+  Recommended: option C, a hand-written sequencer that proposes types
+  while the generated rules check every step. Generated 3.0 instruction
+  typing has no subsumption and cannot get it mechanically
+- **3.0 probe now**: 2 stubs, **3** dropped rules (`Instrs_ok/sub` is new
+  and honest), 0 declared modes
 - **Next action**: M0, then M0b and M1 (see "Order and dependencies")
 - **Readiness review (2026-11-14)**: added [step.md](step.md), M0b (GC and
   exception test data early), behavioural exits for M5 and M6, design
@@ -60,7 +67,7 @@ From `make probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
 | Schema errors | 0 | 3 (full 3.0) |
 | Phase-1 events | 1,240 | 993 |
 | Stubs | **2**: `Module_ok`, `$utf8single` | 35 |
-| Relations emitted without some rules | 2, with 2 rules dropped (`Heaptype_sub/trans`, `Step_read/array.new_data-num`) | (whole-relation stubs) |
+| Relations emitted without some rules | 3, with 3 rules dropped (`Heaptype_sub/trans`, `Step_read/array.new_data-num`, and since the M6 session `Instrs_ok/sub`) | (whole-relation stubs) |
 | Reduction rules (`Step`, `Step_read`, `Step_pure`) failing | **1 of 218** | about 10 |
 | Clause-less defs | 89 = 77 numeric (13 not in `rt/`) + 11 choice + 1 host | |
 | Defs with function parameters | 16, replaced by 53 specializations | 16 compiled wrongly |
@@ -209,15 +216,22 @@ rule has a written completeness argument; and the behavioural cases pass,
 recorded as N of M.
 
 ### M6: Instruction typing
-- [ ] **Design session first** (go/no-go, a decision for the user): is one
-      witness enough for instruction typing under 3.0 subsumption and
-      local-initialization tracking? The 3.0 `:witness` entry is
-      provisional. The rules to argue are `Instr_ok/block`, `loop`, `if`,
-      `try_table` and `Instrs_ok/seq`, `sub`
-      ([M5-mode-table](notes/M5-mode-table.md), experiment B). Outcomes:
-      keep check + output variant with a written principal-type argument;
-      or enumeration variants where one witness fails; or Strategy B (a
-      validator from the spec's algorithm, tested against the rules)
+- [x] **Design session** (go/no-go), held 2026-11-14
+      ([M6-instruction-typing-strategy](notes/M6-instruction-typing-strategy.md)).
+      Measured on 23 cases run on the generated code: 13 right before, 18
+      after a mechanical fix made in the session (the output variant now
+      takes the input stack of the three-part 3.0 arrow; 1.0 `gen/`
+      byte-identical). The rest is subsumption (no mechanical reading:
+      `Instrs_ok/sub` is now a visibly dropped rule), dead code and
+      `trans`. **No-go** for check + output variant alone
+- [ ] **User decision**: option C (recommended: a hand-written sequencer
+      proposes each instruction's type, the generated `INSTR_OK` and
+      `RESULTTYPE_SUB` check every step), option B (hand-written
+      validator), or stay incomplete for now
+- [ ] If C: translator support, namely `:rel-override` for a member of a
+      `rec` group, sub-component output positions, and a kept whole-type
+      variant of `Instr_ok`; then the sequencer and its table for the 10
+      rules the output variant drops
 - [ ] Behavioural cases in `tests/sem-3.0/`, calling `INSTRS_OK` directly
       on instruction sequences with a given context and type: one accepted
       and one rejected case for each of the six rules above, subsumption at
@@ -225,7 +239,8 @@ recorded as N of M.
       and dead code after `unreachable`, `br` and `throw`. Expected answers
       from V8 (`WebAssembly.validate` on a module that wraps the sequence)
 - [ ] Certify instruction typing (all 110 `Instr_ok` rules translate since
-      the prep, G5 included) and make the cases pass under the chosen strategy
+      the prep, G5 included) and make the cases pass under the chosen
+      strategy. Start from the 23 cases of the note's data directory
 
 **Exit**: the strategy decision recorded; 110 of 110 `Instr_ok` rules (or
 the validator, under Strategy B); behavioural cases N of M.
@@ -276,7 +291,8 @@ M0 ──┬─ M0b ────────────────────
   be held at any time, since it produces a note and a decision.
 - M5 `trans` and every behavioural test need M0 and M1 (generated 3.0
   code must load). The GC cases of M5 to M7 need M0b.
-- M6 needs M5 (instruction typing calls subtyping). M7 needs M6.
+- M6 needs M5 (instruction typing calls subtyping, and under option C the
+  sequencer needs `Heaptype_sub` complete, so `trans` first). M7 needs M6.
 - M8 needs M4 and M7 and M0b. M9 last; the `trans` design keeps the type
   group's termination measure for it.
 
