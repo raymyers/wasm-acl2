@@ -1118,6 +1118,89 @@
                       s1)
               env cx))))))
 
+;; Witness choices (mode table, wasm3 M5). A premise that takes a value from
+;; the output variant R/SPLIT of a relation uses ONE witness: the first one
+;; that variant computes. If the variant drops rules (their output is not
+;; computable from the inputs), a derivation through a dropped rule is never
+;; tried, so the calling rule can lose derivations with no logged error
+;; (Heaptype_sub/trans taking heaptype' from Heaptype_ok/SPLIT). Such a
+;; premise is an error ("witness choice") unless the relation is listed in a
+;; counted config entry (:witness ... :rels ("R" ...)), which records the
+;; argument that one witness is enough (principal types). :split-partial is
+;; the list of relations whose output variant drops rules (crel-members-w).
+(defun witness-choice-p (rel cx)
+  (and (member-equal rel (cx-get :split-partial cx))
+       (not (member-equal rel (cx-get :witness-ok cx)))))
+
+;; Output variants on demand (mode table, wasm3 M5). A mode is a set of output
+;; positions: (:out i j ...), the indices of the components the relation
+;; computes; the others are inputs. R/OUT<i><j>.. (inputs) returns (list out)
+;; for one output and (list (list out_i out_j ..)) for several, or nil (the
+;; conventions of :fun and :fun2). A variant is made only when a premise
+;; needs it: the callee's registered mode cannot be called because some
+;; components are unbound, and no other premise of the rule can run first
+;; (cprems, :allow-demand). The premise then records the demand (R . outs)
+;; and fails as before; cform compiles the variant from R's rules, and if
+;; every rule compiles in that mode, compiles the calling form again, where
+;; the premise finds the variant in :variants. Only relations of earlier
+;; forms qualify (not the current rec group, a closure or a :rel-override).
+(defun unbound-positions (comps i env)
+  (cond ((endp comps) nil)
+        ((has-unbound (car comps) env) (cons i (unbound-positions (cdr comps) (1+ i) env)))
+        (t (unbound-positions (cdr comps) (1+ i) env))))
+
+(defun drop-positions (l ps i)
+  (cond ((endp l) nil)
+        ((member i ps) (drop-positions (cdr l) ps (1+ i)))
+        (t (cons (car l) (drop-positions (cdr l) ps (1+ i))))))
+
+(defun take-positions (l ps i)
+  (cond ((endp l) nil)
+        ((member i ps) (cons (car l) (take-positions (cdr l) ps (1+ i))))
+        (t (take-positions (cdr l) ps (1+ i)))))
+
+(defun out-mode-p (mode) (and (consp mode) (eq (car mode) :out)))
+
+(defun out-exp (comps outs)
+  ;; the output of mode (:out . outs): the component, or a tuple of them
+  (let ((os (take-positions comps outs 0)))
+    (if (consp (cdr os)) (cons (quote tup) os) (car os))))
+
+(defun nats-str (l) (if (endp l) "" (concatenate 'string (nat-str (car l)) (nats-str (cdr l)))))
+
+(defun variant-name (rel outs cx)
+  (gsym (concatenate 'string (cdr (fn-sym :rel rel cx)) "/OUT" (nats-str outs))))
+
+(defun variant-eligible (rel cx)
+  (let ((mode (cdr (assoc-equal rel (cx-get :modes cx)))))
+    (and (member-eq (car mode) '(:fun :fun2 :check))
+         (not (eq (cdr mode) :closure))
+         (not (member-equal rel (cx-get :rec-rels cx)))
+         (not (equal rel (cx-get :variant-of cx)))
+         (not (assoc-equal rel (cx-get :rel-overrides cx)))
+         (assoc-equal rel (cx-get :rel-defs cx)))))
+
+;; The premise pr = R(comps) cannot be called in R's registered mode (error
+;; WHAT). Use the variant for the unbound positions, or record the demand.
+(defun crule-premise-demand (pr rel comps what env cx)
+  (let* ((outs (unbound-positions comps 0 env))
+         (key (cons rel outs))
+         (v (assoc-equal key (cx-get :variants cx))))
+    (cond
+     ((not (and (cx-get :allow-demand cx) (variant-eligible rel cx) (< (len outs) (len comps))))
+      (mv nil env (cx-err what pr cx)))
+     ((and v (not (eq (cdr v) :failed)))
+      (mv-let (ts cx) (cexps (drop-positions comps outs 0) env cx)
+        (mv-let (tname cx) (cx-fresh "%T" cx)
+          (let ((tv (gsym tname)))
+            (mv-let (s1 env cx) (cpat (out-exp comps outs) (list (quote car) tv) env cx)
+              (mv (append (list (list* :bind tv (cons (variant-name rel outs cx) ts)) (list :test tv)) s1)
+                  env cx))))))
+     (v (mv nil env (cx-err what pr cx)))
+     (t (mv nil env
+            (cx-err what pr
+                    (cx-put :demands (add-to-set-equal key (cx-get :demands cx)) cx)))))))
+
 ;; a relation premise, possibly iterated
 (defun crule-premise (pr env cx)
   (let* ((rel (second pr)) (rest (cddr pr)) (n (len rest))
@@ -1137,8 +1220,12 @@
           ;; last component (as in :fun mode)
           (let* ((ins (if sa (append (butlast comps 1) (list sa)) (butlast comps 1)))
                  (sb (if sa sb (car (last comps)))))
-            (if (has-unbound (cons (quote list) ins) env)
-                (mv nil env (cx-err "relation inputs unbound" pr cx))
+            (cond
+             ((has-unbound (cons (quote list) ins) env)
+              (mv nil env (cx-err "relation inputs unbound" pr cx)))
+             ((witness-choice-p rel cx)
+              (mv nil env (cx-err "witness choice (the output variant drops rules)" pr cx)))
+             (t
               (mv-let (ts cx) (cexps ins env cx)
                 (mv-let (tname cx) (cx-fresh "%T" cx)
                   (let ((tv (gsym tname)) (cands (list-var-terms env)))
@@ -1148,11 +1235,11 @@
                         (mv (append (rec-size-check rel ts cx)
                                     (list (list* :bind tv (cons (split-name rel cx) ts)) (list :test tv))
                                     s1)
-                            env cx)))))))))))
+                            env cx))))))))))))
      ((eq (car mode) :fun)
       (let ((ins (butlast comps 1)) (out (car (last comps))))
         (if (has-unbound (cons (quote list) ins) env)
-            (mv nil env (cx-err "relation inputs unbound" pr cx))
+            (crule-premise-demand pr rel comps "relation inputs unbound" env cx)
           (mv-let (ts cx) (cexps ins env cx)
             (mv-let (tname cx) (cx-fresh "%T" cx)
               (let ((tv (gsym tname)))
@@ -1164,7 +1251,7 @@
       ;; declared two-output mode (G2): R(inputs) = (list (list out1 out2))
       (let* ((k (- (len comps) 2)) (ins (take k comps)) (outs (nthcdr k comps)))
         (if (has-unbound (cons (quote list) ins) env)
-            (mv nil env (cx-err "relation inputs unbound" pr cx))
+            (crule-premise-demand pr rel comps "relation inputs unbound" env cx)
           (mv-let (ts cx) (cexps ins env cx)
             (mv-let (tname cx) (cx-fresh "%T" cx)
               (let ((tv (gsym tname)))
@@ -1174,7 +1261,7 @@
                       env cx))))))))
      (t
       (if (has-unbound (cons (quote list) comps) env)
-          (mv nil env (cx-err "checker relation with unbound arguments" pr cx))
+          (crule-premise-demand pr rel comps "checker relation with unbound arguments" env cx)
         (mv-let (ts cx) (cexps comps env cx)
           (mv (append (rec-size-check rel ts cx) (list (list :test (cons fn ts)))) env cx)))))))
 
@@ -1478,17 +1565,35 @@
     (let* ((k (or (first-ready prs 0 env cx nil) (first-ready prs 0 env cx t)))
            (j (and (null k) (eq (cx-get :err-mode cx) :check) (exists-index-prem prs 0 env))))
       (mv-let (fi fv fdom) (if (or k j (not (eq (cx-get :err-mode cx) :check))) (mv nil nil nil) (exists-finite-prem prs 0 env cx))
+      (let* ((stuck (and (null k) (null j) (null fi)))
+             ;; last resort: a premise that can run through an output variant
+             ;; made on demand; else record what the premises would need
+             (d (and stuck (first-ready prs 0 env (cx-put :allow-demand t cx) t)))
+             (cx (if (and stuck (null d)) (cx-put :demands (demands-of prs env cx) cx) cx))
+             (k (or k d)))
       (cond
        (j
         (cexists-index (nth j prs) (append (take j prs) (nthcdr (1+ j) prs)) env cx))
        (fi (cexists-list fv fdom prs env cx))
+       (d
+        (mv-let (s1 env cx) (cprem (nth d prs) env (cx-put :allow-demand t cx))
+          (mv-let (s2 env cx) (cprems (append (take d prs) (nthcdr (1+ d) prs)) env (cx-put :allow-demand nil cx))
+            (mv (append s1 s2) env cx))))
        (t
         (let* ((k (or k 0))
                (p (nth k prs))
                (rest (append (take k prs) (nthcdr (1+ k) prs))))
           (mv-let (s1 env cx) (cprem p env cx)
             (mv-let (s2 env cx) (cprems rest env cx)
-              (mv (append s1 s2) env cx))))))))))
+              (mv (append s1 s2) env cx)))))))))))
+
+;; the demands (crule-premise-demand) the premises prs record when each is
+;; compiled alone with :allow-demand, added to those of cx
+(defun demands-of (prs env cx)
+  (if (endp prs) (cx-get :demands cx)
+    (mv-let (s e2 cx2) (cprem (car prs) env (cx-put :allow-demand t cx))
+      (declare (ignore s e2))
+      (demands-of (cdr prs) env (cx-put :demands (cx-get :demands cx2) cx)))))
 
 ;; exists v < |l|: the other premises hold (G8, :check mode only). An aux
 ;; function loops over v; the other premises may not bind new variables.
@@ -1762,6 +1867,13 @@
 ; Mode :check R(all components) = t iff some rule applies.
 ; Mode :closure  refl/trans shape: R(x) = (list y), y the normal form of
 ;             iterating the step relation from x (bounded by (%FUEL)).
+; Mode :fun2  the last two components are outputs: (list (list o1 o2)).
+; Mode :split (function R/SPLIT) the output is the second half b of a last
+;             component c(a, b), else the last component; :multi is :check
+;             plus :split.
+; Mode (:out i j ...)  (function R/OUT<i><j>..) the components at these
+;             positions are outputs; made on demand (crule-premise-demand).
+; The design is in plan/wasm3-translation/notes/M5-mode-table.md.
 
 (defun rel-parts (x)
   ;; (rel id params... mixop typ rules...) -> (mv arity rules)
@@ -1796,7 +1908,8 @@
   ;; last component c(a, b); the output is b.
   (mv-let (comps prems) (rule-parts r)
     (mv-let (sa sb) (split-last comps)
-    (let* ((ins (cond ((eq mode :fun) (butlast comps 1))
+    (let* ((ins (cond ((out-mode-p mode) (drop-positions comps (cdr mode) 0))
+                      ((eq mode :fun) (butlast comps 1))
                       ((eq mode :fun2) (butlast comps 2))     ; declared: two outputs (G2)
                       ((and (eq mode :split) sa) (append (butlast comps 1) (list sa)))
                       ((eq mode :split) (butlast comps 1))   ; no c(a, b): output is the last component
@@ -1806,7 +1919,8 @@
         (let ((cx (cx-put :redex nil cx)))
           (mv-let (s2 env cx) (cprems prems env (cx-put :rule-occ (append (fv-exp (cons (quote tup) comps)) (fv-prems prems)) (cx-put :dfr dfr cx)))
             (mv-let (s3 cx) (deferred-tests (cx-get :dfr cx) env (cx-put :dfr nil cx))
-            (mv-let (out cx) (cond ((eq mode :fun) (cexp (car (last comps)) env cx))
+            (mv-let (out cx) (cond ((out-mode-p mode) (cexp (out-exp comps (cdr mode)) env cx))
+                                   ((eq mode :fun) (cexp (car (last comps)) env cx))
                                    ((eq mode :fun2) (cexp (cons (quote tup) (nthcdr (- (len comps) 2) comps)) env cx))
                                    ((and (eq mode :split) sa) (cexp sb env cx))
                                    ((eq mode :split) (cexp (car (last comps)) env cx))
@@ -1832,7 +1946,8 @@
                (cx (if dropped
                        (cx-put :incomplete (cons (concatenate 'string rel "/" (second (car rs)))
                                                  (cx-get :incomplete cx))
-                               (cx-put :aux aux0 (cx-put :errs errs0 cx)))
+                               (cx-put :split-drops-now (cons rel (cx-get :split-drops-now cx))
+                                       (cx-put :aux aux0 (cx-put :errs errs0 cx))))
                      cx)))
           (mv-let (rest cx) (crules (cdr rs) mode formals rel cx)
             (mv (if (or skip dropped) rest (cons c rest)) cx)))))))
@@ -1857,7 +1972,9 @@
 ; (mv defuns cx) for one relation in the given mode
 (defun crel-1-body (x mode cx)
   (mv-let (n rules) (rel-parts x)
-    (let* ((name (if (eq mode :split) (split-name (second x) cx) (fn-sym :rel (second x) cx)))
+    (let* ((name (cond ((out-mode-p mode) (variant-name (second x) (cdr mode) cx))
+                       ((eq mode :split) (split-name (second x) cx))
+                       (t (fn-sym :rel (second x) cx))))
            (cx (cx-put :fn (cdr name) cx)) (cx (cx-put :n 0 cx)) (cx (cx-put :aux nil cx))
            (cx (cx-put :tparams nil cx)))
       (cond
@@ -1878,13 +1995,14 @@
                       (mk-defun name (list a) (list aux (list (gsym "%FUEL")) a)))
                 cx)))
        (t
-        (let* ((formals (gsyms-prefixed "%A" (if (eq mode :fun2) (nfix (- n 2))
+        (let* ((formals (gsyms-prefixed "%A" (if (out-mode-p mode) (nfix (- n (len (cdr mode))))
+                                             (if (eq mode :fun2) (nfix (- n 2))
                                                (if (or (eq mode :fun) (and (eq mode :split) (not (rules-split-p rules))))
-                                                 (1- n) n))))
+                                                 (1- n) n)))))
                (cx (cx-put :rel-formals (and (member-equal (second x) (cx-get :rec-rels cx)) formals) cx))
                (cx (cx-put :cur-rel (second x) cx)))
           (mv-let (cs cx) (crules rules mode formals (second x) cx)
-            (let ((body (if (member-eq mode '(:fun :fun2 :split)) (chain-results cs) (list 'if (chain-results cs) t nil))))
+            (let ((body (if (or (out-mode-p mode) (member-eq mode '(:fun :fun2 :split))) (chain-results cs) (list 'if (chain-results cs) t nil))))
               (mv (append (reverse (cx-get :aux cx))
                           (list (if (cx-get :rel-formals cx)
                                     ;; member of a recursive group: omega*(1+size(inputs))
@@ -1992,6 +2110,22 @@
           (mv-let (d2 b2 cx) (crel-members (cdr xs) cx)
             (mv (append d1 d2) (append bad b2) cx)))))))
 
+; crel-members to a fixpoint of :split-partial (see witness-choice-p). A pass
+; records the relations whose output variant dropped a rule. If one of them
+; is new and not accepted as a witness source, premises compiled before the
+; drop was known may have used it, so the pass is repeated from the same
+; context with the larger list. The list only grows (a witness-choice error
+; can only drop more rules), so at most one pass per member is repeated.
+; When nothing new is found the single pass is the old behaviour.
+(defun crel-members-w (xs fuel cx)
+  (mv-let (ds bad cx1) (crel-members xs (cx-put :split-drops-now nil cx))
+    (let* ((new (set-difference-equal (remove-duplicates-equal (cx-get :split-drops-now cx1))
+                                      (cx-get :split-partial cx)))
+           (sp (append new (cx-get :split-partial cx))))
+      (if (or (zp fuel) (null (set-difference-equal new (cx-get :witness-ok cx))))
+          (mv ds bad (cx-put :split-partial sp cx1))
+        (crel-members-w xs (1- fuel) (cx-put :split-partial sp cx))))))
+
 (defun set-mode-ids (ids mode cx)
   (if (endp ids) cx
     (set-mode-ids (cdr ids) mode
@@ -2031,8 +2165,9 @@
 (defun rel-mangled (ids cx)
   (if (endp ids) nil (cons (tbl-name :rel (car ids) cx) (rel-mangled (cdr ids) cx))))
 
-; A relation (or REC group of relations): try :fun; members with errors are
-; retried as :check; members still failing become stubs. (mv events cx)
+; A relation (or REC group of relations), crel-form-1: try :fun; demote the
+; members with errors to :check until stable; then :multi for all; then the
+; attempt with the fewest failing rules, without them. (mv events cx)
 (defun strip-seconds (l) (if (endp l) nil (cons (second (car l)) (strip-seconds (cdr l)))))
 
 (defun calls-multi (x cx)
@@ -2141,15 +2276,12 @@
 ;  - reported: the errors of the attempt with the fewest failing rules (the
 ;    one that got furthest), plus those of the emitted attempt if different;
 ;    every error carries its :mode
-;  - emitted: the :fun attempt when dropping rules saves it (the interface the
-;    old whole-relation stub had: per-rule stubs change granularity, not
-;    modes), else the best salvageable attempt. Choosing better modes is the
-;    mode table's job (wasm3 prep P4)
+;  - emitted: the attempt with the fewest failing rules (the earliest on a
+;    tie, so :fun is kept when no other mode is better), if dropping rules
+;    saves it
 (defun crel-partial (xs ds bad errs0 errs1 attempts cx)
   (let* ((best (best-attempt attempts nil))
-         (emit (cond ((salvageable (car attempts)) (car attempts))
-                     ((salvageable best) best)
-                     (t nil)))
+         (emit (if (salvageable best) best nil))
          (keys (and emit (err-rule-keys (car emit) nil)))
          (reported (append (car best) (if (and emit (not (equal emit best))) (car emit) nil)))
          (drop0 (cx-get :drop-rules cx))
@@ -2178,6 +2310,44 @@
                (ds (append (drop-defuns-of ds names) (rel-stubs xs bad cx))))
           (mv ds (cx-put :stubs (append (cx-get :stubs cx) names) cx)))))))
 
+; Mode table, inference per relation (wasm3 M5): the :check attempt is a
+; fixpoint. Members that fail in :fun are demoted to :check and the group is
+; compiled again; a member that compiled in :fun only because it took an
+; output from a member that is now :check fails in turn and is demoted too.
+; This repeats until no undeclared :fun member fails (at most one round per
+; member). Modes only move down (:fun to :check), so the result is the
+; assignment with the most :fun members in which every :fun member compiles.
+; One round is the old second attempt.
+(defun fun-members (ids cx)
+  ;; the ids whose registered mode is :fun and that are not declared
+  (cond ((endp ids) nil)
+        ((and (eq (mode-of (car ids) cx) :fun)
+              (not (assoc-equal (car ids) (cx-get :declared-modes cx))))
+         (cons (car ids) (fun-members (cdr ids) cx)))
+        (t (fun-members (cdr ids) cx))))
+
+(defun crel-demote (xs errs0 fuel cx)
+  (mv-let (ds bad cx) (crel-members xs cx)
+    (let ((more (fun-members bad cx)))
+      (if (or (zp fuel) (null more))
+          (mv ds bad cx)
+        (crel-demote xs errs0 (1- fuel) (set-mode-ids more :check (cx-put :errs errs0 cx)))))))
+
+; The rules dropped from the output variants that are emitted: :incomplete
+; also holds the drops of discarded attempts (and repeats those of repeated
+; passes). Keep the entries "Rel/rule" whose relation ends :multi, once each.
+(defun rule-rel (s i)
+  ;; "Rel/rule" -> "Rel"
+  (cond ((>= i (length s)) s)
+        ((eql (char s i) #\/) (subseq s 0 i))
+        (t (rule-rel s (1+ i)))))
+
+(defun final-incomplete (l seen cx)
+  (cond ((endp l) nil)
+        ((and (eq (mode-of (rule-rel (car l) 0) cx) :multi) (not (member-equal (car l) seen)))
+         (cons (car l) (final-incomplete (cdr l) (cons (car l) seen) cx)))
+        (t (final-incomplete (cdr l) seen cx))))
+
 (defun crel-form-1 (x cx)
   (let* ((xs (rel-members x))
          (cx (set-modes xs :fun cx))
@@ -2190,22 +2360,22 @@
           ;; which keeps the rules the output variant drops (return, br, ...)
           (if (calls-multi (rel-members x) cx)
               (mv-let (dsm badm cxm)
-                (crel-members xs (set-mode-ids (strip-seconds xs) :multi (cx-put :errs errs0 cx)))
+                (crel-members-w xs (len xs) (set-mode-ids (strip-seconds xs) :multi (cx-put :errs errs0 cx)))
                 (if (null badm) (mv dsm cxm) (mv ds cx)))
             (mv ds cx))
         (let* ((errs1 (cx-get :errs cx))          ; errors of the :fun attempt
                (modes1 (cx-get :modes cx))
                (cx (cx-put :errs errs0 cx))
-               (cx (set-mode-ids bad :check cx))
-               (modes2 (cx-get :modes cx)))
-          (mv-let (ds2 bad2 cx) (crel-members xs cx)
+               (cx (set-mode-ids bad :check cx)))
+          (mv-let (ds2 bad2 cx) (crel-demote xs errs0 (len xs) cx)
             (if (null bad2)
                 (mv ds2 cx)
               ;; third attempt: :multi (check variant + split variant)
               (let* ((errs2 (cx-get :errs cx))
+                     (modes2 (cx-get :modes cx))     ; the modes the demotion ended with
                      (cx (set-mode-ids (strip-seconds xs) :multi (cx-put :errs errs0 cx)))
                      (modes3 (cx-get :modes cx)))
-                (mv-let (ds3 bad3 cx) (crel-members xs cx)
+                (mv-let (ds3 bad3 cx) (crel-members-w xs (len xs) cx)
                   (if (null bad3)
                       (mv ds3 cx)
                     ;; no mode works for every rule: per-rule stubs
@@ -2690,7 +2860,7 @@
 (defun override-events (ds)
   (if (endp ds) nil (cons (cons :%w1t-override (car ds)) (override-events (cdr ds)))))
 
-(defun cform (x cx)
+(defun cform-1 (x cx)
   (cond ((or (is x "GRAM") (and (is x "REC") (is (cadr x) "GRAM")))
          (mv-let (ds cx) (cgram-members (rel-members x) (cx-put :gram-rec (is x "REC") cx))
            (mv (clique-events x ds cx) nil nil (cx-put :gram-rec nil cx))))
@@ -2707,6 +2877,68 @@
          (mv-let (ds bs cx) (cmembers (cdr x) cx)
            (mv (clique-events x ds cx) bs nil cx)))
         (t (mv-let (ds bs cx) (cmember x cx) (mv ds bs nil cx)))))
+
+; Output variants on demand (see crule-premise-demand). :variants is a list
+; of ((rel . outs) . defuns-or-:failed) in the order they were made, so a
+; variant comes after the variants it calls.
+(defun pending-demands (ds vs)
+  (cond ((endp ds) nil)
+        ((assoc-equal (car ds) vs) (pending-demands (cdr ds) vs))
+        (t (cons (car ds) (pending-demands (cdr ds) vs)))))
+
+(mutual-recursion
+(defun resolve-demand (d fuel cx)
+  ;; cx with d registered in :variants: its defuns if every rule of the
+  ;; relation compiles in mode (:out . outs), else :failed. A variant that
+  ;; needs other variants is compiled again once they are made.
+  (if (assoc-equal d (cx-get :variants cx)) cx
+    (let* ((x (cdr (assoc-equal (car d) (cx-get :rel-defs cx))))
+           (cxv (cx-put :demands nil
+                        (cx-put :variant-of (car d)
+                                (cx-put :rec-rels nil (cx-put :rel-formals nil cx)))))
+           (nerr (len (cx-get :errs cxv))))
+      (mv-let (ds cx2) (crel-1 x (cons :out (cdr d)) cxv)
+        (let ((new (pending-demands (remove1-equal d (cx-get :demands cx2)) (cx-get :variants cx))))
+          (cond ((equal (len (cx-get :errs cx2)) nerr)
+                 (cx-put :variants (append (cx-get :variants cx) (list (cons d ds))) cx))
+                ((or (zp fuel) (null new))
+                 (cx-put :variants (append (cx-get :variants cx) (list (cons d :failed))) cx))
+                (t (resolve-demand d (1- fuel) (resolve-demands new (1- fuel) cx)))))))))
+
+(defun resolve-demands (ds fuel cx)
+  (if (endp ds) cx
+    (resolve-demands (cdr ds) fuel (resolve-demand (car ds) fuel cx)))))
+
+(defun used-variants (vs calls)
+  ;; vs: :variants reversed (latest first). The entries whose function is in
+  ;; CALLS or is called by a used later variant, in the order they were made.
+  (cond ((endp vs) nil)
+        ((and (not (eq (cdr (car vs)) :failed))
+              (intersection-equal (strip-defun-names (cdr (car vs))) calls))
+         (append (used-variants (cdr vs) (calls-of-list (cdr (car vs)) calls))
+                 (list (car vs))))
+        (t (used-variants (cdr vs) calls))))
+
+(defun variant-defuns (vs done)
+  ;; (mv defuns keys) of the entries not emitted yet
+  (cond ((endp vs) (mv nil nil))
+        ((member-equal (car (car vs)) done) (variant-defuns (cdr vs) done))
+        (t (mv-let (ds ks) (variant-defuns (cdr vs) done)
+             (mv (append (cdr (car vs)) ds) (cons (car (car vs)) ks))))))
+
+(defun cform-d (x fuel cx0)
+  (mv-let (e b s cx) (cform-1 x (cx-put :demands nil cx0))
+    (let ((new (pending-demands (cx-get :demands cx) (cx-get :variants cx))))
+      (if (or (zp fuel) (null new))
+          ;; the variants the emitted events call go just before them
+          (mv-let (ds ks)
+            (variant-defuns (used-variants (reverse (cx-get :variants cx)) (calls-of-list e nil))
+                            (cx-get :variants-emitted cx))
+            (mv (append ds e) b s
+                (cx-put :variants-emitted (append (cx-get :variants-emitted cx) ks) cx)))
+        (cform-d x (1- fuel) (resolve-demands new 4 cx0))))))
+
+(defun cform (x cx) (cform-d x 4 cx))
 
 (defun cforms (xs cx)
   (if (endp xs) (mv nil nil nil cx)

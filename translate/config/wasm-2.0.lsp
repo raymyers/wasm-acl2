@@ -30,9 +30,9 @@
  (:sized "||BX||"
   :pairs (("Bsection_" . "len") ("Bcode" . "len"))
   :reason "The source premise `len = ||BX||` (byte length of what BX matched) elaborates to `len = 0` in the IL, which would reject every non-empty section. In these grammars the item after `len` is parsed from exactly `len` bytes instead, and the `len = 0` premise is dropped.")
- (:modes "declared modes"
-  :pairs (("Instr_ok" . :multi) ("Instrs_ok" . :multi))
-  :reason "Instruction typing is :multi, as WASM 1.0 infers it (the check variant keeps the stack-polymorphic rules, the split variant computes output stacks); the 2.0 inference does not find it (wasm3 prep P4). Replace by the mode table (W1).")
+ (:witness "single-witness premises"
+  :rels ("Instr_ok" "Instrs_ok" "Externaddr_ok")
+  :reason "The output variant R/SPLIT of these relations drops rules whose output is not computable from the inputs, and some premise takes a value from it and then constrains it, so that premise tries ONE witness (the translator reports any other such premise as an error, `witness choice`). Accepted as in WASM 1.0 (config/wasm-1.0.lsp has the argument): Instrs_ok/seq takes its intermediate stack from Instr_ok/SPLIT, which drops the stack-polymorphic rules; Externaddr_ok/sub takes the type from Externaddr_ok/SPLIT, which drops only `sub`. Instrs_ok/SPLIT drops `sub` (and Instrs_ok/sub is not translated at all: its t_1* is a supertype to be guessed), so Expr_ok and the relations after it take the type of an instruction sequence without subsumption. Instruction typing is inferred :multi since wasm3 M5 and no longer declared.")
 
  (:il-patch "Binstr"
   :old

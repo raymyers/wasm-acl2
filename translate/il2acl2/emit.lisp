@@ -187,6 +187,13 @@
         ((is (car forms) "TYP") (cons (cons (second (car forms)) (car forms)) (typ-defs (cdr forms))))
         (t (typ-defs (cdr forms)))))
 
+(defun rel-defs (forms)
+  ;; alist relation id -> its REL form (output variants on demand, wasm3 M5)
+  (cond ((endp forms) nil)
+        ((is (car forms) "REC") (append (rel-defs (cdr (car forms))) (rel-defs (cdr forms))))
+        ((is (car forms) "REL") (cons (cons (second (car forms)) (car forms)) (rel-defs (cdr forms))))
+        (t (rel-defs (cdr forms)))))
+
 (defun gram-defs (forms)
   ;; alist grammar id -> its GRAM form (for inlining parametric grammars)
   (cond ((endp forms) nil)
@@ -408,6 +415,7 @@
     (:def (check-names e :def (list (second e)) tbl "def"))
     (:rel-override (check-names e :rel (list (second e)) tbl "relation"))
     (:memoize (check-names e :rel (cadr (member :rels e)) tbl "relation"))
+    (:witness (check-names e :rel (cadr (member :rels e)) tbl "relation"))
     (:split (if (member-equal (cons (second e) (third e)) (rule-pairs forms)) nil
               (list (cfg-err e (concatenate 'string "rule " (second e) "/" (third e) " not in the IL")))))
     (:inverse (check-inverse-pairs e (cadr (member :pairs e)) overrides tbl))
@@ -546,7 +554,9 @@
                              (cons :rel-overrides (rel-override-alist (config-entries config :rel-override)))
                              (cons :memo (memo-rels (config-entries config :memoize)))
                              (cons :declared-modes (declared-mode-pairs (config-entries config :modes)))
+                             (cons :witness-ok (memo-rels (config-entries config :witness)))
                              (cons :typ-defs (typ-defs forms))
+                             (cons :rel-defs (rel-defs forms))
                              (cons :gram-defs (gram-defs forms)))))
               (mv-let (parts builtins skipped cx)
                 (let ((files (or (decl-files decls nil) (list "all"))))
@@ -564,7 +574,7 @@
                                             (list :events events :builtins builtins
                                                   :skipped skipped
                                                   :stubs (reverse (cx-get :stubs cx))
-                                                  :incomplete (reverse (cx-get :incomplete cx))
+                                                  :incomplete (final-incomplete (reverse (cx-get :incomplete cx)) nil cx)
                                                   :partial (cx-get :partial cx)
                                                   :errs (reverse (cx-get :errs cx))
                                                   :config config

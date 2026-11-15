@@ -1,0 +1,3 @@
+; Failing rules of WASM 1.0: rule, mode, error kinds, first error detail
+Instrs_ok/seq :CHECK (("checker relation with unbound arguments" . 2)) (RULE "Instrs_ok" "%|-%:%" (TUP (VAR "C") (ITER (VAR "instr_1") LIST (DOM "instr_1" (VAR "instr_1*"))) (CASE "%->%" (TUP (ITER (VAR "t_1") LIST (DOM "t_1" (VAR "t_1*"))) (ITER (VAR "t_2") LIST (DOM "t_2" (VAR "t_2*")))))))
+Externaddr_ok/sub :FUN (("checker relation with unbound arguments" . 2) ("unbound variable" . 1)) (RULE "Externtype_ok" "|-%:OK" (TUP (VAR "xt")))

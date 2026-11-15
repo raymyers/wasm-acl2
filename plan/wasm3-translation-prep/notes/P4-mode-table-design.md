@@ -76,3 +76,11 @@ rather than per group.
 Attempt logs: `data/probe-P1-2026-11-14/report-3.0-core.txt`; declared-mode
 experiments: `data/probe-P4-modes-2026-11-14/`; current state:
 `data/probe-P4-G5G8-2026-11-14/`.
+
+## 2026-11-14: the design
+
+Done in the wasm3 plan, M5 item 1:
+[M5-mode-table](../../wasm3-translation/notes/M5-mode-table.md). The open
+judgement above is settled by the third option in a stricter form: a
+premise that takes a value from an output variant that drops rules is an
+error unless a counted `:witness` entry accepts the relation.

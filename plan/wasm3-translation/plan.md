@@ -7,9 +7,10 @@
 >
 > **Status: DRAFT** (written 2026-11-14 at the end of
 > [wasm3-translation-prep](../wasm3-translation-prep/plan.md) P7). The user
-> decided D1-D6 on 2026-11-14 (§1). Missing before it is final: the
-> mode-table design, which the prep plan assigns to a Fable session
-> ([suggested model choice](../wasm3-translation-prep/suggested-model-choice.md)).
+> decided D1-D6 on 2026-11-14 (§1). The mode-table design, the last piece
+> the draft waited for, is done
+> ([M5-mode-table](notes/M5-mode-table.md)); the user has not yet reviewed
+> the plan as a whole.
 > Every number below comes from a probe or test run and cites the prep note
 > that holds it.
 >
@@ -21,9 +22,15 @@
 ## Current state
 
 - **Last updated**: 2026-11-14
-- **Milestones**: none started; this plan is a draft (see the status note)
-- **Next action**: M0; in parallel a Fable session
-  designs the mode table (M5 depends on it)
+- **Milestones**: M5 item 1 (mode table design and core) ✅; nothing else
+  started
+- **Next action**: M0. For M5: decide how to translate
+  `Heaptype_sub/trans`, which is **not admissible** (enumeration variant
+  with fuel, or a `:rel-override`; [M5-mode-table](notes/M5-mode-table.md))
+- **Decisions waiting for the user**: the `:witness` config entries (new
+  kind; 1.0 gained one, so `gen/wasm-1.0/wasm1.lisp` has one more header
+  line), and the `trans` choice above
+- **Notes**: [notes/](notes/README.md)
 - **Start from**: `make -C translate probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
   and `make -C translate check-2.0` (the 2.0 gate, green)
 
@@ -72,7 +79,7 @@ From the P1 gap list as updated through P4
 | core | `Module_ok` stub (tags, recursive types, staged contexts) | S4 | M7 |
 | core | `$utf8single` stub (result defined arithmetically) | S5 | M1 |
 | core | malformed UTF-8 in names accepted (39 decode cases; also in 1.0, 39 spec-test-1 failures) | `$utf8` inverse too lenient | M2 |
-| GC | `Heaptype_sub/trans`: existential intermediate (dropped under `:check`) | triage | M5 |
+| GC | `Heaptype_sub/trans`: existential intermediate, dropped. **Not admissible**: `I31 <: ANY`, `deftype <: EQ` have no other derivation ([M5-mode-table](notes/M5-mode-table.md)) | enumeration variant or override | M5 |
 | GC | `Step_read/array.new_data-num`: `c*` under `$concatn_($zbytes_(zt, c)^n)` | nested inverse (S1) | M3 |
 | GC / bulk memory | builtins `$zbytes_ $cbytes_ $inv_zbytes_ $inv_cbytes_ $inv_concatn_` | S7 | M1 |
 | relaxed SIMD | builtins `$irelaxed_q15mulr_ $irelaxed_laneselect_ $frelaxed_min_ $frelaxed_max_ $frelaxed_madd_ $frelaxed_nmadd_ $relaxed_trunc__`; 11 choice parameters (`$ND`, `$R_*`) | S6, D4 | M1 |
@@ -90,12 +97,15 @@ From the P1 gap list as updated through P4
   counted `:builtins` entry.
 - **Function arguments** (G1): specialization as an IL pre-pass (`f.g`); no
   higher-order code is generated.
-- **Modes**: the 1.0 inference (three attempts per `rec` group), plus
-  declared modes (`:modes`, counted) and `:fun2` (two outputs, last two
-  components). The 3.0 config declares 21 relations: the type group
-  `:check`, instruction typing `:multi`, and `Eval_expr` `:fun2`. The
-  remaining design (M5) is inference per relation, outputs in any
-  position, and decided existentials.
+- **Modes** ([M5-mode-table](notes/M5-mode-table.md)): a mode is a set of
+  output positions. Inference per group: all `:fun`; demote failing
+  members to `:check` until stable; `:multi`; else the attempt with the
+  fewest failing rules. Output variants `R/OUT<i>..` for any positions are
+  made on demand for relations of earlier forms. A premise that takes a
+  value from an output variant that drops rules is an error ("witness
+  choice") unless a counted `:witness` entry accepts the relation. 3.0
+  declares **0** modes (22 before); the witness sources are `Instr_ok`,
+  `Instrs_ok`, `Ref_ok`, `Externaddr_ok`.
 - **Granularity** (P1): per-rule stubs. A relation is emitted without the
   rules that do not compile, and they are listed in the header.
 - **Patterns** (P4): retry of sequence elements (G9); counted iterations
@@ -155,10 +165,21 @@ within a small factor of the no-memory step (0.03 ms).
 recorded as N/M.
 
 ### M5: Type validation and subtyping (mode table)
-- [ ] Mode table design (Fable): inference per relation, any output
+- [x] Mode table design (Fable): inference per relation, any output
       positions (generalizes `:fun2`), existentials beyond the `:check`-mode
-      searches the prep added (G5, G8: index and finite-type searches)
-- [ ] Triage `Heaptype_sub/trans` (admissible? then drop with the argument written)
+      searches the prep added (G5, G8: index and finite-type searches).
+      Done 2026-11-14 ([M5-mode-table](notes/M5-mode-table.md)): 3.0 declared
+      modes 22 → 0 with the same 2 stubs and 2 dropped rules; 2.0 declared
+      modes 2 → 0; 1.0 definitions byte-identical; 9 single-witness rules
+      listed for 3.0, 8 accepted by the `:witness` entry and `trans` rejected
+- [x] Triage `Heaptype_sub/trans`: **not admissible** (same note), so it
+      cannot stay dropped
+- [ ] Translate `Heaptype_sub/trans`: an enumeration variant of
+      `Heaptype_sub` (all one-step supertypes) with fuel, or a
+      `:rel-override`; write the argument for the rules the enumeration drops
+- [ ] Hand-over items 1, 3, 4 of the note (demand inside a `rec` group,
+      `c(a, b)` halves as positions, the list of `:fun` relations called with
+      a bound output)
 
 **Exit**: the 19-relation type group has no dropped rule, or each dropped
 rule has a written completeness argument.
@@ -166,6 +187,10 @@ rule has a written completeness argument.
 ### M6: Instruction typing
 - [ ] Certify and test instruction typing (all 110 `Instr_ok` rules translate
       since the prep, G5 included); local-initialization tracking; subsumption (`Instrtype_sub`)
+- [ ] Go/no-go on one witness for instruction typing: the 3.0 `:witness`
+      entry is provisional. The rules to argue are `Instr_ok/block`, `loop`,
+      `if`, `try_table` and `Instrs_ok/seq`, `sub`
+      ([M5-mode-table](notes/M5-mode-table.md), experiment B)
 
 **Exit**: 110 of 110 `Instr_ok` rules; spec-test-3 `assert_invalid` N/M.
 
@@ -184,7 +209,8 @@ sessions at today's speed (P6).
 
 ### M9: Logic mode and proofs
 - [ ] `%TRY-LOGIC` time limits: one 3.0 guard proof ran >15 min (P5)
-- [ ] Mode manifest for 3.0 (`modes.lsp`, as 1.0)
+- [ ] Mode manifest for 3.0 (`modes.lsp`, as 1.0), including the
+      `R/OUT..` variants made on demand
 
 **Exit**: a recorded logic / guards / program count, compared by a test book.
 
@@ -197,17 +223,19 @@ sessions at today's speed (P6).
 
 Today `config/wasm-3.0.lsp` has 7 entries: `:def utf8` (with `:inverse`),
 `:split Step ctxt-instrs`, `:decreasing`, `:memoize`, `:sized`,
-`:builtins` (11 choice + 1 host + `$s33_to_u32`), `:modes` (21 relations).
-1.0 has 7, 2.0 has 9 (two `:il-patch` for a 2.0 source bug). Expected
-additions for 3.0: `:def utf8single` (S5), `:rel-override Module_ok` unless
-M7 avoids it, about 9 entries in total. Each `:modes` pair is meant to
-disappear with the mode table.
+`:builtins` (11 choice + 1 host + `$s33_to_u32`), `:witness` (4
+relations). The `:modes` entry (22 pairs at the end of the prep) is gone
+since the mode table. 1.0 has 8 (the `:witness` entry is new), 2.0 has 9
+(two `:il-patch` for a 2.0 source bug; `:witness` replaced `:modes`).
+Expected additions for 3.0: `:def utf8single` (S5), `:rel-override
+Module_ok` unless M7 avoids it, possibly `:rel-override Heaptype_sub`
+(M5), about 9 or 10 entries in total.
 
 ## 7. Risks and go/no-go points
 
 | Risk | Evidence | Go/no-go |
 |---|---|---|
-| Typing complete only with hand-written parts | `trans` single witness vs dropped; G5/G8 existentials ([P1-typing-root-causes](../wasm3-translation-prep/notes/P1-typing-root-causes.md)) | after M5: if the type group needs more than its existentials hand-decided, accept "sound but incomplete" with listed rules, or Strategy B (AL) for typing |
+| Typing complete only with hand-written parts | `trans` is not admissible and is dropped today, so GC subtyping through abstract heap types is rejected; 8 rules rely on one witness ([M5-mode-table](notes/M5-mode-table.md)) | after M5: `trans` by enumeration or override. After M6: if one witness is not enough under subsumption, Strategy B (AL) for instruction typing |
 | Runtime too slow for spec-test-3 | 10.4 ms per page per step (P6) | M3's store-free termination check; without it, run with a time budget and a skip list |
 | Certification time in logic mode | one guard proof >15 min (P5) | M9: per-event wall-clock limits, or `:program` for the decoder |
 | Conformance data for GC/exceptions | wabt converts 1/17 GC, 2/5 exception scripts (P5) | M8: build the reference interpreter's converter |
@@ -217,3 +245,4 @@ disappear with the mode table.
 
 Every note of the prep's index, and where it went: see
 [the prep notes index](../wasm3-translation-prep/notes/README.md) ("Incorporated" column).
+Notes of this plan: [notes/README.md](notes/README.md).

@@ -1,0 +1,4 @@
+; Failing rules of WASM 3.0: rule, mode, error kinds, first error detail
+Heaptype_sub/trans :CHECK (("checker relation with unbound arguments" . 3)) (RULE "Heaptype_ok" "%|-%:OK" (TUP (VAR "C") (VAR "heaptype'")))
+Module_ok/ :FUN (("pattern" . 8) ("relation inputs unbound" . 8) ("iterated premise output not bound" . 7) ("checker relation with unbound arguments" . 1) ("condition with unbound variables" . 3) ("unbound variable" . 2)) (LEN (VAR "jt*"))
+Step_read/array.new_data-num :FUN (("unbound variable" . 3)) "c*"

@@ -32,8 +32,10 @@ A new session starts here.
     [P4-mode-table-design](notes/P4-mode-table-design.md)
   - P7: [plan/wasm3-translation/plan.md](../wasm3-translation/plan.md);
     every note is incorporated
-- **Next action**: start the wasm3 plan (its "Current state"); in parallel
-  a Fable session designs the mode table (wasm3 M5)
+- **Next action**: start the wasm3 plan (its "Current state"). The mode
+  table is designed and its core implemented (2026-11-14, wasm3 M5 item 1:
+  [M5-mode-table](../wasm3-translation/notes/M5-mode-table.md)); the
+  `:modes` declarations this plan added are gone from all three configs
 - **In progress / uncommitted**: nothing. The old single-book driver
   `translate/tests/spec/t7-spec.lisp` (untracked, the user's) is superseded
   by `t7-lib.lisp` + `run-all.sh` and was left in place

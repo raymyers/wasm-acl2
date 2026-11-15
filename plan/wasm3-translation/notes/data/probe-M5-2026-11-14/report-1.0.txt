@@ -1,0 +1,53 @@
+Probe of WASM 1.0 (SpecTec 943c5df)
+Excluded: none
+Spec files: 10, lines: 2353
+IL lines: 13553, bytes: 325512
+IL forms (top level): 318, hint forms: 244
+IL forms by kind (rec members counted): (("TYP" . 90) ("DEF" . 132) ("REC" . 31) ("REL" . 36) ("GRAM" . 61))
+IL names: (:TYP 90 :DEF 132 :REL 36 :RULE 137 :GRAM 61 :VAR 359 :ATOM 118)
+Rules: 137, in 36 relations; relations with no rules: NIL
+Relations with the most rules: (("Instr_ok" . 31) ("Step_pure" . 29) ("Step_read" . 13) ("Step" . 13) ("Externaddr_ok" . 5) ("Externtype_ok" . 4) ("Externtype_sub" . 4) ("Instrs_ok" . 4))
+Clause-less defs: 45
+Defs taking def (function) parameters: 0: 
+Defs taking type parameters: 4
+Largest rec group: 2 members (first: Instr_ok)
+Grammars: 61, binary B*: 61, text T*: 0
+Config entries used: 8 (ignored kinds: NIL)
+Config entries that do not match the IL: 0
+
+Schema errors: 0
+
+Mangling: collisions 0, renamed 13, atom collisions 0
+
+Phase 1: events 477, defuns 507, builtins/overrides 46, forms skipped 0
+
+Builtins (clause-less defs): 45; numeric 45 (no definition in rt/: 0), choice 0, host 0, notation 0, unclassified 0
+  missing in rt/: 
+
+Specialized defs with function parameters (G1): 0 dropped, 0 specializations
+
+Stubs: 0
+Stubs by source file:
+
+Relations emitted without some rules (per-rule stubs): 0, rules dropped: 0
+
+Relation modes (final): :fun 13, :check 15, :multi 7, :closure 1; declared 0
+  :check: Start_ok Data_ok Elem_ok Expr_const Instr_const Externtype_sub Memtype_sub Tabletype_sub Limits_sub Externtype_ok Memtype_ok Tabletype_ok Globaltype_ok Functype_ok Limits_ok
+  :multi: Externaddr_ok Global_ok Func_ok Expr_ok_const Expr_ok Instrs_ok Instr_ok
+
+Output variants that drop rules, in a multi-mode relation (a premise that takes a value from one uses a single witness): Instr_ok Externaddr_ok
+  accepted as witness sources (config :witness): Instr_ok Externaddr_ok
+
+Output variants on demand, as (relation output-positions...): emitted 0: NIL
+  demanded, but some rule does not compile in that mode: (("Limits_ok" 0) ("Limits_sub" 1) ("Memtype_sub" 1) ("Tabletype_sub" 1) ("Limits_sub" 0) ("Memtype_sub" 0) ("Tabletype_sub" 0) ("Externtype_sub" 0) ("Externtype_sub" 1))
+  compiled, not called by emitted code: (("Globaltype_sub" 0) ("Functype_sub" 0))
+
+Relation groups where no mode compiles every rule: 0
+  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):
+
+Logged errors: 0, in 0 functions
+Errors by kind:
+
+Rules dropped from the output variants of multi-mode relations: 5
+  Instr_ok: 4: unreachable br br_table return
+  Externaddr_ok: 1: sub

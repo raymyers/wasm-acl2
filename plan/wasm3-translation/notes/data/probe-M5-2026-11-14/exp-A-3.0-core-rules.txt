@@ -1,0 +1,3 @@
+; Failing rules of WASM 3.0: rule, mode, error kinds, first error detail
+Module_ok/ :FUN (("pattern" . 8) ("relation inputs unbound" . 8) ("iterated premise output not bound" . 7) ("checker relation with unbound arguments" . 1) ("condition with unbound variables" . 3) ("unbound variable" . 2)) (LEN (VAR "jt*"))
+Step_read/array.new_data-num :FUN (("unbound variable" . 3)) "c*"

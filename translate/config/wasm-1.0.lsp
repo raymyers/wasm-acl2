@@ -101,4 +101,7 @@
  (:sized "||BX||"
   :pairs (("Bsection_" . "len") ("Bcode" . "len"))
   :reason "The source premise `len = ||BX||` (byte length of what BX matched) elaborates to `len = 0` in the IL, which would reject every non-empty section. In these grammars the item after `len` is parsed from exactly `len` bytes instead, and the `len = 0` premise is dropped.")
+ (:witness "single-witness premises"
+  :rels ("Instr_ok" "Externaddr_ok")
+  :reason "The output variant R/SPLIT of these relations drops rules whose output is not computable from the inputs, and some premise takes a value from it and then constrains it, so that premise tries ONE witness (the translator reports any other such premise as an error, `witness choice`). Accepted, by a principal-type argument that is tested (T6, T7) and not proved: Instr_ok/SPLIT drops only the stack-polymorphic rules (after them any output stack is valid), every other rule computes the one output stack for the instruction and input stack, and where Instrs_ok/seq needs the stack after a polymorphic instruction it also tries, and checks, the empty list and the list variables bound in the rule; that search is not exhaustive. Externaddr_ok/SPLIT drops only the subsumption rule `sub`, which is the rule that calls it: the other rules give one type per address and `sub` then checks that type against the expected one, which is complete because Externtype_sub is transitive.")
 )
