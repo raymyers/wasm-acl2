@@ -3110,10 +3110,12 @@
                            (rule-pos-keys (cdr errs) (1- n))))
         (t (rule-pos-keys (cdr errs) (1- n)))))
 
-(defun all-compile (keys allk xs cx)
-  ;; (mv defuns cx): each variant without the rules that do not compile in it
+(defun variants-compile (kind keys allk xs cx)
+  ;; (mv defuns cx): each variant without the rules that do not compile in it;
+  ;; KIND :all (R/ENUM<i>) or :out (kept output variant R/OUT<i>, config
+  ;; :keep-variant, wasm3 M6)
   (if (endp keys) (mv nil cx)
-    (let* ((x (member-form (car (car keys)) xs)) (mode (list :all (cdr (car keys))))
+    (let* ((x (member-form (car (car keys)) xs)) (mode (list kind (cdr (car keys))))
            (errs0 (cx-get :errs cx)) (drop0 (cx-get :drop-rules cx))
            (cx (cx-put :all-avail allk cx)))
       (mv-let (d cx1) (crel-1 x mode cx)
@@ -3123,8 +3125,18 @@
                             (mv d cx1))
             (let ((cx2 (cx-put :all-dropped (append (strip-cars bad) (cx-get :all-dropped cx2))
                                (cx-put :errs errs0 (cx-put :drop-rules drop0 cx2)))))
-              (mv-let (rest cx3) (all-compile (cdr keys) allk xs cx2)
+              (mv-let (rest cx3) (variants-compile kind (cdr keys) allk xs cx2)
                 (mv (append d rest) cx3)))))))))
+
+(defun keep-keys (entries ids)
+  ;; (rel . i) of the :keep-variant entries ("Rel" . i) for members IDS
+  (cond ((endp entries) nil)
+        ((member-equal (car (car entries)) ids) (cons (car entries) (keep-keys (cdr entries) ids)))
+        (t (keep-keys (cdr entries) ids))))
+
+(defun kept-names (keys cx)
+  (if (endp keys) nil
+    (cons (cdr (variant-name (car (car keys)) (list (cdr (car keys))) cx)) (kept-names (cdr keys) cx))))
 
 (defun crel-form (x cx)
   (let* ((ids (and (is x "REC") (strip-seconds (cdr x))))
@@ -3136,11 +3148,21 @@
           (mv-let (keys cx1) (all-closure (cx-get :all-demands cx) (rel-members x) cx 10)
             (mv-let (ds2 cx2) (crel-form-1 x (cx-put :all-dropped (cx-get :all-dropped cx1)
                                                        (cx-put :all-avail keys cx0)))
-              (mv-let (vds cx3) (all-compile keys keys (rel-members x) cx2)
+              (mv-let (vds cx3) (variants-compile :all keys keys (rel-members x) cx2)
                 (mv (append ds2 vds) (cx-put :all-variants (append keys (cx-get :all-variants cx3)) cx3))))))
+        (mv-let (ds cx)
+          ;; kept output variants of members (config :keep-variant, wasm3 M6)
+          (let ((keys (keep-keys (cx-get :keep-variants cx) ids)))
+            (if (null keys) (mv ds cx)
+              (let ((d0 (cx-get :all-dropped cx)))
+                (mv-let (kds cx1) (variants-compile :out keys nil (rel-members x) (cx-put :all-dropped nil cx))
+                  (mv (append ds kds)
+                      (cx-put :kept-dropped (append (cx-get :all-dropped cx1) (cx-get :kept-dropped cx1))
+                              (cx-put :all-dropped d0
+                                      (cx-put :kept-names (append (kept-names keys cx1) (cx-get :kept-names cx1)) cx1))))))))
         (mv (if fuel (fuel-wrap ds ids cx) ds)
             (cx-put :all-avail nil (cx-put :all-demands nil
-              (cx-put :fuel-group nil (cx-put :rel-formals nil (cx-put :rec-rels nil cx))))))))))
+              (cx-put :fuel-group nil (cx-put :rel-formals nil (cx-put :rec-rels nil cx)))))))))))
 
 ; --- Cliques: only functions that really recurse go in mutual-recursion ---
 
@@ -3243,7 +3265,8 @@
            (mains1 (append mains0 (suffix-all mains0 "/SPLIT")))
            ;; fuel groups: the recursion goes through the R/%F functions; and
            ;; the enumeration variants R/ENUM<i> of the group (wasm3 M5)
-           (mains (append mains1 (suffix-all mains1 "/%F") (enum-names (cx-get :all-variants cx) cx)))
+           (mains (append mains1 (suffix-all mains1 "/%F") (enum-names (cx-get :all-variants cx) cx)
+                         (cx-get :kept-names cx)))
            (in (reaching ds (intersection-equal mains (strip-defun-names ds)) (1+ (len ds))))
            (memo0 (rel-mangled-memo (cx-get :memo cx) cx))
            (memo (append memo0 (suffix-all memo0 "/SPLIT"))))

@@ -230,3 +230,19 @@ order:
 5. Measure on the 24 V8 cases (target 24 of 24) and on spec-test-3
    (`assert_invalid` needs M7's `Module_ok`; until then the cases book and
    the M6 data).
+
+### Step 1 done (2026-11-15): the kept whole-type variant
+
+New config kind `:keep-variant` (`("Instr_ok" :out 2)`, reason in the
+config): `INSTR_OK/OUT2 (C, instr)` is compiled inside the rec group with
+the M5 machinery (`variants-compile`, mode `(:out 2)`), and the rules that
+do not compile are left out and listed in the header. Measured: it leaves
+out **18** rules, the 10 stack-polymorphic ones and 8 whose operand types
+the instruction does not fix (`drop`, `ref.is_null`, `ref.as_non_null`,
+`br_on_null`, `ref.test`, `ref.cast`, `any.convert_extern`,
+`extern.convert_any`). That answers the open question above: the
+sequencer's table needs 18 entries, not 10. Checked by hand on a context:
+`i32.add` gives `[i32 i32] -> [i32]`, `local.get 0` gives `[] -> [i32]`,
+`call` of `$f` gives `[(ref null i31)] -> []`, a block gives its declared
+type, `ref.i31` gives `[i32] -> [(ref i31)]`, and `drop` gives no result.
+Gates green; 1.0 byte-identical.

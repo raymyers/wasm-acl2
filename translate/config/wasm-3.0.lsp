@@ -55,4 +55,7 @@
   :name "instantiate_unchecked"
   :drop-premises ("Module_ok" "Externaddr_ok")
   :reason "TEST-ONLY PATH (decision D6: execution before typing). $instantiate requires Module_ok, which is a stub until wasm3 M7 (it signals an error), and Externaddr_ok on the import addresses, which needs Module_ok's import types xt_I*. This adds a second def, $instantiate_unchecked: the same clause without these two premises, so it instantiates without validating the module or matching the imports' types. $instantiate itself is unchanged. Only the conformance driver uses the variant (wasm3 M4); a module that does not validate gives meaningless results there, and assert_unlinkable for a type mismatch cannot be detected through it. Remove when Module_ok is translated (M7).")
+
+ (:keep-variant "Instr_ok" :out 2
+  :reason "For the instruction-typing sequencer of option C (wasm3 M6, user decision 2026-11-14): INSTR_OK/OUT2 (C, instr) gives the principal type a ->_(x*) b of an instruction whose type its operands do not decide. It is kept although it leaves out the rules whose type is not computable from the instruction (the stack-polymorphic ones: unreachable, select, br, br_table, return, the return_calls, throw, throw_ref, and those whose operand types are free, listed in the header): the sequencer handles those by a table and checks every proposal with the generated INSTR_OK in check mode, so a left-out rule can cost completeness, never soundness.")
 )

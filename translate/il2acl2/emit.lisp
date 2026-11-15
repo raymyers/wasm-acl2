@@ -278,6 +278,11 @@
   ;; (:memoize "label" :rels ("Rel" ...) ...)
   (if (endp es) nil (append (cadr (member :rels (car es))) (memo-rels (cdr es)))))
 
+(defun keep-variant-pairs (es)
+  ;; (:keep-variant "Rel" :out i ...) -> (("Rel" . i) ...)
+  (if (endp es) nil
+    (cons (cons (second (car es)) (cadr (member :out (car es)))) (keep-variant-pairs (cdr es)))))
+
 (defun memo-no-inline (es)
   ;; t if a :memoize entry says :recursive nil (memoize wraps the compiled
   ;; function instead of recompiling its body; the recursion of the
@@ -507,6 +512,9 @@
                          (if (set-difference-equal (intersection-equal ids (strip-cars (cdr (assoc-eq :def tbl)))) cl)
                              (list (cfg-err e "a listed def has clauses (not a builtin)"))
                            nil))))
+    (:keep-variant (cond ((not (tbl-has :rel (second e) tbl)) (list (cfg-err e "relation not in the IL")))
+                         ((not (natp (cadr (member :out e)))) (list (cfg-err e ":out missing")))
+                         (t nil)))
     (:il-variant (let ((x (il-form-named (second e) forms)))
                    (cond ((not (and x (is x "DEF"))) (list (cfg-err e (concatenate 'string "def " (second e) " not in the IL"))))
                          ((not (stringp (cadr (member :name e)))) (list (cfg-err e ":name missing")))
@@ -642,6 +650,7 @@
                              (cons :witness-ok (memo-rels (config-entries config :witness)))
                              (cons :fuel-rels (memo-rels (config-entries config :fuel)))
                              (cons :rt-names rt-names)
+                             (cons :keep-variants (keep-variant-pairs (config-entries config :keep-variant)))
                              (cons :typ-defs (typ-defs forms))
                              (cons :rel-defs (rel-defs forms))
                              (cons :gram-defs (gram-defs forms))
@@ -665,6 +674,8 @@
                                                   :incomplete (final-incomplete (reverse (cx-get :incomplete cx)) nil cx)
                                                   :enum-variants (enum-names (cx-get :all-variants cx) cx)
                                                   :enum-dropped (remove-duplicates-equal (cx-get :all-dropped cx))
+                                                  :kept-variants (cx-get :kept-names cx)
+                                                  :kept-dropped (remove-duplicates-equal (cx-get :kept-dropped cx))
                                                   :partial (cx-get :partial cx)
                                                   :errs (reverse (cx-get :errs cx))
                                                   :config config
@@ -747,6 +758,8 @@
          (incomplete (cadr (member :incomplete g)))
          (enum-variants (cadr (member :enum-variants g)))
          (enum-dropped (cadr (member :enum-dropped g)))
+         (kept-variants (cadr (member :kept-variants g)))
+         (kept-dropped (cadr (member :kept-dropped g)))
          (partial (cadr (member :partial g)))
          (config (cadr (member :config g)))
          (target (cadr (member :target g)))
@@ -796,6 +809,13 @@
                (append (list ";" "; Rules not translated (each relation is emitted without them; sound"
                              "; but incomplete), as relation translated/total: dropped rules:")
                        (comment-lines ";   " (partial-strings partial)))
+             nil)
+           (if kept-variants
+               (append (list ";" "; Kept output variants (config :keep-variant, wasm3 M6), for hand-written"
+                             "; code; they leave out the rules whose output is not computable:")
+                       (comment-lines ";   " (list (join-words kept-variants)))
+                       (list "; Rules left out of them:")
+                       (comment-lines ";   " (list (join-words kept-dropped))))
              nil)
            (if enum-variants
                (append (list ";" "; Enumeration variants (wasm3 M5): R/ENUM<i> returns every output i that a"
