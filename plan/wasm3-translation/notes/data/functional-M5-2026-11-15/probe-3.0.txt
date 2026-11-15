@@ -1,0 +1,3 @@
+:fun relations called with a known output (the premise compares the first result; hand-over item 4): 9
+  functional by the sufficient check (one rule, or rules with different input constructors): Packval_ok Vec_ok Num_ok Datamode_ok Expand Blocktype_ok Packtype_sub Vectype_sub Numtype_sub
+  not shown functional: 

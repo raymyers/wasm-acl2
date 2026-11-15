@@ -1413,7 +1413,12 @@
             (crule-premise-demand pr rel comps "relation inputs unbound" env cx)
           (mv-let (ts cx) (cexps ins env cx)
             (mv-let (tname cx) (cx-fresh "%T" cx)
-              (let ((tv (gsym tname)))
+              (let ((tv (gsym tname))
+                    ;; a :fun relation called with a known output, which the
+                    ;; premise compares with its first result: listed for the
+                    ;; probe (hand-over item 4 of notes M5-mode-table)
+                    (cx (if (has-unbound out env) cx
+                          (cx-put :fun-bound (add-to-set-equal rel (cx-get :fun-bound cx)) cx))))
                 (mv-let (s1 env cx) (cpat out (list (quote car) tv) env cx)
                   (mv (append (rec-size-check rel ts cx)
                               (list (list* :bind tv (cons fn ts)) (list :test tv)) s1)
@@ -3378,3 +3383,34 @@
     (mv-let (e1 b1 s1 cx) (cform (car xs) cx)
       (mv-let (e2 b2 s2 cx) (cforms (cdr xs) cx)
         (mv (append e1 e2) (append b1 b2) (append s1 s2) cx)))))
+
+; --- Functional :fun relations (hand-over item 4, notes M5-mode-table) ----
+; A :fun relation returns its first result. A premise that passes it a known
+; output and compares (cx :fun-bound) relies on there being only one. A
+; cheap sufficient check: one rule, or every two rules have an input
+; position where both conclusions start with different constructors.
+(defun comp-head (c) (and (consp c) (is c "CASE") (second c)))
+(defun comps-heads (cs) (if (endp cs) nil (cons (comp-head (car cs)) (comps-heads (cdr cs)))))
+(defun heads-disjoint-p (h1 h2)
+  (and (consp h1) (consp h2)
+       (or (and (car h1) (car h2) (not (equal (car h1) (car h2))))
+           (heads-disjoint-p (cdr h1) (cdr h2)))))
+(defun disjoint-from-all (h hs) (or (endp hs) (and (heads-disjoint-p h (car hs)) (disjoint-from-all h (cdr hs)))))
+(defun pairwise-disjoint (hs) (or (endp hs) (and (disjoint-from-all (car hs) (cdr hs)) (pairwise-disjoint (cdr hs)))))
+(defun rules-input-heads (rules)
+  (if (endp rules) nil
+    (mv-let (comps prems) (rule-parts (car rules))
+      (declare (ignore prems))
+      (cons (comps-heads (butlast comps 1)) (rules-input-heads (cdr rules))))))
+(defun functional-sufficient-p (x)
+  (mv-let (n rules) (rel-parts x)
+    (declare (ignore n))
+    (or (endp (cdr rules)) (pairwise-disjoint (rules-input-heads rules)))))
+(defun split-functional (ids cx)
+  ;; (mv checked unchecked) of the relation ids
+  (if (endp ids) (mv nil nil)
+    (mv-let (c u) (split-functional (cdr ids) cx)
+      (let ((x (cdr (assoc-equal (car ids) (cx-get :rel-defs cx)))))
+        (cond ((not (eq (car (cdr (assoc-equal (car ids) (cx-get :modes cx)))) :fun)) (mv c u)) ; final mode not :fun
+              ((and x (functional-sufficient-p x)) (mv (cons (car ids) c) u))
+              (t (mv c (cons (car ids) u))))))))

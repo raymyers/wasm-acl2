@@ -349,6 +349,9 @@
                           (len (cx-get :variants-emitted cx)) (cx-get :variants-emitted cx)
                           (probe-variants (cx-get :variants cx) (cx-get :variants-emitted cx) t)
                           (probe-variants (cx-get :variants cx) (cx-get :variants-emitted cx) nil))
+                      (mv-let (fc fu) (split-functional (cx-get :fun-bound cx) cx)
+                        (cw "~%:fun relations called with a known output (the premise compares the first result; hand-over item 4): ~x0~%  functional by the sufficient check (one rule, or rules with different input constructors): ~s1~%  not shown functional: ~s2~%"
+                            (+ (len fc) (len fu)) (join-words fc) (join-words fu)))
                       (cw "~%Relation groups where no mode compiles every rule: ~x0~%" (len (cx-get :attempt-log cx)))
                       (cw "  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):~%")
                       (probe-print-lines (cx-get :attempt-log cx))

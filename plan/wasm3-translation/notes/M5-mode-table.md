@@ -328,3 +328,22 @@ needed: the group has no size check. The plan as implemented:
    are compiled in the same context until no new one is demanded; then
    the group again, with them available. The variants count as relation
    functions of the fuel group (they decrement the fuel).
+
+## Update 2026-11-15: hand-over items closed or placed
+
+- **Item 4 done**: the probe lists the `:fun` relations that a premise
+  calls with a known output and compares against the first result, and
+  checks each by the sufficient condition (one rule, or every two rules
+  differ in the constructor of some input). Measured
+  (`data/functional-M5-2026-11-15/`): 3.0 **9 of 9** pass (`Packval_ok
+  Vec_ok Num_ok Datamode_ok Expand Blocktype_ok Packtype_sub Vectype_sub
+  Numtype_sub`), 2.0 4 of 4, 1.0 2 of 2. No functionality assumption is
+  left unchecked. (Relations that were `:fun` only in a trial attempt and
+  ended `:check` are filtered out.)
+- **Item 1** (demand inside a group for every variant) changes 1.0 output
+  and needs its own milestone statement, as noted; it is done only for
+  the M5 enumeration variants and M6's `:keep-variant`, which leave 1.0
+  unchanged.
+- **Item 3** (`c(a, b)` halves as positions) was the mechanism (a) of M6
+  step 3; M6 took (b), so it is not needed now.
+- Item 2 is M5 `trans` (done), item 5 is M9's mode manifest, item 6 is M7.

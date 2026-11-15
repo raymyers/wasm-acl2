@@ -360,9 +360,12 @@ cut by the size check). What fails: 446 after an aborted `memory_copy` action,
       Done 2026-11-15 ([M5-subtyping-cases](notes/M5-subtyping-cases.md)):
       `tests/sem-3.0/t5-subtyping-3.0.lisp`, in `make check-3.0`; **35 of 46**
       right, the 11 wrong ones all need `trans`. With `trans`: **46 of 46**
-- [ ] Hand-over items 1, 3, 4 of the note (demand inside a `rec` group,
+- [x] Hand-over items 1, 3, 4 of the note (demand inside a `rec` group,
       `c(a, b)` halves as positions, the list of `:fun` relations called with
-      a bound output). Not needed for the exit
+      a bound output). Not needed for the exit. Done 2026-11-15 as far as
+      allowed: item 4 in the probe (3.0: 9 of 9 pass the sufficient check;
+      2.0 4/4; 1.0 2/2); item 1 changes 1.0 output (needs its own milestone
+      statement); item 3 not needed (M6 took mechanism (b)). M5-mode-table update
 
 **Exit**: the 19-relation type group has no dropped rule, or each dropped
 rule has a written completeness argument; and the behavioural cases pass,
