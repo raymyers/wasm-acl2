@@ -230,6 +230,39 @@ Either way `trans` is the first user of an **enumeration variant** (all
 witnesses instead of the first). That is the general answer of this
 design to an existential that the inputs do not determine.
 
+### Decided by the user (2026-11-14)
+
+- The `:witness` config kind and the three entries stay as committed.
+- `trans` is translated with an **enumeration variant** (not the override).
+
+### What the enumeration variant needs (worked out, not implemented)
+
+Three parts, each a real change to the relation compiler:
+
+1. **Rules with several results.** An enumeration variant `R/ALL<i>`
+   returns the list of all outputs, so a rule must be able to return more
+   than one. `rec-sub` (`REC i <: typeuse*[j]`) has to return every j; the
+   G8 index search finds one. The other one-step rules return one each.
+2. **Termination.** Every recursive call in a `rec` group is guarded by
+   the generated size check, and the group's measure rests on it. "One
+   step up" does not shrink (`I31` to `EQ` to `ANY`), so the check cuts
+   it. The enumeration therefore has to be transitive and carry its own
+   fuel, in a function that recurses only on itself: `HEAPTYPE_SUB/UP
+   (fuel C ht)` = all types reachable from `ht` by the enumerable rules.
+   `trans` then reads "some `ht'` in `UP(C, heaptype_1)` is related to
+   `heaptype_2` by a rule other than `trans`". This keeps the group's
+   measure intact for M9.
+3. **Rules that cannot be enumerated** from the left: `typeidx-r`, `def`
+   with `Deftype_sub/refl` (equality of closed types), `none`, `nofunc`,
+   `noexn`, `noextern`, `bot`. They stay checks for the last step. Each
+   needs a short argument that it never has to be an inner step of a
+   chain; the bottom rules do, because the hierarchies are disjoint.
+
+Order: after M0 and M1. Until 3.0 certifies and its builtins exist, no
+generated 3.0 typing code can be run, so this could not be tested today.
+The first test is `I31 <: ANY`, `deftype <: EQ` and `NONE <: I31` against
+the reference interpreter or the spec-test-3 GC scripts.
+
 ## Handed over (not implemented)
 
 1. **Demand inside a `rec` group** (recursive variants), which lets

@@ -24,12 +24,12 @@
 - **Last updated**: 2026-11-14
 - **Milestones**: M5 item 1 (mode table design and core) ✅; nothing else
   started
-- **Next action**: M0. For M5: decide how to translate
-  `Heaptype_sub/trans`, which is **not admissible** (enumeration variant
-  with fuel, or a `:rel-override`; [M5-mode-table](notes/M5-mode-table.md))
-- **Decisions waiting for the user**: the `:witness` config entries (new
-  kind; 1.0 gained one, so `gen/wasm-1.0/wasm1.lisp` has one more header
-  line), and the `trans` choice above
+- **Next action**: M0. For M5: translate `Heaptype_sub/trans`, which is
+  **not admissible**, with an enumeration variant
+  ([M5-mode-table](notes/M5-mode-table.md))
+- **Decided by the user (2026-11-14)**: the `:witness` config kind and
+  entries stay; `trans` is translated with an enumeration variant, after
+  M0 and M1 (its three parts are in the note)
 - **Notes**: [notes/](notes/README.md)
 - **Start from**: `make -C translate probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
   and `make -C translate check-2.0` (the 2.0 gate, green)
@@ -174,9 +174,11 @@ recorded as N/M.
       listed for 3.0, 8 accepted by the `:witness` entry and `trans` rejected
 - [x] Triage `Heaptype_sub/trans`: **not admissible** (same note), so it
       cannot stay dropped
-- [ ] Translate `Heaptype_sub/trans`: an enumeration variant of
-      `Heaptype_sub` (all one-step supertypes) with fuel, or a
-      `:rel-override`; write the argument for the rules the enumeration drops
+- [ ] Translate `Heaptype_sub/trans` with an enumeration variant (user
+      decision, 2026-11-14): rules with several results, a fuelled transitive
+      `HEAPTYPE_SUB/UP` that keeps the group's size-check measure, and the
+      argument for the rules that cannot be enumerated. After M0 and M1, so
+      that it can be run
 - [ ] Hand-over items 1, 3, 4 of the note (demand inside a `rec` group,
       `c(a, b)` halves as positions, the list of `:fun` relations called with
       a bound output)
