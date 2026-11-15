@@ -1080,7 +1080,8 @@
 ;; stack), so the check only removes cycles; it makes termination syntactic.
 (defun rec-size-check (rel ts cx)
   (let ((rf (cx-get :rel-formals cx)) (me (cx-get :cur-rel cx)))
-    (if (and rf (member-equal rel (cx-get :rec-rels cx)))
+    (if (and rf (member-equal rel (cx-get :rec-rels cx))
+             (not (cx-get :fuel-group cx)))        ; fuel groups: see fuel-wrap
         (let ((ca (dec-size rel ts cx)) (oa (dec-size me rf cx))
               (cb (list (gsym "%SIZE") (cons (quote list) ts)))
               (ob (list (gsym "%SIZE") (cons (quote list) rf))))
@@ -2070,14 +2071,24 @@
           (mv-let (cs cx) (crules rules mode formals (second x) cx)
             (let ((body (if (or (out-mode-p mode) (member-eq mode '(:fun :fun2 :split))) (chain-results cs) (list 'if (chain-results cs) t nil))))
               (mv (append (reverse (cx-get :aux cx))
-                          (list (if (cx-get :rel-formals cx)
+                          (list (cond
+                                 ((and (cx-get :rel-formals cx) (cx-get :fuel-group cx))
+                                  ;; fuel group (fuel-wrap adds the formal %FUEL):
+                                  ;; no result at 0, one less for everything called
+                                  (let ((fuel (gsym "%FUEL")))
+                                    (mk-defun-measure name formals (list 'nfix fuel)
+                                                      (list 'if (list 'zp fuel) nil
+                                                            (list 'let (list (list fuel (list '1- fuel)))
+                                                                  (ignorable-decl (list fuel))
+                                                                  body)))))
+                                 ((cx-get :rel-formals cx)
                                     ;; member of a recursive group: omega*(1+size(inputs))
                                     (mk-defun-measure name formals
                                                       (list (gsym "%OM3") (dec-size (second x) formals cx)
                                                             (list (quote 1+) (list (gsym "%SIZE") (cons (quote list) formals)))
                                                             0)
-                                                      body)
-                                  (mk-defun name formals body))))
+                                                      body))
+                                 (t (mk-defun name formals body)))))
                   cx)))))))))
 
 ; Aux functions of a relation in a rec group can contain the generated size
@@ -2818,10 +2829,62 @@
       (mv-let (d2 b2 cx) (cmembers (cdr xs) cx)
         (mv (append d1 d2) (append b1 b2) cx)))))
 
+; Fuel groups (wasm3 M5; config (:fuel ... :rels ("R" ...)): a rec group
+; with a listed member). The generated size check before a recursive premise
+; (rec-size-check) assumes every subgoal is smaller than its goal. In the
+; 3.0 type group that is false: Valtype_sub/ref hands the same arguments to
+; Reftype_sub, Heaptype_sub/typeidx-l replaces an index by the larger
+; defined type, Deftype_ok recurses under a larger context; those rules
+; never fired. In a fuel group there is no size check. Every function of
+; the group takes a last argument %FUEL and passes it on; a relation
+; function R/%F returns nil at 0 and runs its rules with one less, so every
+; cycle through a relation uses fuel. The entry R, with the relation's own
+; arity, calls R/%F with (%TFUEL) (rt/prelude.lisp). Callers outside the
+; group and the tests see R as before.
+(defun gsym-rename (x alist)
+  (cond ((gsym-p x) (let ((p (assoc-equal x alist))) (if p (cdr p) x)))
+        ((atom x) x)
+        (t (cons (gsym-rename (car x) alist) (gsym-rename (cdr x) alist)))))
+
+(defun fuel-renames (ds names)
+  ;; ((old-gsym . new-gsym) ...) for the defuns of ds named in names
+  (cond ((endp ds) nil)
+        ((and (consp (car ds)) (eq (car (car ds)) 'defun) (member-equal (cdr (second (car ds))) names))
+         (cons (cons (second (car ds))
+                     (gsym (concatenate 'string (cdr (second (car ds))) "/%F")))
+               (fuel-renames (cdr ds) names)))
+        (t (fuel-renames (cdr ds) names))))
+
+(defun fuel-entries (ds names)
+  ;; entry defuns R(formals) = R/%F(formals, (%TFUEL))
+  (cond ((endp ds) nil)
+        ((and (consp (car ds)) (eq (car (car ds)) 'defun) (member-equal (cdr (second (car ds))) names))
+         (cons (mk-defun (second (car ds)) (third (car ds))
+                         (cons (gsym (concatenate 'string (cdr (second (car ds))) "/%F"))
+                               (append (third (car ds)) (list (list (gsym "%TFUEL"))))))
+               (fuel-entries (cdr ds) names)))
+        (t (fuel-entries (cdr ds) names))))
+
+(defun all-needy (ds extras)
+  (cond ((endp ds) nil)
+        ((and (consp (car ds)) (eq (car (car ds)) 'defun))
+         (cons (cons (second (car ds)) extras) (all-needy (cdr ds) extras)))
+        (t (all-needy (cdr ds) extras))))
+
+(defun fuel-wrap (ds ids cx)
+  (let* ((names (rel-fn-names ids cx))
+         (entries (fuel-entries ds names))
+         (ds (gsym-rename ds (fuel-renames ds names)))
+         (ds (apply-needy ds (all-needy ds (list (gsym "%FUEL"))))))
+    (append ds entries)))
+
 ; (mv events builtins skipped cx)
 (defun crel-form (x cx)
-  (mv-let (ds cx) (crel-form-1 x (cx-put :rec-rels (and (is x "REC") (strip-seconds (cdr x))) cx))
-    (mv ds (cx-put :rel-formals nil (cx-put :rec-rels nil cx)))))
+  (let* ((ids (and (is x "REC") (strip-seconds (cdr x))))
+         (fuel (and (intersection-equal ids (cx-get :fuel-rels cx)) t)))
+    (mv-let (ds cx) (crel-form-1 x (cx-put :fuel-group fuel (cx-put :rec-rels ids cx)))
+      (mv (if fuel (fuel-wrap ds ids cx) ds)
+          (cx-put :fuel-group nil (cx-put :rel-formals nil (cx-put :rec-rels nil cx)))))))
 
 ; --- Cliques: only functions that really recurse go in mutual-recursion ---
 
@@ -2913,7 +2976,9 @@
   (if (not (is x "REC")) ds
     (let* ((mains0 (member-main-names (cdr x) cx))
            ;; multi-mode relations also have an R/SPLIT variant
-           (mains (append mains0 (suffix-all mains0 "/SPLIT")))
+           (mains1 (append mains0 (suffix-all mains0 "/SPLIT")))
+           ;; fuel groups: the recursion goes through the R/%F functions
+           (mains (append mains1 (suffix-all mains1 "/%F")))
            (in (reaching ds (intersection-equal mains (strip-defun-names ds)) (1+ (len ds))))
            (memo0 (rel-mangled-memo (cx-get :memo cx) cx))
            (memo (append memo0 (suffix-all memo0 "/SPLIT"))))

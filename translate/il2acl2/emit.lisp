@@ -416,6 +416,7 @@
     (:rel-override (check-names e :rel (list (second e)) tbl "relation"))
     (:memoize (check-names e :rel (cadr (member :rels e)) tbl "relation"))
     (:witness (check-names e :rel (cadr (member :rels e)) tbl "relation"))
+    (:fuel (check-names e :rel (cadr (member :rels e)) tbl "relation"))
     (:split (if (member-equal (cons (second e) (third e)) (rule-pairs forms)) nil
               (list (cfg-err e (concatenate 'string "rule " (second e) "/" (third e) " not in the IL")))))
     (:inverse (check-inverse-pairs e (cadr (member :pairs e)) overrides tbl))
@@ -555,6 +556,7 @@
                              (cons :memo (memo-rels (config-entries config :memoize)))
                              (cons :declared-modes (declared-mode-pairs (config-entries config :modes)))
                              (cons :witness-ok (memo-rels (config-entries config :witness)))
+                             (cons :fuel-rels (memo-rels (config-entries config :fuel)))
                              (cons :typ-defs (typ-defs forms))
                              (cons :rel-defs (rel-defs forms))
                              (cons :gram-defs (gram-defs forms)))))

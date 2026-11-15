@@ -77,6 +77,23 @@ number of types). An invalid context can be cyclic, a valid one cannot.
 This comes **before** `trans` in M5: without it the enumeration for
 `trans` would recurse into relations that still cut.
 
+### Done (2026-11-14, user go-ahead)
+
+Implemented as recommended: config `(:fuel ... :rels ("Heaptype_ok"))`
+makes the group of a listed relation a fuel group (`fuel-wrap` in
+`compile.lisp`; bound `(%TFUEL)` = 10,000 in `rt/prelude.lisp`).
+
+- The same 22 cases: **20 right** (9 before). The 2 left are the `trans`
+  cases. The 23 instruction cases are unchanged (18 right).
+- 3.0 probe: same stubs and dropped rules; 19 more defuns (the entries).
+- 1.0: every definition byte-identical. `gen/wasm-1.0/package.lsp`
+  imports one more runtime symbol (`%TFUEL`), since every generated
+  package imports all names of `rt/`. `make check` and `make check-2.0`
+  pass.
+- Not exercised: a search that really runs to the bound. The cyclic
+  context I tried (a type whose declared supertype is its own index)
+  answered at once. So the stack-safety of 10,000 is an estimate.
+
 ## 2. Config entries
 
 | Entry | Versions | What tests cannot see | Verdict |
@@ -122,4 +139,5 @@ The last two need a counter in the translator, like the witness sources.
 ## Data
 
 `data/typing-M6-2026-11-14/`: `cases-3.0-types.lsp`,
-`results-3.0-types.txt` (run by the same `run.sh`).
+`results-3.0-types-before-fuel.txt`, `results-3.0-types.txt` (run by the
+same `run.sh`).

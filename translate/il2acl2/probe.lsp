@@ -293,6 +293,7 @@
                                (cons :memo (memo-rels (config-entries config :memoize)))
                                (cons :declared-modes (declared-mode-pairs (config-entries config :modes)))
                                (cons :witness-ok (memo-rels (config-entries config :witness)))
+                               (cons :fuel-rels (memo-rels (config-entries config :fuel)))
                                (cons :typ-defs (typ-defs forms))
                                (cons :rel-defs (rel-defs forms))
                                (cons :gram-defs (gram-defs forms)))))

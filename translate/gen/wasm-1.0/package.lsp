@@ -52,10 +52,10 @@
                                WRT::%OM-O-P WRT::%OM-O< WRT::%OM3
                                WRT::%OM3-O-P WRT::%OM3-O< WRT::%POW2
                                WRT::%PROGRAM-DEFUN WRT::%PROGRAM-DEFUNS
-                               WRT::%PROGRAM-VERSION
-                               WRT::%PUT-FIELD WRT::%REC-P WRT::%ROUND
-                               WRT::%ROUND-EVEN WRT::%ROUND-MAG WRT::%S
-                               WRT::%SAT WRT::%SIZE WRT::%SX-SIGNED-P
+                               WRT::%PROGRAM-VERSION WRT::%PUT-FIELD
+                               WRT::%REC-P WRT::%ROUND WRT::%ROUND-EVEN
+                               WRT::%ROUND-MAG WRT::%S WRT::%SAT
+                               WRT::%SIZE WRT::%SX-SIGNED-P WRT::%TFUEL
                                WRT::%TRY-GUARDS WRT::%TRY-LOGIC WRT::%U
                                WRT::%UNLANES WRT::%UTF8-CHAR WRT::%VAL
                                WRT::%VT-SIZE WRT::%ZERO WRT::%ZERO-P)))

@@ -30,9 +30,9 @@
 - **Found by the review (2026-11-14)**: in the 19-relation type group the
   generated termination check cuts valid derivations (delegation, context
   lookups): 9 of 22 type cases right, e.g. `valtype_sub (ref i31) <: (ref
-  null i31)` is rejected. Recommended: fuel for that group, before `trans`
-  ([review-checker-blind-spots](notes/review-checker-blind-spots.md)).
-  **Needs the user's go-ahead** as it changes how a `rec` group terminates
+  null i31)` was rejected. Fixed with the user's go-ahead: the group
+  terminates by fuel (config `:fuel`); 20 of 22 right, the 2 left need
+  `trans` ([review-checker-blind-spots](notes/review-checker-blind-spots.md))
 - **3.0 probe now**: 2 stubs, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
 - **Next action**: M0, then M0b and M1 (see "Order and dependencies")
@@ -199,13 +199,12 @@ recorded as N/M.
       listed for 3.0, 8 accepted by the `:witness` entry and `trans` rejected
 - [x] Triage `Heaptype_sub/trans`: **not admissible** (same note), so it
       cannot stay dropped
-- [ ] **Termination of the type group by fuel** instead of the size
-      check, chosen per group by a config entry (1.0 and 2.0 unchanged):
-      a fuel argument on the group's functions, entry functions with the
-      present names and arities, a bound sized for the Lisp stack. First,
-      because `trans` recurses into these relations. Test: the 22 cases of
-      `data/typing-M6-2026-11-14/cases-3.0-types.lsp` (9 right today; 20
-      expected after this item, 22 after `trans`)
+- [x] **Termination of the type group by fuel** instead of the size
+      check, chosen per group by a config entry (`:fuel`; 1.0 and 2.0
+      unchanged). Done 2026-11-14: the 22 cases of
+      `data/typing-M6-2026-11-14/cases-3.0-types.lsp` went from 9 right to
+      **20**; the 2 left are `trans`. Open: the bound of 10,000 was not
+      exercised by a search that runs to it
       ([review-checker-blind-spots](notes/review-checker-blind-spots.md))
 - [ ] Translate `Heaptype_sub/trans` with an enumeration variant (user
       decision, 2026-11-14): rules with several results, a fuelled transitive
@@ -316,10 +315,10 @@ M0 ──┬─ M0b ────────────────────
 
 ## 6. Config budget
 
-Today `config/wasm-3.0.lsp` has 7 entries: `:def utf8` (with `:inverse`),
+Today `config/wasm-3.0.lsp` has 8 entries: `:def utf8` (with `:inverse`),
 `:split Step ctxt-instrs`, `:decreasing`, `:memoize`, `:sized`,
 `:builtins` (11 choice + 1 host + `$s33_to_u32`), `:witness` (4
-relations). The `:modes` entry (22 pairs at the end of the prep) is gone
+relations), and since M5 `:fuel` (the type group), 8 in all. The `:modes` entry (22 pairs at the end of the prep) is gone
 since the mode table. 1.0 has 8 (the `:witness` entry is new), 2.0 has 9
 (two `:il-patch` for a 2.0 source bug; `:witness` replaced `:modes`).
 Expected additions for 3.0: `:def utf8single` (S5), `:rel-override

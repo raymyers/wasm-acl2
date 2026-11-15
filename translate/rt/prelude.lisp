@@ -132,6 +132,13 @@
 ; at most (%FUEL) times and has no result if the bound is reached.
 (defun %fuel () (declare (xargs :guard t)) 1000000)
 
+; Depth bound for the relations of a fuel group (config :fuel; il2acl2
+; fuel-wrap): R/%F has no result once %TFUEL nested relation calls are
+; open. Far above the depth of a derivation for a real type, and small
+; enough that a search which fails through a cyclic (invalid) context ends
+; without exhausting the Lisp stack.
+(defun %tfuel () (declare (xargs :guard t)) 10000)
+
 ; (%try-guards f): verify the guards of F (and its clique) if ACL2 can, within
 ; a prover step limit; otherwise leave them unverified. Deterministic.
 (defmacro %try-guards (name)

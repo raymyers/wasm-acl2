@@ -12,14 +12,14 @@ Defs taking def (function) parameters: 0:
 Defs taking type parameters: 14
 Largest rec group: 19 members (first: Heaptype_ok)
 Grammars: 87, binary B*: 87, text T*: 0
-Config entries used: 7 (ignored kinds: NIL)
+Config entries used: 8 (ignored kinds: NIL)
 Config entries that do not match the IL: 0
 
 Schema errors: 0
 
 Mangling: collisions 0, renamed 18, atom collisions 0
 
-Phase 1: events 1244, defuns 1341, builtins/overrides 90, forms skipped 0
+Phase 1: events 1244, defuns 1360, builtins/overrides 90, forms skipped 0
 
 Builtins (clause-less defs): 89; numeric 77 (no definition in rt/: 13), choice 11, host 1, notation 0, unclassified 0
   missing in rt/: inv_concatn_ zbytes_ cbytes_ inv_zbytes_ inv_cbytes_ ceilz irelaxed_q15mulr_ irelaxed_laneselect_ frelaxed_min_ frelaxed_max_ frelaxed_madd_ frelaxed_nmadd_ relaxed_trunc__

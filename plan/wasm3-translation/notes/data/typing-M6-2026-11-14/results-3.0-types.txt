@@ -1,25 +1,24 @@
-; 3.0 type validation and subtyping with defined types (after the M6 fix; the fix does not touch these relations)
-ENC (T T T T NIL NIL)
-CASE T1 (type 0) <: struct (typeidx-l): expected T, got NIL
+; 3.0 type cases with the type group as a fuel group
+CASE T1 (type 0) <: struct (typeidx-l): expected T, got T
 CASE T2 deftype A <: struct: expected T, got T
 CASE T3 A <: A: expected T, got T
-CASE T4 B <: A (declared supertype): expected T, got NIL
-CASE T5 (type 1) <: (type 0): expected T, got NIL
-CASE T6 A <: (type 0) (typeidx-r): expected T, got NIL
+CASE T4 B <: A (declared supertype): expected T, got T
+CASE T5 (type 1) <: (type 0): expected T, got T
+CASE T6 A <: (type 0) (typeidx-r): expected T, got T
 CASE T7 A <: B: expected NIL, got NIL
-CASE T8 (ref (type 1)) <: (ref null (type 0)): expected T, got NIL
+CASE T8 (ref (type 1)) <: (ref null (type 0)): expected T, got T
 CASE T9 A <: eq (needs trans): expected T, got NIL
 CASE T10 none <: struct: expected T, got NIL
 CASE T11 (type 0) <: (type 0): expected T, got T
 CASE T12 struct <: (type 0): expected NIL, got NIL
 CASE V1 reftype_sub (ref i31) <: (ref null i31): expected T, got T
-CASE V2 valtype_sub (ref i31) <: (ref null i31) (delegates to Reftype_sub): expected T, got NIL
+CASE V2 valtype_sub (ref i31) <: (ref null i31) (delegates to Reftype_sub): expected T, got T
 CASE V3 valtype_sub i32 <: i32: expected T, got T
-CASE V4 resulttype_sub [(ref i31)] <: [(ref null i31)]: expected T, got NIL
+CASE V4 resulttype_sub [(ref i31)] <: [(ref null i31)]: expected T, got T
 CASE V5 deftype_sub B <: A: expected T, got T
-CASE V6 valtype_ok (ref null i31): expected T, got NIL
+CASE V6 valtype_ok (ref null i31): expected T, got T
 CASE V7 reftype_ok (ref null i31): expected T, got T
-CASE V8 deftype_ok A: expected T, got NIL
-CASE V9 storagetype_sub i32 <: i32: expected T, got NIL
-CASE V10 fieldtype_sub const i32: expected T, got NIL
+CASE V8 deftype_ok A: expected T, got T
+CASE V9 storagetype_sub i32 <: i32: expected T, got T
+CASE V10 fieldtype_sub const i32: expected T, got T
 
