@@ -1,0 +1,128 @@
+== generated 3.0 books
+27
+486141
+260	translate/gen/wasm-3.0/5_4-binary_modules.lisp
+708	translate/gen/wasm-3.0/1_3-syntax_instructions.lisp
+4100	translate/gen/wasm-3.0/2_3-validation_instructions.lisp
+9220	translate/gen/wasm-3.0/4_3-execution_instructions.lisp
+18436	translate/gen/wasm-3.0/5_3-binary_instructions.lisp
+== operator heads at line starts (top 30)
+  13815 (DECLARE
+  11843 (LET
+  10941 (CDR
+   9715 (AND
+   7467 (CAR
+   6108 (EQUAL
+   5833 (IGNORABLE
+   5755 (LIST
+   5241 (TRUE-LISTP
+   4354 (ACL2
+   3643 (EQ
+   3458 (CONSP
+   3026 (IF
+   1373 (DEFUN
+   1298 (%TRY-LOGIC-T
+   1298 (%TRY-GUARDS-T
+   1273 (CONS
+    979 (CADR
+    566 (%GET-FIELD
+    485 (GRAM
+    303 (NULL
+    246 (OR
+    212 (NTH
+    207 (N
+    195 (ADDRTYPE-P
+    176 (defun
+    126 (%T2
+    124 (X
+    112 (I
+     96 (%T1
+== ACL2 / numeric constructs anywhere
+   4674 (let* 
+    282 (natp 
+    204 (nfix 
+    132 (1+ 
+    105 (nthcdr 
+    104 (take 
+     96 (not 
+     66 (expt 
+     56 (1- 
+     30 (in-package 
+     28 (zp 
+     28 (include-book 
+     28 (ifix 
+     26 (cond 
+     21 (floor 
+     18 (mod 
+     15 (len 
+      9 (rem 
+      7 (case 
+      6 (the 
+      6 (ash 
+      5 (reverse 
+      5 (integer-length 
+      5 (catch 
+      4 (truncate 
+      4 (min 
+      4 (max 
+      4 (make-event 
+      4 (logior 
+      4 (logand 
+      4 (integerp 
+      4 (defthm 
+      4 (defmacro 
+      3 (mv 
+      3 (lognot 
+      3 (local 
+      2 (verify-guards 
+      2 (value-triple 
+      2 (table 
+      2 (stringp 
+      2 (rfix 
+      2 (posp 
+      2 (member-equal 
+      2 (in-theory 
+      2 (implies 
+      2 (assoc-equal 
+      1 (prog2$ 
+      1 (numerator 
+      1 (mv-let 
+      1 (memoize 
+      1 (logxor 
+      1 (logbitp 
+      1 (iff 
+      1 (evenp 
+      1 (er 
+      1 (encapsulate 
+      1 (denominator 
+      1 (defattach 
+== package-qualified heads
+   7051 (ACL2::LEN
+== jscl rev
+54c88494e9f8f22e4c24c666e84aab7053f18cee Sat Nov 14 17:37:10 2026 +0100
+== jscl number predicates
+95:(defun integerp (x) (%integer-p x))
+97:(defun rationalp (x) (%integer-p x))
+JSCL/src/numbers.lisp:202:(defconstant most-integer-length (expt 2 30))
+JSCL/src/numbers.lisp:308:    (if (> integer most-integer-length)
+JSCL/src/format.lisp:23:;;   requires BigInt, so we can't use it for now.
+== jscl equal
+352:(defun equal (x y)
+353-  (cond
+354-    ((eql x y) t)
+355-    ((consp x)
+356-     (and (consp y)
+357-          (equal (car x) (car y))
+358-          (equal (cdr x) (cdr y))))
+359-    ((stringp x)
+360-     (and (stringp y) (string= x y)))
+--
+553:(defun equalp (x y)
+554-  (cond
+555-    ((eql x y) t)
+556-    ((characterp x)
+557-     (and (characterp y)
+558-          (char-equal x y)))
+559-    ((hash-table-p x)
+560-     (and (hash-table-p y)
+561-          (eql (hash-table-test x) (hash-table-test y))
