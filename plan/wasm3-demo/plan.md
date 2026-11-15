@@ -29,15 +29,15 @@
 
 - **Last updated**: 2026-11-15
 - **Milestones**: W0 done, **go** ([W0-feasibility](notes/W0-feasibility.md#w0-exit-gono-go-per-risk-2026-11-15));
-  W7 done ([W7-rule-tags](notes/W7-rule-tags.md))
+  W7 done ([W7-rule-tags](notes/W7-rule-tags.md)); W1 done, D5 final
+  ([W1-numbers-stack](notes/W1-numbers-stack.md))
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
 - **Decided by the user (2026-11-15)**: D5, conditionally: numbers by
   option A (shim tower), stack by option (b) (mechanical rewrite in the
-  extractor), with node `--stack-size` and the Worker as a fallback. W1
-  confirms the decision from W0's numbers, and does not wait for the user
-  unless the D5 conditions fail.
+  extractor), with node `--stack-size` and the Worker as a fallback.
+  **Final** (W1, 2026-11-15): both D5 conditions hold on W0's numbers.
 - **Optional input**: a page design from a Claude Design session, saved to
   `plan/wasm3-demo/design/` (exports and a short README). W5 follows it if
   it exists. Otherwise W5 uses §3 and D6 as they are.
@@ -45,8 +45,8 @@
   with rule names from translator tags (option 3a). D7, the translator may
   change generated output (1.0 included) for W7, provided all certifications
   and tests still pass.
-- **Next action**: W1 (D5 note), then W2, W3, W4, per the headless
-  order. Work for W1–W5 items 1–3 exists in the tree, uncommitted (it was
+- **Next action**: W2 (extractor), then W3, W4, per the headless
+  order. Work for W2–W5 items 1–3 exists in the tree, uncommitted (it was
   built while the W7 spec reruns ran); each goes in with its own commit.
 - **Translator change (W7, for the user)**: `%RULE` (`rt/prelude.lisp`,
   a macro: `(%RULE name x)` = `x`) and two emitter changes in
@@ -92,7 +92,7 @@ Defaults chosen by Claude are marked *(default)*. The user can change any of the
 - **D4 Oracle in the page** *(default)*: the page runs the same module on
   the browser's `WebAssembly` engine and shows both results. It does not
   say which is right; the conformance claim comes from `make -C demo check`.
-- **D5 Numbers and stack** (user, 2026-11-15, conditional): numbers by
+- **D5 Numbers and stack** (user, 2026-11-15, conditional; final after W1): numbers by
   option A, stack by option (b), with the fallback (a) where (b) does not
   reach (see W1). The decision stands unless W0 shows one of these:
   (i) option A makes the numeric vectors more than 20× slower than plain
@@ -271,7 +271,7 @@ option A ≤ 4.04×. One new requirement: clause-chain flattening (W2 item 7).
 The user has decided A + (b), conditionally (D5). This milestone records
 the design and checks the D5 conditions against W0. It stops for the user
 only if a condition fails.
-1. [ ] Design note `W1-numbers-stack` (the options below, the choice, and
+1. [x] Design note `W1-numbers-stack` (the options below, the choice, and
        the W0 numbers that confirm it):
    - **Numbers.** (A) Shim tower in Lisp: the demo's packages shadow the
      CL numeric functions (`+ - * / < <= > >= = floor mod rem truncate
@@ -289,8 +289,16 @@ only if a condition fails.
      same rewrite for every function, checked by W3/W4 tests; (c) shim
      overrides for named hot functions (rejected unless (b) cannot cover
      them, because it duplicates semantics).
-2. [ ] D5 conditions checked against W0. If both hold, the note says
+       **Done 2026-11-15** ([W1-numbers-stack](notes/W1-numbers-stack.md)):
+       A and (b) chosen as decided, (a) kept as the node-only fallback; (c)
+       not used
+2. [x] D5 conditions checked against W0. If both hold, the note says
        so and D5 is final. If one fails, stop for the user
+       **Done 2026-11-15** ([W1-numbers-stack](notes/W1-numbers-stack.md#d5-final)):
+       (i) option A at most 4.04× plain JSCL (limit 20×); (ii) the
+       overflowing recursion ($ALLOCMEM/ITER2, 65,541 frames) is
+       self-recursion, tail recursive modulo `cons`. Both hold: **D5 final**.
+       (Later, W4: the overflows of `br_table.0.wasm` are self-recursion too)
 
 **Exit**: D5 final, or a stop for the user with the failed condition
 measured.
