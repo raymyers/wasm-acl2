@@ -64,8 +64,13 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now** (after M1): **1** stub (`Module_ok`), 0 builtins missing in `rt/`, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M6 item 3 (the sequencer, option C, decided; the V8 cases
-  record 16 of 24 before it). M7 waits for
+- **Next action**: M6 item 3 (the sequencer, option C), as planned in the M6
+  strategy note's update of 2026-11-15: a kept whole-type variant of
+  `Instr_ok`, `:rel-override` of `Instrs_ok` inside its rec group, the
+  callers passing `t_2*`, then the sequencer. **For the user before step 3**:
+  (a) sub-component output positions (as recommended) or (b) five `:il-patch`
+  entries with `x* = []`, equivalent by `Instrs_ok/sub` and cheaper. The V8
+  cases record 16 of 24 before it. M7 waits for
   the user's decision above. M8 needs M7; the execution side is ready for it.
   Optional: M5 hand-over items 1, 3, 4 (not needed for the exit)
 - **Changed in M5 (for the user)**: translator feature "enumeration variants"

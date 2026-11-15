@@ -192,3 +192,41 @@ lines of ACL2, against about 80 lines for the 1.0 `Module_ok` override.
 skipped, since 3.0 does not certify in-tree yet (M0, M1); only the parts up
 to `2_3-validation_instructions` are needed and they use no missing
 builtin. About 30 s.
+
+## Update 2026-11-15: the implementation plan for option C (not started)
+
+After M5 (`trans` translated) and the V8 cases (M6-typing-cases: 16 of 24,
+the 8 wrong ones valid bodies rejected), the work for option C is, in
+order:
+
+1. **Whole-type variant of `Instr_ok`**, mode `(:out 2)`: `(C, instr)` to
+   the principal type `a ->_(x*) b`. Made and **kept** although it drops
+   the stack-polymorphic rules (today a variant on demand is discarded when
+   a rule fails), for hand-written code only. The dropped rules are the
+   sequencer's table.
+2. **`:rel-override` of `Instrs_ok` inside its rec group**: the override's
+   defuns are emitted in the group's mutual recursion, so the generated
+   `INSTR_OK` (block, loop, if, try_table call `Instrs_ok`) and the
+   hand-written sequencer can call each other. Today an override is only
+   possible outside a group.
+3. **The callers pass `t_2*` as an input.** `Instr_ok/block`, `loop`,
+   `if`, `try_table` and `Expr_ok` take `x*` from `Instrs_ok` and the
+   result types are known. Two ways:
+   - (a) sub-component output positions (hand-over item 3), as recommended
+     in this note: a variant with only `x*` as output;
+   - (b) **cheaper and equivalent**: in those five premises `x*` can be
+     `[]`, because `Instrs_ok/sub` with `Instrtype_sub` (fewer initialized
+     locals is a supertype) derives `t_1* ->_[] t_2*` from any
+     `t_1* ->_(x*) t_2*`, and the conclusions do not use `x*`. Then the
+     premise calls the check variant with every type given. Cost: one
+     `:il-patch` per rule (5), each with that argument as its reason.
+   (b) is a different mechanism from the one recommended above, so it is
+   for the user to accept.
+4. **The sequencer** (hand-written, the override of `Instrs_ok` in check
+   mode, `INSTRS_OK C instr* (t_1* ->_(x*) t_2*)`): steps 1-6 of "Option C
+   in detail", with proposals from the variant of 1 and the table for the
+   10 rules it drops; every proposal checked by the generated `INSTR_OK`,
+   every pop by `RESULTTYPE_SUB`.
+5. Measure on the 24 V8 cases (target 24 of 24) and on spec-test-3
+   (`assert_invalid` needs M7's `Module_ok`; until then the cases book and
+   the M6 data).
