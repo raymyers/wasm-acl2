@@ -12,3 +12,4 @@ Raw data goes under `data/<name>/` with the script that made it.
 |---|---|---|---|
 | [M5-mode-table](M5-mode-table.md) | M5 item 1 | final (design and core); hand-over list open | Mode table design; what is implemented; measured results; `Heaptype_sub/trans` is not admissible |
 | [M6-instruction-typing-strategy](M6-instruction-typing-strategy.md) | M6 item 1 | final; the user chose option C (2026-11-14) | First run of generated 3.0 typing (13 of 23 cases right, 18 after the fix); why subsumption has no mechanical reading; proposer and checker recommended |
+| [review-checker-blind-spots](review-checker-blind-spots.md) | cross-cutting; M5 | final for what was reviewed | The termination check cuts valid derivations in the 3.0 type group (9 of 22 cases right): use fuel. Config entries reviewed one by one. Silent single choices that no report lists |

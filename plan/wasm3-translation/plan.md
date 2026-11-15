@@ -27,6 +27,12 @@
   a hand-written sequencer proposes each instruction's type and the
   generated rules check every step. Generated 3.0 instruction typing has
   no subsumption and cannot get it mechanically
+- **Found by the review (2026-11-14)**: in the 19-relation type group the
+  generated termination check cuts valid derivations (delegation, context
+  lookups): 9 of 22 type cases right, e.g. `valtype_sub (ref i31) <: (ref
+  null i31)` is rejected. Recommended: fuel for that group, before `trans`
+  ([review-checker-blind-spots](notes/review-checker-blind-spots.md)).
+  **Needs the user's go-ahead** as it changes how a `rec` group terminates
 - **3.0 probe now**: 2 stubs, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
 - **Next action**: M0, then M0b and M1 (see "Order and dependencies")
@@ -193,6 +199,14 @@ recorded as N/M.
       listed for 3.0, 8 accepted by the `:witness` entry and `trans` rejected
 - [x] Triage `Heaptype_sub/trans`: **not admissible** (same note), so it
       cannot stay dropped
+- [ ] **Termination of the type group by fuel** instead of the size
+      check, chosen per group by a config entry (1.0 and 2.0 unchanged):
+      a fuel argument on the group's functions, entry functions with the
+      present names and arities, a bound sized for the Lisp stack. First,
+      because `trans` recurses into these relations. Test: the 22 cases of
+      `data/typing-M6-2026-11-14/cases-3.0-types.lsp` (9 right today; 20
+      expected after this item, 22 after `trans`)
+      ([review-checker-blind-spots](notes/review-checker-blind-spots.md))
 - [ ] Translate `Heaptype_sub/trans` with an enumeration variant (user
       decision, 2026-11-14): rules with several results, a fuelled transitive
       `HEAPTYPE_SUB/UP` that keeps the group's size-check measure, and the
@@ -316,6 +330,7 @@ Module_ok` unless M7 avoids it, possibly `:rel-override Heaptype_sub`
 
 | Risk | Evidence | Go/no-go |
 |---|---|---|
+| The size-check termination discipline does not fit 3.0 types | 13 of 22 type cases wrong ([review-checker-blind-spots](notes/review-checker-blind-spots.md)) | M5: fuel for the type group; if a relation outside it shows the same shape, the probe cannot tell, only behavioural cases can |
 | Typing complete only with hand-written parts | `trans` is not admissible and is dropped today, so GC subtyping through abstract heap types is rejected; 8 rules rely on one witness ([M5-mode-table](notes/M5-mode-table.md)) | after M5: `trans` by enumeration or override. After M6: if one witness is not enough under subsumption, Strategy B (AL) for instruction typing |
 | Runtime too slow for spec-test-3 | 10.4 ms per page per step (P6) | M3's store-free termination check; without it, run with a time budget and a skip list |
 | Certification time in logic mode | one guard proof >15 min (P5) | M9: per-event wall-clock limits, or `:program` for the decoder |
