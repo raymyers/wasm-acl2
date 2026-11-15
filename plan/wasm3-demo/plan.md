@@ -28,7 +28,7 @@
 ## Current state
 
 - **Last updated**: 2026-11-15
-- **Milestones**: W0 in progress (item 1 done)
+- **Milestones**: W0 in progress (items 1 to 3 done)
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
@@ -44,8 +44,14 @@
   with rule names from translator tags (option 3a). D7, the translator may
   change generated output (1.0 included) for W7, provided all certifications
   and tests still pass.
-- **Next action**: W0 item 2 (hand-run slice). A throwaway extractor for it lives under
-  `notes/data/w0-slice/`.
+- **Next action**: W0 item 4 (deepest recursion on a 1-page module), then
+  item 5. The throwaway extractor of items 2 and 3 is in
+  `notes/data/w0-slice/` (`measure.sh`).
+- **New extractor rewrite, for the user** (W0 item 3, W2 item 7):
+  clause-chain flattening. Reason: the decoder's clause chain nests 1,010
+  deep and the JS parsers of node (default stack), Chromium and Firefox
+  overflow on it before any code runs. The rewrite is mechanical and the
+  same for every chain.
 - **Toolchain** (W0 item 1): flake input `jscl-src` (54c8849), packages
   `jscl` and `wabt-js`; the dev shell adds `jscl`, `jscl-xc`,
   `playwright-test`, `pngquant` and the variables `JSCL_HOME`, `WABT_JS`,
@@ -196,14 +202,28 @@ demo/driver/*.lisp (JS-facing glue) ──────────────�
        wabt.js 1.0.39, Playwright 1.61.1 with nixpkgs Chromium 1228 and
        Firefox 1532. `make -C demo check`: node PASS, wabt.js PASS,
        Chromium PASS, Firefox PASS. Screenshot `progress/01-W0-browser-hello.png`
-2. [ ] Hand-run slice: `rt/prelude`, `rt/builtins*`, and the books
+2. [x] Hand-run slice: `rt/prelude`, `rt/builtins*`, and the books
        `0_*`/`1_*` through a throwaway version of the extractor table,
        compiled with JSCL and loaded in node. Record what JSCL rejects
-       (`declare xargs`? package syntax? reader?)
-3. [ ] Measure for the slice, then project to all 27 books: JS size,
+       (`declare xargs`? package syntax? reader?).
+       **Done 2026-11-15** ([W0-feasibility](notes/W0-feasibility.md#item-2-hand-run-slice-2026-11-15)):
+       JSCL rejects nothing (`|PKG|::|NAME|` symbols, `declare xargs` and
+       `ignorable` accepted), but reads the ratio `1/2` as a symbol
+       without a warning (3 literals in `rt/builtins.lisp`). 17 undefined
+       ACL2 functions in the slice, 24 names in all books (incl. `mv`,
+       `mv-let`). `1_0-syntax_profiles` is outside the include chain
+3. [x] Measure for the slice, then project to all 27 books: JS size,
        compile time, node load time. If the projection is above 50 MB JS or
        60 s load, measure reachability pruning from the §2 entry points
-       (count of `defun`s reachable / total)
+       (count of `defun`s reachable / total).
+       **Done 2026-11-15**, measured on all books instead of projected
+       ([W0-feasibility](notes/W0-feasibility.md#item-3-size-compile-time-load-time-2026-11-15)):
+       3.75 MB JS, JSCL compile 2.3 s, node load 0.10 s (plus 0.16 s for
+       `jscl.js`). Pruning not needed. New: the JS parsers of node (default
+       stack), Chromium and Firefox overflow on the 1,010-deep clause chain
+       of the decoder; mechanical clause-chain flattening (depth 111) makes
+       all of them load it (Chromium Worker 0.42 s, Firefox Worker 0.64 s,
+       incl. `jscl.js`). Added as W2 item 7
 4. [ ] Deepest recursion on a decode + instantiate + `step` run of a module
        with 1 page of memory, measured in ACL2 (instrumented run or the
        longest list in the store) and in node (default and `--stack-size`).
@@ -262,6 +282,12 @@ measured.
 5. [ ] Pruning (only if W0 item 3 said so): keep the `defun`s reachable
        from the entry points. The kept/total count is in the report
 6. [ ] Stack rewrite (only if W1 chose (b))
+7. [ ] Clause-chain flattening (from W0 item 3): the translator's clause
+       chains `(LET ((%R Xi)) (DECLARE ...) (IF %R (CAR %R) rest))` and
+       `(... (IF %R %R rest))` become one flat sequence, so that no form
+       nests deeper than the JS parsers accept (decoder: 1,010 → 111). Same
+       rewrite for every chain; a chain stops at an Xi that mentions `%R`.
+       Checked by W3/W4 like the rest of the extraction
 
 **Exit**: `demo/build/lisp/` regenerates deterministically. The report
 lists 0 unknown events. `git status translate/` is clean after the run.
