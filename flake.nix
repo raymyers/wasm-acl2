@@ -82,15 +82,48 @@
               ${spectec}/bin/spectec --ast --all-passes $files > $out/wasm-${v}.il.sexp
               sh ${./translate/il2acl2/spec-decls.sh} $files > $out/wasm-${v}.decls.lsp
             '';
+          # The reference interpreter of the pinned spec (`wasm`), for the
+          # spec-test-3 scripts that wast2json cannot read (wasm3 M0b): it
+          # rewrites a .wast with every module in binary form (`-o x.bin.wast`).
+          # Only the native executable is built (wast.js would need js_of_ocaml).
+          wasmRefInterp =
+            let
+              ocp = pkgs.ocaml-ng.ocamlPackages_5_4;
+            in
+            pkgs.stdenv.mkDerivation {
+              pname = "wasm-ref-interp";
+              version = builtins.substring 0 7 wasm-spec.rev;
+              src = wasm-spec;
+              nativeBuildInputs = [
+                ocp.ocaml
+                ocp.dune_3
+                ocp.findlib
+                ocp.menhir
+              ];
+              buildPhase = ''
+                runHook preBuild
+                cd interpreter
+                dune build --profile release ./wasm.exe
+                runHook postBuild
+              '';
+              installPhase = ''
+                runHook preInstall
+                install -Dm755 _build/default/wasm.exe $out/bin/wasm
+                runHook postInstall
+              '';
+              meta.description = "WebAssembly reference interpreter at ${wasm-spec.rev}";
+            };
+
           # spec-test-<major> converted for the conformance driver (see below)
           mkSpecTests =
-            major: flags: withSpectest:
+            major: flags: withSpectest: withRefInterp:
             pkgs.runCommand "wasm${major}-spec-tests"
               {
                 nativeBuildInputs = [
                   pkgs.wabt
                   pkgs.nodejs
-                ];
+                ]
+                ++ lib.optional withRefInterp wasmRefInterp;
               }
               ''
                 mkdir -p $out work
@@ -101,8 +134,14 @@
                   b=$(echo "''${rel%.wast}" | sed 's|/|--|g')
                   mkdir -p work/$b
                   if ! (cd work/$b && wast2json ${flags} $f -o $b.json > /dev/null 2>&1); then
-                    echo $b >> $out/SKIPPED
                     rm -rf work/$b
+                    if [ -n "${lib.optionalString withRefInterp "y"}" ] \
+                      && mkdir -p work/$b && wasm -d $f -o work/$b/$b.bin.wast > /dev/null 2>&1; then
+                      echo $b >> $out/REFINTERP
+                    else
+                      echo $b >> $out/SKIPPED
+                      rm -rf work/$b
+                    fi
                   fi
                 done
                 for d in work/*; do cp $d/*.wasm $out/ 2> /dev/null || true; done
@@ -112,6 +151,9 @@
         in
         rec {
         default = wasm-acl2;
+
+        # The reference interpreter (see wasmRefInterp above), wasm3 M0b.
+        wasm-ref-interp = wasmRefInterp;
 
         # SpecTec (the WASM spec DSL toolchain) at the pinned wasm-spec rev.
         # Mirrors spectec/Makefile: the reference interpreter is copied into
@@ -187,8 +229,10 @@
         # spec-data` copies 1.0's, with the `spectest` host module, to
         # translate/tests/spec/data. Scripts that wast2json cannot read (1.0:
         # the old assert_return_*_nan syntax; 3.0: wabt lacks some GC,
-        # exception and module-definition syntax) are left out and listed in
-        # SKIPPED. Scripts of a subdirectory (3.0's proposals) are DIR--NAME.
+        # exception and module-definition syntax) go, for 3.0, through the
+        # reference interpreter (a .bin.wast, read by the same script; listed in
+        # REFINTERP, wasm3 M0b); the rest are left out and listed in SKIPPED.
+        # Scripts of a subdirectory (3.0's proposals) are DIR--NAME.
         wasm1-spec-tests = mkSpecTests "1" (lib.concatStringsSep " " [
           "--disable-saturating-float-to-int"
           "--disable-sign-extension"
@@ -197,8 +241,8 @@
           "--disable-reference-types"
           "--disable-simd"
           "--disable-mutable-globals"
-        ]) true;
-        wasm3-spec-tests = mkSpecTests "3" "--enable-all" false;
+        ]) true false;
+        wasm3-spec-tests = mkSpecTests "3" "--enable-all" false true;
 
         # ACL2 plus just the community books this project depends on.
         #

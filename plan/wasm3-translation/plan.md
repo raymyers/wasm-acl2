@@ -22,7 +22,9 @@
 - **Last updated**: 2026-11-14
 - **Milestones**: M0 ✅ (3.0 is a target: IL checked in, `make check-3.0`
   certifies `gen/wasm-3.0` in-tree in :program mode, 1 min 32 s,
-  [M0-target](notes/M0-target.md)); M5 items 1 and 2 (mode table design
+  [M0-target](notes/M0-target.md)); M0b ✅ (259 of 259 spec-test-3 scripts
+  converted, 31 through the reference interpreter, among them 16 of 17 GC,
+  [M0b-test-data](notes/M0b-test-data.md)); M5 items 1 and 2 (mode table design
   and core; `trans` triage) ✅; M6 items 1 and 2 (design session;
   decision) ✅
 - **New config entries in M0 (for the user)**: `:program` (every
@@ -52,9 +54,14 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now**: 2 stubs, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M0b and M1, which need only M0 and can run in either
-  order (see "Order and dependencies"). M7 waits for the user's decision
-  above
+- **Next action**: M1 (numerics and builtins: removes 25 of the 27
+  stubs of `gen/wasm-3.0`), then M2 and M5 `trans`. M7 waits for the
+  user's decision above
+- **Recommendation for the user (M0b, for M8)**: convert all 259 scripts
+  through the reference interpreter. wabt's data already in use has
+  wrong expectations in 9 scripts (`either` results written as `()` in 8,
+  a misrounded f64 subnormal in `simd_lane`). The interpreter agrees on
+  217 of 228 scripts and is right in 10 of the 11 others
 - **Readiness review (2026-11-14)**: added [step.md](step.md), M0b (GC and
   exception test data early), behavioural exits for M5 and M6, design
   sessions before M6 and M7, `assert_invalid` moved to M7, and the
@@ -169,14 +176,22 @@ M0 on also `make check-3.0`.
 **Met 2026-11-14**: 1 min 26 s in-tree, no scratch tree ([M0-target](notes/M0-target.md)).
 
 ### M0b: Test data for GC and exceptions
-- [ ] Build the reference interpreter's script converter in the flake (the
+- [x] Build the reference interpreter's script converter in the flake (the
       pinned spec checkout has the interpreter) and convert the spec-test-3
       scripts that `wast2json` cannot: 31 of 259, among them 16 of 17
       GC scripts and 3 of 5 exception scripts ([P5-conformance](../wasm3-translation-prep/notes/P5-conformance.md))
-- [ ] Same output format as `wasm3-spec-tests`, so the driver reads both
+      Done 2026-11-14 ([M0b-test-data](notes/M0b-test-data.md)): `.#wasm-ref-interp`;
+      `wasm -d S.wast -o S.bin.wast` for the 31, all 31 convert
+- [x] Same output format as `wasm3-spec-tests`, so the driver reads both.
+      Done: `gen-spec-tests.mjs` reads the `.bin.wast`; one `index.lsp`;
+      the old 228 are byte-identical. Cross-check on the 228: 217 the same,
+      10 of the 11 others are wabt errors (`either` results lost in 8
+      scripts, a subnormal misrounded in `simd_lane`)
 
 **Exit**: converted scripts recorded as N of 259 (228 today); the GC
 scripts are available to M5, M6 and M7 as test data.
+**Met 2026-11-14**: **259 of 259** (31 through the reference interpreter);
+293 instantiated modules validate, 290 `assert_invalid` modules are rejected.
 
 ### M1: Numerics and builtins
 - [ ] The 13 builtins of §3 in `rt/`; the 11 choice parameters per D4;
@@ -362,7 +377,7 @@ Module_ok` unless M7 avoids it, possibly `:rel-override Heaptype_sub`
 | Typing complete only with hand-written parts | `trans` is not admissible and is dropped today, so GC subtyping through abstract heap types is rejected; 8 rules rely on one witness ([M5-mode-table](notes/M5-mode-table.md)) | after M5: `trans` by enumeration or override. After M6: if one witness is not enough under subsumption, Strategy B (AL) for instruction typing |
 | Runtime too slow for spec-test-3 | 10.4 ms per page per step (P6) | M3's store-free termination check; without it, run with a time budget and a skip list |
 | Certification time in logic mode | one guard proof >15 min (P5) | M9: per-event wall-clock limits, or `:program` for the decoder |
-| Conformance data for GC/exceptions | wabt converts 1/17 GC, 2/5 exception scripts (P5) | M0b: build the reference interpreter's converter, before the typing milestones need the data |
+| Conformance data for GC/exceptions | wabt converts 1/17 GC, 2/5 exception scripts (P5); resolved by M0b, 259/259 | wabt's data has wrong expectations in 9 scripts ([M0b-test-data](notes/M0b-test-data.md)): M8 should convert everything through the reference interpreter (recommended, the user decides) |
 | `Step` split completeness (wasm1 T8) inherited, plus `ctxt-handler` | wasm1 W13 | carried; Strategy B (AL) remains the fallback for `Step` |
 
 ## 8. Notes consumed
