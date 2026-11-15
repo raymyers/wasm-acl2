@@ -1,0 +1,8 @@
+; Enumeration variants (wasm3 M5): R/ENUM<i> returns every output i that a
+; rule of R gives for the inputs; a premise of the same rec group that
+; needs that output searches the list (Heaptype_sub/trans: heaptype'):
+;   HEAPTYPE_SUB/ENUM2 DEFTYPE_SUB/ENUM2
+; Rules not in an enumeration variant (their output is not computable from
+; the inputs, or they would enumerate the relation on the same inputs):
+;   Deftype_sub/refl Heaptype_sub/bot Heaptype_sub/noextern Heaptype_sub/noexn Heaptype_sub/nofunc Heaptype_sub/none Heaptype_sub/typeidx-r Heaptype_sub/trans
+;

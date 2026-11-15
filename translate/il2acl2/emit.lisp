@@ -663,6 +663,8 @@
                                                   :skipped skipped
                                                   :stubs (reverse (cx-get :stubs cx))
                                                   :incomplete (final-incomplete (reverse (cx-get :incomplete cx)) nil cx)
+                                                  :enum-variants (enum-names (cx-get :all-variants cx) cx)
+                                                  :enum-dropped (remove-duplicates-equal (cx-get :all-dropped cx))
                                                   :partial (cx-get :partial cx)
                                                   :errs (reverse (cx-get :errs cx))
                                                   :config config
@@ -743,6 +745,8 @@
          (skipped (cadr (member :skipped g)))
          (stubs (cadr (member :stubs g)))
          (incomplete (cadr (member :incomplete g)))
+         (enum-variants (cadr (member :enum-variants g)))
+         (enum-dropped (cadr (member :enum-dropped g)))
          (partial (cadr (member :partial g)))
          (config (cadr (member :config g)))
          (target (cadr (member :target g)))
@@ -792,6 +796,15 @@
                (append (list ";" "; Rules not translated (each relation is emitted without them; sound"
                              "; but incomplete), as relation translated/total: dropped rules:")
                        (comment-lines ";   " (partial-strings partial)))
+             nil)
+           (if enum-variants
+               (append (list ";" "; Enumeration variants (wasm3 M5): R/ENUM<i> returns every output i that a"
+                             "; rule of R gives for the inputs; a premise of the same rec group that"
+                             "; needs that output searches the list (Heaptype_sub/trans: heaptype'):")
+                       (comment-lines ";   " (list (join-words enum-variants)))
+                       (list "; Rules not in an enumeration variant (their output is not computable from"
+                             "; the inputs, or they would enumerate the relation on the same inputs):")
+                       (comment-lines ";   " (list (join-words enum-dropped))))
              nil)
            (list ";" "; Rules dropped from the R/SPLIT variants of multi-mode relations (their"
                  "; output is not computable from the inputs; the R check variants keep them):")

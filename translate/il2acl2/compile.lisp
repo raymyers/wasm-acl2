@@ -257,7 +257,11 @@
                                   (list (quote let) (list (list r (list (quote let) (list (list kv k))
                                                                         (ignorable-decl (list kv)) rest)))
                                         (ignorable-decl (list r))
-                                        (list (quote if) r r next))
+                                        ;; :collect (enumeration variants, wasm3 M5):
+                                        ;; every value's results, else the first
+                                        (if (cx-get :collect cx)
+                                            (list (quote append) r next)
+                                          (list (quote if) r r next)))
                                   nil))
                       (fin (if desc
                                (list (quote nfix) (list (quote -) (list (quote 1+) k) l))
@@ -1259,6 +1263,60 @@
             (cx-err what pr
                     (cx-put :demands (add-to-set-equal key (cx-get :demands cx)) cx)))))))
 
+;; Enumeration variants (wasm3 M5, notes M5-mode-table "refined"): R/ENUM<i>
+;; (inputs) is the list of every output i that some rule of R gives for the
+;; inputs. A premise of a relation of the current rec group, with only its
+;; last component unbound and at least three components (C |- a <: b; a
+;; two-component validity relation would enumerate every valid value),
+;; searches that list: the first result that lets the rest hold in a check
+;; variant, all of them in an enumeration variant (:collect). The variant is
+;; made on demand inside the group (crel-form). In a check variant of the
+;; same relation, a result equal to the premise's last input is skipped: in
+;; a transitivity rule R(a, y), R(y, b) |- R(a, b) the witness y = a turns
+;; the second premise into the goal, so it loses no derivation, and without
+;; the skip the search would ask its own question again until the fuel ends.
+(defun all-variant-name (rel i cx)
+  (gsym (concatenate 'string (cdr (fn-sym :rel rel cx)) "/ENUM" (nat-str i))))
+
+(defun enum-premise-p (rel comps env cx)
+  ;; only in a check variant or an enumeration variant: in a :fun attempt it
+  ;; would let a relation compute a first output where it must check one
+  (and (not (cx-get :no-search cx))
+       (or (cx-get :collect cx) (eq (cx-get :err-mode cx) :check))
+       (member-equal rel (cx-get :rec-rels cx))
+       (cx-get :fuel-group cx)
+       (>= (len comps) 3)
+       (not (has-unbound (cons (quote list) (butlast comps 1)) env))
+       (has-unbound (car (last comps)) env)))
+
+(defun crule-premise-enum (pr rel comps env cx)
+  (let* ((i (1- (len comps))) (key (cons rel i)))
+    (cond
+     ((and (cx-get :collect cx) (equal rel (cx-get :cur-rel cx))
+           (equal (butlast comps 1) (butlast (cx-get :concl-comps cx) 1)))
+      ;; in R/ENUM<i>, a premise R with the conclusion's own inputs would
+      ;; call R/ENUM<i> on the same inputs (Heaptype_sub/trans): the rule is
+      ;; dropped from the variant (the variant without it is the set of
+      ;; outputs of single steps; the check variant's trans chains them)
+      (mv nil env (cx-err "enumeration of the relation itself on the same inputs" pr cx)))
+     ((member-equal key (cx-get :all-avail cx))
+      (mv-let (ts cx) (cexps (butlast comps 1) env cx)
+        (mv-let (lname cx) (cx-fresh "%T" cx)
+          (mv-let (kname cx) (cx-fresh "%T" cx)
+            (mv-let (oname cx) (cx-fresh "%T" cx)
+              (let* ((lv (gsym lname)) (kv (gsym kname)) (ov (gsym oname))
+                     (skip (and (not (cx-get :collect cx)) (equal rel (cx-get :cur-rel cx)))))
+                (mv-let (s1 env cx) (cpat (car (last comps)) ov env cx)
+                  (mv (append (list (list* :bind lv (list (quote remove-duplicates-equal)
+                                                          (cons (all-variant-name rel i cx) ts)))
+                                    (list :choose kv 0 (list (quote 1-) (list (quote len) lv)) nil)
+                                    (list* :bind ov (list (quote nth) kv lv)))
+                              (if skip (list (list :test (list (quote not) (list (quote equal) ov (car (last ts)))))) nil)
+                              s1)
+                      env cx))))))))
+     (t (mv nil env (cx-err "enumeration variant needed" pr
+                             (cx-put :all-demands (add-to-set-equal key (cx-get :all-demands cx)) cx)))))))
+
 ;; Does the output variant R/SPLIT take the first part of the last component
 ;; c(a, ..) as an input? Decided per relation, from the premises of R's own
 ;; rules that call R: yes if one of them writes the last component as
@@ -1374,7 +1432,9 @@
                       env cx))))))))
      (t
       (if (has-unbound (cons (quote list) comps) env)
-          (crule-premise-demand pr rel comps "checker relation with unbound arguments" env cx)
+          (if (and (cx-get :allow-demand cx) (enum-premise-p rel comps env cx))
+              (crule-premise-enum pr rel comps env cx)
+            (crule-premise-demand pr rel comps "checker relation with unbound arguments" env cx))
         (mv-let (ts cx) (cexps comps env cx)
           (mv (append (rec-size-check rel ts cx) (list (list :test (cons fn ts)))) env cx)))))))
 
@@ -1471,6 +1531,16 @@
   (or (is p "RULE") (and (is p "ITER") (rule-prem-p (second p)))))
 
 (mutual-recursion
+(defun cprem-ns (pr env cx)
+  ;; cprem where search points are not supported (iterated premises,
+  ;; disjunctions, existential loops: build-steps), so no enumeration
+  (mv-let (s e cx2) (cprem pr env (cx-put :no-search t cx))
+    (mv s e (cx-put :no-search (cx-get :no-search cx) cx2))))
+
+(defun cprems-ns (prs env cx)
+  (mv-let (s e cx2) (cprems prs env (cx-put :no-search t cx))
+    (mv s e (cx-put :no-search (cx-get :no-search cx) cx2))))
+
 (defun cprem (pr env cx)
   ;; (mv steps env cx)
   (cond
@@ -1485,8 +1555,8 @@
        ((and (nodep e "BIN" 4) (atom-is (second e) "OR") (has-unbound e env))
         ;; a \/ b binding variables: the first disjunct that holds binds them
         ;; (both disjuncts must bind the same variables)
-        (mv-let (s1 e1 cx) (cprem (list 'if (fourth e)) env cx)
-          (mv-let (s2 e2 cx) (cprem (list 'if (fifth e)) env cx)
+        (mv-let (s1 e1 cx) (cprem-ns (list 'if (fourth e)) env cx)
+          (mv-let (s2 e2 cx) (cprem-ns (list 'if (fifth e)) env cx)
             (let* ((new1 (set-difference-equal (remove-duplicates-equal (strip-cars e1)) (strip-cars env)))
                    (new2 (set-difference-equal (remove-duplicates-equal (strip-cars e2)) (strip-cars env)))
                    (syms (env-terms new1 e1)))
@@ -1541,7 +1611,7 @@
                (nsym (gsym "%N"))
                (ienv (env-add-vars knames (env-restrict fvs env) cx)))
           (mv-let (nv cx) (cexp n-e env cx)
-            (mv-let (isteps env3 cx) (cprem inner ienv cx)
+            (mv-let (isteps env3 cx) (cprem-ns inner ienv cx)
               (if (not (equal (len env3) (len ienv)))
                   (mv nil env (cx-err "iterated premise with a count binds variables" pr cx))
                 (mv-let (aux-name cx) (cx-fresh (concatenate 'string (cx-get :fn cx) "/UPTO") cx)
@@ -1573,7 +1643,7 @@
                (ksym (if kname (var-sym kname cx) (gsym "%K"))) (nsym (gsym "%N")) (rv (gsym "%R"))
                (ienv (env-add-vars knames (env-restrict fvs env) cx)))
           (mv-let (nv cx) (cexp n-e env cx)
-            (mv-let (isteps env3 cx) (cprem inner ienv cx)
+            (mv-let (isteps env3 cx) (cprem-ns inner ienv cx)
               (let ((otms (env-terms (dom-names outs) env3)))
                 (if (member-equal nil otms)
                     (mv nil env (cx-err "iterated premise output not bound" pr cx))
@@ -1596,7 +1666,7 @@
        ((endp ins) (mv nil env (cx-err "iterated premise without inputs" pr cx)))
        ((atom-is it "OPT")
         (mv-let (ds cx) (cexps (strip-thirds ins) env cx)
-          (mv-let (isteps env3 cx) (cprem inner (env-add-vars in-names env cx) cx)
+          (mv-let (isteps env3 cx) (cprem-ns inner (env-add-vars in-names env cx) cx)
             (let* ((pre (car-bind-steps in-names ds cx))
                    (some (cons 'and ds)))
               (if (endp outs)
@@ -1627,7 +1697,7 @@
                (rv (gsym "%R")))
           (mv-let (ds cx) (cexps (strip-thirds ins) env cx)
             (mv-let (isteps env3 cx)
-              (cprem inner (env-add-vars in-names (env-restrict fvs env) cx) cx)
+              (cprem-ns inner (env-add-vars in-names (env-restrict fvs env) cx) cx)
               (let ((otms (env-terms (dom-names outs) env3)))
                 (if (member-equal nil otms)
                     (mv nil env (cx-err "iterated premise output not bound" pr cx))
@@ -1653,7 +1723,7 @@
                (lsyms (gsyms-prefixed "%L" (len ins))))
           (mv-let (ds cx) (cexps (strip-thirds ins) env cx)
             (mv-let (isteps env3 cx)
-              (cprem inner (env-add-vars in-names (env-restrict fvs env) cx) cx)
+              (cprem-ns inner (env-add-vars in-names (env-restrict fvs env) cx) cx)
               (declare (ignore env3))
               (mv-let (aux-name cx) (cx-fresh (concatenate 'string (cx-get :fn cx) "/ALL") cx)
                 (let* ((aux (gsym aux-name))
@@ -1676,13 +1746,24 @@
 (defun cprems (prs env cx)
   (if (endp prs) (mv nil env cx)
     (let* ((k (or (first-ready prs 0 env cx nil) (first-ready prs 0 env cx t)))
-           (j (and (null k) (eq (cx-get :err-mode cx) :check) (exists-index-prem prs 0 env))))
+           (jc (and (null k) (cx-get :collect cx) (exists-index-prem prs 0 env))))
+     (if jc
+         ;; enumeration variant (:collect, wasm3 M5): `if v < |l|` with v
+         ;; unbound is a search point over v, every value's results kept
+         ;; (Heaptype_sub/rec-sub: every typeuse*[j])
+         (let* ((e (second (nth jc prs))) (v (second (fourth e))) (vsym (var-sym v cx)))
+           (mv-let (lt cx) (cexp (fifth e) env cx)
+             (mv-let (s2 env cx) (cprems (append (take jc prs) (nthcdr (1+ jc) prs)) (acons v vsym env) cx)
+               (mv (cons (list :choose vsym 0 (list (quote 1-) lt) nil) s2) env cx))))
+    (let* ((j (and (null k) (eq (cx-get :err-mode cx) :check) (exists-index-prem prs 0 env))))
       (mv-let (fi fv fdom) (if (or k j (not (eq (cx-get :err-mode cx) :check))) (mv nil nil nil) (exists-finite-prem prs 0 env cx))
       (let* ((stuck (and (null k) (null j) (null fi)))
              ;; last resort: a premise that can run through an output variant
              ;; made on demand; else record what the premises would need
              (d (and stuck (first-ready prs 0 env (cx-put :allow-demand t cx) t)))
-             (cx (if (and stuck (null d)) (cx-put :demands (demands-of prs env cx) cx) cx))
+             (cx (if (and stuck (null d))
+                      (mv-let (dm am) (demands-of prs env cx) (cx-put :all-demands am (cx-put :demands dm cx)))
+                    cx))
              (k (or k d)))
       (cond
        (j
@@ -1698,15 +1779,17 @@
                (rest (append (take k prs) (nthcdr (1+ k) prs))))
           (mv-let (s1 env cx) (cprem p env cx)
             (mv-let (s2 env cx) (cprems rest env cx)
-              (mv (append s1 s2) env cx)))))))))))
+              (mv (append s1 s2) env cx)))))))))))))
 
 ;; the demands (crule-premise-demand) the premises prs record when each is
 ;; compiled alone with :allow-demand, added to those of cx
 (defun demands-of (prs env cx)
-  (if (endp prs) (cx-get :demands cx)
+  ;; (mv demands all-demands): output variants and enumeration variants
+  (if (endp prs) (mv (cx-get :demands cx) (cx-get :all-demands cx))
     (mv-let (s e2 cx2) (cprem (car prs) env (cx-put :allow-demand t cx))
       (declare (ignore s e2))
-      (demands-of (cdr prs) env (cx-put :demands (cx-get :demands cx2) cx)))))
+      (demands-of (cdr prs) env (cx-put :all-demands (cx-get :all-demands cx2)
+                                        (cx-put :demands (cx-get :demands cx2) cx))))))
 
 ;; exists v < |l|: the other premises hold (G8, :check mode only). An aux
 ;; function loops over v; the other premises may not bind new variables.
@@ -1721,7 +1804,7 @@
          (fsyms (remove-duplicates-equal (strip-cdrs mine)))
          (vsym (var-sym v cx)) (lsym (gsym "%L"))
          (ienv (env-add-vars (list v) (env-restrict fvs env) cx)))
-    (mv-let (isteps env3 cx) (cprems prs ienv cx)
+    (mv-let (isteps env3 cx) (cprems-ns prs ienv cx)
       (mv-let (dsteps cx) (deferred-tests mine env3 cx)
         (if (not (equal (len env3) (len ienv)))
             (mv nil env (cx-err "existential over a finite type with premises that bind variables" v cx))
@@ -1750,7 +1833,7 @@
          (ksym (var-sym v cx)) (nsym (gsym "%N"))
          (ienv (env-add-vars (list v) (env-restrict fvs env) cx)))
     (mv-let (nv cx) (cexp l-e env cx)
-      (mv-let (isteps env3 cx) (cprems others ienv cx)
+      (mv-let (isteps env3 cx) (cprems-ns others ienv cx)
         (mv-let (dsteps cx) (deferred-tests mine env3 cx)
           (if (not (equal (len env3) (len ienv)))
               (mv nil env (cx-err "existential index with premises that bind variables" p cx))
@@ -2042,7 +2125,7 @@
               (env (if (given-mode-p mode)
                        (given-env (cdr mode) (nthcdr (len ins) formals) env)
                      env)))
-          (mv-let (s2 env cx) (cprems prems env (cx-put :rule-occ (append (fv-exp (cons (quote tup) comps)) (fv-prems prems)) (cx-put :dfr dfr cx)))
+          (mv-let (s2 env cx) (cprems prems env (cx-put :concl-comps comps (cx-put :rule-occ (append (fv-exp (cons (quote tup) comps)) (fv-prems prems)) (cx-put :dfr dfr cx))))
             (mv-let (s3 cx) (deferred-tests (cx-get :dfr cx) env (cx-put :dfr nil cx))
             (mv-let (out cx) (cond ((out-mode-p mode) (cexp (out-exp comps (cdr mode)) env cx))
                                    ((given-mode-p mode) (cexp (car (last comps)) env cx))
@@ -2096,9 +2179,16 @@
          (mv-let (sa sb) (split-last comps) (declare (ignore sb)) (and sa t)))))
 
 ; (mv defuns cx) for one relation in the given mode
-(defun crel-1-body (x mode cx)
+(defun all-mode-p (mode) (and (consp mode) (eq (car mode) :all)))
+
+(defun crel-1-body (x mode0 cx)
   (mv-let (n rules) (rel-parts x)
-    (let* ((name (cond ((out-mode-p mode) (variant-name (second x) (cdr mode) cx))
+    (let* ((all (all-mode-p mode0))
+           ;; (:all i): the rules in output mode (:out i), collecting (wasm3 M5)
+           (mode (if all (list :out (cadr mode0)) mode0))
+           (cx (if all (cx-put :collect t cx) cx))
+           (name (cond (all (all-variant-name (second x) (cadr mode0) cx))
+                       ((out-mode-p mode) (variant-name (second x) (cdr mode) cx))
                        ((given-mode-p mode)
                         (gsym (concatenate 'string (cdr (fn-sym :rel (second x) cx)) "/W")))
                        ((eq mode :split) (split-name (second x) cx))
@@ -2132,7 +2222,9 @@
                (cx (cx-put :rel-formals (and (member-equal (second x) (cx-get :rec-rels cx)) formals) cx))
                (cx (cx-put :cur-rel (second x) cx)))
           (mv-let (cs cx) (crules rules mode formals (second x) cx)
-            (let ((body (if (or (out-mode-p mode) (given-mode-p mode) (member-eq mode '(:fun :fun2 :split))) (chain-results cs) (list 'if (chain-results cs) t nil))))
+            (let ((body (cond (all (cons (quote append) cs))
+                              ((or (out-mode-p mode) (given-mode-p mode) (member-eq mode '(:fun :fun2 :split))) (chain-results cs))
+                              (t (list 'if (chain-results cs) t nil)))))
               (mv (append (reverse (cx-get :aux cx))
                           (list (cond
                                  ((and (cx-get :rel-formals cx) (cx-get :fuel-group cx))
@@ -2210,7 +2302,7 @@
   (mv-let (ds cx)
     (crel-1-body x mode (cx-put :err-pos 0 (cx-put :err-rule nil (cx-put :err-mode mode cx))))
     (mv (close-aux-formals ds (cx-get :rel-formals cx) 20)
-        (cx-put :err-pos nil (cx-put :err-rule nil (cx-put :err-mode nil cx))))))
+        (cx-put :collect nil (cx-put :err-pos nil (cx-put :err-rule nil (cx-put :err-mode nil cx)))))))
 
 (defun crel (x mode cx)
   (if (eq mode :multi)
@@ -2983,12 +3075,72 @@
     (append ds entries)))
 
 ; (mv events builtins skipped cx)
+; --- Enumeration variants made on demand inside a group (wasm3 M5) --------
+; A group compiles; if a premise demanded R/ALL<i> (crule-premise-enum), the
+; demanded variants are compiled in the group's context until no new one is
+; demanded, then the group again with them available, then the variants.
+; A rule that does not compile in a variant is dropped from it (listed in
+; :all-dropped for the header): the enumeration is then incomplete, which
+; the header and the notes argue for each such rule.
+(defun member-form (rel xs)
+  (cond ((endp xs) nil) ((equal (second (car xs)) rel) (car xs)) (t (member-form rel (cdr xs)))))
+
+(defun all-pass (keys allk xs cx)
+  ;; compile the variants KEYS with ALLK available; (mv demands cx), errors discarded
+  (if (endp keys) (mv nil cx)
+    (let ((errs0 (cx-get :errs cx)))
+      (mv-let (d cx1) (crel-1 (member-form (car (car keys)) xs) (list :all (cdr (car keys)))
+                              (cx-put :all-avail allk (cx-put :all-demands nil cx)))
+        (declare (ignore d))
+        (mv-let (rest cx2) (all-pass (cdr keys) allk xs (cx-put :errs errs0 cx1))
+          (mv (union-equal (cx-get :all-demands cx1) rest) cx2))))))
+
+(defun all-closure (keys xs cx fuel)
+  ;; the demanded variants and everything they demand
+  (mv-let (dem cx) (all-pass keys keys xs cx)
+    (let ((new (set-difference-equal dem keys)))
+      (if (or (zp fuel) (null new)) (mv keys cx)
+        (all-closure (append keys new) xs cx (1- fuel))))))
+
+(defun rule-pos-keys (errs n)
+  ;; ("Rel/id" . pos) of the first N errors that name a rule
+  (cond ((or (zp n) (endp errs)) nil)
+        ((member :rule (car errs))
+         (add-to-set-equal (cons (cadr (member :rule (car errs))) (cadr (member :pos (car errs))))
+                           (rule-pos-keys (cdr errs) (1- n))))
+        (t (rule-pos-keys (cdr errs) (1- n)))))
+
+(defun all-compile (keys allk xs cx)
+  ;; (mv defuns cx): each variant without the rules that do not compile in it
+  (if (endp keys) (mv nil cx)
+    (let* ((x (member-form (car (car keys)) xs)) (mode (list :all (cdr (car keys))))
+           (errs0 (cx-get :errs cx)) (drop0 (cx-get :drop-rules cx))
+           (cx (cx-put :all-avail allk cx)))
+      (mv-let (d cx1) (crel-1 x mode cx)
+        (let ((bad (rule-pos-keys (cx-get :errs cx1) (- (len (cx-get :errs cx1)) (len errs0)))))
+          (mv-let (d cx2) (if bad
+                              (crel-1 x mode (cx-put :drop-rules (append bad drop0) (cx-put :errs errs0 cx1)))
+                            (mv d cx1))
+            (let ((cx2 (cx-put :all-dropped (append (strip-cars bad) (cx-get :all-dropped cx2))
+                               (cx-put :errs errs0 (cx-put :drop-rules drop0 cx2)))))
+              (mv-let (rest cx3) (all-compile (cdr keys) allk xs cx2)
+                (mv (append d rest) cx3)))))))))
+
 (defun crel-form (x cx)
   (let* ((ids (and (is x "REC") (strip-seconds (cdr x))))
-         (fuel (and (intersection-equal ids (cx-get :fuel-rels cx)) t)))
-    (mv-let (ds cx) (crel-form-1 x (cx-put :fuel-group fuel (cx-put :rec-rels ids cx)))
-      (mv (if fuel (fuel-wrap ds ids cx) ds)
-          (cx-put :fuel-group nil (cx-put :rel-formals nil (cx-put :rec-rels nil cx)))))))
+         (fuel (and (intersection-equal ids (cx-get :fuel-rels cx)) t))
+         (cx0 (cx-put :fuel-group fuel (cx-put :rec-rels ids (cx-put :all-demands nil (cx-put :all-avail nil cx))))))
+    (mv-let (ds cx) (crel-form-1 x cx0)
+      (mv-let (ds cx)
+        (if (null (cx-get :all-demands cx)) (mv ds cx)
+          (mv-let (keys cx1) (all-closure (cx-get :all-demands cx) (rel-members x) cx 10)
+            (mv-let (ds2 cx2) (crel-form-1 x (cx-put :all-dropped (cx-get :all-dropped cx1)
+                                                       (cx-put :all-avail keys cx0)))
+              (mv-let (vds cx3) (all-compile keys keys (rel-members x) cx2)
+                (mv (append ds2 vds) (cx-put :all-variants (append keys (cx-get :all-variants cx3)) cx3))))))
+        (mv (if fuel (fuel-wrap ds ids cx) ds)
+            (cx-put :all-avail nil (cx-put :all-demands nil
+              (cx-put :fuel-group nil (cx-put :rel-formals nil (cx-put :rec-rels nil cx))))))))))
 
 ; --- Cliques: only functions that really recurse go in mutual-recursion ---
 
@@ -3079,13 +3231,19 @@
                           mems)))
           (mv (cons d rest) mems))))))
 
+(defun enum-names (keys cx)
+  ;; the names (strings) of the enumeration variants KEYS ((rel . i) ...)
+  (if (endp keys) nil
+    (cons (cdr (all-variant-name (car (car keys)) (cdr (car keys)) cx)) (enum-names (cdr keys) cx))))
+
 (defun clique-events (x ds cx)
   (if (not (is x "REC")) ds
     (let* ((mains0 (member-main-names (cdr x) cx))
            ;; multi-mode relations also have an R/SPLIT variant
            (mains1 (append mains0 (suffix-all mains0 "/SPLIT")))
-           ;; fuel groups: the recursion goes through the R/%F functions
-           (mains (append mains1 (suffix-all mains1 "/%F")))
+           ;; fuel groups: the recursion goes through the R/%F functions; and
+           ;; the enumeration variants R/ENUM<i> of the group (wasm3 M5)
+           (mains (append mains1 (suffix-all mains1 "/%F") (enum-names (cx-get :all-variants cx) cx)))
            (in (reaching ds (intersection-equal mains (strip-defun-names ds)) (1+ (len ds))))
            (memo0 (rel-mangled-memo (cx-get :memo cx) cx))
            (memo (append memo0 (suffix-all memo0 "/SPLIT"))))

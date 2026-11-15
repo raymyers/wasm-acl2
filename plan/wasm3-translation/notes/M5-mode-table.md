@@ -296,3 +296,35 @@ the reference interpreter or the spec-test-3 GC scripts.
 `data/probe-M5-2026-11-14/`: final reports and failing-rule lists for
 1.0, 2.0 and 3.0 (D3 scope); `exp-A-3.0-core.txt`; `exp-B-*.txt`;
 `split-calls.txt`; `run.sh` (how each file was made).
+
+## Update 2026-11-15: the enumeration variant, refined for implementation
+
+Since the type group terminates by fuel (M5 item 3), part 2 above, a
+separate fuelled `UP` that keeps the size-check measure, is no longer
+needed: the group has no size check. The plan as implemented:
+
+1. **Collecting searches.** With the flag `:collect` in the context,
+   a search point (`:choose`, `build-steps-cx`) returns the `append` of
+   the results for every value instead of the first non-nil one. The
+   index search of G8 (`cexists-index`) gets the same form, so that
+   `rec-sub` returns every `typeuse*[j]`.
+2. **Enumeration variant `R/ALL<i>`** (mode `(:all i)`, `i` = the last
+   component): every rule compiled in output mode with `:collect`, the
+   rule results appended. A rule that does not compile in that mode is
+   dropped from the variant and listed in the header with the reason it
+   need not be enumerated (the bottom rules: their input is a bottom type,
+   never an intermediate of a chain; `typeidx-r`: its output is an index
+   that only an equal type can reach).
+3. **Premises.** A premise of a relation of the *current rec group* with
+   only its last component unbound, and with at least three components
+   (`C |- a <: b`; never a two-component validity relation such as
+   `Heaptype_ok`, which would enumerate every valid type), calls
+   `R/ALL<i>` and searches its results. In a check variant this is the
+   first success (`trans`: `ht'` from `Heaptype_sub/ALL2(C, ht_1)`); in an
+   enumeration variant all of them (`typeidx-l`, `def` with
+   `Deftype_sub/ALL2`, `Deftype_sub/super` with `Heaptype_sub/ALL2`).
+4. **Made on demand inside the group** (hand-over item 1, for this
+   mode only): the group is compiled; the demanded `(:all i)` variants
+   are compiled in the same context until no new one is demanded; then
+   the group again, with them available. The variants count as relation
+   functions of the fuel group (they decrement the fuel).

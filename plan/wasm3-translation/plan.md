@@ -32,7 +32,9 @@
   costs 0.011 ms with or without memory, was 5.39 ms at 1 page;
   [M3-execution](notes/M3-execution.md)); M4 ✅ (`make spec SPEC=3.0`: spec-test-3
   `assert_return` + `assert_trap` outside gc/ 56,460 of 56,986, all commands
-  60,447 of 61,193, 10 min 37 s, [M4-conformance](notes/M4-conformance.md)); M5 items 1 and 2 (mode table design
+  60,447 of 61,193, 10 min 37 s, [M4-conformance](notes/M4-conformance.md)); M5 ✅ (exit met: `Heaptype_sub/trans` through
+  an enumeration variant, the type group complete, 46 of 46 subtyping cases,
+  [M5-trans](notes/M5-trans.md)); M5 items 1 and 2 (mode table design
   and core; `trans` triage) ✅; M6 items 1 and 2 (design session;
   decision) ✅
 - **New config entries in M0 (for the user)**: `:program` (every
@@ -62,10 +64,14 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now** (after M1): **1** stub (`Module_ok`), 0 builtins missing in `rt/`, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M5 `trans` (enumeration variant, decided; the behavioural
-  book records 35 of 46 before it, all 11 wrong ones need `trans`), then M6 item 3
-  (the sequencer, option C). M7 waits for the user's decision above. M8
-  needs M7; the execution side is ready for it
+- **Next action**: M6 item 3 (the sequencer, option C, decided). M7 waits for
+  the user's decision above. M8 needs M7; the execution side is ready for it.
+  Optional: M5 hand-over items 1, 3, 4 (not needed for the exit)
+- **Changed in M5 (for the user)**: translator feature "enumeration variants"
+  (`R/ENUM<i>`, collecting searches, made on demand inside a rec group), used
+  for `Heaptype_sub/trans` as you decided; no new config entry. Five rule
+  kinds are left out of the enumeration, each with a completeness argument in
+  [M5-trans](notes/M5-trans.md) (two of them argued from the rules only)
 - **For the user (M4)**: new config KIND `:il-variant` and the entry
   `$instantiate_unchecked` (TEST-ONLY: `$instantiate` without `Module_ok` and
   `Externaddr_ok`, decision D6; remove with M7); new `:decreasing` pair
@@ -139,7 +145,7 @@ From `make probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
 | Schema errors | 0 | 3 (full 3.0) |
 | Phase-1 events | 1,240 | 993 |
 | Stubs | **1**: `Module_ok` since M1 (2 before: `$utf8single` is now a config override, [M1-builtins](notes/M1-builtins.md)) | 35 |
-| Relations emitted without some rules | 3, with 3 rules dropped (`Heaptype_sub/trans`, `Step_read/array.new_data-num`, and since the M6 session `Instrs_ok/sub`) ; since M3: **2** (`Step_read` complete) | (whole-relation stubs) |
+| Relations emitted without some rules | 3, with 3 rules dropped (`Heaptype_sub/trans`, `Step_read/array.new_data-num`, and since the M6 session `Instrs_ok/sub`) ; since M3: **2** (`Step_read` complete); since M5: **1** (`Instrs_ok/sub`) | (whole-relation stubs) |
 | Reduction rules (`Step`, `Step_read`, `Step_pure`) failing | **1 of 218**; since M3: **0** | about 10 |
 | Clause-less defs | 89 = 77 numeric + 11 choice + 1 host; since M1 all defined in `rt/` (13 numeric were missing) | |
 | Defs with function parameters | 16, replaced by 53 specializations | 16 compiled wrongly |
@@ -158,7 +164,7 @@ From the P1 gap list as updated through P4
 | core | `Module_ok` stub (tags, recursive types, staged contexts) | S4 | M7 |
 | core | `$utf8single` stub (result defined arithmetically) | S5 | M1 ✅ |
 | core | malformed UTF-8 in names accepted (39 decode cases; also in 1.0, 39 spec-test-1 failures) | `$utf8` inverse too lenient | M2 ✅ |
-| GC | `Heaptype_sub/trans`: existential intermediate, dropped. **Not admissible**: `I31 <: ANY`, `deftype <: EQ` have no other derivation ([M5-mode-table](notes/M5-mode-table.md)) | enumeration variant or override | M5 |
+| GC | `Heaptype_sub/trans`: existential intermediate, dropped. **Not admissible**: `I31 <: ANY`, `deftype <: EQ` have no other derivation ([M5-mode-table](notes/M5-mode-table.md)) | enumeration variant or override | M5 ✅ |
 | GC | `Step_read/array.new_data-num`: `c*` under `$concatn_($zbytes_(zt, c)^n)` | nested inverse (S1) | M3 ✅ |
 | GC / bulk memory | builtins `$zbytes_ $cbytes_ $inv_zbytes_ $inv_cbytes_ $inv_concatn_` | S7 | M1 ✅ |
 | relaxed SIMD | builtins `$irelaxed_q15mulr_ $irelaxed_laneselect_ $frelaxed_min_ $frelaxed_max_ $frelaxed_madd_ $frelaxed_nmadd_ $relaxed_trunc__`; 11 choice parameters (`$ND`, `$R_*`) | S6, D4 | M1 ✅ |
@@ -326,11 +332,14 @@ cut by the size check). What fails: 446 after an aborted `memory_copy` action,
       **20**; the 2 left are `trans`. Open: the bound of 10,000 was not
       exercised by a search that runs to it
       ([review-checker-blind-spots](notes/review-checker-blind-spots.md))
-- [ ] Translate `Heaptype_sub/trans` with an enumeration variant (user
+- [x] Translate `Heaptype_sub/trans` with an enumeration variant (user
       decision, 2026-11-14): rules with several results, a fuelled transitive
       `HEAPTYPE_SUB/UP` that keeps the group's size-check measure, and the
       argument for the rules that cannot be enumerated. After M0 and M1, so
       that it can be run
+      Done 2026-11-15 ([M5-trans](notes/M5-trans.md)): `HEAPTYPE_SUB/ENUM2` and
+      `DEFTYPE_SUB/ENUM2` (collecting searches, made on demand in the group);
+      `Heaptype_sub` 21/21; the left-out rules argued in the note
 - [x] Behavioural cases, in a test book that calls the generated
       relations directly (`tests/sem-3.0/`, as 1.0 `t6-typing`): subtyping
       and type-validity cases with the expected answer taken from the spec
@@ -342,7 +351,7 @@ cut by the size check). What fails: 446 after an aborted `memory_copy` action,
       book before `trans`, so that it records the failures first
       Done 2026-11-15 ([M5-subtyping-cases](notes/M5-subtyping-cases.md)):
       `tests/sem-3.0/t5-subtyping-3.0.lisp`, in `make check-3.0`; **35 of 46**
-      right, the 11 wrong ones all need `trans`
+      right, the 11 wrong ones all need `trans`. With `trans`: **46 of 46**
 - [ ] Hand-over items 1, 3, 4 of the note (demand inside a `rec` group,
       `c(a, b)` halves as positions, the list of `:fun` relations called with
       a bound output). Not needed for the exit
@@ -350,6 +359,7 @@ cut by the size check). What fails: 446 after an aborted `memory_copy` action,
 **Exit**: the 19-relation type group has no dropped rule, or each dropped
 rule has a written completeness argument; and the behavioural cases pass,
 recorded as N of M.
+**Met 2026-11-15**: no dropped rule in the group; 46 of 46 cases.
 
 ### M6: Instruction typing
 - [x] **Design session** (go/no-go), held 2026-11-14

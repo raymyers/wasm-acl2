@@ -1,0 +1,6 @@
+gc--ref_test 71 71 before: 64 71
+gc--ref_cast 45 45 before: 42 45
+gc--type-subtyping 75 83 before: 74 83
+gc--br_on_cast 31 31 before: 31 31
+gc--br_on_cast_fail 31 31 before: 31 31
+gc--i31 72 72 before: 72 72
