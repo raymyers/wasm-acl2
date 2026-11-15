@@ -1,0 +1,2 @@
+:ASSERT_MALFORMED binary binary.43.wasm CRASH
+:ASSERT_MALFORMED binary binary.44.wasm CRASH

@@ -105,3 +105,24 @@ run, with the interpreter's verdict); `TOTALS-1.0.txt`,
 `translate/tests/spec/decode/` (`run-decode.sh`, `decode-one.lsp`, and
 `sections.lsp`, which decodes growing prefixes of a module to find the
 section that fails).
+
+## Correction 2026-11-14 (M3)
+
+The totals above miss the end of `binary`. Its session stopped at
+`binary.43.wasm` ("too many locals": the parser builds the list of
+declared locals and exhausts the Lisp stack). ACL2 still exited 0, so
+the run did not report the script as unfinished. M3 decodes each module
+as its own form and reports such a module as crashed
+([M3-execution](M3-execution.md)). Corrected, spec-test-3:
+
+| Command kind | Modules | Decoded | As expected | Crashed |
+|---|---|---|---|---|
+| `module` | 2,266 | 2,266 | **2,266** | 0 |
+| `assert_invalid` (binary) | 2,729 | 2,725 | 2,725 | 0 |
+| `assert_unlinkable` | 200 | 200 | 200 | 0 |
+| `assert_uninstantiable` | 54 | 54 | 54 | 0 |
+| `assert_malformed` (binary) | 712 | 0 | **710** | 2 |
+
+So every well-formed module still decodes. Of the binary malformed ones,
+710 are rejected and 2 crash ("too many locals"); the 4 `assert_invalid`
+are as above.

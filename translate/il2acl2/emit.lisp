@@ -403,7 +403,9 @@
   (if (endp ps) nil
     (append (cond ((not (tbl-has :rel (car (car ps)) tbl))
                    (list (cfg-err e (concatenate 'string "relation " (car (car ps)) " not in the IL"))))
-                  ((not (and (natp (cdr (car ps))) (< (cdr (car ps)) (rel-arity (car (car ps)) forms))))
+                  ((not (let ((k (if (consp (cdr (car ps))) (cadr (car ps)) (cdr (car ps)))))
+                          (and (natp k) (< k (rel-arity (car (car ps)) forms))
+                               (or (atom (cdr (car ps))) (nat-listp (cddr (car ps)))))))
                    (list (cfg-err e (concatenate 'string "component index out of range for " (car (car ps))))))
                   (t nil))
             (check-decreasing e (cdr ps) forms tbl))))

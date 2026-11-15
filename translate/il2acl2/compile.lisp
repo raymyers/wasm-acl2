@@ -221,10 +221,20 @@
     (env-add-vars (cdr names) (acons (car names) (var-sym (car names) cx) env) cx)))
 
 ;; Size of the designated decreasing component (config :decreasing) of an
-;; argument list for relation REL, or 0.
+;; argument list for relation REL, or 0. The pair is ("Rel" . k), input k,
+;; or ("Rel" k i ...), element i ... of input k (wasm3 M3: ("Step" 0 2),
+;; the instructions of the configuration (:|%;%| state instrs), so the
+;; check does not traverse the store).
+(defun nth-path (path term)
+  (if (atom path) term (nth-path (cdr path) (list (quote nth) (car path) term))))
+
 (defun dec-size (rel args cx)
-  (let ((k (cdr (assoc-equal rel (cx-get :decreasing cx)))))
-    (if (and k (< k (len args))) (list (gsym "%SIZE") (nth k args)) 0)))
+  (let* ((p (assoc-equal rel (cx-get :decreasing cx)))
+         (k (if (consp (cdr p)) (cadr p) (cdr p)))
+         (path (if (consp (cdr p)) (cddr p) nil)))
+    (if (and (natp k) (< k (len args)))
+        (list (gsym "%SIZE") (nth-path path (nth k args)))
+      0)))
 
 ; build-steps with search points: (:choose k lo hi desc) runs the rest of
 ; the steps for k = lo..hi (or hi..lo), returning the first non-nil result.
@@ -635,6 +645,22 @@
 (defun has-unbound (e env)
   (consp (unbound-vars (remove-duplicates-equal (fv-exp e)) env)))
 
+(defun remove-nth (i l)
+  (cond ((atom l) nil) ((zp i) (cdr l)) (t (cons (car l) (remove-nth (1- i) (cdr l))))))
+
+(defun unbound-arg-indices (args env i)
+  (cond ((atom args) nil)
+        ((has-unbound (car args) env) (cons i (unbound-arg-indices (cdr args) env (1+ i))))
+        (t (unbound-arg-indices (cdr args) env (1+ i)))))
+
+; The argument of f(args) = s that the inverse of f solves for: the last,
+; unless exactly one other argument has unbound variables (and the last none).
+(defun inverse-arg-index (args env)
+  (let ((us (unbound-arg-indices args env 0)) (last (1- (len args))))
+    (if (and (consp us) (null (cdr us)) (not (equal (car us) last)))
+        (car us)
+      last)))
+
 ; Row of an iterated match: ((cons o0 (nth 0 (car r))) ...)
 (defun cons-cols (otms i rv)
   (if (endp otms) nil
@@ -835,13 +861,18 @@
           (assoc-equal (second p) (cx-get :inverses cx)))
      ;; f(a.., x) = s with x unbound: x := f^-1(a.., s), then check f(a.., x) = s
      ;; (inverse pairs come from SpecTec hint(inverse), via the config)
+     ;; The unknown is the last argument, or else the only argument with
+     ;; unbound variables (wasm3 M3: $concatn_(zbytes(zt, c)^n, k) = s,
+     ;; solved by $inv_concatn_(k, s)); the inverse takes the other
+     ;; arguments in order, then s.
      (let* ((args (exp-args (cddr p)))
+            (i (inverse-arg-index args env))
             (g (cdr (assoc-equal (second p) (cx-get :inverses cx)))))
        (mv-let (s pre cx) (scrutinee s cx)
-         (mv-let (others cx) (cexps (butlast args 1) env cx)
+         (mv-let (others cx) (cexps (remove-nth i args) env cx)
            (mv-let (tname cx) (cx-fresh "%T" cx)
              (let ((tv (gsym tname)))
-               (mv-let (s1 env cx) (cpat (car (last args)) tv env cx)
+               (mv-let (s1 env cx) (cpat (nth i args) tv env cx)
                  (mv-let (chk cx) (cexp p env cx)
                    (mv (append pre
                                (list (list* :bind tv (cons (gsym (or (tbl-name :def g cx) (concatenate (quote string) "$" (base-name g nil))))
@@ -2274,6 +2305,19 @@
 ; attempt with the fewest failing rules, without them. (mv events cx)
 (defun strip-seconds (l) (if (endp l) nil (cons (second (car l)) (strip-seconds (cdr l)))))
 
+; The ids of the step relations of the closures among the REL forms (Step,
+; for Steps). Their mode stays :fun: the closure calls R(input).
+(defun closure-step-ids (rdefs)
+  (cond ((endp rdefs) nil)
+        ((closure-step (cdr (car rdefs)))
+         (cons (closure-step (cdr (car rdefs))) (closure-step-ids (cdr rdefs))))
+        (t (closure-step-ids (cdr rdefs)))))
+
+(defun some-closure-step-p (xs cx)
+  (and (consp xs)
+       (or (member-equal (second (car xs)) (closure-step-ids (cx-get :rel-defs cx)))
+           (some-closure-step-p (cdr xs) cx))))
+
 (defun calls-multi (x cx)
   ;; does IL term x contain a premise (rule "Rel" ...) of a :multi relation?
   (cond ((atom x) nil)
@@ -2461,8 +2505,12 @@
           ;; multi-mode propagates: a :fun relation that calls a :multi one
           ;; (e.g. Expr_ok -> Instrs_ok) is also compiled :multi, so callers
           ;; that know its output (Func_ok knows t_2?) use the check variant,
-          ;; which keeps the rules the output variant drops (return, br, ...)
-          (if (calls-multi (rel-members x) cx)
+          ;; which keeps the rules the output variant drops (return, br, ...).
+          ;; Not for the step relation of a closure (wasm3 M3): once
+          ;; Step_read compiles in full it is :multi (it calls Ref_ok), and
+          ;; Step would follow; its split variant reads c(a, b) = z'; instr'*
+          ;; as input z' and output instr'*, and Steps needs Step(input).
+          (if (and (calls-multi (rel-members x) cx) (not (some-closure-step-p (rel-members x) cx)))
               (mv-let (dsm badm cxm)
                 (crel-members-w xs (len xs) (set-mode-ids (strip-seconds xs) :multi (cx-put :errs errs0 cx)))
                 (if (null badm) (mv dsm cxm) (mv ds cx)))

@@ -28,7 +28,9 @@
   `rt/builtins-3.0.lisp`; 1 stub left, `Module_ok`; 8,724/8,724 numeric and
   1,008/1,008 SIMD vectors incl. 480 relaxed, [M1-builtins](notes/M1-builtins.md)); M2 ✅ (spec-test-3 decodes in-tree: every
   well-formed module but 4 that wabt writes malformed, every malformed one
-  rejected, [M2-decode](notes/M2-decode.md)); M5 items 1 and 2 (mode table design
+  rejected, [M2-decode](notes/M2-decode.md)); M3 ✅ (218 of 218 reduction rules; a step
+  costs 0.011 ms with or without memory, was 5.39 ms at 1 page;
+  [M3-execution](notes/M3-execution.md)); M5 items 1 and 2 (mode table design
   and core; `trans` triage) ✅; M6 items 1 and 2 (design session;
   decision) ✅
 - **New config entries in M0 (for the user)**: `:program` (every
@@ -58,9 +60,17 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now** (after M1): **1** stub (`Module_ok`), 0 builtins missing in `rt/`, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M3 (execution: `Step_read/array.new_data-num`, the
-  store-free termination check, driver limits), and M5 `trans` on the
-  typing side. M7 waits for the user's decision above
+- **Next action**: M4 (the 3.0 driver: `$instantiate` as a test-only path,
+  values, execution limits; then spec-test-3 `assert_return` / `assert_trap`
+  for the non-GC scripts), and M5 `trans` on the typing side. M7 waits for
+  the user's decision above
+- **Changed in M3 (for the user)**: the 3.0 `:decreasing` entry has a new
+  pair `("Step" 0 2)` (a path: the instructions of the configuration),
+  reason in the config. Translator: an inverse equation may solve for a
+  middle argument, and `:multi` no longer propagates into the step
+  relation of a closure (`Step` stays `:fun`; `Step_read` is now `:multi`,
+  its output variant drops no rule). The decode run's M2 totals missed the
+  end of `binary` (corrected in M2-decode)
 - **For the user (M2)**: new config entry `:il-patch "Belem"` (reason in the
   config): SpecTec elaborates `ELEM rt (REF.FUNC y)*` (flags 0-3) as one
   expression holding every `ref.func`; the patch gives one expression per
@@ -119,8 +129,8 @@ From `make probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
 | Schema errors | 0 | 3 (full 3.0) |
 | Phase-1 events | 1,240 | 993 |
 | Stubs | **1**: `Module_ok` since M1 (2 before: `$utf8single` is now a config override, [M1-builtins](notes/M1-builtins.md)) | 35 |
-| Relations emitted without some rules | 3, with 3 rules dropped (`Heaptype_sub/trans`, `Step_read/array.new_data-num`, and since the M6 session `Instrs_ok/sub`) | (whole-relation stubs) |
-| Reduction rules (`Step`, `Step_read`, `Step_pure`) failing | **1 of 218** | about 10 |
+| Relations emitted without some rules | 3, with 3 rules dropped (`Heaptype_sub/trans`, `Step_read/array.new_data-num`, and since the M6 session `Instrs_ok/sub`) ; since M3: **2** (`Step_read` complete) | (whole-relation stubs) |
+| Reduction rules (`Step`, `Step_read`, `Step_pure`) failing | **1 of 218**; since M3: **0** | about 10 |
 | Clause-less defs | 89 = 77 numeric + 11 choice + 1 host; since M1 all defined in `rt/` (13 numeric were missing) | |
 | Defs with function parameters | 16, replaced by 53 specializations | 16 compiled wrongly |
 | Decode experiment (spec-test-3) | 4,562 of 4,639 well-formed modules decode (98.3%), 604 of 643 malformed rejected; in-tree since M2: 5,228 of 5,232 and 643 of 643 ([M2-decode](notes/M2-decode.md)) | not measurable |
@@ -139,7 +149,7 @@ From the P1 gap list as updated through P4
 | core | `$utf8single` stub (result defined arithmetically) | S5 | M1 ✅ |
 | core | malformed UTF-8 in names accepted (39 decode cases; also in 1.0, 39 spec-test-1 failures) | `$utf8` inverse too lenient | M2 ✅ |
 | GC | `Heaptype_sub/trans`: existential intermediate, dropped. **Not admissible**: `I31 <: ANY`, `deftype <: EQ` have no other derivation ([M5-mode-table](notes/M5-mode-table.md)) | enumeration variant or override | M5 |
-| GC | `Step_read/array.new_data-num`: `c*` under `$concatn_($zbytes_(zt, c)^n)` | nested inverse (S1) | M3 |
+| GC | `Step_read/array.new_data-num`: `c*` under `$concatn_($zbytes_(zt, c)^n)` | nested inverse (S1) | M3 ✅ |
 | GC / bulk memory | builtins `$zbytes_ $cbytes_ $inv_zbytes_ $inv_cbytes_ $inv_concatn_` | S7 | M1 ✅ |
 | relaxed SIMD | builtins `$irelaxed_q15mulr_ $irelaxed_laneselect_ $frelaxed_min_ $frelaxed_max_ $frelaxed_madd_ $frelaxed_nmadd_ $relaxed_trunc__`; 11 choice parameters (`$ND`, `$R_*`) | S6, D4 | M1 ✅ |
 | numerics | builtin `$ceilz` | S7 | M1 ✅ |
@@ -249,18 +259,31 @@ The 4 left are binary-malformed as wabt wrote them (no data count section),
 as the reference interpreter also says.
 
 ### M3: Execution
-- [ ] `Step_read/array.new_data-num` (nested inverse)
-- [ ] Runtime: generated termination checks that ignore the store
+- [x] `Step_read/array.new_data-num` (nested inverse). Done 2026-11-14
+      ([M3-execution](notes/M3-execution.md)): the inverse case solves for the one
+      unbound argument (`$inv_concatn_(k, s)`); behaviour checked in M4 (GC
+      `array_new_data`)
+- [x] Runtime: generated termination checks that ignore the store
       ([P6-runtime-baseline](../wasm3-translation-prep/notes/P6-runtime-baseline.md):
       about 19 traversals of the configuration per step, 10.4 ms per 64 KiB
       page per step today)
-- [ ] Driver limits for huge locals and memory growth (the 5 spec-test-1 crashes)
+      Done: `:decreasing` path `("Step" 0 2)`; 1 page: **5.39 → 0.011 ms/step**
+      (no memory 0.012)
+- [x] Driver limits for huge locals and memory growth (the 5 spec-test-1 crashes).
+      Decoder done (each module its own form; "too many locals" reported as
+      crashed, 2 in spec-test-3); the execution limits (`memory.grow`, segment
+      bounds) move to M4, whose driver they belong to
 
 **Exit**: 218 of 218 reduction rules translated; a 1-page memory step
 within a small factor of the no-memory step (0.03 ms).
+**Met 2026-11-14**: 218 of 218; 0.011 ms/step at 1 page, the same as with no memory.
 
 ### M4: Instantiation and invocation
 - [ ] `$instantiate` without `Module_ok` as a test-only path (D6)
+- [ ] Execution limits in the 3.0 driver (from M3 item 3): a `memory.grow` or
+      `table.grow` above a bound, and segment bounds at instantiation, reported
+      as a resource limit (like `assert_exhaustion`), not run (P6: two spec-test-1
+      crashes each)
 - [ ] 3.0 driver values: `v128` lanes, references, exceptions (the data is
       already converted, [P5-conformance](../wasm3-translation-prep/notes/P5-conformance.md))
 
@@ -412,7 +435,7 @@ possibly `:rel-override Heaptype_sub` (M5), about 12 or 13 entries in total
 |---|---|---|
 | The size-check termination discipline does not fit 3.0 types | 13 of 22 type cases wrong ([review-checker-blind-spots](notes/review-checker-blind-spots.md)) | M5: fuel for the type group; if a relation outside it shows the same shape, the probe cannot tell, only behavioural cases can |
 | Typing complete only with hand-written parts | `trans` is not admissible and is dropped today, so GC subtyping through abstract heap types is rejected; 8 rules rely on one witness ([M5-mode-table](notes/M5-mode-table.md)) | after M5: `trans` by enumeration or override. After M6: if one witness is not enough under subsumption, Strategy B (AL) for instruction typing |
-| Runtime too slow for spec-test-3 | 10.4 ms per page per step (P6) | M3's store-free termination check; without it, run with a time budget and a skip list |
+| Runtime too slow for spec-test-3 | 10.4 ms per page per step (P6); since M3 0.011 ms per step at 1 page (store not traversed) | M3's store-free termination check; without it, run with a time budget and a skip list |
 | Certification time in logic mode | one guard proof >15 min (P5) | M9: per-event wall-clock limits, or `:program` for the decoder |
 | Conformance data for GC/exceptions | wabt converts 1/17 GC, 2/5 exception scripts (P5); resolved by M0b, 259/259 | wabt's data has wrong expectations in 9 scripts ([M0b-test-data](notes/M0b-test-data.md)): M8 should convert everything through the reference interpreter (recommended, the user decides) |
 | `Step` split completeness (wasm1 T8) inherited, plus `ctxt-handler` | wasm1 W13 | carried; Strategy B (AL) remains the fallback for `Step` |

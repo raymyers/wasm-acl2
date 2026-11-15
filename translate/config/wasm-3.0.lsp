@@ -25,8 +25,8 @@
   :reason "The generic split search of val* ++ admininstr* ++ admininstr_1* is exponential when it fails. Strategy: admininstr* ends right after the first non-value; val* is searched from longest to shortest. Completeness vs. the generic search: T8 obligation.")
 
  (:decreasing "termination order"
-  :pairs (("Instr_ok" . 1) ("Instrs_ok" . 1))
-  :reason "Instruction typing recurses into sub-instructions under an EXTENDED context (block/loop/if add a label), so the size of all inputs can grow. The instruction component (index 1) decreases, or stays equal with a smaller stack (frame). Recursive premise calls are ordered lexicographically by (size of component 1, size of all inputs).")
+  :pairs (("Instr_ok" . 1) ("Instrs_ok" . 1) ("Step" 0 2))
+  :reason "Instruction typing recurses into sub-instructions under an EXTENDED context (block/loop/if add a label), so the size of all inputs can grow. The instruction component (index 1) decreases, or stays equal with a smaller stack (frame). Recursive premise calls are ordered lexicographically by (size of component 1, size of all inputs). Step (wasm3 M3): the pair (\"Step\" 0 2) names the instructions of the configuration (:|%;%| state instrs). Every Step rule with a Step premise (ctxt-instrs, ctxt-label, ctxt-handler, ctxt-frame) steps a proper part of the instruction list, so this component decreases in every derivation and no derivation is cut. Without it the check compared the size of the whole configuration, store included: measured 5.39 ms per step with one 64 KiB page in the store against 0.014 ms without (notes M3-execution).")
 
  (:memoize "search memo" :recursive nil
   :rels ("Instr_ok" "Instrs_ok")
