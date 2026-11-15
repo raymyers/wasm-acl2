@@ -1,0 +1,2 @@
+MUT madd vectors reproducing V8: R_fmadd=0 44 of 48, R_fmadd=1 48 of
+48

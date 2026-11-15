@@ -14,6 +14,7 @@
 #   make gen         run the translator: il/ + config/ -> gen/wasm-<v>/
 #   make check-gen   fail unless two fresh translator runs agree with gen/wasm-<v>/
 #   make vectors     regenerate tests/sem/numeric-vectors.lsp (WASM engine oracle)
+#                    (node tests/oracle/gen-simd-vectors.mjs 3.0 > tests/sem-3.0/simd-vectors-3.0.lsp: 3.0 SIMD)
 #   make invoke-vectors  regenerate tests/sem/invoke-vectors.lsp (V8 runs the corpus exports)
 #   make test        certify the translator, gen/, rt/ and every test book
 #   make compare     T9 reports: run the WASM1 tree on the same oracle vectors
@@ -23,7 +24,7 @@
 #   make modes       rewrite gen/wasm-1.0/modes.lsp from certified books (t0-modes checks it)
 #   make check       check-il + check-gen + test (1.0)
 #   make check-2.0   2.0 gate: regenerate, certify, run the 2.0 numeric and SIMD vectors
-#   make check-3.0   3.0 gate: regenerate and certify gen/wasm-3.0 (:program mode)
+#   make check-3.0   3.0 gate: regenerate, certify (:program mode), run the 3.0 numeric, SIMD and builtin tests
 
 NIX  ?= nix
 ACL2 ?= acl2
@@ -151,6 +152,7 @@ probe: translator
 	sh il2acl2/spec-decls.sh $$files > $$d/names.lsp; \
 	{ echo '(assign probe-il "'$$d/wasm-$(SPEC).il.sexp'")'; \
 	  echo '(assign probe-config "$(PROBE_CONFIG)")'; \
+	  echo '(assign probe-version "$(SPEC)")'; \
 	  echo '(defconst *probe-names* (quote'; cat $$d/names.lsp; echo '))'; \
 	  echo '(assign probe-names *probe-names*)'; \
 	  echo '(assign probe-drop (quote ($(PROBE_DROP))))'; \
@@ -179,11 +181,13 @@ check-2.0:
 
 # The 3.0 gate (wasm3 M0): regenerate 3.0 from the checked-in IL (gen/wasm-3.0 is
 # not checked in) and certify it. The config entry :program makes every generated
-# event :program mode (logic mode is wasm3 M9). No 3.0 vectors yet (M1).
+# event :program mode (logic mode is wasm3 M9). Then the 3.0 numeric, SIMD (with
+# relaxed SIMD) and builtin tests (wasm3 M1).
 check-3.0:
 	$(MAKE) check-il SPEC=3.0
 	$(MAKE) gen SPEC=3.0
-	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-3.0/wasm3
+	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-3.0/wasm3 tests/sem-3.0/t3-numerics-3.0 tests/sem-3.0/t3-simd-3.0 tests/sem-3.0/t3-builtins-3.0
+	@grep -h "T3 numerics (3.0)\|T3 SIMD (3.0)\|T3 builtins (3.0)" tests/sem-3.0/*.cert.out
 	@echo "gen/wasm-3.0 certified; stubs: $$(sed -n "/^; Stubs/,/^;$$/p" gen/wasm-3.0/wasm3.lisp | grep -c "^;   ")"
 
 clean:

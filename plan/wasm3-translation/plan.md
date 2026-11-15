@@ -24,7 +24,9 @@
   certifies `gen/wasm-3.0` in-tree in :program mode, 1 min 32 s,
   [M0-target](notes/M0-target.md)); M0b ✅ (259 of 259 spec-test-3 scripts
   converted, 31 through the reference interpreter, among them 16 of 17 GC,
-  [M0b-test-data](notes/M0b-test-data.md)); M5 items 1 and 2 (mode table design
+  [M0b-test-data](notes/M0b-test-data.md)); M1 ✅ (every builtin defined, in
+  `rt/builtins-3.0.lisp`; 1 stub left, `Module_ok`; 8,724/8,724 numeric and
+  1,008/1,008 SIMD vectors incl. 480 relaxed, [M1-builtins](notes/M1-builtins.md)); M5 items 1 and 2 (mode table design
   and core; `trans` triage) ✅; M6 items 1 and 2 (design session;
   decision) ✅
 - **New config entries in M0 (for the user)**: `:program` (every
@@ -52,11 +54,17 @@
   ([M7-module-ok-strategy](notes/M7-module-ok-strategy.md)). Recommended:
   hand-written code proposes the contexts `C'` and `C`, the generated rule
   checks them (measured: with both given, the rule compiles with 0 errors)
-- **3.0 probe now**: 2 stubs, **3** dropped rules (`Instrs_ok/sub` is new
+- **3.0 probe now** (after M1): **1** stub (`Module_ok`), 0 builtins missing in `rt/`, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M1 (numerics and builtins: removes 25 of the 27
-  stubs of `gen/wasm-3.0`), then M2 and M5 `trans`. M7 waits for the
-  user's decision above
+- **Next action**: M2 (binary decode in-tree) and M5 `trans`; both need
+  only M1 (see "Order and dependencies"). M7 waits for the user's decision
+  above
+- **For the user (M1)**: new config entry `:def utf8single` (reason in the
+  config). D4 read as: the semantics is the deterministic profile (`$ND`
+  false, as in SpecTec's interpreter). `$R_*` record V8's choices on
+  arm64 (`R_fmadd` 1, the rest 0) and change no result. V8 is not
+  deterministic (it fuses `relaxed_madd`), so the relaxed vectors carry
+  both the deterministic result and V8's, and the test checks both
 - **Recommendation for the user (M0b, for M8)**: convert all 259 scripts
   through the reference interpreter. wabt's data already in use has
   wrong expectations in 9 scripts (`either` results written as `()` in 8,
@@ -99,10 +107,10 @@ From `make probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
 | Rules / relations | 509 / 85 | |
 | Schema errors | 0 | 3 (full 3.0) |
 | Phase-1 events | 1,240 | 993 |
-| Stubs | **2**: `Module_ok`, `$utf8single` (probe; `gen/wasm-3.0` also stubs the 25 builtins `rt/` lacks until M1, [M0-target](notes/M0-target.md)) | 35 |
+| Stubs | **1**: `Module_ok` since M1 (2 before: `$utf8single` is now a config override, [M1-builtins](notes/M1-builtins.md)) | 35 |
 | Relations emitted without some rules | 3, with 3 rules dropped (`Heaptype_sub/trans`, `Step_read/array.new_data-num`, and since the M6 session `Instrs_ok/sub`) | (whole-relation stubs) |
 | Reduction rules (`Step`, `Step_read`, `Step_pure`) failing | **1 of 218** | about 10 |
-| Clause-less defs | 89 = 77 numeric (13 not in `rt/`) + 11 choice + 1 host | |
+| Clause-less defs | 89 = 77 numeric + 11 choice + 1 host; since M1 all defined in `rt/` (13 numeric were missing) | |
 | Defs with function parameters | 16, replaced by 53 specializations | 16 compiled wrongly |
 | Decode experiment (spec-test-3) | 4,562 of 4,639 well-formed modules decode (98.3%), 604 of 643 malformed rejected | not measurable |
 
@@ -117,13 +125,13 @@ From the P1 gap list as updated through P4
 | Proposal | Item | Gap | Milestone |
 |---|---|---|---|
 | core | `Module_ok` stub (tags, recursive types, staged contexts) | S4 | M7 |
-| core | `$utf8single` stub (result defined arithmetically) | S5 | M1 |
+| core | `$utf8single` stub (result defined arithmetically) | S5 | M1 ✅ |
 | core | malformed UTF-8 in names accepted (39 decode cases; also in 1.0, 39 spec-test-1 failures) | `$utf8` inverse too lenient | M2 |
 | GC | `Heaptype_sub/trans`: existential intermediate, dropped. **Not admissible**: `I31 <: ANY`, `deftype <: EQ` have no other derivation ([M5-mode-table](notes/M5-mode-table.md)) | enumeration variant or override | M5 |
 | GC | `Step_read/array.new_data-num`: `c*` under `$concatn_($zbytes_(zt, c)^n)` | nested inverse (S1) | M3 |
-| GC / bulk memory | builtins `$zbytes_ $cbytes_ $inv_zbytes_ $inv_cbytes_ $inv_concatn_` | S7 | M1 |
-| relaxed SIMD | builtins `$irelaxed_q15mulr_ $irelaxed_laneselect_ $frelaxed_min_ $frelaxed_max_ $frelaxed_madd_ $frelaxed_nmadd_ $relaxed_trunc__`; 11 choice parameters (`$ND`, `$R_*`) | S6, D4 | M1 |
-| numerics | builtin `$ceilz` | S7 | M1 |
+| GC / bulk memory | builtins `$zbytes_ $cbytes_ $inv_zbytes_ $inv_cbytes_ $inv_concatn_` | S7 | M1 ✅ |
+| relaxed SIMD | builtins `$irelaxed_q15mulr_ $irelaxed_laneselect_ $frelaxed_min_ $frelaxed_max_ $frelaxed_madd_ $frelaxed_nmadd_ $relaxed_trunc__`; 11 choice parameters (`$ND`, `$R_*`) | S6, D4 | M1 ✅ |
+| numerics | builtin `$ceilz` | S7 | M1 ✅ |
 | exceptions, tail calls, memory64, multi-memory, bulk memory, extended const | no translation gap found; conformance data partial (wabt) | — | M8 |
 
 ## 4. Translation-scheme delta against wasm1 §2
@@ -194,15 +202,24 @@ scripts are available to M5, M6 and M7 as test data.
 293 instantiated modules validate, 290 `assert_invalid` modules are rejected.
 
 ### M1: Numerics and builtins
-- [ ] The 13 builtins of §3 in `rt/`; the 11 choice parameters per D4;
-      `$hostcall` as a driver hook
-- [ ] `$utf8single`: override like 1.0 `$utf8`
-- [ ] Oracle vectors: extend `gen-numeric-vectors.mjs` / `gen-simd-vectors.mjs`;
+- [x] The 13 builtins of §3 in `rt/`; the 11 choice parameters per D4;
+      `$hostcall` as a driver hook. Done 2026-11-14 ([M1-builtins](notes/M1-builtins.md)):
+      in `rt/builtins-3.0.lisp` (read for 3.0 only, so 1.0 and 2.0 do not
+      change); `$ND` false, `R_fmadd` 1 and the other `$R_*` 0 (V8 on arm64);
+      `$hostcall` an attachable hook (`defattach`)
+- [x] `$utf8single`: override like 1.0 `$utf8`. Done: config `:def utf8single`
+- [x] Oracle vectors: extend `gen-numeric-vectors.mjs` / `gen-simd-vectors.mjs`;
       the oracle source of every clause-less def is in the inventory table of
       [P3-builtin-inventory](../wasm3-translation-prep/notes/P3-builtin-inventory.md)
       (relaxed SIMD via V8)
+      Done: `gen-simd-vectors.mjs 3.0` adds 480 relaxed vectors with two
+      results, the deterministic profile (V8 running strict equivalents) and
+      V8's relaxed instruction, which fuses `relaxed_madd` on arm64
 
 **Exit**: 0 builtins missing in `rt/`; 3.0 numeric and SIMD vectors agree with V8.
+**Met 2026-11-14**: 0 missing (1 stub left: `Module_ok`); 8,724/8,724 numeric,
+1,008/1,008 SIMD (480 relaxed, deterministic profile); in the full profile
+480/480 relaxed vectors give V8's own result; 26/26 builtin cases.
 
 ### M2: Binary decode
 - [ ] Decode run on spec-test-3 in-tree (today 98.3% / 93.9% by
@@ -358,16 +375,16 @@ M0 ──┬─ M0b ────────────────────
 
 ## 6. Config budget
 
-Today `config/wasm-3.0.lsp` has 9 entries: `:def utf8` (with `:inverse`),
+Today `config/wasm-3.0.lsp` has 10 entries: `:def utf8` (with `:inverse`), since M1 `:def utf8single`,
 `:split Step ctxt-instrs`, `:decreasing`, `:memoize` (since M0 with
 `:recursive nil`), `:sized`, `:builtins` (11 choice + 1 host +
 `$s33_to_u32`), `:witness` (4 relations), since M5 `:fuel` (the type
-group), and since M0 `:program` (certification mode, removed in M9), 9 in all. The `:modes` entry (22 pairs at the end of the prep) is gone
+group), and since M0 `:program` (certification mode, removed in M9), 10 in all. The `:modes` entry (22 pairs at the end of the prep) is gone
 since the mode table. 1.0 has 8 (the `:witness` entry is new), 2.0 has 9
 (two `:il-patch` for a 2.0 source bug; `:witness` replaced `:modes`).
-Expected additions for 3.0: `:def utf8single` (S5), `:rel-override
-Module_ok` unless M7 avoids it, possibly `:rel-override Heaptype_sub`
-(M5), about 10 or 11 entries in total (M9 removes `:program`).
+Expected additions for 3.0: `:rel-override Module_ok` unless M7 avoids it,
+possibly `:rel-override Heaptype_sub` (M5), about 11 or 12 entries in total
+(M9 removes `:program`).
 
 ## 7. Risks and go/no-go points
 

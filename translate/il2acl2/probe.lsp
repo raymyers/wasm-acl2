@@ -362,12 +362,14 @@
                                  (list "; Every error logged by translator phase 1 (make probe)."
                                        "; One per line: (function kind detail [:rule \"Rel/id\" :pos k] [:mode m]).")
                                  errs state))))))))))))
-(mv-let (rt-erp rt-names state) (rt-defined-names *rt-files* nil state)
+(mv-let (rt-files rt-book state) (rt-files-for (@ acl2::probe-version) state)
+ (declare (ignore rt-book))
+(mv-let (rt-erp rt-names state) (rt-defined-names rt-files nil state)
  (declare (ignore rt-erp))
   (mv-let (erp state)
     (probe-run (@ acl2::probe-il) (@ acl2::probe-config) (@ acl2::probe-names)
                (@ acl2::probe-drop) (@ acl2::probe-errors) rt-names state)
     (if erp
         (prog2$ (cw "~%probe FAILED:~%~@0~%" erp) (mv (good-bye 1) nil state))
-      (mv nil :probe-ok state))))
+      (mv nil :probe-ok state)))))
 (good-bye 0)

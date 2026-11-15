@@ -10,6 +10,9 @@
  (:def "utf8" :inverse "inv_utf8"
   :reason "Clauses 2-4 define the bytes b_1..b_4 only through an arithmetic equation on ch (the inverse direction); no matching/binding translation exists. Hand-written in rt/builtins.lisp, with its inverse inv_utf8 (used to solve utf8(x) = bytes in Bname; the other inverse pairs come from hint(inverse) in the IL).")
 
+ (:def "utf8single"
+  :reason "Like utf8 (S5): each clause defines the bytes of one character only through an arithmetic equation on ch (ch = 2^6*(b_1 - 0xC0) + $cont(b_2), ...), the inverse direction, so there is no matching translation. Hand-written in rt/builtins-3.0.lisp from the same four clauses (no result for a surrogate or above U+10FFFF). 3.0 defines $utf8 through it, but the utf8 override above replaces that definition, so no generated code calls $utf8single today; the override removes the last stub of a numeric def (wasm3 M1).")
+
  (:builtins "categories"
   :choice ("ND" "R_fmadd" "R_fmin" "R_fmax" "R_idot" "R_idot_add" "R_iq15mulr"
            "R_trunc_u" "R_trunc_s" "R_swizzle" "R_laneselect")

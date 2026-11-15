@@ -343,6 +343,19 @@
 
 (defconst *rt-files* '("rt/prelude.lisp" "rt/builtins.lisp"))
 
+; A spec version may add builtins of its own in rt/builtins-<v>.lisp (wasm3 M1:
+; rt/builtins-3.0.lisp, which includes rt/builtins). It is read for that
+; version only, and its first generated part includes it, so the names of
+; the other versions' packages and their generated code do not change.
+; (mv files first-include state)
+(defun rt-files-for (version state)
+  (let ((f (concatenate 'string "rt/builtins-" version ".lisp")))
+    (mv-let (channel state) (open-input-channel f :object state)
+      (if (null channel) (mv *rt-files* "../../rt/builtins" state)
+        (let ((state (close-input-channel channel state)))
+          (mv (append *rt-files* (list f))
+              (concatenate 'string "../../rt/builtins-" version) state))))))
+
 ; --- Config validation (wasm3 prep P2, W5) -----------------------------
 ;
 ; Every config entry must name something that exists in the IL, so a stale
@@ -738,16 +751,20 @@
     (let* ((bad (foreign-symbols (convert-gsyms events pkg) pkg nil)))
       (if bad
           (mv (msg "Translator symbols leaked into generated code: ~x0" bad) state)
-        (mv-let (erp state) (write-parts parts "../../rt/builtins" target (config-entries config :program) state)
+        (mv-let (rt-files rt-book state) (rt-files-for (tgt :version target) state)
+         (declare (ignore rt-files))
+        (mv-let (erp state) (write-parts parts rt-book target (config-entries config :program) state)
           (if erp (mv erp state)
             (write-file (concatenate 'string (tgt :outdir target) (tgt :book target) ".lisp")
-                        header nil state)))))))
+                        header nil state))))))))
 
 (defun gen-phase1 (target state)
   ;; the declarations map is optional: without it everything is one part
   (mv-let (erp decls state)
     (if (tgt :decls target) (read-il-file (tgt :decls target) state) (mv nil nil state))
     (if erp (mv erp state)
-      (mv-let (erp rt-names state) (rt-defined-names *rt-files* nil state)
+      (mv-let (rt-files rt-book state) (rt-files-for (tgt :version target) state)
+       (declare (ignore rt-book))
+      (mv-let (erp rt-names state) (rt-defined-names rt-files nil state)
        (if erp (mv erp state)
-        (gen-phase1-1 target (car decls) rt-names state))))))
+        (gen-phase1-1 target (car decls) rt-names state)))))))

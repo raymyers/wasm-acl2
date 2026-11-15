@@ -69,5 +69,89 @@ for (const [name, k, fw] of ops) {
     out.push(` ("${name}" ${vals.join(" ")} ${u64(lo) | (u64(hi) << 64n)})`);
   }
 }
+
+// --- `node gen-simd-vectors.mjs 3.0`: the vectors above, then relaxed SIMD --
+// (wasm3 M1, D4). A relaxed vector is (OP A B [C] DET V8): DET is the result
+// of the deterministic profile (every relaxed choice 0; SpecTec's $ND false),
+// computed by V8 from the equivalent strict instructions; V8 is V8's own
+// relaxed instruction on this machine. Operands mix in NaNs, zeros,
+// infinities, out-of-range floats, 0x8000 lanes and swizzle indices >= 16,
+// so that the alternatives of each relaxed operation differ.
+if (process.argv[2] === "3.0") {
+  const shuf = (x, odd) => `(i8x16.shuffle ${Array.from({ length: 16 }, (_, i) => (2 * (i % 8) + odd)).join(" ")} ${x} ${x})`;
+  const dot16 = (a, b) => `(i16x8.add (i16x8.extmul_low_i8x16_s ${shuf(a, 0)} ${shuf(b, 0)}) (i16x8.extmul_low_i8x16_s ${shuf(a, 1)} ${shuf(b, 1)}))`;
+  // [relaxed op, arity, float lane width of the operands, deterministic wat]
+  const rops = [
+    ["f32x4.relaxed_madd", 3, 32, (a, b, c) => `(f32x4.add (f32x4.mul ${a} ${b}) ${c})`],
+    ["f32x4.relaxed_nmadd", 3, 32, (a, b, c) => `(f32x4.add (f32x4.mul (f32x4.neg ${a}) ${b}) ${c})`],
+    ["f64x2.relaxed_madd", 3, 64, (a, b, c) => `(f64x2.add (f64x2.mul ${a} ${b}) ${c})`],
+    ["f64x2.relaxed_nmadd", 3, 64, (a, b, c) => `(f64x2.add (f64x2.mul (f64x2.neg ${a}) ${b}) ${c})`],
+    ["f32x4.relaxed_min", 2, 32, (a, b) => `(f32x4.min ${a} ${b})`],
+    ["f32x4.relaxed_max", 2, 32, (a, b) => `(f32x4.max ${a} ${b})`],
+    ["f64x2.relaxed_min", 2, 64, (a, b) => `(f64x2.min ${a} ${b})`],
+    ["f64x2.relaxed_max", 2, 64, (a, b) => `(f64x2.max ${a} ${b})`],
+    ["i16x8.relaxed_q15mulr_s", 2, 0, (a, b) => `(i16x8.q15mulr_sat_s ${a} ${b})`],
+    ["i32x4.relaxed_trunc_f32x4_s", 1, 32, (a) => `(i32x4.trunc_sat_f32x4_s ${a})`],
+    ["i32x4.relaxed_trunc_f32x4_u", 1, 32, (a) => `(i32x4.trunc_sat_f32x4_u ${a})`],
+    ["i32x4.relaxed_trunc_f64x2_s_zero", 1, 64, (a) => `(i32x4.trunc_sat_f64x2_s_zero ${a})`],
+    ["i32x4.relaxed_trunc_f64x2_u_zero", 1, 64, (a) => `(i32x4.trunc_sat_f64x2_u_zero ${a})`],
+    ["i8x16.relaxed_swizzle", 2, 0, (a, b) => `(i8x16.swizzle ${a} ${b})`],
+    ["i8x16.relaxed_laneselect", 3, 0, (a, b, c) => `(v128.bitselect ${a} ${b} ${c})`],
+    ["i16x8.relaxed_laneselect", 3, 0, (a, b, c) => `(v128.bitselect ${a} ${b} ${c})`],
+    ["i32x4.relaxed_laneselect", 3, 0, (a, b, c) => `(v128.bitselect ${a} ${b} ${c})`],
+    ["i64x2.relaxed_laneselect", 3, 0, (a, b, c) => `(v128.bitselect ${a} ${b} ${c})`],
+    ["i16x8.relaxed_dot_i8x16_i7x16_s", 2, 0, (a, b) => dot16(a, b)],
+    ["i32x4.relaxed_dot_i8x16_i7x16_add_s", 3, 0, (a, b, c) => `(i32x4.add (i32x4.extadd_pairwise_i16x8_s ${dot16(a, b)}) ${c})`],
+  ];
+  const fn = (name, k, body) => {
+    const params = Array(2 * k).fill("i64").join(" ");
+    return `  (func (export "${name}") (param ${params}) (result i64 i64) (local $r v128)
+    (local.set $r ${body})
+    (i64x2.extract_lane 0 (local.get $r)) (i64x2.extract_lane 1 (local.get $r)))`;
+  };
+  const args = (k) => Array.from({ length: k }, (_, i) => v(i));
+  const wat3 = "(module\n" + rops.map(([name, k, , det]) =>
+    fn(name, k, `(${name} ${args(k).join(" ")})`) + "\n" + fn("det:" + name, k, det(...args(k)))).join("\n") + ")\n";
+  writeFileSync(join(dir, "relaxed.wat"), wat3);
+  execFileSync("wat2wasm", ["--enable-relaxed-simd", join(dir, "relaxed.wat"), "-o", join(dir, "relaxed.wasm")]);
+  const ex3 = (await WebAssembly.instantiate(readFileSync(join(dir, "relaxed.wasm")))).instance.exports;
+  // special lanes: NaNs (quiet, signalling, negative), zeros, infinities,
+  // values out of the i32/u32 range, ordinary moderate values
+  const sp32 = [0x7fc00000n, 0xffc00000n, 0x7fa00001n, 0x00000000n, 0x80000000n, 0x7f800000n, 0xff800000n,
+    0x4f800000n, 0xcf000001n, 0x4f000000n, 0xbf800000n, 0x3fc00000n];
+  const sp64 = [0x7ff8000000000000n, 0xfff8000000000000n, 0x7ff4000000000001n, 0n, 0x8000000000000000n,
+    0x7ff0000000000000n, 0xfff0000000000000n, 0x41f0000000000000n, 0xc1e0000000200000n, 0x41e0000000000000n,
+    0xbff0000000000000n, 0x3ff8000000000000n];
+  const pick = (a) => a[Number(rnd64() % BigInt(a.length))];
+  function rhalf(fw, name) {
+    const h = half(fw), r = rnd64();
+    if (fw === 32) {
+      const lane = (x, s) => (s % 3n === 0n ? pick(sp32) : x);
+      return lane(h & 0xffffffffn, r) | (lane(h >> 32n, r >> 8n) << 32n);
+    }
+    if (fw === 64) return r % 3n === 0n ? pick(sp64) : h;
+    if (name.includes("q15mulr")) {                  // some lanes 0x8000 in both operands
+      let x = h;
+      for (let i = 0n; i < 4n; i++) if ((r >> i) & 1n) x = (x & ~(0xffffn << (16n * i))) | (0x8000n << (16n * i));
+      return x;
+    }
+    if (name.includes("swizzle")) return h & 0x1f1f1f1f9f9f9f9fn;   // indices < 32, some negative
+    return h;
+  }
+  out.push("; relaxed SIMD (3.0): (OP A B [C] DET V8), see gen-simd-vectors.mjs");
+  for (const [name, k, fw] of rops) {
+    let same = 0;
+    for (let i = 0; i < 24; i++) {
+      // the operand that is a mask or an index is not a float
+      const halves = Array.from({ length: 2 * k }, () => rhalf(fw, name));
+      const call = (nm) => { const [lo, hi] = ex3[nm](...halves.map(s64)); return u64(lo) | (u64(hi) << 64n); };
+      const vals = Array.from({ length: k }, (_, j) => halves[2 * j] | (halves[2 * j + 1] << 64n));
+      const det = call("det:" + name), v8 = call(name);
+      if (det === v8) same++;
+      out.push(` ("${name}" ${vals.join(" ")} ${det} ${v8})`);
+    }
+    out.push(`; ${name}: V8 = deterministic on ${same} of 24`);
+  }
+}
 out.push(")");
 console.log(out.join("\n"));
