@@ -3,7 +3,7 @@
 - Date: 2026-11-15
 - Repo commit: fbe1979 (+ the W0 commits)
 - JSCL: jscl-project/jscl@54c88494e9f8f22e4c24c666e84aab7053f18cee
-- Status: draft (items 1 to 3 done; items 4 and 5 pending)
+- Status: draft (items 1 to 4 done; item 5 pending)
 - Feeds demo plan: W0 exit, W1 (D5 conditions), §5 risks
 - Incorporated in demo plan: yes (W0 items as they complete)
 
@@ -153,8 +153,79 @@ compactly it is 5 MB.
   every decode. W2 adopts this rewrite (new extractor entry, reason as
   above; listed in the plan's "Current state").
 
+### Item 4: deepest recursion on a 1-page module (2026-11-15)
+Module `data/w0-depth/mem1.wat` (97 bytes): `(memory 1)`, a data segment,
+and `f` doing `i32.store`, `memory.fill` (256 bytes), `memory.copy`, two
+loads. Native result `f() = 146`; ACL2 gives `((:CONST (:I32) 146))`.
+
+**In ACL2** (`run-depth.sh`, `instrument.lisp`): after including the
+certified `t7-lib-3.0`, every defun on the include chain (1,585, rt/
+included) is redefined in raw Lisp with the same body inside a counter
+(global nesting, per-function active frames, and the call path at the
+deepest point). The counter sits in the body, so self-calls count however
+SBCL compiles them. (A first version bound two specials per call and
+exhausted SBCL's binding stack: itself a sign of the depth.)
+
+| phase | max nesting | frames at the deepest point |
+|---|---|---|
+| decode (`gram/bmodule`) | 33 | 15 `$FREE_BLOCK/ITER0`, 11 `%COMP-FIELDS`, ... |
+| instantiate (`instantiate`, incl. `Module_ok` and the init steps) | **65,541** | **65,537 `$ALLOCMEM/ITER2`**, 1 each `$ALLOCMEMS`, `$ALLOCMODULE`, `$INSTANTIATE` |
+| invoke `f` to the result | 38 | 17 `STEP_PURE/SEARCH51`, 14 `STEP_PURE/MATCH41`, 2 `STEP`, ... |
+
+Apart from `$ALLOCMEM/ITER2` no function has more than 18 active frames on
+this run (`STEP_*/SEARCH*`, `SEQ-RUN` 17, `GRAM/BEXPR/REP2` 17 = the
+instruction count of `f`). `$ALLOCMEM/ITER2` is
+`(IF (< %K %N) (CONS 0 ($ALLOCMEM/ITER2 (+ 1 %K) %N)) NIL)`
+(`gen/wasm-3.0/4_4-execution_modules.lisp` line 241): **self-recursion,
+tail recursive modulo `cons`**, one frame per byte. Uninstrumented run
+0.07 s, instrumented 0.14 s.
+
+The memory operations themselves (store, fill, copy) add no deep generated
+recursion; they go through ACL2/CL list functions, which the instrumentation
+cannot see. In JSCL those matter: `equal` (`src/boot.lisp` line 352) and
+`append` (`append-two`, `src/list.lisp` line 145) recurse on `cdr`;
+`nthcdr`, `nth`, `revappend`, `copy-list`, `list-length` are loops. The
+shim replaces `equal` and `append` (and provides `len`, `acl2-count`,
+`take`, `update-nth` as loops), as §3 already planned.
+
+**Stack capacity** (`run-probes.sh`: JSCL-compiled probes in
+`probe.lisp`, binary search for the largest n that does not overflow;
+`W0-ITER` has the shape of `$ALLOCMEM/ITER2`):
+
+| where | W0-ITER | `equal` on two n-lists | `append` of an n-list | plain JS |
+|---|---|---|---|---|
+| node main, default | 9,695 | 2,815 | 1,471 | 15,343 |
+| node main, `--stack-size=3900` | 55,095 | 16,527 | 8,191 | 61,999 |
+| node worker, `stackSizeMb: 16` | 229,711 | 68,912 | 44,941 | 258,442 |
+| node worker, `stackSizeMb: 64` | ≥524,288 | 464,378 | 181,712 | 1,044,874 |
+| Chromium page | 6,655 | 3,583 | 1,559 | 14,336 |
+| **Chromium Worker** | **2,047** | 1,599 | 621 | 7,936 |
+| Firefox page | 30,927 | 5,311 | 3,071 | 29,259 |
+| **Firefox Worker** | **4,095** | 2,951 | 1,705 | 16,255 |
+
+Values vary between runs (JIT tier and frame size): two runs differed by
+up to 1.7× (e.g. `equal`, 16 MB worker: 114,853 then 68,912; Chromium page
+W0-ITER: 8,119 then 6,655). The table is the second run (`depth.out`).
+Browsers give a Worker no way to ask for a larger stack.
+
+**Verdict for the no-go rule**: the measured deepest recursion of a 1-page
+module (65,541) **does overflow** a Chromium Worker (2,047 frames of that
+shape) and node's default stack, but it **is self-recursion** (65,537 of
+the frames are `$ALLOCMEM/ITER2` calling itself, tail recursive modulo
+`cons`), so rewrite (b) removes it. **Go.** Without the rewrite, node works
+in a worker with `stackSizeMb: 16` (fallback (a)), browsers do not.
+
+Still to watch (for W1 and W2 item 6): recursions whose depth grows with
+the input and that are not plain tail-modulo-`cons`: `GRAM/BEXPR/REP2` (one
+frame per instruction of a function body, and the result is built after
+the call), `$FREE_*/ITER*`, `SEQ-RUN` (the `Instrs_ok` sequencer),
+`%COMP-FIELDS`. On this module they stay at 17 or less; with the Chromium
+Worker at about 2,000 JSCL frames, a function body of a few thousand
+instructions would overflow. W2's report lists the self-recursive
+functions and which of them the rewrite covers.
+
 ## Open questions
-- Items 4 and 5 (recursion depth, option A cost).
+- Item 5 (option A cost).
 
 ## Data
 - Items 2 and 3: `sh plan/wasm3-demo/notes/data/w0-slice/measure.sh` from
@@ -165,6 +236,12 @@ compactly it is 5 MB.
   `pkgs.lisp`, `compile.lisp` + `run-compile.sh` (JSCL), `depth.js`
   (nesting histogram), `load.js` (node load and calls),
   `browser-load.mjs` (page and Worker, both browsers).
+- Item 4: `sh plan/wasm3-demo/notes/data/w0-depth/run-depth.sh` (ACL2,
+  after `make -C translate check-3.0` and certifying
+  `tests/spec/t7-lib-3.0`, which check-3.0 leaves stale) and
+  `sh plan/wasm3-demo/notes/data/w0-depth/run-probes.sh` (after
+  `measure.sh`), from the repo root inside `nix develop`. Output of both:
+  `data/w0-depth/depth.out`.
 - `make -C demo check` inside `nix develop` (needs nothing else).
 - `nix build .#jscl` rebuilds the JSCL package (about 1 min on an M-series
   Mac).

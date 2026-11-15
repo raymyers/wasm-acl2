@@ -28,7 +28,7 @@
 ## Current state
 
 - **Last updated**: 2026-11-15
-- **Milestones**: W0 in progress (items 1 to 3 done)
+- **Milestones**: W0 in progress (items 1 to 4 done)
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
@@ -44,9 +44,9 @@
   with rule names from translator tags (option 3a). D7, the translator may
   change generated output (1.0 included) for W7, provided all certifications
   and tests still pass.
-- **Next action**: W0 item 4 (deepest recursion on a 1-page module), then
-  item 5. The throwaway extractor of items 2 and 3 is in
-  `notes/data/w0-slice/` (`measure.sh`).
+- **Next action**: W0 item 5 (option A cost sample), then the W0 exit.
+  The throwaway extractor of items 2 and 3 is in `notes/data/w0-slice/`
+  (`measure.sh`); the item 4 scripts in `notes/data/w0-depth/`.
 - **New extractor rewrite, for the user** (W0 item 3, W2 item 7):
   clause-chain flattening. Reason: the decoder's clause chain nests 1,010
   deep and the JS parsers of node (default stack), Chromium and Firefox
@@ -224,11 +224,19 @@ demo/driver/*.lisp (JS-facing glue) ──────────────�
        of the decoder; mechanical clause-chain flattening (depth 111) makes
        all of them load it (Chromium Worker 0.42 s, Firefox Worker 0.64 s,
        incl. `jscl.js`). Added as W2 item 7
-4. [ ] Deepest recursion on a decode + instantiate + `step` run of a module
+4. [x] Deepest recursion on a decode + instantiate + `step` run of a module
        with 1 page of memory, measured in ACL2 (instrumented run or the
        longest list in the store) and in node (default and `--stack-size`).
        Browser Worker stack in Chrome and Firefox for the same depth
-       (a synthetic JS recursion is enough)
+       (a synthetic JS recursion is enough).
+       **Done 2026-11-15** ([W0-feasibility](notes/W0-feasibility.md#item-4-deepest-recursion-on-a-1-page-module-2026-11-15)):
+       instrumented ACL2 run: decode 33, instantiate **65,541** (65,537 of
+       them `$ALLOCMEM/ITER2` calling itself, tail recursive modulo
+       `cons`), invoke 38. JSCL frames of that shape that fit: node 9,695
+       (default), 55,095 (`--stack-size=3900`), 229,711 (worker, 16 MB);
+       Chromium Worker 2,047, Firefox Worker 4,095. Overflows, but it is
+       self-recursion: go. JSCL's `equal` and `append` recurse on `cdr`
+       (shim replaces them)
 
 5. [ ] Option A cost sample (for D5 (i)): `+`, `*`, `floor`, `logand` and
        `ash` on fixnums, plain JSCL against the shim tower, 10^6 ops each
