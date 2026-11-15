@@ -38,6 +38,16 @@
         ((and (true-listp a) (true-listp b)) (append a b))
         (t a)))
 
+; Rule tags (plan/wasm3-demo W7): the translator returns the result of each
+; IL rule of a relation as (%RULE "Rel/rule-id" result), and of each grammar
+; production as (%RULE "Gram/#k" result). Here the tag is only a name: the
+; macro expands to RESULT, so the terms ACL2 admits, proves and runs are the
+; untagged ones. The JSCL build of the demo defines %RULE as a recorder of
+; the rules that fire (plan/wasm3-demo/notes/W7-rule-tags.md).
+(defmacro %rule (name result)
+  (declare (ignore name))
+  result)
+
 ; (%try-logic EVENT): admit EVENT (a defun or mutual-recursion) in logic mode
 ; if ACL2 accepts it -- termination via ACL2's default measures, guards not
 ; verified -- and otherwise in program mode. Deterministic for a given ACL2.

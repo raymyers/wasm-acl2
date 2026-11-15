@@ -59,7 +59,8 @@
                    (DECLARE (IGNORABLE %T0
                                        -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
                                        %T1))
-                   (LIST -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
+                   (LIST (%RULE "Bbyte/#1"
+                                -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-)
                          %T1)))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R NIL))))
@@ -84,36 +85,39 @@
                       (DECLARE (IGNORABLE %T1 N %T2))
                       (AND (< N (EXPT 2 7))
                            (< N (EXPT 2 N^U))
-                           (LIST N %T2)))))))
+                           (LIST (%RULE "BuN/#1" N) %T2)))))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R
-      (LET
-        ((%R (LET* ((%T3 (GRAM/BBYTE %S)))
-               (DECLARE (IGNORABLE %T3))
-               (AND %T3
-                    (<= (ACL2::LEN (CADR %T3))
-                        (ACL2::LEN %S))
-                    (LET* ((%T4 (CAR %T3))
-                           (N %T4)
-                           (%T5 (CADR %T3))
-                           (%T6 %T5)
-                           (%T7 (GRAM/BUN %T6 (- N^U 7))))
-                      (DECLARE (IGNORABLE %T4 N %T5 %T6 %T7))
-                      (AND %T7
-                           (<= (ACL2::LEN (CADR %T7))
-                               (ACL2::LEN %T6))
-                           (LET* ((%T8 (CAR %T7))
-                                  (M %T8)
-                                  (%T9 (CADR %T7))
-                                  (%T10 %T9)
-                                  (%T11 %T10))
-                             (DECLARE (IGNORABLE %T8 M %T9 %T10 %T11))
-                             (AND (>= N (EXPT 2 7))
-                                  (> N^U 7)
-                                  (LIST (+ (* (EXPT 2 7) M) (- N (EXPT 2 7)))
-                                        %T11)))))))))
-        (DECLARE (IGNORABLE %R))
-        (IF %R %R NIL)))))))
+     (LET
+      ((%R
+        (LET* ((%T3 (GRAM/BBYTE %S)))
+         (DECLARE (IGNORABLE %T3))
+         (AND
+            %T3
+            (<= (ACL2::LEN (CADR %T3))
+                (ACL2::LEN %S))
+            (LET* ((%T4 (CAR %T3))
+                   (N %T4)
+                   (%T5 (CADR %T3))
+                   (%T6 %T5)
+                   (%T7 (GRAM/BUN %T6 (- N^U 7))))
+              (DECLARE (IGNORABLE %T4 N %T5 %T6 %T7))
+              (AND %T7
+                   (<= (ACL2::LEN (CADR %T7))
+                       (ACL2::LEN %T6))
+                   (LET* ((%T8 (CAR %T7))
+                          (M %T8)
+                          (%T9 (CADR %T7))
+                          (%T10 %T9)
+                          (%T11 %T10))
+                     (DECLARE (IGNORABLE %T8 M %T9 %T10 %T11))
+                     (AND (>= N (EXPT 2 7))
+                          (> N^U 7)
+                          (LIST (%RULE "BuN/#2"
+                                       (+ (* (EXPT 2 7) M) (- N (EXPT 2 7))))
+                                %T11)))))))))
+      (DECLARE (IGNORABLE %R))
+      (IF %R %R NIL)))))))
 
 
 (%TRY-GUARDS GRAM/BUN)
@@ -133,7 +137,8 @@
                    (DECLARE (IGNORABLE %T1
                                        -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
                                        %T2))
-                   (LIST -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
+                   (LIST (%RULE "Bu32/#1"
+                                -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-)
                          %T2))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R NIL))))
@@ -158,7 +163,7 @@
                       (DECLARE (IGNORABLE %T1 N %T2))
                       (AND (< N (EXPT 2 6))
                            (< N (EXPT 2 (- N^U 1)))
-                           (LIST N %T2)))))))
+                           (LIST (%RULE "BsN/#1" N) %T2)))))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R
      (LET ((%R (LET* ((%T3 (GRAM/BBYTE %S)))
@@ -173,56 +178,62 @@
                         (AND (<= (EXPT 2 6) N)
                              (< N (EXPT 2 7))
                              (>= N (- (EXPT 2 7) (EXPT 2 (- N^U 1))))
-                             (LIST (- N (EXPT 2 7)) %T5)))))))
+                             (LIST (%RULE "BsN/#2" (- N (EXPT 2 7)))
+                                   %T5)))))))
       (DECLARE (IGNORABLE %R))
       (IF %R %R
        (LET
-        ((%R (LET* ((%T6 (GRAM/BBYTE %S)))
-               (DECLARE (IGNORABLE %T6))
-               (AND %T6
-                    (<= (ACL2::LEN (CADR %T6))
-                        (ACL2::LEN %S))
-                    (LET* ((%T7 (CAR %T6))
-                           (N %T7)
-                           (%T8 (CADR %T6))
-                           (%T9 %T8)
-                           (%T10 (GRAM/BSN %T9 (- N^U 7))))
-                      (DECLARE (IGNORABLE %T7 N %T8 %T9 %T10))
-                      (AND %T10
-                           (<= (ACL2::LEN (CADR %T10))
-                               (ACL2::LEN %T9))
-                           (LET* ((%T11 (CAR %T10))
-                                  (I %T11)
-                                  (%T12 (CADR %T10))
-                                  (%T13 %T12)
-                                  (%T14 %T13))
-                             (DECLARE (IGNORABLE %T11 I %T12 %T13 %T14))
-                             (AND (>= N (EXPT 2 7))
-                                  (> N^U 7)
-                                  (LIST (+ (* (EXPT 2 7) I) (- N (EXPT 2 7)))
-                                        %T14)))))))))
+        ((%R
+          (LET* ((%T6 (GRAM/BBYTE %S)))
+           (DECLARE (IGNORABLE %T6))
+           (AND
+            %T6
+            (<= (ACL2::LEN (CADR %T6))
+                (ACL2::LEN %S))
+            (LET* ((%T7 (CAR %T6))
+                   (N %T7)
+                   (%T8 (CADR %T6))
+                   (%T9 %T8)
+                   (%T10 (GRAM/BSN %T9 (- N^U 7))))
+              (DECLARE (IGNORABLE %T7 N %T8 %T9 %T10))
+              (AND %T10
+                   (<= (ACL2::LEN (CADR %T10))
+                       (ACL2::LEN %T9))
+                   (LET* ((%T11 (CAR %T10))
+                          (I %T11)
+                          (%T12 (CADR %T10))
+                          (%T13 %T12)
+                          (%T14 %T13))
+                     (DECLARE (IGNORABLE %T11 I %T12 %T13 %T14))
+                     (AND (>= N (EXPT 2 7))
+                          (> N^U 7)
+                          (LIST (%RULE "BsN/#3"
+                                       (+ (* (EXPT 2 7) I) (- N (EXPT 2 7))))
+                                %T14)))))))))
         (DECLARE (IGNORABLE %R))
         (IF %R %R NIL)))))))))
 
 
 (%TRY-GUARDS GRAM/BSN)
 
-(%TRY-LOGIC (DEFUN GRAM/BIN (%S %A0)
-              (DECLARE (IGNORABLE %S %A0))
-              (LET* ((N^U %A0))
-                (DECLARE (IGNORABLE N^U))
-                (LET ((%R (LET* ((%T0 (GRAM/BSN %S N^U)))
-                            (DECLARE (IGNORABLE %T0))
-                            (AND %T0
-                                 (<= (ACL2::LEN (CADR %T0))
-                                     (ACL2::LEN %S))
-                                 (LET* ((%T1 (CAR %T0))
-                                        (I %T1)
-                                        (%T2 (CADR %T0)))
-                                   (DECLARE (IGNORABLE %T1 I %T2))
-                                   (LIST ($INV_SIGNED_ N^U I) %T2))))))
-                  (DECLARE (IGNORABLE %R))
-                  (IF %R %R NIL)))))
+(%TRY-LOGIC
+     (DEFUN GRAM/BIN (%S %A0)
+       (DECLARE (IGNORABLE %S %A0))
+       (LET* ((N^U %A0))
+         (DECLARE (IGNORABLE N^U))
+         (LET ((%R (LET* ((%T0 (GRAM/BSN %S N^U)))
+                     (DECLARE (IGNORABLE %T0))
+                     (AND %T0
+                          (<= (ACL2::LEN (CADR %T0))
+                              (ACL2::LEN %S))
+                          (LET* ((%T1 (CAR %T0))
+                                 (I %T1)
+                                 (%T2 (CADR %T0)))
+                            (DECLARE (IGNORABLE %T1 I %T2))
+                            (LIST (%RULE "BiN/#1" ($INV_SIGNED_ N^U I))
+                                  %T2))))))
+           (DECLARE (IGNORABLE %R))
+           (IF %R %R NIL)))))
 
 
 (%TRY-GUARDS GRAM/BIN)
@@ -252,24 +263,25 @@
 
 (%TRY-GUARDS GRAM/BFN/REP1)
 
-(%TRY-LOGIC (DEFUN GRAM/BFN (%S %A0)
-              (DECLARE (IGNORABLE %S %A0))
-              (LET* ((N^U %A0))
-                (DECLARE (IGNORABLE N^U))
-                (LET ((%R (LET* ((%T2 (GRAM/BFN/REP1 0 (/ N^U 8) %S)))
-                            (DECLARE (IGNORABLE %T2))
-                            (AND %T2
-                                 (<= (ACL2::LEN (CADR %T2))
-                                     (ACL2::LEN %S))
-                                 (LET* ((%T3 (CAR (CAR %T2))))
-                                   (DECLARE (IGNORABLE %T3))
-                                   (AND (TRUE-LISTP %T3)
-                                        (LET* ((B-STAR %T3) (%T4 (CADR %T2)))
-                                          (DECLARE (IGNORABLE B-STAR %T4))
-                                          (LIST ($INV_FBYTES_ N^U B-STAR)
-                                                %T4))))))))
-                  (DECLARE (IGNORABLE %R))
-                  (IF %R %R NIL)))))
+(%TRY-LOGIC
+ (DEFUN GRAM/BFN (%S %A0)
+  (DECLARE (IGNORABLE %S %A0))
+  (LET* ((N^U %A0))
+   (DECLARE (IGNORABLE N^U))
+   (LET ((%R (LET* ((%T2 (GRAM/BFN/REP1 0 (/ N^U 8) %S)))
+               (DECLARE (IGNORABLE %T2))
+               (AND %T2
+                    (<= (ACL2::LEN (CADR %T2))
+                        (ACL2::LEN %S))
+                    (LET* ((%T3 (CAR (CAR %T2))))
+                      (DECLARE (IGNORABLE %T3))
+                      (AND (TRUE-LISTP %T3)
+                           (LET* ((B-STAR %T3) (%T4 (CADR %T2)))
+                             (DECLARE (IGNORABLE B-STAR %T4))
+                             (LIST (%RULE "BfN/#1" ($INV_FBYTES_ N^U B-STAR))
+                                   %T4))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R NIL)))))
 
 
 (%TRY-GUARDS GRAM/BFN)
@@ -289,7 +301,8 @@
                    (DECLARE (IGNORABLE %T1
                                        -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
                                        %T2))
-                   (LIST -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
+                   (LIST (%RULE "Bu64/#1"
+                                -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-)
                          %T2))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R NIL))))
@@ -312,7 +325,8 @@
                    (DECLARE (IGNORABLE %T1
                                        -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
                                        %T2))
-                   (LIST -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
+                   (LIST (%RULE "Bi32/#1"
+                                -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-)
                          %T2))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R NIL))))
@@ -335,7 +349,8 @@
                    (DECLARE (IGNORABLE %T1
                                        -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
                                        %T2))
-                   (LIST -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
+                   (LIST (%RULE "Bi64/#1"
+                                -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-)
                          %T2))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R NIL))))
@@ -358,7 +373,8 @@
                    (DECLARE (IGNORABLE %T1
                                        -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
                                        %T2))
-                   (LIST -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
+                   (LIST (%RULE "Bf32/#1"
+                                -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-)
                          %T2))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R NIL))))
@@ -381,7 +397,8 @@
                    (DECLARE (IGNORABLE %T1
                                        -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
                                        %T2))
-                   (LIST -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-
+                   (LIST (%RULE "Bf64/#1"
+                                -X3C-IMPLICIT-X2D-PROD-X2D-RESULT-X3E-)
                          %T2))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R NIL))))
@@ -437,29 +454,32 @@
      (LET*
       ((%T0 %S)
        (%T13
-        (LET ((%R (LET* ((%T1 (GRAM/BU32 %T0)))
-                    (DECLARE (IGNORABLE %T1))
-                    (AND %T1
-                         (<= (ACL2::LEN (CADR %T1))
-                             (ACL2::LEN %T0))
-                         (LET* ((%T2 (CAR %T1))
-                                (N %T2)
-                                (%T3 (CADR %T1))
-                                (%T4 %T3)
-                                (%T8 (GRAM/BNAME/REP7 0 N %T4)))
-                           (DECLARE (IGNORABLE %T2 N %T3 %T4 %T8))
-                           (AND %T8
-                                (<= (ACL2::LEN (CADR %T8))
-                                    (ACL2::LEN %T4))
-                                (LET* ((EL-STAR (CAR (CDR (CAR %T8))))
-                                       (%T9 (CADR %T8))
-                                       (%T10 %T9)
-                                       (%T11 %T10))
-                                  (DECLARE (IGNORABLE EL-STAR %T9 %T10 %T11))
-                                  (LIST (GRAM/BNAME/ITER12 EL-STAR)
-                                        %T11))))))))
-          (DECLARE (IGNORABLE %R))
-          (IF %R %R NIL))))
+        (LET
+         ((%R
+           (LET* ((%T1 (GRAM/BU32 %T0)))
+            (DECLARE (IGNORABLE %T1))
+            (AND
+                %T1
+                (<= (ACL2::LEN (CADR %T1))
+                    (ACL2::LEN %T0))
+                (LET* ((%T2 (CAR %T1))
+                       (N %T2)
+                       (%T3 (CADR %T1))
+                       (%T4 %T3)
+                       (%T8 (GRAM/BNAME/REP7 0 N %T4)))
+                  (DECLARE (IGNORABLE %T2 N %T3 %T4 %T8))
+                  (AND %T8
+                       (<= (ACL2::LEN (CADR %T8))
+                           (ACL2::LEN %T4))
+                       (LET* ((EL-STAR (CAR (CDR (CAR %T8))))
+                              (%T9 (CADR %T8))
+                              (%T10 %T9)
+                              (%T11 %T10))
+                         (DECLARE (IGNORABLE EL-STAR %T9 %T10 %T11))
+                         (LIST (%RULE "Blist/#1" (GRAM/BNAME/ITER12 EL-STAR))
+                               %T11))))))))
+         (DECLARE (IGNORABLE %R))
+         (IF %R %R NIL))))
       (DECLARE (IGNORABLE %T0 %T13))
       (AND %T13
            (<= (ACL2::LEN (CADR %T13))
@@ -473,7 +493,8 @@
                          (NAME %T16))
                     (DECLARE (IGNORABLE B-STAR %T15 %T16 NAME))
                     (AND (EQUAL ($UTF8 NAME) B-STAR)
-                         (LIST NAME %T15)))))))))
+                         (LIST (%RULE "Bname/#1" NAME)
+                               %T15)))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -491,7 +512,7 @@
                                       (X %T1)
                                       (%T2 (CADR %T0)))
                                  (DECLARE (IGNORABLE %T1 X %T2))
-                                 (LIST X %T2))))))
+                                 (LIST (%RULE "Btypeidx/#1" X) %T2))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
@@ -509,7 +530,7 @@
                                       (X %T1)
                                       (%T2 (CADR %T0)))
                                  (DECLARE (IGNORABLE %T1 X %T2))
-                                 (LIST X %T2))))))
+                                 (LIST (%RULE "Bfuncidx/#1" X) %T2))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
@@ -527,7 +548,8 @@
                                       (X %T1)
                                       (%T2 (CADR %T0)))
                                  (DECLARE (IGNORABLE %T1 X %T2))
-                                 (LIST X %T2))))))
+                                 (LIST (%RULE "Bglobalidx/#1" X)
+                                       %T2))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
@@ -545,7 +567,7 @@
                                       (X %T1)
                                       (%T2 (CADR %T0)))
                                  (DECLARE (IGNORABLE %T1 X %T2))
-                                 (LIST X %T2))))))
+                                 (LIST (%RULE "Btableidx/#1" X) %T2))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
@@ -563,7 +585,7 @@
                                       (X %T1)
                                       (%T2 (CADR %T0)))
                                  (DECLARE (IGNORABLE %T1 X %T2))
-                                 (LIST X %T2))))))
+                                 (LIST (%RULE "Bmemidx/#1" X) %T2))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
@@ -581,7 +603,7 @@
                                       (X %T1)
                                       (%T2 (CADR %T0)))
                                  (DECLARE (IGNORABLE %T1 X %T2))
-                                 (LIST X %T2))))))
+                                 (LIST (%RULE "Blocalidx/#1" X) %T2))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
@@ -599,7 +621,7 @@
                                       (X %T1)
                                       (%T2 (CADR %T0)))
                                  (DECLARE (IGNORABLE %T1 X %T2))
-                                 (LIST X %T2))))))
+                                 (LIST (%RULE "Blabelidx/#1" X) %T2))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
@@ -624,7 +646,8 @@
                                (%T5 %T4)
                                (%T6 %T5))
                           (DECLARE (IGNORABLE %T3 X %T4 %T5 %T6))
-                          (LIST (LIST :FUNC X) %T6)))))))
+                          (LIST (%RULE "Bexternidx/#1" (LIST :FUNC X))
+                                %T6)))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R
     (LET ((%R (AND (CONSP %S)
@@ -642,7 +665,8 @@
                                  (%T12 %T11)
                                  (%T13 %T12))
                             (DECLARE (IGNORABLE %T10 X %T11 %T12 %T13))
-                            (LIST (LIST :TABLE X) %T13)))))))
+                            (LIST (%RULE "Bexternidx/#2" (LIST :TABLE X))
+                                  %T13)))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R
       (LET ((%R (AND (CONSP %S)
@@ -660,61 +684,69 @@
                                    (%T19 %T18)
                                    (%T20 %T19))
                               (DECLARE (IGNORABLE %T17 X %T18 %T19 %T20))
-                              (LIST (LIST :MEM X) %T20)))))))
-        (DECLARE (IGNORABLE %R))
-        (IF %R %R
-          (LET ((%R (AND (CONSP %S)
-                         (EQUAL (CAR %S) 3)
-                         (LET* ((%T21 (CDR %S))
-                                (%T22 %T21)
-                                (%T23 (GRAM/BGLOBALIDX %T22)))
-                           (DECLARE (IGNORABLE %T21 %T22 %T23))
-                           (AND %T23
-                                (<= (ACL2::LEN (CADR %T23))
-                                    (ACL2::LEN %T22))
-                                (LET* ((%T24 (CAR %T23))
-                                       (X %T24)
-                                       (%T25 (CADR %T23))
-                                       (%T26 %T25)
-                                       (%T27 %T26))
-                                  (DECLARE (IGNORABLE %T24 X %T25 %T26 %T27))
-                                  (LIST (LIST :GLOBAL X) %T27)))))))
-            (DECLARE (IGNORABLE %R))
-            (IF %R %R NIL))))))))))
+                              (LIST (%RULE "Bexternidx/#3" (LIST :MEM X))
+                                    %T20)))))))
+       (DECLARE (IGNORABLE %R))
+       (IF %R %R
+         (LET
+            ((%R (AND (CONSP %S)
+                      (EQUAL (CAR %S) 3)
+                      (LET* ((%T21 (CDR %S))
+                             (%T22 %T21)
+                             (%T23 (GRAM/BGLOBALIDX %T22)))
+                        (DECLARE (IGNORABLE %T21 %T22 %T23))
+                        (AND %T23
+                             (<= (ACL2::LEN (CADR %T23))
+                                 (ACL2::LEN %T22))
+                             (LET* ((%T24 (CAR %T23))
+                                    (X %T24)
+                                    (%T25 (CADR %T23))
+                                    (%T26 %T25)
+                                    (%T27 %T26))
+                               (DECLARE (IGNORABLE %T24 X %T25 %T26 %T27))
+                               (LIST (%RULE "Bexternidx/#4" (LIST :GLOBAL X))
+                                     %T27)))))))
+           (DECLARE (IGNORABLE %R))
+           (IF %R %R NIL))))))))))
 
 
 (%TRY-GUARDS GRAM/BEXTERNIDX)
 
-(%TRY-LOGIC (DEFUN GRAM/BVALTYPE (%S)
-              (DECLARE (IGNORABLE %S))
-              (LET ((%R (AND (CONSP %S)
-                             (EQUAL (CAR %S) 127)
-                             (LET* ((%T0 (CDR %S)))
-                               (DECLARE (IGNORABLE %T0))
-                               (LIST (LIST :I32) %T0)))))
-                (DECLARE (IGNORABLE %R))
-                (IF %R %R
-                  (LET ((%R (AND (CONSP %S)
-                                 (EQUAL (CAR %S) 126)
-                                 (LET* ((%T1 (CDR %S)))
-                                   (DECLARE (IGNORABLE %T1))
-                                   (LIST (LIST :I64) %T1)))))
-                    (DECLARE (IGNORABLE %R))
-                    (IF %R %R
-                      (LET ((%R (AND (CONSP %S)
-                                     (EQUAL (CAR %S) 125)
-                                     (LET* ((%T2 (CDR %S)))
-                                       (DECLARE (IGNORABLE %T2))
-                                       (LIST (LIST :F32) %T2)))))
-                        (DECLARE (IGNORABLE %R))
-                        (IF %R %R
-                          (LET ((%R (AND (CONSP %S)
-                                         (EQUAL (CAR %S) 124)
-                                         (LET* ((%T3 (CDR %S)))
-                                           (DECLARE (IGNORABLE %T3))
-                                           (LIST (LIST :F64) %T3)))))
-                            (DECLARE (IGNORABLE %R))
-                            (IF %R %R NIL))))))))))
+(%TRY-LOGIC
+     (DEFUN GRAM/BVALTYPE (%S)
+       (DECLARE (IGNORABLE %S))
+       (LET ((%R (AND (CONSP %S)
+                      (EQUAL (CAR %S) 127)
+                      (LET* ((%T0 (CDR %S)))
+                        (DECLARE (IGNORABLE %T0))
+                        (LIST (%RULE "Bvaltype/#1" (LIST :I32))
+                              %T0)))))
+         (DECLARE (IGNORABLE %R))
+         (IF %R %R
+           (LET ((%R (AND (CONSP %S)
+                          (EQUAL (CAR %S) 126)
+                          (LET* ((%T1 (CDR %S)))
+                            (DECLARE (IGNORABLE %T1))
+                            (LIST (%RULE "Bvaltype/#2" (LIST :I64))
+                                  %T1)))))
+             (DECLARE (IGNORABLE %R))
+             (IF %R %R
+               (LET ((%R (AND (CONSP %S)
+                              (EQUAL (CAR %S) 125)
+                              (LET* ((%T2 (CDR %S)))
+                                (DECLARE (IGNORABLE %T2))
+                                (LIST (%RULE "Bvaltype/#3" (LIST :F32))
+                                      %T2)))))
+                 (DECLARE (IGNORABLE %R))
+                 (IF %R %R
+                   (LET ((%R (AND (CONSP %S)
+                                  (EQUAL (CAR %S) 124)
+                                  (LET* ((%T3 (CDR %S)))
+                                    (DECLARE (IGNORABLE %T3))
+                                    (LIST (%RULE "Bvaltype/#4" (LIST :F64))
+                                          %T3)))))
+                     (DECLARE (IGNORABLE %R))
+                     (IF %R %R NIL))))))))))
 
 
 (%TRY-GUARDS GRAM/BVALTYPE)
@@ -769,29 +801,31 @@
      (LET*
       ((%T0 %S)
        (%T13
-        (LET ((%R (LET* ((%T1 (GRAM/BU32 %T0)))
-                    (DECLARE (IGNORABLE %T1))
-                    (AND %T1
-                         (<= (ACL2::LEN (CADR %T1))
-                             (ACL2::LEN %T0))
-                         (LET* ((%T2 (CAR %T1))
-                                (N %T2)
-                                (%T3 (CADR %T1))
-                                (%T4 %T3)
-                                (%T8 (GRAM/BRESULTTYPE/REP7 0 N %T4)))
-                           (DECLARE (IGNORABLE %T2 N %T3 %T4 %T8))
-                           (AND %T8
-                                (<= (ACL2::LEN (CADR %T8))
-                                    (ACL2::LEN %T4))
-                                (LET* ((EL-STAR (CAR (CDR (CAR %T8))))
-                                       (%T9 (CADR %T8))
-                                       (%T10 %T9)
-                                       (%T11 %T10))
-                                  (DECLARE (IGNORABLE EL-STAR %T9 %T10 %T11))
-                                  (LIST (GRAM/BRESULTTYPE/ITER12 EL-STAR)
-                                        %T11))))))))
-          (DECLARE (IGNORABLE %R))
-          (IF %R %R NIL))))
+        (LET
+         ((%R (LET* ((%T1 (GRAM/BU32 %T0)))
+                (DECLARE (IGNORABLE %T1))
+                (AND %T1
+                     (<= (ACL2::LEN (CADR %T1))
+                         (ACL2::LEN %T0))
+                     (LET* ((%T2 (CAR %T1))
+                            (N %T2)
+                            (%T3 (CADR %T1))
+                            (%T4 %T3)
+                            (%T8 (GRAM/BRESULTTYPE/REP7 0 N %T4)))
+                       (DECLARE (IGNORABLE %T2 N %T3 %T4 %T8))
+                       (AND %T8
+                            (<= (ACL2::LEN (CADR %T8))
+                                (ACL2::LEN %T4))
+                            (LET* ((EL-STAR (CAR (CDR (CAR %T8))))
+                                   (%T9 (CADR %T8))
+                                   (%T10 %T9)
+                                   (%T11 %T10))
+                              (DECLARE (IGNORABLE EL-STAR %T9 %T10 %T11))
+                              (LIST (%RULE "Blist/#1"
+                                           (GRAM/BRESULTTYPE/ITER12 EL-STAR))
+                                    %T11))))))))
+         (DECLARE (IGNORABLE %R))
+         (IF %R %R NIL))))
       (DECLARE (IGNORABLE %T0 %T13))
       (AND %T13
            (<= (ACL2::LEN (CADR %T13))
@@ -801,7 +835,8 @@
              (AND (TRUE-LISTP %T14)
                   (LET* ((T-STAR %T14) (%T15 (CADR %T13)))
                     (DECLARE (IGNORABLE T-STAR %T15))
-                    (LIST T-STAR %T15))))))))
+                    (LIST (%RULE "Bresulttype/#1" T-STAR)
+                          %T15))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -821,30 +856,31 @@
              (%T2 (GRAM/BRESULTTYPE %T1)))
        (DECLARE (IGNORABLE %T0 %T1 %T2))
        (AND
-           %T2
-           (<= (ACL2::LEN (CADR %T2))
-               (ACL2::LEN %T1))
-           (LET* ((%T3 (CAR %T2)))
-             (DECLARE (IGNORABLE %T3))
-             (AND (TRUE-LISTP %T3)
-                  (LET* ((T_1-STAR %T3)
-                         (%T4 (CADR %T2))
-                         (%T5 %T4)
-                         (%T6 (GRAM/BRESULTTYPE %T5)))
-                    (DECLARE (IGNORABLE T_1-STAR %T4 %T5 %T6))
-                    (AND %T6
-                         (<= (ACL2::LEN (CADR %T6))
-                             (ACL2::LEN %T5))
-                         (LET* ((%T7 (CAR %T6)))
-                           (DECLARE (IGNORABLE %T7))
-                           (AND (TRUE-LISTP %T7)
-                                (LET* ((T_2-STAR %T7)
-                                       (%T8 (CADR %T6))
-                                       (%T9 %T8)
-                                       (%T10 %T9))
-                                  (DECLARE (IGNORABLE T_2-STAR %T8 %T9 %T10))
-                                  (LIST (LIST :%->% T_1-STAR T_2-STAR)
-                                        %T10)))))))))))))
+          %T2
+          (<= (ACL2::LEN (CADR %T2))
+              (ACL2::LEN %T1))
+          (LET* ((%T3 (CAR %T2)))
+            (DECLARE (IGNORABLE %T3))
+            (AND (TRUE-LISTP %T3)
+                 (LET* ((T_1-STAR %T3)
+                        (%T4 (CADR %T2))
+                        (%T5 %T4)
+                        (%T6 (GRAM/BRESULTTYPE %T5)))
+                   (DECLARE (IGNORABLE T_1-STAR %T4 %T5 %T6))
+                   (AND %T6
+                        (<= (ACL2::LEN (CADR %T6))
+                            (ACL2::LEN %T5))
+                        (LET* ((%T7 (CAR %T6)))
+                          (DECLARE (IGNORABLE %T7))
+                          (AND (TRUE-LISTP %T7)
+                               (LET* ((T_2-STAR %T7)
+                                      (%T8 (CADR %T6))
+                                      (%T9 %T8)
+                                      (%T10 %T9))
+                                 (DECLARE (IGNORABLE T_2-STAR %T8 %T9 %T10))
+                                 (LIST (%RULE "Bfunctype/#1"
+                                              (LIST :%->% T_1-STAR T_2-STAR))
+                                       %T10)))))))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -857,14 +893,15 @@
                              (EQUAL (CAR %S) 0)
                              (LET* ((%T0 (CDR %S)))
                                (DECLARE (IGNORABLE %T0))
-                               (LIST NIL %T0)))))
+                               (LIST (%RULE "Bmut/#1" NIL) %T0)))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R
                   (LET ((%R (AND (CONSP %S)
                                  (EQUAL (CAR %S) 1)
                                  (LET* ((%T1 (CDR %S)))
                                    (DECLARE (IGNORABLE %T1))
-                                   (LIST (LIST (LIST :MUT)) %T1)))))
+                                   (LIST (%RULE "Bmut/#2" (LIST (LIST :MUT)))
+                                         %T1)))))
                     (DECLARE (IGNORABLE %R))
                     (IF %R %R NIL))))))
 
@@ -889,68 +926,72 @@
                                (%T5 %T4)
                                (%T6 %T5))
                           (DECLARE (IGNORABLE %T3 N %T4 %T5 %T6))
-                          (LIST (LIST :[%..%] N NIL) %T6)))))))
+                          (LIST (%RULE "Blimits/#1" (LIST :[%..%] N NIL))
+                                %T6)))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R
-     (LET
-        ((%R (AND (CONSP %S)
-                  (EQUAL (CAR %S) 1)
-                  (LET* ((%T7 (CDR %S))
-                         (%T8 %T7)
-                         (%T9 (GRAM/BU32 %T8)))
-                    (DECLARE (IGNORABLE %T7 %T8 %T9))
-                    (AND %T9
-                         (<= (ACL2::LEN (CADR %T9))
-                             (ACL2::LEN %T8))
-                         (LET* ((%T10 (CAR %T9))
-                                (N %T10)
-                                (%T11 (CADR %T9))
-                                (%T12 %T11)
-                                (%T13 (GRAM/BU32 %T12)))
-                           (DECLARE (IGNORABLE %T10 N %T11 %T12 %T13))
-                           (AND %T13
-                                (<= (ACL2::LEN (CADR %T13))
-                                    (ACL2::LEN %T12))
-                                (LET* ((%T14 (CAR %T13))
-                                       (M %T14)
-                                       (%T15 (CADR %T13))
-                                       (%T16 %T15)
-                                       (%T17 %T16))
-                                  (DECLARE (IGNORABLE %T14 M %T15 %T16 %T17))
-                                  (LIST (LIST :[%..%] N (LIST M))
-                                        %T17)))))))))
-       (DECLARE (IGNORABLE %R))
-       (IF %R %R NIL))))))
+    (LET
+     ((%R
+       (AND
+         (CONSP %S)
+         (EQUAL (CAR %S) 1)
+         (LET* ((%T7 (CDR %S))
+                (%T8 %T7)
+                (%T9 (GRAM/BU32 %T8)))
+           (DECLARE (IGNORABLE %T7 %T8 %T9))
+           (AND %T9
+                (<= (ACL2::LEN (CADR %T9))
+                    (ACL2::LEN %T8))
+                (LET* ((%T10 (CAR %T9))
+                       (N %T10)
+                       (%T11 (CADR %T9))
+                       (%T12 %T11)
+                       (%T13 (GRAM/BU32 %T12)))
+                  (DECLARE (IGNORABLE %T10 N %T11 %T12 %T13))
+                  (AND %T13
+                       (<= (ACL2::LEN (CADR %T13))
+                           (ACL2::LEN %T12))
+                       (LET* ((%T14 (CAR %T13))
+                              (M %T14)
+                              (%T15 (CADR %T13))
+                              (%T16 %T15)
+                              (%T17 %T16))
+                         (DECLARE (IGNORABLE %T14 M %T15 %T16 %T17))
+                         (LIST (%RULE "Blimits/#2" (LIST :[%..%] N (LIST M)))
+                               %T17)))))))))
+     (DECLARE (IGNORABLE %R))
+     (IF %R %R NIL))))))
 
 
 (%TRY-GUARDS GRAM/BLIMITS)
 
 (%TRY-LOGIC
-     (DEFUN GRAM/BGLOBALTYPE (%S)
-       (DECLARE (IGNORABLE %S))
-       (LET ((%R (LET* ((%T0 (GRAM/BVALTYPE %S)))
-                   (DECLARE (IGNORABLE %T0))
-                   (AND %T0
-                        (<= (ACL2::LEN (CADR %T0))
-                            (ACL2::LEN %S))
-                        (LET* ((%T1 (CAR %T0))
-                               (T^R %T1)
-                               (%T2 (CADR %T0))
-                               (%T3 %T2)
-                               (%T4 (GRAM/BMUT %T3)))
-                          (DECLARE (IGNORABLE %T1 T^R %T2 %T3 %T4))
-                          (AND %T4
-                               (<= (ACL2::LEN (CADR %T4))
-                                   (ACL2::LEN %T3))
-                               (LET* ((%T5 (CAR %T4))
-                                      (MUT %T5)
-                                      (%T6 (CADR %T4))
-                                      (%T7 %T6)
-                                      (%T8 %T7))
-                                 (DECLARE (IGNORABLE %T5 MUT %T6 %T7 %T8))
-                                 (LIST (LIST MUT T^R) %T8))))))))
-         (DECLARE (IGNORABLE %R))
-         (IF %R %R NIL))))
+    (DEFUN GRAM/BGLOBALTYPE (%S)
+      (DECLARE (IGNORABLE %S))
+      (LET ((%R (LET* ((%T0 (GRAM/BVALTYPE %S)))
+                  (DECLARE (IGNORABLE %T0))
+                  (AND %T0
+                       (<= (ACL2::LEN (CADR %T0))
+                           (ACL2::LEN %S))
+                       (LET* ((%T1 (CAR %T0))
+                              (T^R %T1)
+                              (%T2 (CADR %T0))
+                              (%T3 %T2)
+                              (%T4 (GRAM/BMUT %T3)))
+                         (DECLARE (IGNORABLE %T1 T^R %T2 %T3 %T4))
+                         (AND %T4
+                              (<= (ACL2::LEN (CADR %T4))
+                                  (ACL2::LEN %T3))
+                              (LET* ((%T5 (CAR %T4))
+                                     (MUT %T5)
+                                     (%T6 (CADR %T4))
+                                     (%T7 %T6)
+                                     (%T8 %T7))
+                                (DECLARE (IGNORABLE %T5 MUT %T6 %T7 %T8))
+                                (LIST (%RULE "Bglobaltype/#1" (LIST MUT T^R))
+                                      %T8))))))))
+        (DECLARE (IGNORABLE %R))
+        (IF %R %R NIL))))
 
 
 (%TRY-GUARDS GRAM/BGLOBALTYPE)
@@ -973,7 +1014,8 @@
                                     (%T5 %T4)
                                     (%T6 %T5))
                                (DECLARE (IGNORABLE %T3 LIM %T4 %T5 %T6))
-                               (LIST LIM %T6)))))))
+                               (LIST (%RULE "Btabletype/#1" LIM)
+                                     %T6)))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
 
@@ -991,7 +1033,8 @@
                                       (LIM %T1)
                                       (%T2 (CADR %T0)))
                                  (DECLARE (IGNORABLE %T1 LIM %T2))
-                                 (LIST LIM %T2))))))
+                                 (LIST (%RULE "Bmemtype/#1" LIM)
+                                       %T2))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
@@ -1016,7 +1059,8 @@
                                (%T5 %T4)
                                (%T6 %T5))
                           (DECLARE (IGNORABLE %T3 FT %T4 %T5 %T6))
-                          (LIST (LIST :FUNC FT) %T6)))))))
+                          (LIST (%RULE "Bexterntype/#1" (LIST :FUNC FT))
+                                %T6)))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R
     (LET ((%R (AND (CONSP %S)
@@ -1034,7 +1078,8 @@
                                  (%T12 %T11)
                                  (%T13 %T12))
                             (DECLARE (IGNORABLE %T10 TT %T11 %T12 %T13))
-                            (LIST (LIST :TABLE TT) %T13)))))))
+                            (LIST (%RULE "Bexterntype/#2" (LIST :TABLE TT))
+                                  %T13)))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R
       (LET ((%R (AND (CONSP %S)
@@ -1052,27 +1097,30 @@
                                    (%T19 %T18)
                                    (%T20 %T19))
                               (DECLARE (IGNORABLE %T17 MT %T18 %T19 %T20))
-                              (LIST (LIST :MEM MT) %T20)))))))
+                              (LIST (%RULE "Bexterntype/#3" (LIST :MEM MT))
+                                    %T20)))))))
        (DECLARE (IGNORABLE %R))
        (IF %R %R
-         (LET ((%R (AND (CONSP %S)
-                        (EQUAL (CAR %S) 3)
-                        (LET* ((%T21 (CDR %S))
-                               (%T22 %T21)
-                               (%T23 (GRAM/BGLOBALTYPE %T22)))
-                          (DECLARE (IGNORABLE %T21 %T22 %T23))
-                          (AND %T23
-                               (<= (ACL2::LEN (CADR %T23))
-                                   (ACL2::LEN %T22))
-                               (LET* ((%T24 (CAR %T23))
-                                      (GT %T24)
-                                      (%T25 (CADR %T23))
-                                      (%T26 %T25)
-                                      (%T27 %T26))
-                                 (DECLARE (IGNORABLE %T24 GT %T25 %T26 %T27))
-                                 (LIST (LIST :GLOBAL GT) %T27)))))))
-           (DECLARE (IGNORABLE %R))
-           (IF %R %R NIL))))))))))
+         (LET
+          ((%R (AND (CONSP %S)
+                    (EQUAL (CAR %S) 3)
+                    (LET* ((%T21 (CDR %S))
+                           (%T22 %T21)
+                           (%T23 (GRAM/BGLOBALTYPE %T22)))
+                      (DECLARE (IGNORABLE %T21 %T22 %T23))
+                      (AND %T23
+                           (<= (ACL2::LEN (CADR %T23))
+                               (ACL2::LEN %T22))
+                           (LET* ((%T24 (CAR %T23))
+                                  (GT %T24)
+                                  (%T25 (CADR %T23))
+                                  (%T26 %T25)
+                                  (%T27 %T26))
+                             (DECLARE (IGNORABLE %T24 GT %T25 %T26 %T27))
+                             (LIST (%RULE "Bexterntype/#4" (LIST :GLOBAL GT))
+                                   %T27)))))))
+          (DECLARE (IGNORABLE %R))
+          (IF %R %R NIL))))))))))
 
 
 (%TRY-GUARDS GRAM/BEXTERNTYPE)
@@ -1083,7 +1131,8 @@
                              (EQUAL (CAR %S) 64)
                              (LET* ((%T0 (CDR %S)))
                                (DECLARE (IGNORABLE %T0))
-                               (LIST NIL %T0)))))
+                               (LIST (%RULE "Bblocktype/#1" NIL)
+                                     %T0)))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R
                   (LET ((%R (LET* ((%T1 (GRAM/BVALTYPE %S)))
@@ -1095,7 +1144,8 @@
                                           (T^R %T2)
                                           (%T3 (CADR %T1)))
                                      (DECLARE (IGNORABLE %T2 T^R %T3))
-                                     (LIST (LIST T^R) %T3))))))
+                                     (LIST (%RULE "Bblocktype/#2" (LIST T^R))
+                                           %T3))))))
                     (DECLARE (IGNORABLE %R))
                     (IF %R %R NIL))))))
 
@@ -1125,8 +1175,9 @@
                                       (%T7 %T6)
                                       (%T8 %T7))
                                  (DECLARE (IGNORABLE %T5 M %T6 %T7 %T8))
-                                 (LIST (LIST :%REC (CONS :ALIGN N)
-                                             (CONS :OFFSET M))
+                                 (LIST (%RULE "Bmemarg/#1"
+                                              (LIST :%REC (CONS :ALIGN N)
+                                                    (CONS :OFFSET M)))
                                        %T8))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
@@ -1309,116 +1360,127 @@
                   (EQUAL (CAR %S) 0)
                   (LET* ((%T0 (CDR %S)))
                     (DECLARE (IGNORABLE %T0))
-                    (LIST (LIST :UNREACHABLE) %T0)))))
+                    (LIST (%RULE "Binstr/#1" (LIST :UNREACHABLE))
+                          %T0)))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R
      (LET ((%R (AND (CONSP %S)
                     (EQUAL (CAR %S) 1)
                     (LET* ((%T1 (CDR %S)))
                       (DECLARE (IGNORABLE %T1))
-                      (LIST (LIST :NOP) %T1)))))
+                      (LIST (%RULE "Binstr/#2" (LIST :NOP))
+                            %T1)))))
       (DECLARE (IGNORABLE %R))
       (IF %R %R
        (LET
-        ((%R (AND (CONSP %S)
-                  (EQUAL (CAR %S) 2)
-                  (LET* ((%T2 (CDR %S))
-                         (%T3 %T2)
-                         (%T4 (GRAM/BBLOCKTYPE %T3)))
-                    (DECLARE (IGNORABLE %T2 %T3 %T4))
-                    (AND %T4
-                         (<= (ACL2::LEN (CADR %T4))
-                             (ACL2::LEN %T3))
-                         (LET* ((%T5 (CAR %T4))
-                                (BT %T5)
-                                (%T6 (CADR %T4))
-                                (%T7 %T6)
-                                (%T11 (GRAM/BINSTR/REP10 %T7)))
-                           (DECLARE (IGNORABLE %T5 BT %T6 %T7 %T11))
-                           (AND %T11
-                                (<= (ACL2::LEN (CADR %T11))
-                                    (ACL2::LEN %T7))
-                                (LET* ((IN-STAR (CAR (CDR (CAR %T11))))
-                                       (%T12 (CADR %T11))
-                                       (%T13 %T12))
-                                  (DECLARE (IGNORABLE IN-STAR %T12 %T13))
-                                  (AND (CONSP %T13)
-                                       (EQUAL (CAR %T13) 11)
-                                       (LET* ((%T14 (CDR %T13))
-                                              (%T15 %T14)
-                                              (%T16 %T15))
-                                         (DECLARE (IGNORABLE %T14 %T15 %T16))
-                                         (LIST (LIST :BLOCK BT IN-STAR)
-                                               %T16)))))))))))
+        ((%R
+          (AND
+           (CONSP %S)
+           (EQUAL (CAR %S) 2)
+           (LET* ((%T2 (CDR %S))
+                  (%T3 %T2)
+                  (%T4 (GRAM/BBLOCKTYPE %T3)))
+            (DECLARE (IGNORABLE %T2 %T3 %T4))
+            (AND
+             %T4
+             (<= (ACL2::LEN (CADR %T4))
+                 (ACL2::LEN %T3))
+             (LET* ((%T5 (CAR %T4))
+                    (BT %T5)
+                    (%T6 (CADR %T4))
+                    (%T7 %T6)
+                    (%T11 (GRAM/BINSTR/REP10 %T7)))
+              (DECLARE (IGNORABLE %T5 BT %T6 %T7 %T11))
+              (AND
+                  %T11
+                  (<= (ACL2::LEN (CADR %T11))
+                      (ACL2::LEN %T7))
+                  (LET* ((IN-STAR (CAR (CDR (CAR %T11))))
+                         (%T12 (CADR %T11))
+                         (%T13 %T12))
+                    (DECLARE (IGNORABLE IN-STAR %T12 %T13))
+                    (AND (CONSP %T13)
+                         (EQUAL (CAR %T13) 11)
+                         (LET* ((%T14 (CDR %T13))
+                                (%T15 %T14)
+                                (%T16 %T15))
+                           (DECLARE (IGNORABLE %T14 %T15 %T16))
+                           (LIST (%RULE "Binstr/#3" (LIST :BLOCK BT IN-STAR))
+                                 %T16)))))))))))
         (DECLARE (IGNORABLE %R))
         (IF %R %R
          (LET
           ((%R
-             (AND (CONSP %S)
-                  (EQUAL (CAR %S) 3)
-                  (LET* ((%T17 (CDR %S))
-                         (%T18 %T17)
-                         (%T19 (GRAM/BBLOCKTYPE %T18)))
-                    (DECLARE (IGNORABLE %T17 %T18 %T19))
-                    (AND %T19
-                         (<= (ACL2::LEN (CADR %T19))
-                             (ACL2::LEN %T18))
-                         (LET* ((%T20 (CAR %T19))
-                                (BT %T20)
-                                (%T21 (CADR %T19))
-                                (%T22 %T21)
-                                (%T26 (GRAM/BINSTR/REP25 %T22)))
-                           (DECLARE (IGNORABLE %T20 BT %T21 %T22 %T26))
-                           (AND %T26
-                                (<= (ACL2::LEN (CADR %T26))
-                                    (ACL2::LEN %T22))
-                                (LET* ((IN-STAR (CAR (CDR (CAR %T26))))
-                                       (%T27 (CADR %T26))
-                                       (%T28 %T27))
-                                  (DECLARE (IGNORABLE IN-STAR %T27 %T28))
-                                  (AND (CONSP %T28)
-                                       (EQUAL (CAR %T28) 11)
-                                       (LET* ((%T29 (CDR %T28))
-                                              (%T30 %T29)
-                                              (%T31 %T30))
-                                         (DECLARE (IGNORABLE %T29 %T30 %T31))
-                                         (LIST (LIST :LOOP BT IN-STAR)
-                                               %T31)))))))))))
+            (AND
+             (CONSP %S)
+             (EQUAL (CAR %S) 3)
+             (LET* ((%T17 (CDR %S))
+                    (%T18 %T17)
+                    (%T19 (GRAM/BBLOCKTYPE %T18)))
+              (DECLARE (IGNORABLE %T17 %T18 %T19))
+              (AND
+               %T19
+               (<= (ACL2::LEN (CADR %T19))
+                   (ACL2::LEN %T18))
+               (LET* ((%T20 (CAR %T19))
+                      (BT %T20)
+                      (%T21 (CADR %T19))
+                      (%T22 %T21)
+                      (%T26 (GRAM/BINSTR/REP25 %T22)))
+                (DECLARE (IGNORABLE %T20 BT %T21 %T22 %T26))
+                (AND
+                   %T26
+                   (<= (ACL2::LEN (CADR %T26))
+                       (ACL2::LEN %T22))
+                   (LET* ((IN-STAR (CAR (CDR (CAR %T26))))
+                          (%T27 (CADR %T26))
+                          (%T28 %T27))
+                     (DECLARE (IGNORABLE IN-STAR %T27 %T28))
+                     (AND (CONSP %T28)
+                          (EQUAL (CAR %T28) 11)
+                          (LET* ((%T29 (CDR %T28))
+                                 (%T30 %T29)
+                                 (%T31 %T30))
+                            (DECLARE (IGNORABLE %T29 %T30 %T31))
+                            (LIST (%RULE "Binstr/#4" (LIST :LOOP BT IN-STAR))
+                                  %T31)))))))))))
           (DECLARE (IGNORABLE %R))
           (IF %R %R
            (LET
             ((%R
               (AND
-                  (CONSP %S)
-                  (EQUAL (CAR %S) 4)
-                  (LET* ((%T32 (CDR %S))
-                         (%T33 %T32)
-                         (%T34 (GRAM/BBLOCKTYPE %T33)))
-                    (DECLARE (IGNORABLE %T32 %T33 %T34))
-                    (AND %T34
-                         (<= (ACL2::LEN (CADR %T34))
-                             (ACL2::LEN %T33))
-                         (LET* ((%T35 (CAR %T34))
-                                (BT %T35)
-                                (%T36 (CADR %T34))
-                                (%T37 %T36)
-                                (%T41 (GRAM/BINSTR/REP40 %T37)))
-                           (DECLARE (IGNORABLE %T35 BT %T36 %T37 %T41))
-                           (AND %T41
-                                (<= (ACL2::LEN (CADR %T41))
-                                    (ACL2::LEN %T37))
-                                (LET* ((IN-STAR (CAR (CDR (CAR %T41))))
-                                       (%T42 (CADR %T41))
-                                       (%T43 %T42))
-                                  (DECLARE (IGNORABLE IN-STAR %T42 %T43))
-                                  (AND (CONSP %T43)
-                                       (EQUAL (CAR %T43) 11)
-                                       (LET* ((%T44 (CDR %T43))
-                                              (%T45 %T44)
-                                              (%T46 %T45))
-                                         (DECLARE (IGNORABLE %T44 %T45 %T46))
-                                         (LIST (LIST :IFELSE BT IN-STAR NIL)
-                                               %T46)))))))))))
+               (CONSP %S)
+               (EQUAL (CAR %S) 4)
+               (LET* ((%T32 (CDR %S))
+                      (%T33 %T32)
+                      (%T34 (GRAM/BBLOCKTYPE %T33)))
+                (DECLARE (IGNORABLE %T32 %T33 %T34))
+                (AND
+                  %T34
+                  (<= (ACL2::LEN (CADR %T34))
+                      (ACL2::LEN %T33))
+                  (LET* ((%T35 (CAR %T34))
+                         (BT %T35)
+                         (%T36 (CADR %T34))
+                         (%T37 %T36)
+                         (%T41 (GRAM/BINSTR/REP40 %T37)))
+                    (DECLARE (IGNORABLE %T35 BT %T36 %T37 %T41))
+                    (AND %T41
+                         (<= (ACL2::LEN (CADR %T41))
+                             (ACL2::LEN %T37))
+                         (LET* ((IN-STAR (CAR (CDR (CAR %T41))))
+                                (%T42 (CADR %T41))
+                                (%T43 %T42))
+                           (DECLARE (IGNORABLE IN-STAR %T42 %T43))
+                           (AND (CONSP %T43)
+                                (EQUAL (CAR %T43) 11)
+                                (LET* ((%T44 (CDR %T43))
+                                       (%T45 %T44)
+                                       (%T46 %T45))
+                                  (DECLARE (IGNORABLE %T44 %T45 %T46))
+                                  (LIST (%RULE "Binstr/#5"
+                                               (LIST :IFELSE BT IN-STAR NIL))
+                                        %T46)))))))))))
             (DECLARE (IGNORABLE %R))
             (IF %R %R
              (LET
@@ -1462,15 +1524,18 @@
                          (LET* ((IN_2-STAR (CAR (CDR (CAR %T64))))
                                 (%T65 (CADR %T64))
                                 (%T66 %T65))
-                           (DECLARE (IGNORABLE IN_2-STAR %T65 %T66))
-                           (AND (CONSP %T66)
-                                (EQUAL (CAR %T66) 11)
-                                (LET* ((%T67 (CDR %T66))
-                                       (%T68 %T67)
-                                       (%T69 %T68))
-                                  (DECLARE (IGNORABLE %T67 %T68 %T69))
-                                  (LIST (LIST :IFELSE BT IN_1-STAR IN_2-STAR)
-                                        %T69)))))))))))))))
+                          (DECLARE (IGNORABLE IN_2-STAR %T65 %T66))
+                          (AND
+                           (CONSP %T66)
+                           (EQUAL (CAR %T66) 11)
+                           (LET* ((%T67 (CDR %T66))
+                                  (%T68 %T67)
+                                  (%T69 %T68))
+                            (DECLARE (IGNORABLE %T67 %T68 %T69))
+                            (LIST
+                                (%RULE "Binstr/#6"
+                                       (LIST :IFELSE BT IN_1-STAR IN_2-STAR))
+                                %T69)))))))))))))))
               (DECLARE (IGNORABLE %R))
               (IF %R %R
                (LET
@@ -1490,7 +1555,8 @@
                                        (%T75 %T74)
                                        (%T76 %T75))
                                   (DECLARE (IGNORABLE %T73 L %T74 %T75 %T76))
-                                  (LIST (LIST :BR L) %T76)))))))
+                                  (LIST (%RULE "Binstr/#7" (LIST :BR L))
+                                        %T76)))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R
                  (LET
@@ -1510,7 +1576,8 @@
                                        (%T82 %T81)
                                        (%T83 %T82))
                                   (DECLARE (IGNORABLE %T80 L %T81 %T82 %T83))
-                                  (LIST (LIST :BR_IF L) %T83)))))))
+                                  (LIST (%RULE "Binstr/#8" (LIST :BR_IF L))
+                                        %T83)))))))
                   (DECLARE (IGNORABLE %R))
                   (IF %R %R
                    (LET
@@ -1538,17 +1605,19 @@
                                       (%T94 (GRAM/BINSTR/REP93 0 N %T90)))
                                 (DECLARE (IGNORABLE %T88 N %T89 %T90 %T94))
                                 (AND
-                                   %T94
-                                   (<= (ACL2::LEN (CADR %T94))
-                                       (ACL2::LEN %T90))
-                                   (LET* ((EL-STAR (CAR (CDR (CAR %T94))))
-                                          (%T95 (CADR %T94))
-                                          (%T96 %T95)
-                                          (%T97 %T96))
-                                     (DECLARE
-                                          (IGNORABLE EL-STAR %T95 %T96 %T97))
-                                     (LIST (GRAM/BINSTR/ITER98 EL-STAR)
-                                           %T97))))))))
+                                 %T94
+                                 (<= (ACL2::LEN (CADR %T94))
+                                     (ACL2::LEN %T90))
+                                 (LET* ((EL-STAR (CAR (CDR (CAR %T94))))
+                                        (%T95 (CADR %T94))
+                                        (%T96 %T95)
+                                        (%T97 %T96))
+                                  (DECLARE
+                                       (IGNORABLE EL-STAR %T95 %T96 %T97))
+                                  (LIST
+                                   (%RULE
+                                     "Blist/#1" (GRAM/BINSTR/ITER98 EL-STAR))
+                                   %T97))))))))
                            (DECLARE (IGNORABLE %R))
                            (IF %R %R NIL))))
                         (DECLARE (IGNORABLE %T84 %T85 %T86 %T99))
@@ -1566,25 +1635,29 @@
                                   (%T103 (GRAM/BLABELIDX %T102)))
                             (DECLARE (IGNORABLE L-STAR %T101 %T102 %T103))
                             (AND
-                              %T103
-                              (<= (ACL2::LEN (CADR %T103))
-                                  (ACL2::LEN %T102))
-                              (LET* ((%T104 (CAR %T103))
-                                     (L_N %T104)
-                                     (%T105 (CADR %T103))
-                                     (%T106 %T105)
-                                     (%T107 %T106))
-                                (DECLARE
-                                     (IGNORABLE %T104 L_N %T105 %T106 %T107))
-                                (LIST (LIST :BR_TABLE L-STAR L_N)
-                                      %T107)))))))))))
+                             %T103
+                             (<= (ACL2::LEN (CADR %T103))
+                                 (ACL2::LEN %T102))
+                             (LET* ((%T104 (CAR %T103))
+                                    (L_N %T104)
+                                    (%T105 (CADR %T103))
+                                    (%T106 %T105)
+                                    (%T107 %T106))
+                              (DECLARE
+                                   (IGNORABLE %T104 L_N %T105 %T106 %T107))
+                              (LIST
+                                (%RULE
+                                     "Binstr/#9" (LIST :BR_TABLE L-STAR L_N))
+                                %T107)))))))))))
                     (DECLARE (IGNORABLE %R))
                     (IF %R %R
-                     (LET ((%R (AND (CONSP %S)
-                                    (EQUAL (CAR %S) 15)
-                                    (LET* ((%T108 (CDR %S)))
-                                      (DECLARE (IGNORABLE %T108))
-                                      (LIST (LIST :RETURN) %T108)))))
+                     (LET
+                       ((%R (AND (CONSP %S)
+                                 (EQUAL (CAR %S) 15)
+                                 (LET* ((%T108 (CDR %S)))
+                                   (DECLARE (IGNORABLE %T108))
+                                   (LIST (%RULE "Binstr/#10" (LIST :RETURN))
+                                         %T108)))))
                       (DECLARE (IGNORABLE %R))
                       (IF %R %R
                        (LET
@@ -1606,7 +1679,8 @@
                                     (%T114 %T113)
                                     (%T115 %T114))
                               (DECLARE (IGNORABLE %T112 X %T113 %T114 %T115))
-                              (LIST (LIST :CALL X) %T115)))))))
+                              (LIST (%RULE "Binstr/#11" (LIST :CALL X))
+                                    %T115)))))))
                         (DECLARE (IGNORABLE %R))
                         (IF %R %R
                          (LET
@@ -1628,28 +1702,37 @@
                                       (%T121 %T120))
                                 (DECLARE (IGNORABLE %T119 X %T120 %T121))
                                 (AND
-                                    (CONSP %T121)
-                                    (EQUAL (CAR %T121) 0)
-                                    (LET* ((%T122 (CDR %T121))
-                                           (%T123 %T122)
-                                           (%T124 %T123))
-                                      (DECLARE (IGNORABLE %T122 %T123 %T124))
-                                      (LIST (LIST :CALL_INDIRECT X)
-                                            %T124)))))))))
+                                 (CONSP %T121)
+                                 (EQUAL (CAR %T121) 0)
+                                 (LET* ((%T122 (CDR %T121))
+                                        (%T123 %T122)
+                                        (%T124 %T123))
+                                  (DECLARE (IGNORABLE %T122 %T123 %T124))
+                                  (LIST
+                                   (%RULE
+                                        "Binstr/#12" (LIST :CALL_INDIRECT X))
+                                   %T124)))))))))
                           (DECLARE (IGNORABLE %R))
                           (IF %R %R
-                           (LET ((%R (AND (CONSP %S)
-                                          (EQUAL (CAR %S) 26)
-                                          (LET* ((%T125 (CDR %S)))
-                                            (DECLARE (IGNORABLE %T125))
-                                            (LIST (LIST :DROP) %T125)))))
+                           (LET
+                            ((%R
+                               (AND (CONSP %S)
+                                    (EQUAL (CAR %S) 26)
+                                    (LET* ((%T125 (CDR %S)))
+                                      (DECLARE (IGNORABLE %T125))
+                                      (LIST (%RULE "Binstr/#13" (LIST :DROP))
+                                            %T125)))))
                             (DECLARE (IGNORABLE %R))
                             (IF %R %R
-                             (LET ((%R (AND (CONSP %S)
-                                            (EQUAL (CAR %S) 27)
-                                            (LET* ((%T126 (CDR %S)))
-                                              (DECLARE (IGNORABLE %T126))
-                                              (LIST (LIST :SELECT) %T126)))))
+                             (LET
+                              ((%R
+                                (AND
+                                  (CONSP %S)
+                                  (EQUAL (CAR %S) 27)
+                                  (LET* ((%T126 (CDR %S)))
+                                    (DECLARE (IGNORABLE %T126))
+                                    (LIST (%RULE "Binstr/#14" (LIST :SELECT))
+                                          %T126)))))
                               (DECLARE (IGNORABLE %R))
                               (IF %R %R
                                (LET
@@ -1672,7 +1755,10 @@
                                             (%T133 %T132))
                                       (DECLARE
                                        (IGNORABLE %T130 X %T131 %T132 %T133))
-                                      (LIST (LIST :LOCAL.GET X) %T133)))))))
+                                      (LIST
+                                       (%RULE
+                                            "Binstr/#15" (LIST :LOCAL.GET X))
+                                       %T133)))))))
                                 (DECLARE (IGNORABLE %R))
                                 (IF %R %R
                                  (LET
@@ -1696,8 +1782,10 @@
                                         (DECLARE
                                              (IGNORABLE
                                                   %T137 X %T138 %T139 %T140))
-                                        (LIST (LIST :LOCAL.SET X)
-                                              %T140)))))))
+                                        (LIST
+                                         (%RULE
+                                            "Binstr/#16" (LIST :LOCAL.SET X))
+                                         %T140)))))))
                                   (DECLARE (IGNORABLE %R))
                                   (IF %R %R
                                    (LET
@@ -1722,8 +1810,10 @@
                                           (DECLARE
                                              (IGNORABLE
                                                   %T144 X %T145 %T146 %T147))
-                                          (LIST (LIST :LOCAL.TEE X)
-                                                %T147)))))))
+                                          (LIST
+                                           (%RULE
+                                            "Binstr/#17" (LIST :LOCAL.TEE X))
+                                           %T147)))))))
                                     (DECLARE (IGNORABLE %R))
                                     (IF %R %R
                                      (LET
@@ -1749,8 +1839,10 @@
                                             (DECLARE
                                              (IGNORABLE
                                                   %T151 X %T152 %T153 %T154))
-                                            (LIST (LIST :GLOBAL.GET X)
-                                                  %T154)))))))
+                                            (LIST
+                                                 (%RULE "Binstr/#18"
+                                                        (LIST :GLOBAL.GET X))
+                                                 %T154)))))))
                                       (DECLARE (IGNORABLE %R))
                                       (IF %R %R
                                        (LET
@@ -1776,8 +1868,10 @@
                                               (DECLARE
                                                (IGNORABLE
                                                   %T158 X %T159 %T160 %T161))
-                                              (LIST (LIST :GLOBAL.SET X)
-                                                    %T161)))))))
+                                              (LIST
+                                                 (%RULE "Binstr/#19"
+                                                        (LIST :GLOBAL.SET X))
+                                                 %T161)))))))
                                         (DECLARE (IGNORABLE %R))
                                         (IF %R %R
                                          (LET
@@ -1804,9 +1898,12 @@
                                                   (IGNORABLE
                                                        %T165
                                                        AO %T166 %T167 %T168))
-                                                (LIST (LIST :LOAD (LIST :I32)
-                                                            NIL AO)
-                                                      %T168)))))))
+                                                (LIST
+                                                 (%RULE
+                                                      "Binstr/#20"
+                                                      (LIST :LOAD (LIST :I32)
+                                                            NIL AO))
+                                                 %T168)))))))
                                           (DECLARE (IGNORABLE %R))
                                           (IF %R %R
                                            (LET
@@ -1836,9 +1933,11 @@
                                                        %T172
                                                        AO %T173 %T174 %T175))
                                                   (LIST
+                                                   (%RULE
+                                                      "Binstr/#21"
                                                       (LIST :LOAD (LIST :I64)
-                                                            NIL AO)
-                                                      %T175)))))))
+                                                            NIL AO))
+                                                   %T175)))))))
                                             (DECLARE (IGNORABLE %R))
                                             (IF %R %R
                                              (LET
@@ -1870,9 +1969,11 @@
                                                        %T179
                                                        AO %T180 %T181 %T182))
                                                     (LIST
+                                                     (%RULE
+                                                      "Binstr/#22"
                                                       (LIST :LOAD (LIST :F32)
-                                                            NIL AO)
-                                                      %T182)))))))
+                                                            NIL AO))
+                                                     %T182)))))))
                                               (DECLARE (IGNORABLE %R))
                                               (IF %R %R
                                                (LET
@@ -1904,9 +2005,11 @@
                                                           %T186 AO
                                                           %T187 %T188 %T189))
                                                       (LIST
-                                                       (LIST
+                                                       (%RULE
+                                                        "Binstr/#23"
+                                                        (LIST
                                                             :LOAD (LIST :F64)
-                                                            NIL AO)
+                                                            NIL AO))
                                                        %T189)))))))
                                                 (DECLARE (IGNORABLE %R))
                                                 (IF %R %R
@@ -1939,12 +2042,14 @@
                                                           %T193 AO
                                                           %T194 %T195 %T196))
                                                         (LIST
-                                                         (LIST
-                                                          :LOAD (LIST :I32)
+                                                         (%RULE
+                                                          "Binstr/#24"
                                                           (LIST
+                                                           :LOAD (LIST :I32)
                                                            (LIST
+                                                            (LIST
                                                              :_ 8 (LIST :S)))
-                                                          AO)
+                                                           AO))
                                                          %T196)))))))
                                                   (DECLARE (IGNORABLE %R))
                                                   (IF %R %R
@@ -1980,13 +2085,16 @@
                                                                %T200 AO %T201
                                                                %T202 %T203))
                                                           (LIST
-                                                           (LIST
-                                                            :LOAD (LIST :I32)
+                                                           (%RULE
+                                                            "Binstr/#25"
                                                             (LIST
+                                                             :LOAD
+                                                             (LIST :I32)
                                                              (LIST
+                                                              (LIST
                                                                 :_
                                                                 8 (LIST :U)))
-                                                            AO)
+                                                             AO))
                                                            %T203)))))))
                                                     (DECLARE (IGNORABLE %R))
                                                     (IF %R %R
@@ -2025,14 +2133,16 @@
                                                                %T207 AO %T208
                                                                %T209 %T210))
                                                             (LIST
-                                                             (LIST
-                                                              :LOAD
-                                                              (LIST :I32)
+                                                             (%RULE
+                                                              "Binstr/#26"
                                                               (LIST
+                                                               :LOAD
+                                                               (LIST :I32)
                                                                (LIST
+                                                                (LIST
                                                                   :_ 16
                                                                   (LIST :S)))
-                                                              AO)
+                                                               AO))
                                                              %T210)))))))
                                                       (DECLARE
                                                            (IGNORABLE %R))
@@ -2074,14 +2184,17 @@
                                                                 AO %T215
                                                                 %T216 %T217))
                                                               (LIST
-                                                               (LIST
-                                                                :LOAD
-                                                                (LIST :I32)
+                                                               (%RULE
+                                                                "Binstr/#27"
                                                                 (LIST
+                                                                 :LOAD
+                                                                 (LIST :I32)
                                                                  (LIST
-                                                                  :_ 16
-                                                                  (LIST :U)))
-                                                                AO)
+                                                                  (LIST
+                                                                   :_ 16
+                                                                   (LIST
+                                                                        :U)))
+                                                                 AO))
                                                                %T217)))))))
                                                         (DECLARE
                                                              (IGNORABLE %R))
@@ -2129,15 +2242,18 @@
                                                                   %T222 %T223
                                                                   %T224))
                                                                 (LIST
-                                                                 (LIST
-                                                                  :LOAD
-                                                                  (LIST :I64)
+                                                                 (%RULE
+                                                                  "Binstr/#28"
                                                                   (LIST
+                                                                   :LOAD
                                                                    (LIST
-                                                                    :_ 8
+                                                                        :I64)
+                                                                   (LIST
                                                                     (LIST
+                                                                     :_ 8
+                                                                     (LIST
                                                                         :S)))
-                                                                  AO)
+                                                                   AO))
                                                                  %T224)))))))
                                                           (DECLARE
                                                               (IGNORABLE %R))
@@ -2188,16 +2304,18 @@
                                                                      %T230
                                                                      %T231))
                                                                   (LIST
-                                                                   (LIST
-                                                                    :LOAD
+                                                                   (%RULE
+                                                                    "Binstr/#29"
                                                                     (LIST
-                                                                        :I64)
-                                                                    (LIST
+                                                                     :LOAD
                                                                      (LIST
-                                                                      :_ 8
+                                                                        :I64)
+                                                                     (LIST
                                                                       (LIST
+                                                                       :_ 8
+                                                                       (LIST
                                                                         :U)))
-                                                                    AO)
+                                                                     AO))
                                                                    %T231)))))))
                                                             (DECLARE
                                                               (IGNORABLE %R))
@@ -2251,16 +2369,19 @@
                                                                       %T237
                                                                       %T238))
                                                                     (LIST
-                                                                     (LIST
-                                                                      :LOAD
+                                                                     (%RULE
+                                                                      "Binstr/#30"
                                                                       (LIST
-                                                                        :I64)
-                                                                      (LIST
+                                                                       :LOAD
                                                                        (LIST
-                                                                        :_ 16
+                                                                        :I64)
+                                                                       (LIST
                                                                         (LIST
-                                                                         :S)))
-                                                                      AO)
+                                                                         :_
+                                                                         16
+                                                                         (LIST
+                                                                          :S)))
+                                                                       AO))
                                                                      %T238)))))))
                                                               (DECLARE
                                                                    (IGNORABLE
@@ -2316,17 +2437,19 @@
                                                                         %T244
                                                                         %T245))
                                                                       (LIST
-                                                                       (LIST
-                                                                        :LOAD
+                                                                       (%RULE
+                                                                        "Binstr/#31"
                                                                         (LIST
-                                                                         :I64)
-                                                                        (LIST
+                                                                         :LOAD
                                                                          (LIST
-                                                                          :_
-                                                                          16
+                                                                          :I64)
+                                                                         (LIST
                                                                           (LIST
-                                                                           :U)))
-                                                                        AO)
+                                                                           :_
+                                                                           16
+                                                                           (LIST
+                                                                            :U)))
+                                                                         AO))
                                                                        %T245)))))))
                                                                 (DECLARE
                                                                     (IGNORABLE
@@ -2384,17 +2507,19 @@
                                                                           %T251
                                                                           %T252))
                                                                         (LIST
-                                                                         (LIST
-                                                                          :LOAD
+                                                                         (%RULE
+                                                                          "Binstr/#32"
                                                                           (LIST
-                                                                           :I64)
-                                                                          (LIST
+                                                                           :LOAD
                                                                            (LIST
-                                                                            :_
-                                                                            32
+                                                                            :I64)
+                                                                           (LIST
                                                                             (LIST
-                                                                             :S)))
-                                                                          AO)
+                                                                             :_
+                                                                             32
+                                                                             (LIST
+                                                                              :S)))
+                                                                           AO))
                                                                          %T252)))))))
                                                                   (DECLARE
                                                                     (IGNORABLE
@@ -2452,18 +2577,23 @@
                                                                             %T258
                                                                             %T259))
                                                                           (LIST
-                                                                           (LIST
-                                                                            :LOAD
+                                                                           (%RULE
+                                                                            "Binstr/#33"
                                                                             (LIST
-                                                                             :I64)
-                                                                            (LIST
+                                                                             :LOAD
                                                                              (LIST
-                                                                              :_
-                                                                              32
+                                                                              :I64)
+                                                                             (LIST
                                                                               (LIST
                                                                               
- :U)))
-                                                                            AO)
+ :_
+                                                                              
+ 32
+                                                                              
+ (LIST
+                                                                              
+  :U)))
+                                                                             AO))
                                                                            %T259)))))))
                                                                     (DECLARE
                                                                      (IGNORABLE
@@ -2523,13 +2653,19 @@
                                                                               %T265
                                                                               %T266))
                                                                             (LIST
-                                                                             (LIST
-                                                                              :STORE
+                                                                             (%RULE
+                                                                              "Binstr/#34"
                                                                               (LIST
                                                                               
- :I32)
-                                                                              NIL
-                                                                              AO)
+ :STORE
+                                                                              
+ (LIST
+                                                                              
+  :I32)
+                                                                              
+ NIL
+                                                                              
+ AO))
                                                                              %T266)))))))
                                                                       (DECLARE
                                                                        (IGNORABLE
@@ -2611,17 +2747,21 @@
   %T273))
                                                                               (LIST
                                                                               
- (LIST
+ (%RULE
                                                                               
-  :STORE
+  "Binstr/#35"
                                                                               
   (LIST
                                                                               
-   :I64)
+   :STORE
                                                                               
-  NIL
+   (LIST
                                                                               
-  AO)
+    :I64)
+                                                                              
+   NIL
+                                                                              
+   AO))
                                                                               
  %T273)))))))
                                                                         (DECLARE
@@ -2723,17 +2863,21 @@
                                                                               
   (LIST
                                                                               
-   (LIST
+   (%RULE
                                                                               
-    :STORE
+    "Binstr/#36"
                                                                               
     (LIST
                                                                               
-     :F32)
+     :STORE
                                                                               
-    NIL
+     (LIST
                                                                               
-    AO)
+      :F32)
+                                                                              
+     NIL
+                                                                              
+     AO))
                                                                               
    %T280)))))))
                                                                           (DECLARE
@@ -2844,17 +2988,21 @@
                                                                               
     (LIST
                                                                               
-     (LIST
+     (%RULE
                                                                               
-      :STORE
+      "Binstr/#37"
                                                                               
       (LIST
                                                                               
-       :F64)
+       :STORE
                                                                               
-      NIL
+       (LIST
                                                                               
-      AO)
+        :F64)
+                                                                              
+       NIL
+                                                                              
+       AO))
                                                                               
      %T287)))))))
                                                                             (DECLARE
@@ -2966,19 +3114,23 @@
                                                                               
       (LIST
                                                                               
-       (LIST
+       (%RULE
                                                                               
-        :STORE
-                                                                              
-        (LIST
-                                                                              
-         :I32)
+        "Binstr/#38"
                                                                               
         (LIST
                                                                               
-         8)
+         :STORE
                                                                               
-        AO)
+         (LIST
+                                                                              
+          :I32)
+                                                                              
+         (LIST
+                                                                              
+          8)
+                                                                              
+         AO))
                                                                               
        %T294)))))))
                                                                               (DECLARE
@@ -3096,19 +3248,23 @@
                                                                               
         (LIST
                                                                               
-         (LIST
+         (%RULE
                                                                               
-          :STORE
-                                                                              
-          (LIST
-                                                                              
-           :I32)
+          "Binstr/#39"
                                                                               
           (LIST
                                                                               
-           16)
+           :STORE
                                                                               
-          AO)
+           (LIST
+                                                                              
+            :I32)
+                                                                              
+           (LIST
+                                                                              
+            16)
+                                                                              
+           AO))
                                                                               
          %T301)))))))
                                                                               
@@ -3228,19 +3384,23 @@
                                                                               
           (LIST
                                                                               
-           (LIST
+           (%RULE
                                                                               
-            :STORE
-                                                                              
-            (LIST
-                                                                              
-             :I64)
+            "Binstr/#40"
                                                                               
             (LIST
                                                                               
-             8)
+             :STORE
                                                                               
-            AO)
+             (LIST
+                                                                              
+              :I64)
+                                                                              
+             (LIST
+                                                                              
+              8)
+                                                                              
+             AO))
                                                                               
            %T308)))))))
                                                                               
@@ -3360,19 +3520,23 @@
                                                                               
             (LIST
                                                                               
-             (LIST
+             (%RULE
                                                                               
-              :STORE
-                                                                              
-              (LIST
-                                                                              
-               :I64)
+              "Binstr/#41"
                                                                               
               (LIST
                                                                               
-               16)
+               :STORE
                                                                               
-              AO)
+               (LIST
+                                                                              
+                :I64)
+                                                                              
+               (LIST
+                                                                              
+                16)
+                                                                              
+               AO))
                                                                               
              %T315)))))))
                                                                               
@@ -3492,19 +3656,23 @@
                                                                               
               (LIST
                                                                               
-               (LIST
+               (%RULE
                                                                               
-                :STORE
-                                                                              
-                (LIST
-                                                                              
-                 :I64)
+                "Binstr/#42"
                                                                               
                 (LIST
                                                                               
-                 32)
+                 :STORE
                                                                               
-                AO)
+                 (LIST
+                                                                              
+                  :I64)
+                                                                              
+                 (LIST
+                                                                              
+                  32)
+                                                                              
+                 AO))
                                                                               
                %T322)))))))
                                                                               
@@ -3600,9 +3768,13 @@
                                                                               
                 (LIST
                                                                               
-                 (LIST
+                 (%RULE
                                                                               
-                  :MEMORY.SIZE)
+                  "Binstr/#43"
+                                                                              
+                  (LIST
+                                                                              
+                   :MEMORY.SIZE))
                                                                               
                  %T327)))))))
                                                                               
@@ -3698,9 +3870,13 @@
                                                                               
                   (LIST
                                                                               
-                   (LIST
+                   (%RULE
                                                                               
-                    :MEMORY.GROW)
+                    "Binstr/#44"
+                                                                              
+                    (LIST
+                                                                              
+                     :MEMORY.GROW))
                                                                               
                    %T332)))))))
                                                                               
@@ -3820,15 +3996,19 @@
                                                                               
                     (LIST
                                                                               
-                     (LIST
+                     (%RULE
                                                                               
-                      :CONST
+                      "Binstr/#45"
                                                                               
                       (LIST
                                                                               
-                       :I32)
+                       :CONST
                                                                               
-                      I)
+                       (LIST
+                                                                              
+                        :I32)
+                                                                              
+                       I))
                                                                               
                      %T339)))))))
                                                                               
@@ -3948,15 +4128,19 @@
                                                                               
                       (LIST
                                                                               
-                       (LIST
+                       (%RULE
                                                                               
-                        :CONST
+                        "Binstr/#46"
                                                                               
                         (LIST
                                                                               
-                         :I64)
+                         :CONST
                                                                               
-                        I)
+                         (LIST
+                                                                              
+                          :I64)
+                                                                              
+                         I))
                                                                               
                        %T346)))))))
                                                                               
@@ -4076,15 +4260,19 @@
                                                                               
                         (LIST
                                                                               
-                         (LIST
+                         (%RULE
                                                                               
-                          :CONST
+                          "Binstr/#47"
                                                                               
                           (LIST
                                                                               
-                           :F32)
+                           :CONST
                                                                               
-                          P)
+                           (LIST
+                                                                              
+                            :F32)
+                                                                              
+                           P))
                                                                               
                          %T353)))))))
                                                                               
@@ -4204,15 +4392,19 @@
                                                                               
                           (LIST
                                                                               
-                           (LIST
+                           (%RULE
                                                                               
-                            :CONST
+                            "Binstr/#48"
                                                                               
                             (LIST
                                                                               
-                             :F64)
+                             :CONST
                                                                               
-                            P)
+                             (LIST
+                                                                              
+                              :F64)
+                                                                              
+                             P))
                                                                               
                            %T360)))))))
                                                                               
@@ -4262,17 +4454,21 @@
                                                                               
                           (LIST
                                                                               
-                           (LIST
+                           (%RULE
                                                                               
-                            :TESTOP
-                                                                              
-                            (LIST
-                                                                              
-                             :I32)
+                            "Binstr/#49"
                                                                               
                             (LIST
                                                                               
-                             :EQZ))
+                             :TESTOP
+                                                                              
+                             (LIST
+                                                                              
+                              :I32)
+                                                                              
+                             (LIST
+                                                                              
+                              :EQZ)))
                                                                               
                            %T361)))))
                                                                               
@@ -4322,17 +4518,21 @@
                                                                               
                             (LIST
                                                                               
-                             (LIST
+                             (%RULE
                                                                               
-                              :RELOP
-                                                                              
-                              (LIST
-                                                                              
-                               :I32)
+                              "Binstr/#50"
                                                                               
                               (LIST
                                                                               
-                               :EQ))
+                               :RELOP
+                                                                              
+                               (LIST
+                                                                              
+                                :I32)
+                                                                              
+                               (LIST
+                                                                              
+                                :EQ)))
                                                                               
                              %T362)))))
                                                                               
@@ -4382,17 +4582,21 @@
                                                                               
                               (LIST
                                                                               
-                               (LIST
+                               (%RULE
                                                                               
-                                :RELOP
-                                                                              
-                                (LIST
-                                                                              
-                                 :I32)
+                                "Binstr/#51"
                                                                               
                                 (LIST
                                                                               
-                                 :NE))
+                                 :RELOP
+                                                                              
+                                 (LIST
+                                                                              
+                                  :I32)
+                                                                              
+                                 (LIST
+                                                                              
+                                  :NE)))
                                                                               
                                %T363)))))
                                                                               
@@ -4442,21 +4646,25 @@
                                                                               
                                 (LIST
                                                                               
-                                 (LIST
+                                 (%RULE
                                                                               
-                                  :RELOP
-                                                                              
-                                  (LIST
-                                                                              
-                                   :I32)
+                                  "Binstr/#52"
                                                                               
                                   (LIST
                                                                               
-                                   :LT
+                                   :RELOP
                                                                               
                                    (LIST
                                                                               
-                                    :S)))
+                                    :I32)
+                                                                              
+                                   (LIST
+                                                                              
+                                    :LT
+                                                                              
+                                    (LIST
+                                                                              
+                                     :S))))
                                                                               
                                  %T364)))))
                                                                               
@@ -4506,21 +4714,25 @@
                                                                               
                                   (LIST
                                                                               
-                                   (LIST
+                                   (%RULE
                                                                               
-                                    :RELOP
-                                                                              
-                                    (LIST
-                                                                              
-                                     :I32)
+                                    "Binstr/#53"
                                                                               
                                     (LIST
                                                                               
-                                     :LT
+                                     :RELOP
                                                                               
                                      (LIST
                                                                               
-                                      :U)))
+                                      :I32)
+                                                                              
+                                     (LIST
+                                                                              
+                                      :LT
+                                                                              
+                                      (LIST
+                                                                              
+                                       :U))))
                                                                               
                                    %T365)))))
                                                                               
@@ -4570,21 +4782,25 @@
                                                                               
                                     (LIST
                                                                               
-                                     (LIST
+                                     (%RULE
                                                                               
-                                      :RELOP
-                                                                              
-                                      (LIST
-                                                                              
-                                       :I32)
+                                      "Binstr/#54"
                                                                               
                                       (LIST
                                                                               
-                                       :GT
+                                       :RELOP
                                                                               
                                        (LIST
                                                                               
-                                        :S)))
+                                        :I32)
+                                                                              
+                                       (LIST
+                                                                              
+                                        :GT
+                                                                              
+                                        (LIST
+                                                                              
+                                         :S))))
                                                                               
                                      %T366)))))
                                                                               
@@ -4634,21 +4850,25 @@
                                                                               
                                       (LIST
                                                                               
-                                       (LIST
+                                       (%RULE
                                                                               
-                                        :RELOP
-                                                                              
-                                        (LIST
-                                                                              
-                                         :I32)
+                                        "Binstr/#55"
                                                                               
                                         (LIST
                                                                               
-                                         :GT
+                                         :RELOP
                                                                               
                                          (LIST
                                                                               
-                                          :U)))
+                                          :I32)
+                                                                              
+                                         (LIST
+                                                                              
+                                          :GT
+                                                                              
+                                          (LIST
+                                                                              
+                                           :U))))
                                                                               
                                        %T367)))))
                                                                               
@@ -4698,21 +4918,25 @@
                                                                               
                                         (LIST
                                                                               
-                                         (LIST
+                                         (%RULE
                                                                               
-                                          :RELOP
-                                                                              
-                                          (LIST
-                                                                              
-                                           :I32)
+                                          "Binstr/#56"
                                                                               
                                           (LIST
                                                                               
-                                           :LE
+                                           :RELOP
                                                                               
                                            (LIST
                                                                               
-                                            :S)))
+                                            :I32)
+                                                                              
+                                           (LIST
+                                                                              
+                                            :LE
+                                                                              
+                                            (LIST
+                                                                              
+                                             :S))))
                                                                               
                                          %T368)))))
                                                                               
@@ -4762,21 +4986,25 @@
                                                                               
                                           (LIST
                                                                               
-                                           (LIST
+                                           (%RULE
                                                                               
-                                            :RELOP
-                                                                              
-                                            (LIST
-                                                                              
-                                             :I32)
+                                            "Binstr/#57"
                                                                               
                                             (LIST
                                                                               
-                                             :LE
+                                             :RELOP
                                                                               
                                              (LIST
                                                                               
-                                              :U)))
+                                              :I32)
+                                                                              
+                                             (LIST
+                                                                              
+                                              :LE
+                                                                              
+                                              (LIST
+                                                                              
+                                               :U))))
                                                                               
                                            %T369)))))
                                                                               
@@ -4826,21 +5054,25 @@
                                                                               
                                             (LIST
                                                                               
-                                             (LIST
+                                             (%RULE
                                                                               
-                                              :RELOP
-                                                                              
-                                              (LIST
-                                                                              
-                                               :I32)
+                                              "Binstr/#58"
                                                                               
                                               (LIST
                                                                               
-                                               :GE
+                                               :RELOP
                                                                               
                                                (LIST
                                                                               
-                                                :S)))
+                                                :I32)
+                                                                              
+                                               (LIST
+                                                                              
+                                                :GE
+                                                                              
+                                                (LIST
+                                                                              
+                                                 :S))))
                                                                               
                                              %T370)))))
                                                                               
@@ -4890,21 +5122,25 @@
                                                                               
                                               (LIST
                                                                               
-                                               (LIST
+                                               (%RULE
                                                                               
-                                                :RELOP
-                                                                              
-                                                (LIST
-                                                                              
-                                                 :I32)
+                                                "Binstr/#59"
                                                                               
                                                 (LIST
                                                                               
-                                                 :GE
+                                                 :RELOP
                                                                               
                                                  (LIST
                                                                               
-                                                  :U)))
+                                                  :I32)
+                                                                              
+                                                 (LIST
+                                                                              
+                                                  :GE
+                                                                              
+                                                  (LIST
+                                                                              
+                                                   :U))))
                                                                               
                                                %T371)))))
                                                                               
@@ -4954,17 +5190,21 @@
                                                                               
                                                 (LIST
                                                                               
-                                                 (LIST
+                                                 (%RULE
                                                                               
-                                                  :TESTOP
-                                                                              
-                                                  (LIST
-                                                                              
-                                                   :I64)
+                                                  "Binstr/#60"
                                                                               
                                                   (LIST
                                                                               
-                                                   :EQZ))
+                                                   :TESTOP
+                                                                              
+                                                   (LIST
+                                                                              
+                                                    :I64)
+                                                                              
+                                                   (LIST
+                                                                              
+                                                    :EQZ)))
                                                                               
                                                  %T372)))))
                                                                               
@@ -5014,17 +5254,21 @@
                                                                               
                                                   (LIST
                                                                               
-                                                   (LIST
+                                                   (%RULE
                                                                               
-                                                    :RELOP
-                                                                              
-                                                    (LIST
-                                                                              
-                                                     :I64)
+                                                    "Binstr/#61"
                                                                               
                                                     (LIST
                                                                               
-                                                     :EQ))
+                                                     :RELOP
+                                                                              
+                                                     (LIST
+                                                                              
+                                                      :I64)
+                                                                              
+                                                     (LIST
+                                                                              
+                                                      :EQ)))
                                                                               
                                                    %T373)))))
                                                                               
@@ -5074,17 +5318,21 @@
                                                                               
                                                     (LIST
                                                                               
-                                                     (LIST
+                                                     (%RULE
                                                                               
-                                                      :RELOP
-                                                                              
-                                                      (LIST
-                                                                              
-                                                       :I64)
+                                                      "Binstr/#62"
                                                                               
                                                       (LIST
                                                                               
-                                                       :NE))
+                                                       :RELOP
+                                                                              
+                                                       (LIST
+                                                                              
+                                                        :I64)
+                                                                              
+                                                       (LIST
+                                                                              
+                                                        :NE)))
                                                                               
                                                      %T374)))))
                                                                               
@@ -5134,21 +5382,25 @@
                                                                               
                                                       (LIST
                                                                               
-                                                       (LIST
+                                                       (%RULE
                                                                               
-                                                        :RELOP
-                                                                              
-                                                        (LIST
-                                                                              
-                                                         :I64)
+                                                        "Binstr/#63"
                                                                               
                                                         (LIST
                                                                               
-                                                         :LT
+                                                         :RELOP
                                                                               
                                                          (LIST
                                                                               
-                                                          :S)))
+                                                          :I64)
+                                                                              
+                                                         (LIST
+                                                                              
+                                                          :LT
+                                                                              
+                                                          (LIST
+                                                                              
+                                                           :S))))
                                                                               
                                                        %T375)))))
                                                                               
@@ -5198,21 +5450,25 @@
                                                                               
                                                         (LIST
                                                                               
-                                                         (LIST
+                                                         (%RULE
                                                                               
-                                                          :RELOP
-                                                                              
-                                                          (LIST
-                                                                              
-                                                           :I64)
+                                                          "Binstr/#64"
                                                                               
                                                           (LIST
                                                                               
-                                                           :LT
+                                                           :RELOP
                                                                               
                                                            (LIST
                                                                               
-                                                            :U)))
+                                                            :I64)
+                                                                              
+                                                           (LIST
+                                                                              
+                                                            :LT
+                                                                              
+                                                            (LIST
+                                                                              
+                                                             :U))))
                                                                               
                                                          %T376)))))
                                                                               
@@ -5262,21 +5518,25 @@
                                                                               
                                                           (LIST
                                                                               
-                                                           (LIST
+                                                           (%RULE
                                                                               
-                                                            :RELOP
-                                                                              
-                                                            (LIST
-                                                                              
-                                                             :I64)
+                                                            "Binstr/#65"
                                                                               
                                                             (LIST
                                                                               
-                                                             :GT
+                                                             :RELOP
                                                                               
                                                              (LIST
                                                                               
-                                                              :S)))
+                                                              :I64)
+                                                                              
+                                                             (LIST
+                                                                              
+                                                              :GT
+                                                                              
+                                                              (LIST
+                                                                              
+                                                               :S))))
                                                                               
                                                            %T377)))))
                                                                               
@@ -5326,21 +5586,25 @@
                                                                               
                                                             (LIST
                                                                               
-                                                             (LIST
+                                                             (%RULE
                                                                               
-                                                              :RELOP
-                                                                              
-                                                              (LIST
-                                                                              
-                                                               :I64)
+                                                              "Binstr/#66"
                                                                               
                                                               (LIST
                                                                               
-                                                               :GT
+                                                               :RELOP
                                                                               
                                                                (LIST
                                                                               
-                                                                :U)))
+                                                                :I64)
+                                                                              
+                                                               (LIST
+                                                                              
+                                                                :GT
+                                                                              
+                                                                (LIST
+                                                                              
+                                                                 :U))))
                                                                               
                                                              %T378)))))
                                                                               
@@ -5390,21 +5654,25 @@
                                                                               
                                                               (LIST
                                                                               
-                                                               (LIST
+                                                               (%RULE
                                                                               
-                                                                :RELOP
-                                                                              
-                                                                (LIST
-                                                                              
-                                                                 :I64)
+                                                                "Binstr/#67"
                                                                               
                                                                 (LIST
                                                                               
-                                                                 :LE
+                                                                 :RELOP
                                                                               
                                                                  (LIST
                                                                               
-                                                                  :S)))
+                                                                  :I64)
+                                                                              
+                                                                 (LIST
+                                                                              
+                                                                  :LE
+                                                                              
+                                                                  (LIST
+                                                                              
+                                                                   :S))))
                                                                               
                                                                %T379)))))
                                                                               
@@ -5454,21 +5722,25 @@
                                                                               
                                                                 (LIST
                                                                               
-                                                                 (LIST
+                                                                 (%RULE
                                                                               
-                                                                  :RELOP
-                                                                              
-                                                                  (LIST
-                                                                              
-                                                                   :I64)
+                                                                  "Binstr/#68"
                                                                               
                                                                   (LIST
                                                                               
-                                                                   :LE
+                                                                   :RELOP
                                                                               
                                                                    (LIST
                                                                               
-                                                                    :U)))
+                                                                    :I64)
+                                                                              
+                                                                   (LIST
+                                                                              
+                                                                    :LE
+                                                                              
+                                                                    (LIST
+                                                                              
+                                                                     :U))))
                                                                               
                                                                  %T380)))))
                                                                               
@@ -5518,21 +5790,25 @@
                                                                               
                                                                   (LIST
                                                                               
-                                                                   (LIST
+                                                                   (%RULE
                                                                               
-                                                                    :RELOP
-                                                                              
-                                                                    (LIST
-                                                                              
-                                                                     :I64)
+                                                                    "Binstr/#69"
                                                                               
                                                                     (LIST
                                                                               
-                                                                     :GE
+                                                                     :RELOP
                                                                               
                                                                      (LIST
                                                                               
-                                                                      :S)))
+                                                                      :I64)
+                                                                              
+                                                                     (LIST
+                                                                              
+                                                                      :GE
+                                                                              
+                                                                      (LIST
+                                                                              
+                                                                       :S))))
                                                                               
                                                                    %T381)))))
                                                                               
@@ -5582,21 +5858,25 @@
                                                                               
                                                                     (LIST
                                                                               
-                                                                     (LIST
+                                                                     (%RULE
                                                                               
-                                                                      :RELOP
-                                                                              
-                                                                      (LIST
-                                                                              
-                                                                       :I64)
+                                                                      "Binstr/#70"
                                                                               
                                                                       (LIST
                                                                               
-                                                                       :GE
+                                                                       :RELOP
                                                                               
                                                                        (LIST
                                                                               
-                                                                        :U)))
+                                                                        :I64)
+                                                                              
+                                                                       (LIST
+                                                                              
+                                                                        :GE
+                                                                              
+                                                                        (LIST
+                                                                              
+                                                                         :U))))
                                                                               
                                                                      %T382)))))
                                                                               
@@ -5646,17 +5926,21 @@
                                                                               
                                                                       (LIST
                                                                               
-                                                                       (LIST
+                                                                       (%RULE
                                                                               
-                                                                        :RELOP
-                                                                              
-                                                                        (LIST
-                                                                              
-                                                                         :F32)
+                                                                        "Binstr/#71"
                                                                               
                                                                         (LIST
                                                                               
-                                                                         :EQ))
+                                                                         :RELOP
+                                                                              
+                                                                         (LIST
+                                                                              
+                                                                          :F32)
+                                                                              
+                                                                         (LIST
+                                                                              
+                                                                          :EQ)))
                                                                               
                                                                        %T383)))))
                                                                               
@@ -5706,17 +5990,21 @@
                                                                               
                                                                         (LIST
                                                                               
-                                                                         (LIST
+                                                                         (%RULE
                                                                               
-                                                                          :RELOP
-                                                                              
-                                                                          (LIST
-                                                                              
-                                                                           :F32)
+                                                                          "Binstr/#72"
                                                                               
                                                                           (LIST
                                                                               
-                                                                           :NE))
+                                                                           :RELOP
+                                                                              
+                                                                           (LIST
+                                                                              
+                                                                            :F32)
+                                                                              
+                                                                           (LIST
+                                                                              
+                                                                            :NE)))
                                                                               
                                                                          %T384)))))
                                                                               
@@ -5766,17 +6054,21 @@
                                                                               
                                                                           (LIST
                                                                               
-                                                                           (LIST
+                                                                           (%RULE
                                                                               
-                                                                            :RELOP
-                                                                              
-                                                                            (LIST
-                                                                              
-                                                                             :F32)
+                                                                            "Binstr/#73"
                                                                               
                                                                             (LIST
                                                                               
-                                                                             :LT))
+                                                                             :RELOP
+                                                                              
+                                                                             (LIST
+                                                                              
+                                                                              :F32)
+                                                                              
+                                                                             (LIST
+                                                                              
+                                                                              :LT)))
                                                                               
                                                                            %T385)))))
                                                                               
@@ -5827,19 +6119,26 @@
                                                                               
                                                                             (LIST
                                                                               
-                                                                             (LIST
+                                                                             (%RULE
                                                                               
-                                                                              :RELOP
-                                                                              
-                                                                              (LIST
-                                                                              
-                                                                              
- :F32)
+                                                                              "Binstr/#74"
                                                                               
                                                                               (LIST
                                                                               
                                                                               
- :GT))
+ :RELOP
+                                                                              
+                                                                              
+ (LIST
+                                                                              
+                                                                              
+  :F32)
+                                                                              
+                                                                              
+ (LIST
+                                                                              
+                                                                              
+  :GT)))
                                                                               
                                                                              %T386)))))
                                                                               
@@ -5895,22 +6194,28 @@
                                                                               (LIST
                                                                               
                                                                               
- (LIST
+ (%RULE
                                                                               
                                                                               
-  :RELOP
-                                                                              
-                                                                              
-  (LIST
-                                                                              
-                                                                              
-   :F32)
+  "Binstr/#75"
                                                                               
                                                                               
   (LIST
                                                                               
                                                                               
-   :LE))
+   :RELOP
+                                                                              
+                                                                              
+   (LIST
+                                                                              
+                                                                              
+    :F32)
+                                                                              
+                                                                              
+   (LIST
+                                                                              
+                                                                              
+    :LE)))
                                                                               
                                                                               
  %T387)))))
@@ -5976,22 +6281,28 @@
   (LIST
                                                                               
                                                                               
-   (LIST
+   (%RULE
                                                                               
                                                                               
-    :RELOP
-                                                                              
-                                                                              
-    (LIST
-                                                                              
-                                                                              
-     :F32)
+    "Binstr/#76"
                                                                               
                                                                               
     (LIST
                                                                               
                                                                               
-     :GE))
+     :RELOP
+                                                                              
+                                                                              
+     (LIST
+                                                                              
+                                                                              
+      :F32)
+                                                                              
+                                                                              
+     (LIST
+                                                                              
+                                                                              
+      :GE)))
                                                                               
                                                                               
    %T388)))))
@@ -6058,22 +6369,28 @@
     (LIST
                                                                               
                                                                               
-     (LIST
+     (%RULE
                                                                               
                                                                               
-      :RELOP
-                                                                              
-                                                                              
-      (LIST
-                                                                              
-                                                                              
-       :F64)
+      "Binstr/#77"
                                                                               
                                                                               
       (LIST
                                                                               
                                                                               
-       :EQ))
+       :RELOP
+                                                                              
+                                                                              
+       (LIST
+                                                                              
+                                                                              
+        :F64)
+                                                                              
+                                                                              
+       (LIST
+                                                                              
+                                                                              
+        :EQ)))
                                                                               
                                                                               
      %T389)))))
@@ -6146,22 +6463,28 @@
       (LIST
                                                                               
                                                                               
-       (LIST
+       (%RULE
                                                                               
                                                                               
-        :RELOP
-                                                                              
-                                                                              
-        (LIST
-                                                                              
-                                                                              
-         :F64)
+        "Binstr/#78"
                                                                               
                                                                               
         (LIST
                                                                               
                                                                               
-         :NE))
+         :RELOP
+                                                                              
+                                                                              
+         (LIST
+                                                                              
+                                                                              
+          :F64)
+                                                                              
+                                                                              
+         (LIST
+                                                                              
+                                                                              
+          :NE)))
                                                                               
                                                                               
        %T390)))))
@@ -6236,22 +6559,28 @@
         (LIST
                                                                               
                                                                               
-         (LIST
+         (%RULE
                                                                               
                                                                               
-          :RELOP
-                                                                              
-                                                                              
-          (LIST
-                                                                              
-                                                                              
-           :F64)
+          "Binstr/#79"
                                                                               
                                                                               
           (LIST
                                                                               
                                                                               
-           :LT))
+           :RELOP
+                                                                              
+                                                                              
+           (LIST
+                                                                              
+                                                                              
+            :F64)
+                                                                              
+                                                                              
+           (LIST
+                                                                              
+                                                                              
+            :LT)))
                                                                               
                                                                               
          %T391)))))
@@ -6326,22 +6655,28 @@
           (LIST
                                                                               
                                                                               
-           (LIST
+           (%RULE
                                                                               
                                                                               
-            :RELOP
-                                                                              
-                                                                              
-            (LIST
-                                                                              
-                                                                              
-             :F64)
+            "Binstr/#80"
                                                                               
                                                                               
             (LIST
                                                                               
                                                                               
-             :GT))
+             :RELOP
+                                                                              
+                                                                              
+             (LIST
+                                                                              
+                                                                              
+              :F64)
+                                                                              
+                                                                              
+             (LIST
+                                                                              
+                                                                              
+              :GT)))
                                                                               
                                                                               
            %T392)))))
@@ -6416,22 +6751,28 @@
             (LIST
                                                                               
                                                                               
-             (LIST
+             (%RULE
                                                                               
                                                                               
-              :RELOP
-                                                                              
-                                                                              
-              (LIST
-                                                                              
-                                                                              
-               :F64)
+              "Binstr/#81"
                                                                               
                                                                               
               (LIST
                                                                               
                                                                               
-               :LE))
+               :RELOP
+                                                                              
+                                                                              
+               (LIST
+                                                                              
+                                                                              
+                :F64)
+                                                                              
+                                                                              
+               (LIST
+                                                                              
+                                                                              
+                :LE)))
                                                                               
                                                                               
              %T393)))))
@@ -6506,22 +6847,28 @@
               (LIST
                                                                               
                                                                               
-               (LIST
+               (%RULE
                                                                               
                                                                               
-                :RELOP
-                                                                              
-                                                                              
-                (LIST
-                                                                              
-                                                                              
-                 :F64)
+                "Binstr/#82"
                                                                               
                                                                               
                 (LIST
                                                                               
                                                                               
-                 :GE))
+                 :RELOP
+                                                                              
+                                                                              
+                 (LIST
+                                                                              
+                                                                              
+                  :F64)
+                                                                              
+                                                                              
+                 (LIST
+                                                                              
+                                                                              
+                  :GE)))
                                                                               
                                                                               
                %T394)))))
@@ -6596,22 +6943,28 @@
                 (LIST
                                                                               
                                                                               
-                 (LIST
+                 (%RULE
                                                                               
                                                                               
-                  :UNOP
-                                                                              
-                                                                              
-                  (LIST
-                                                                              
-                                                                              
-                   :I32)
+                  "Binstr/#83"
                                                                               
                                                                               
                   (LIST
                                                                               
                                                                               
-                   :CLZ))
+                   :UNOP
+                                                                              
+                                                                              
+                   (LIST
+                                                                              
+                                                                              
+                    :I32)
+                                                                              
+                                                                              
+                   (LIST
+                                                                              
+                                                                              
+                    :CLZ)))
                                                                               
                                                                               
                  %T395)))))
@@ -6686,22 +7039,28 @@
                   (LIST
                                                                               
                                                                               
-                   (LIST
+                   (%RULE
                                                                               
                                                                               
-                    :UNOP
-                                                                              
-                                                                              
-                    (LIST
-                                                                              
-                                                                              
-                     :I32)
+                    "Binstr/#84"
                                                                               
                                                                               
                     (LIST
                                                                               
                                                                               
-                     :CTZ))
+                     :UNOP
+                                                                              
+                                                                              
+                     (LIST
+                                                                              
+                                                                              
+                      :I32)
+                                                                              
+                                                                              
+                     (LIST
+                                                                              
+                                                                              
+                      :CTZ)))
                                                                               
                                                                               
                    %T396)))))
@@ -6776,22 +7135,28 @@
                     (LIST
                                                                               
                                                                               
-                     (LIST
+                     (%RULE
                                                                               
                                                                               
-                      :UNOP
-                                                                              
-                                                                              
-                      (LIST
-                                                                              
-                                                                              
-                       :I32)
+                      "Binstr/#85"
                                                                               
                                                                               
                       (LIST
                                                                               
                                                                               
-                       :POPCNT))
+                       :UNOP
+                                                                              
+                                                                              
+                       (LIST
+                                                                              
+                                                                              
+                        :I32)
+                                                                              
+                                                                              
+                       (LIST
+                                                                              
+                                                                              
+                        :POPCNT)))
                                                                               
                                                                               
                      %T397)))))
@@ -6866,22 +7231,28 @@
                       (LIST
                                                                               
                                                                               
-                       (LIST
+                       (%RULE
                                                                               
                                                                               
-                        :BINOP
-                                                                              
-                                                                              
-                        (LIST
-                                                                              
-                                                                              
-                         :I32)
+                        "Binstr/#86"
                                                                               
                                                                               
                         (LIST
                                                                               
                                                                               
-                         :ADD))
+                         :BINOP
+                                                                              
+                                                                              
+                         (LIST
+                                                                              
+                                                                              
+                          :I32)
+                                                                              
+                                                                              
+                         (LIST
+                                                                              
+                                                                              
+                          :ADD)))
                                                                               
                                                                               
                        %T398)))))
@@ -6956,22 +7327,28 @@
                         (LIST
                                                                               
                                                                               
-                         (LIST
+                         (%RULE
                                                                               
                                                                               
-                          :BINOP
-                                                                              
-                                                                              
-                          (LIST
-                                                                              
-                                                                              
-                           :I32)
+                          "Binstr/#87"
                                                                               
                                                                               
                           (LIST
                                                                               
                                                                               
-                           :SUB))
+                           :BINOP
+                                                                              
+                                                                              
+                           (LIST
+                                                                              
+                                                                              
+                            :I32)
+                                                                              
+                                                                              
+                           (LIST
+                                                                              
+                                                                              
+                            :SUB)))
                                                                               
                                                                               
                          %T399)))))
@@ -7046,22 +7423,28 @@
                           (LIST
                                                                               
                                                                               
-                           (LIST
+                           (%RULE
                                                                               
                                                                               
-                            :BINOP
-                                                                              
-                                                                              
-                            (LIST
-                                                                              
-                                                                              
-                             :I32)
+                            "Binstr/#88"
                                                                               
                                                                               
                             (LIST
                                                                               
                                                                               
-                             :MUL))
+                             :BINOP
+                                                                              
+                                                                              
+                             (LIST
+                                                                              
+                                                                              
+                              :I32)
+                                                                              
+                                                                              
+                             (LIST
+                                                                              
+                                                                              
+                              :MUL)))
                                                                               
                                                                               
                            %T400)))))
@@ -7136,28 +7519,34 @@
                             (LIST
                                                                               
                                                                               
-                             (LIST
+                             (%RULE
                                                                               
                                                                               
-                              :BINOP
-                                                                              
-                                                                              
-                              (LIST
-                                                                              
-                                                                              
-                               :I32)
+                              "Binstr/#89"
                                                                               
                                                                               
                               (LIST
                                                                               
                                                                               
-                               :DIV
+                               :BINOP
                                                                               
                                                                               
                                (LIST
                                                                               
                                                                               
-                                :S)))
+                                :I32)
+                                                                              
+                                                                              
+                               (LIST
+                                                                              
+                                                                              
+                                :DIV
+                                                                              
+                                                                              
+                                (LIST
+                                                                              
+                                                                              
+                                 :S))))
                                                                               
                                                                               
                              %T401)))))
@@ -7232,28 +7621,34 @@
                               (LIST
                                                                               
                                                                               
-                               (LIST
+                               (%RULE
                                                                               
                                                                               
-                                :BINOP
-                                                                              
-                                                                              
-                                (LIST
-                                                                              
-                                                                              
-                                 :I32)
+                                "Binstr/#90"
                                                                               
                                                                               
                                 (LIST
                                                                               
                                                                               
-                                 :DIV
+                                 :BINOP
                                                                               
                                                                               
                                  (LIST
                                                                               
                                                                               
-                                  :U)))
+                                  :I32)
+                                                                              
+                                                                              
+                                 (LIST
+                                                                              
+                                                                              
+                                  :DIV
+                                                                              
+                                                                              
+                                  (LIST
+                                                                              
+                                                                              
+                                   :U))))
                                                                               
                                                                               
                                %T402)))))
@@ -7328,28 +7723,34 @@
                                 (LIST
                                                                               
                                                                               
-                                 (LIST
+                                 (%RULE
                                                                               
                                                                               
-                                  :BINOP
-                                                                              
-                                                                              
-                                  (LIST
-                                                                              
-                                                                              
-                                   :I32)
+                                  "Binstr/#91"
                                                                               
                                                                               
                                   (LIST
                                                                               
                                                                               
-                                   :REM
+                                   :BINOP
                                                                               
                                                                               
                                    (LIST
                                                                               
                                                                               
-                                    :S)))
+                                    :I32)
+                                                                              
+                                                                              
+                                   (LIST
+                                                                              
+                                                                              
+                                    :REM
+                                                                              
+                                                                              
+                                    (LIST
+                                                                              
+                                                                              
+                                     :S))))
                                                                               
                                                                               
                                  %T403)))))
@@ -7424,28 +7825,34 @@
                                   (LIST
                                                                               
                                                                               
-                                   (LIST
+                                   (%RULE
                                                                               
                                                                               
-                                    :BINOP
-                                                                              
-                                                                              
-                                    (LIST
-                                                                              
-                                                                              
-                                     :I32)
+                                    "Binstr/#92"
                                                                               
                                                                               
                                     (LIST
                                                                               
                                                                               
-                                     :REM
+                                     :BINOP
                                                                               
                                                                               
                                      (LIST
                                                                               
                                                                               
-                                      :U)))
+                                      :I32)
+                                                                              
+                                                                              
+                                     (LIST
+                                                                              
+                                                                              
+                                      :REM
+                                                                              
+                                                                              
+                                      (LIST
+                                                                              
+                                                                              
+                                       :U))))
                                                                               
                                                                               
                                    %T404)))))
@@ -7520,22 +7927,28 @@
                                     (LIST
                                                                               
                                                                               
-                                     (LIST
+                                     (%RULE
                                                                               
                                                                               
-                                      :BINOP
-                                                                              
-                                                                              
-                                      (LIST
-                                                                              
-                                                                              
-                                       :I32)
+                                      "Binstr/#93"
                                                                               
                                                                               
                                       (LIST
                                                                               
                                                                               
-                                       :AND))
+                                       :BINOP
+                                                                              
+                                                                              
+                                       (LIST
+                                                                              
+                                                                              
+                                        :I32)
+                                                                              
+                                                                              
+                                       (LIST
+                                                                              
+                                                                              
+                                        :AND)))
                                                                               
                                                                               
                                      %T405)))))
@@ -7610,22 +8023,28 @@
                                       (LIST
                                                                               
                                                                               
-                                       (LIST
+                                       (%RULE
                                                                               
                                                                               
-                                        :BINOP
-                                                                              
-                                                                              
-                                        (LIST
-                                                                              
-                                                                              
-                                         :I32)
+                                        "Binstr/#94"
                                                                               
                                                                               
                                         (LIST
                                                                               
                                                                               
-                                         :OR))
+                                         :BINOP
+                                                                              
+                                                                              
+                                         (LIST
+                                                                              
+                                                                              
+                                          :I32)
+                                                                              
+                                                                              
+                                         (LIST
+                                                                              
+                                                                              
+                                          :OR)))
                                                                               
                                                                               
                                        %T406)))))
@@ -7700,22 +8119,28 @@
                                         (LIST
                                                                               
                                                                               
-                                         (LIST
+                                         (%RULE
                                                                               
                                                                               
-                                          :BINOP
-                                                                              
-                                                                              
-                                          (LIST
-                                                                              
-                                                                              
-                                           :I32)
+                                          "Binstr/#95"
                                                                               
                                                                               
                                           (LIST
                                                                               
                                                                               
-                                           :XOR))
+                                           :BINOP
+                                                                              
+                                                                              
+                                           (LIST
+                                                                              
+                                                                              
+                                            :I32)
+                                                                              
+                                                                              
+                                           (LIST
+                                                                              
+                                                                              
+                                            :XOR)))
                                                                               
                                                                               
                                          %T407)))))
@@ -7790,22 +8215,28 @@
                                           (LIST
                                                                               
                                                                               
-                                           (LIST
+                                           (%RULE
                                                                               
                                                                               
-                                            :BINOP
-                                                                              
-                                                                              
-                                            (LIST
-                                                                              
-                                                                              
-                                             :I32)
+                                            "Binstr/#96"
                                                                               
                                                                               
                                             (LIST
                                                                               
                                                                               
-                                             :SHL))
+                                             :BINOP
+                                                                              
+                                                                              
+                                             (LIST
+                                                                              
+                                                                              
+                                              :I32)
+                                                                              
+                                                                              
+                                             (LIST
+                                                                              
+                                                                              
+                                              :SHL)))
                                                                               
                                                                               
                                            %T408)))))
@@ -7880,28 +8311,34 @@
                                             (LIST
                                                                               
                                                                               
-                                             (LIST
+                                             (%RULE
                                                                               
                                                                               
-                                              :BINOP
-                                                                              
-                                                                              
-                                              (LIST
-                                                                              
-                                                                              
-                                               :I32)
+                                              "Binstr/#97"
                                                                               
                                                                               
                                               (LIST
                                                                               
                                                                               
-                                               :SHR
+                                               :BINOP
                                                                               
                                                                               
                                                (LIST
                                                                               
                                                                               
-                                                :S)))
+                                                :I32)
+                                                                              
+                                                                              
+                                               (LIST
+                                                                              
+                                                                              
+                                                :SHR
+                                                                              
+                                                                              
+                                                (LIST
+                                                                              
+                                                                              
+                                                 :S))))
                                                                               
                                                                               
                                              %T409)))))
@@ -7976,28 +8413,34 @@
                                               (LIST
                                                                               
                                                                               
-                                               (LIST
+                                               (%RULE
                                                                               
                                                                               
-                                                :BINOP
-                                                                              
-                                                                              
-                                                (LIST
-                                                                              
-                                                                              
-                                                 :I32)
+                                                "Binstr/#98"
                                                                               
                                                                               
                                                 (LIST
                                                                               
                                                                               
-                                                 :SHR
+                                                 :BINOP
                                                                               
                                                                               
                                                  (LIST
                                                                               
                                                                               
-                                                  :U)))
+                                                  :I32)
+                                                                              
+                                                                              
+                                                 (LIST
+                                                                              
+                                                                              
+                                                  :SHR
+                                                                              
+                                                                              
+                                                  (LIST
+                                                                              
+                                                                              
+                                                   :U))))
                                                                               
                                                                               
                                                %T410)))))
@@ -8072,22 +8515,28 @@
                                                 (LIST
                                                                               
                                                                               
-                                                 (LIST
+                                                 (%RULE
                                                                               
                                                                               
-                                                  :BINOP
-                                                                              
-                                                                              
-                                                  (LIST
-                                                                              
-                                                                              
-                                                   :I32)
+                                                  "Binstr/#99"
                                                                               
                                                                               
                                                   (LIST
                                                                               
                                                                               
-                                                   :ROTL))
+                                                   :BINOP
+                                                                              
+                                                                              
+                                                   (LIST
+                                                                              
+                                                                              
+                                                    :I32)
+                                                                              
+                                                                              
+                                                   (LIST
+                                                                              
+                                                                              
+                                                    :ROTL)))
                                                                               
                                                                               
                                                  %T411)))))
@@ -8162,22 +8611,28 @@
                                                   (LIST
                                                                               
                                                                               
-                                                   (LIST
+                                                   (%RULE
                                                                               
                                                                               
-                                                    :BINOP
-                                                                              
-                                                                              
-                                                    (LIST
-                                                                              
-                                                                              
-                                                     :I32)
+                                                    "Binstr/#100"
                                                                               
                                                                               
                                                     (LIST
                                                                               
                                                                               
-                                                     :ROTR))
+                                                     :BINOP
+                                                                              
+                                                                              
+                                                     (LIST
+                                                                              
+                                                                              
+                                                      :I32)
+                                                                              
+                                                                              
+                                                     (LIST
+                                                                              
+                                                                              
+                                                      :ROTR)))
                                                                               
                                                                               
                                                    %T412)))))
@@ -8252,22 +8707,28 @@
                                                     (LIST
                                                                               
                                                                               
-                                                     (LIST
+                                                     (%RULE
                                                                               
                                                                               
-                                                      :UNOP
-                                                                              
-                                                                              
-                                                      (LIST
-                                                                              
-                                                                              
-                                                       :I64)
+                                                      "Binstr/#101"
                                                                               
                                                                               
                                                       (LIST
                                                                               
                                                                               
-                                                       :CLZ))
+                                                       :UNOP
+                                                                              
+                                                                              
+                                                       (LIST
+                                                                              
+                                                                              
+                                                        :I64)
+                                                                              
+                                                                              
+                                                       (LIST
+                                                                              
+                                                                              
+                                                        :CLZ)))
                                                                               
                                                                               
                                                      %T413)))))
@@ -8342,22 +8803,28 @@
                                                       (LIST
                                                                               
                                                                               
-                                                       (LIST
+                                                       (%RULE
                                                                               
                                                                               
-                                                        :UNOP
-                                                                              
-                                                                              
-                                                        (LIST
-                                                                              
-                                                                              
-                                                         :I64)
+                                                        "Binstr/#102"
                                                                               
                                                                               
                                                         (LIST
                                                                               
                                                                               
-                                                         :CTZ))
+                                                         :UNOP
+                                                                              
+                                                                              
+                                                         (LIST
+                                                                              
+                                                                              
+                                                          :I64)
+                                                                              
+                                                                              
+                                                         (LIST
+                                                                              
+                                                                              
+                                                          :CTZ)))
                                                                               
                                                                               
                                                        %T414)))))
@@ -8432,22 +8899,28 @@
                                                         (LIST
                                                                               
                                                                               
-                                                         (LIST
+                                                         (%RULE
                                                                               
                                                                               
-                                                          :UNOP
-                                                                              
-                                                                              
-                                                          (LIST
-                                                                              
-                                                                              
-                                                           :I64)
+                                                          "Binstr/#103"
                                                                               
                                                                               
                                                           (LIST
                                                                               
                                                                               
-                                                           :POPCNT))
+                                                           :UNOP
+                                                                              
+                                                                              
+                                                           (LIST
+                                                                              
+                                                                              
+                                                            :I64)
+                                                                              
+                                                                              
+                                                           (LIST
+                                                                              
+                                                                              
+                                                            :POPCNT)))
                                                                               
                                                                               
                                                          %T415)))))
@@ -8522,22 +8995,28 @@
                                                           (LIST
                                                                               
                                                                               
-                                                           (LIST
+                                                           (%RULE
                                                                               
                                                                               
-                                                            :BINOP
-                                                                              
-                                                                              
-                                                            (LIST
-                                                                              
-                                                                              
-                                                             :I64)
+                                                            "Binstr/#104"
                                                                               
                                                                               
                                                             (LIST
                                                                               
                                                                               
-                                                             :ADD))
+                                                             :BINOP
+                                                                              
+                                                                              
+                                                             (LIST
+                                                                              
+                                                                              
+                                                              :I64)
+                                                                              
+                                                                              
+                                                             (LIST
+                                                                              
+                                                                              
+                                                              :ADD)))
                                                                               
                                                                               
                                                            %T416)))))
@@ -8612,22 +9091,28 @@
                                                             (LIST
                                                                               
                                                                               
-                                                             (LIST
+                                                             (%RULE
                                                                               
                                                                               
-                                                              :BINOP
-                                                                              
-                                                                              
-                                                              (LIST
-                                                                              
-                                                                              
-                                                               :I64)
+                                                              "Binstr/#105"
                                                                               
                                                                               
                                                               (LIST
                                                                               
                                                                               
-                                                               :SUB))
+                                                               :BINOP
+                                                                              
+                                                                              
+                                                               (LIST
+                                                                              
+                                                                              
+                                                                :I64)
+                                                                              
+                                                                              
+                                                               (LIST
+                                                                              
+                                                                              
+                                                                :SUB)))
                                                                               
                                                                               
                                                              %T417)))))
@@ -8702,22 +9187,28 @@
                                                               (LIST
                                                                               
                                                                               
-                                                               (LIST
+                                                               (%RULE
                                                                               
                                                                               
-                                                                :BINOP
-                                                                              
-                                                                              
-                                                                (LIST
-                                                                              
-                                                                              
-                                                                 :I64)
+                                                                "Binstr/#106"
                                                                               
                                                                               
                                                                 (LIST
                                                                               
                                                                               
-                                                                 :MUL))
+                                                                 :BINOP
+                                                                              
+                                                                              
+                                                                 (LIST
+                                                                              
+                                                                              
+                                                                  :I64)
+                                                                              
+                                                                              
+                                                                 (LIST
+                                                                              
+                                                                              
+                                                                  :MUL)))
                                                                               
                                                                               
                                                                %T418)))))
@@ -8792,28 +9283,34 @@
                                                                 (LIST
                                                                               
                                                                               
-                                                                 (LIST
+                                                                 (%RULE
                                                                               
                                                                               
-                                                                  :BINOP
-                                                                              
-                                                                              
-                                                                  (LIST
-                                                                              
-                                                                              
-                                                                   :I64)
+                                                                  "Binstr/#107"
                                                                               
                                                                               
                                                                   (LIST
                                                                               
                                                                               
-                                                                   :DIV
+                                                                   :BINOP
                                                                               
                                                                               
                                                                    (LIST
                                                                               
                                                                               
-                                                                    :S)))
+                                                                    :I64)
+                                                                              
+                                                                              
+                                                                   (LIST
+                                                                              
+                                                                              
+                                                                    :DIV
+                                                                              
+                                                                              
+                                                                    (LIST
+                                                                              
+                                                                              
+                                                                     :S))))
                                                                               
                                                                               
                                                                  %T419)))))
@@ -8888,28 +9385,34 @@
                                                                   (LIST
                                                                               
                                                                               
-                                                                   (LIST
+                                                                   (%RULE
                                                                               
                                                                               
-                                                                    :BINOP
-                                                                              
-                                                                              
-                                                                    (LIST
-                                                                              
-                                                                              
-                                                                     :I64)
+                                                                    "Binstr/#108"
                                                                               
                                                                               
                                                                     (LIST
                                                                               
                                                                               
-                                                                     :DIV
+                                                                     :BINOP
                                                                               
                                                                               
                                                                      (LIST
                                                                               
                                                                               
-                                                                      :U)))
+                                                                      :I64)
+                                                                              
+                                                                              
+                                                                     (LIST
+                                                                              
+                                                                              
+                                                                      :DIV
+                                                                              
+                                                                              
+                                                                      (LIST
+                                                                              
+                                                                              
+                                                                       :U))))
                                                                               
                                                                               
                                                                    %T420)))))
@@ -8984,28 +9487,34 @@
                                                                     (LIST
                                                                               
                                                                               
-                                                                     (LIST
+                                                                     (%RULE
                                                                               
                                                                               
-                                                                      :BINOP
-                                                                              
-                                                                              
-                                                                      (LIST
-                                                                              
-                                                                              
-                                                                       :I64)
+                                                                      "Binstr/#109"
                                                                               
                                                                               
                                                                       (LIST
                                                                               
                                                                               
-                                                                       :REM
+                                                                       :BINOP
                                                                               
                                                                               
                                                                        (LIST
                                                                               
                                                                               
-                                                                        :S)))
+                                                                        :I64)
+                                                                              
+                                                                              
+                                                                       (LIST
+                                                                              
+                                                                              
+                                                                        :REM
+                                                                              
+                                                                              
+                                                                        (LIST
+                                                                              
+                                                                              
+                                                                         :S))))
                                                                               
                                                                               
                                                                      %T421)))))
@@ -9080,28 +9589,34 @@
                                                                       (LIST
                                                                               
                                                                               
-                                                                       (LIST
+                                                                       (%RULE
                                                                               
                                                                               
-                                                                        :BINOP
-                                                                              
-                                                                              
-                                                                        (LIST
-                                                                              
-                                                                              
-                                                                         :I64)
+                                                                        "Binstr/#110"
                                                                               
                                                                               
                                                                         (LIST
                                                                               
                                                                               
-                                                                         :REM
+                                                                         :BINOP
                                                                               
                                                                               
                                                                          (LIST
                                                                               
                                                                               
-                                                                          :U)))
+                                                                          :I64)
+                                                                              
+                                                                              
+                                                                         (LIST
+                                                                              
+                                                                              
+                                                                          :REM
+                                                                              
+                                                                              
+                                                                          (LIST
+                                                                              
+                                                                              
+                                                                           :U))))
                                                                               
                                                                               
                                                                        %T422)))))
@@ -9176,22 +9691,28 @@
                                                                         (LIST
                                                                               
                                                                               
-                                                                         (LIST
+                                                                         (%RULE
                                                                               
                                                                               
-                                                                          :BINOP
-                                                                              
-                                                                              
-                                                                          (LIST
-                                                                              
-                                                                              
-                                                                           :I64)
+                                                                          "Binstr/#111"
                                                                               
                                                                               
                                                                           (LIST
                                                                               
                                                                               
-                                                                           :AND))
+                                                                           :BINOP
+                                                                              
+                                                                              
+                                                                           (LIST
+                                                                              
+                                                                              
+                                                                            :I64)
+                                                                              
+                                                                              
+                                                                           (LIST
+                                                                              
+                                                                              
+                                                                            :AND)))
                                                                               
                                                                               
                                                                          %T423)))))
@@ -9266,22 +9787,28 @@
                                                                           (LIST
                                                                               
                                                                               
-                                                                           (LIST
+                                                                           (%RULE
                                                                               
                                                                               
-                                                                            :BINOP
-                                                                              
-                                                                              
-                                                                            (LIST
-                                                                              
-                                                                              
-                                                                             :I64)
+                                                                            "Binstr/#112"
                                                                               
                                                                               
                                                                             (LIST
                                                                               
                                                                               
-                                                                             :OR))
+                                                                             :BINOP
+                                                                              
+                                                                              
+                                                                             (LIST
+                                                                              
+                                                                              
+                                                                              :I64)
+                                                                              
+                                                                              
+                                                                             (LIST
+                                                                              
+                                                                              
+                                                                              :OR)))
                                                                               
                                                                               
                                                                            %T424)))))
@@ -9357,24 +9884,33 @@
                                                                             (LIST
                                                                               
                                                                               
-                                                                             (LIST
+                                                                             (%RULE
                                                                               
                                                                               
-                                                                              :BINOP
-                                                                              
-                                                                              
-                                                                              (LIST
-                                                                              
-                                                                              
-                                                                              
- :I64)
+                                                                              "Binstr/#113"
                                                                               
                                                                               
                                                                               (LIST
                                                                               
                                                                               
                                                                               
- :XOR))
+ :BINOP
+                                                                              
+                                                                              
+                                                                              
+ (LIST
+                                                                              
+                                                                              
+                                                                              
+  :I64)
+                                                                              
+                                                                              
+                                                                              
+ (LIST
+                                                                              
+                                                                              
+                                                                              
+  :XOR)))
                                                                               
                                                                               
                                                                              %T425)))))
@@ -9455,19 +9991,11 @@
                                                                               
                                                                               
                                                                               
- (LIST
+ (%RULE
                                                                               
                                                                               
                                                                               
-  :BINOP
-                                                                              
-                                                                              
-                                                                              
-  (LIST
-                                                                              
-                                                                              
-                                                                              
-   :I64)
+  "Binstr/#114"
                                                                               
                                                                               
                                                                               
@@ -9475,7 +10003,23 @@
                                                                               
                                                                               
                                                                               
-   :SHL))
+   :BINOP
+                                                                              
+                                                                              
+                                                                              
+   (LIST
+                                                                              
+                                                                              
+                                                                              
+    :I64)
+                                                                              
+                                                                              
+                                                                              
+   (LIST
+                                                                              
+                                                                              
+                                                                              
+    :SHL)))
                                                                               
                                                                               
                                                                               
@@ -9566,19 +10110,11 @@
                                                                               
                                                                               
                                                                               
-   (LIST
+   (%RULE
                                                                               
                                                                               
                                                                               
-    :BINOP
-                                                                              
-                                                                              
-                                                                              
-    (LIST
-                                                                              
-                                                                              
-                                                                              
-     :I64)
+    "Binstr/#115"
                                                                               
                                                                               
                                                                               
@@ -9586,7 +10122,7 @@
                                                                               
                                                                               
                                                                               
-     :SHR
+     :BINOP
                                                                               
                                                                               
                                                                               
@@ -9594,7 +10130,23 @@
                                                                               
                                                                               
                                                                               
-      :S)))
+      :I64)
+                                                                              
+                                                                              
+                                                                              
+     (LIST
+                                                                              
+                                                                              
+                                                                              
+      :SHR
+                                                                              
+                                                                              
+                                                                              
+      (LIST
+                                                                              
+                                                                              
+                                                                              
+       :S))))
                                                                               
                                                                               
                                                                               
@@ -9686,19 +10238,11 @@
                                                                               
                                                                               
                                                                               
-     (LIST
+     (%RULE
                                                                               
                                                                               
                                                                               
-      :BINOP
-                                                                              
-                                                                              
-                                                                              
-      (LIST
-                                                                              
-                                                                              
-                                                                              
-       :I64)
+      "Binstr/#116"
                                                                               
                                                                               
                                                                               
@@ -9706,7 +10250,7 @@
                                                                               
                                                                               
                                                                               
-       :SHR
+       :BINOP
                                                                               
                                                                               
                                                                               
@@ -9714,7 +10258,23 @@
                                                                               
                                                                               
                                                                               
-        :U)))
+        :I64)
+                                                                              
+                                                                              
+                                                                              
+       (LIST
+                                                                              
+                                                                              
+                                                                              
+        :SHR
+                                                                              
+                                                                              
+                                                                              
+        (LIST
+                                                                              
+                                                                              
+                                                                              
+         :U))))
                                                                               
                                                                               
                                                                               
@@ -9812,19 +10372,11 @@
                                                                               
                                                                               
                                                                               
-       (LIST
+       (%RULE
                                                                               
                                                                               
                                                                               
-        :BINOP
-                                                                              
-                                                                              
-                                                                              
-        (LIST
-                                                                              
-                                                                              
-                                                                              
-         :I64)
+        "Binstr/#117"
                                                                               
                                                                               
                                                                               
@@ -9832,7 +10384,23 @@
                                                                               
                                                                               
                                                                               
-         :ROTL))
+         :BINOP
+                                                                              
+                                                                              
+                                                                              
+         (LIST
+                                                                              
+                                                                              
+                                                                              
+          :I64)
+                                                                              
+                                                                              
+                                                                              
+         (LIST
+                                                                              
+                                                                              
+                                                                              
+          :ROTL)))
                                                                               
                                                                               
                                                                               
@@ -9932,19 +10500,11 @@
                                                                               
                                                                               
                                                                               
-         (LIST
+         (%RULE
                                                                               
                                                                               
                                                                               
-          :BINOP
-                                                                              
-                                                                              
-                                                                              
-          (LIST
-                                                                              
-                                                                              
-                                                                              
-           :I64)
+          "Binstr/#118"
                                                                               
                                                                               
                                                                               
@@ -9952,7 +10512,23 @@
                                                                               
                                                                               
                                                                               
-           :ROTR))
+           :BINOP
+                                                                              
+                                                                              
+                                                                              
+           (LIST
+                                                                              
+                                                                              
+                                                                              
+            :I64)
+                                                                              
+                                                                              
+                                                                              
+           (LIST
+                                                                              
+                                                                              
+                                                                              
+            :ROTR)))
                                                                               
                                                                               
                                                                               
@@ -10052,19 +10628,11 @@
                                                                               
                                                                               
                                                                               
-           (LIST
+           (%RULE
                                                                               
                                                                               
                                                                               
-            :UNOP
-                                                                              
-                                                                              
-                                                                              
-            (LIST
-                                                                              
-                                                                              
-                                                                              
-             :F32)
+            "Binstr/#119"
                                                                               
                                                                               
                                                                               
@@ -10072,7 +10640,23 @@
                                                                               
                                                                               
                                                                               
-             :ABS))
+             :UNOP
+                                                                              
+                                                                              
+                                                                              
+             (LIST
+                                                                              
+                                                                              
+                                                                              
+              :F32)
+                                                                              
+                                                                              
+                                                                              
+             (LIST
+                                                                              
+                                                                              
+                                                                              
+              :ABS)))
                                                                               
                                                                               
                                                                               
@@ -10172,19 +10756,11 @@
                                                                               
                                                                               
                                                                               
-             (LIST
+             (%RULE
                                                                               
                                                                               
                                                                               
-              :UNOP
-                                                                              
-                                                                              
-                                                                              
-              (LIST
-                                                                              
-                                                                              
-                                                                              
-               :F32)
+              "Binstr/#120"
                                                                               
                                                                               
                                                                               
@@ -10192,7 +10768,23 @@
                                                                               
                                                                               
                                                                               
-               :NEG))
+               :UNOP
+                                                                              
+                                                                              
+                                                                              
+               (LIST
+                                                                              
+                                                                              
+                                                                              
+                :F32)
+                                                                              
+                                                                              
+                                                                              
+               (LIST
+                                                                              
+                                                                              
+                                                                              
+                :NEG)))
                                                                               
                                                                               
                                                                               
@@ -10292,19 +10884,11 @@
                                                                               
                                                                               
                                                                               
-               (LIST
+               (%RULE
                                                                               
                                                                               
                                                                               
-                :UNOP
-                                                                              
-                                                                              
-                                                                              
-                (LIST
-                                                                              
-                                                                              
-                                                                              
-                 :F32)
+                "Binstr/#121"
                                                                               
                                                                               
                                                                               
@@ -10312,7 +10896,23 @@
                                                                               
                                                                               
                                                                               
-                 :CEIL))
+                 :UNOP
+                                                                              
+                                                                              
+                                                                              
+                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                  :F32)
+                                                                              
+                                                                              
+                                                                              
+                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                  :CEIL)))
                                                                               
                                                                               
                                                                               
@@ -10412,19 +11012,11 @@
                                                                               
                                                                               
                                                                               
-                 (LIST
+                 (%RULE
                                                                               
                                                                               
                                                                               
-                  :UNOP
-                                                                              
-                                                                              
-                                                                              
-                  (LIST
-                                                                              
-                                                                              
-                                                                              
-                   :F32)
+                  "Binstr/#122"
                                                                               
                                                                               
                                                                               
@@ -10432,7 +11024,23 @@
                                                                               
                                                                               
                                                                               
-                   :FLOOR))
+                   :UNOP
+                                                                              
+                                                                              
+                                                                              
+                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                    :F32)
+                                                                              
+                                                                              
+                                                                              
+                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                    :FLOOR)))
                                                                               
                                                                               
                                                                               
@@ -10532,19 +11140,11 @@
                                                                               
                                                                               
                                                                               
-                   (LIST
+                   (%RULE
                                                                               
                                                                               
                                                                               
-                    :UNOP
-                                                                              
-                                                                              
-                                                                              
-                    (LIST
-                                                                              
-                                                                              
-                                                                              
-                     :F32)
+                    "Binstr/#123"
                                                                               
                                                                               
                                                                               
@@ -10552,7 +11152,23 @@
                                                                               
                                                                               
                                                                               
-                     :TRUNC))
+                     :UNOP
+                                                                              
+                                                                              
+                                                                              
+                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                      :F32)
+                                                                              
+                                                                              
+                                                                              
+                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                      :TRUNC)))
                                                                               
                                                                               
                                                                               
@@ -10652,19 +11268,11 @@
                                                                               
                                                                               
                                                                               
-                     (LIST
+                     (%RULE
                                                                               
                                                                               
                                                                               
-                      :UNOP
-                                                                              
-                                                                              
-                                                                              
-                      (LIST
-                                                                              
-                                                                              
-                                                                              
-                       :F32)
+                      "Binstr/#124"
                                                                               
                                                                               
                                                                               
@@ -10672,7 +11280,23 @@
                                                                               
                                                                               
                                                                               
-                       :NEAREST))
+                       :UNOP
+                                                                              
+                                                                              
+                                                                              
+                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                        :F32)
+                                                                              
+                                                                              
+                                                                              
+                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                        :NEAREST)))
                                                                               
                                                                               
                                                                               
@@ -10772,19 +11396,11 @@
                                                                               
                                                                               
                                                                               
-                       (LIST
+                       (%RULE
                                                                               
                                                                               
                                                                               
-                        :UNOP
-                                                                              
-                                                                              
-                                                                              
-                        (LIST
-                                                                              
-                                                                              
-                                                                              
-                         :F32)
+                        "Binstr/#125"
                                                                               
                                                                               
                                                                               
@@ -10792,7 +11408,23 @@
                                                                               
                                                                               
                                                                               
-                         :SQRT))
+                         :UNOP
+                                                                              
+                                                                              
+                                                                              
+                         (LIST
+                                                                              
+                                                                              
+                                                                              
+                          :F32)
+                                                                              
+                                                                              
+                                                                              
+                         (LIST
+                                                                              
+                                                                              
+                                                                              
+                          :SQRT)))
                                                                               
                                                                               
                                                                               
@@ -10892,19 +11524,11 @@
                                                                               
                                                                               
                                                                               
-                         (LIST
+                         (%RULE
                                                                               
                                                                               
                                                                               
-                          :BINOP
-                                                                              
-                                                                              
-                                                                              
-                          (LIST
-                                                                              
-                                                                              
-                                                                              
-                           :F32)
+                          "Binstr/#126"
                                                                               
                                                                               
                                                                               
@@ -10912,7 +11536,23 @@
                                                                               
                                                                               
                                                                               
-                           :ADD))
+                           :BINOP
+                                                                              
+                                                                              
+                                                                              
+                           (LIST
+                                                                              
+                                                                              
+                                                                              
+                            :F32)
+                                                                              
+                                                                              
+                                                                              
+                           (LIST
+                                                                              
+                                                                              
+                                                                              
+                            :ADD)))
                                                                               
                                                                               
                                                                               
@@ -11012,19 +11652,11 @@
                                                                               
                                                                               
                                                                               
-                           (LIST
+                           (%RULE
                                                                               
                                                                               
                                                                               
-                            :BINOP
-                                                                              
-                                                                              
-                                                                              
-                            (LIST
-                                                                              
-                                                                              
-                                                                              
-                             :F32)
+                            "Binstr/#127"
                                                                               
                                                                               
                                                                               
@@ -11032,7 +11664,23 @@
                                                                               
                                                                               
                                                                               
-                             :SUB))
+                             :BINOP
+                                                                              
+                                                                              
+                                                                              
+                             (LIST
+                                                                              
+                                                                              
+                                                                              
+                              :F32)
+                                                                              
+                                                                              
+                                                                              
+                             (LIST
+                                                                              
+                                                                              
+                                                                              
+                              :SUB)))
                                                                               
                                                                               
                                                                               
@@ -11132,19 +11780,11 @@
                                                                               
                                                                               
                                                                               
-                             (LIST
+                             (%RULE
                                                                               
                                                                               
                                                                               
-                              :BINOP
-                                                                              
-                                                                              
-                                                                              
-                              (LIST
-                                                                              
-                                                                              
-                                                                              
-                               :F32)
+                              "Binstr/#128"
                                                                               
                                                                               
                                                                               
@@ -11152,7 +11792,23 @@
                                                                               
                                                                               
                                                                               
-                               :MUL))
+                               :BINOP
+                                                                              
+                                                                              
+                                                                              
+                               (LIST
+                                                                              
+                                                                              
+                                                                              
+                                :F32)
+                                                                              
+                                                                              
+                                                                              
+                               (LIST
+                                                                              
+                                                                              
+                                                                              
+                                :MUL)))
                                                                               
                                                                               
                                                                               
@@ -11252,19 +11908,11 @@
                                                                               
                                                                               
                                                                               
-                               (LIST
+                               (%RULE
                                                                               
                                                                               
                                                                               
-                                :BINOP
-                                                                              
-                                                                              
-                                                                              
-                                (LIST
-                                                                              
-                                                                              
-                                                                              
-                                 :F32)
+                                "Binstr/#129"
                                                                               
                                                                               
                                                                               
@@ -11272,7 +11920,23 @@
                                                                               
                                                                               
                                                                               
-                                 :DIV))
+                                 :BINOP
+                                                                              
+                                                                              
+                                                                              
+                                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                                  :F32)
+                                                                              
+                                                                              
+                                                                              
+                                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                                  :DIV)))
                                                                               
                                                                               
                                                                               
@@ -11372,19 +12036,11 @@
                                                                               
                                                                               
                                                                               
-                                 (LIST
+                                 (%RULE
                                                                               
                                                                               
                                                                               
-                                  :BINOP
-                                                                              
-                                                                              
-                                                                              
-                                  (LIST
-                                                                              
-                                                                              
-                                                                              
-                                   :F32)
+                                  "Binstr/#130"
                                                                               
                                                                               
                                                                               
@@ -11392,7 +12048,23 @@
                                                                               
                                                                               
                                                                               
-                                   :MIN))
+                                   :BINOP
+                                                                              
+                                                                              
+                                                                              
+                                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                    :F32)
+                                                                              
+                                                                              
+                                                                              
+                                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                    :MIN)))
                                                                               
                                                                               
                                                                               
@@ -11492,19 +12164,11 @@
                                                                               
                                                                               
                                                                               
-                                   (LIST
+                                   (%RULE
                                                                               
                                                                               
                                                                               
-                                    :BINOP
-                                                                              
-                                                                              
-                                                                              
-                                    (LIST
-                                                                              
-                                                                              
-                                                                              
-                                     :F32)
+                                    "Binstr/#131"
                                                                               
                                                                               
                                                                               
@@ -11512,7 +12176,23 @@
                                                                               
                                                                               
                                                                               
-                                     :MAX))
+                                     :BINOP
+                                                                              
+                                                                              
+                                                                              
+                                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                      :F32)
+                                                                              
+                                                                              
+                                                                              
+                                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                      :MAX)))
                                                                               
                                                                               
                                                                               
@@ -11612,19 +12292,11 @@
                                                                               
                                                                               
                                                                               
-                                     (LIST
+                                     (%RULE
                                                                               
                                                                               
                                                                               
-                                      :BINOP
-                                                                              
-                                                                              
-                                                                              
-                                      (LIST
-                                                                              
-                                                                              
-                                                                              
-                                       :F32)
+                                      "Binstr/#132"
                                                                               
                                                                               
                                                                               
@@ -11632,7 +12304,23 @@
                                                                               
                                                                               
                                                                               
-                                       :COPYSIGN))
+                                       :BINOP
+                                                                              
+                                                                              
+                                                                              
+                                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                        :F32)
+                                                                              
+                                                                              
+                                                                              
+                                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                        :COPYSIGN)))
                                                                               
                                                                               
                                                                               
@@ -11732,19 +12420,11 @@
                                                                               
                                                                               
                                                                               
-                                       (LIST
+                                       (%RULE
                                                                               
                                                                               
                                                                               
-                                        :UNOP
-                                                                              
-                                                                              
-                                                                              
-                                        (LIST
-                                                                              
-                                                                              
-                                                                              
-                                         :F64)
+                                        "Binstr/#133"
                                                                               
                                                                               
                                                                               
@@ -11752,7 +12432,23 @@
                                                                               
                                                                               
                                                                               
-                                         :ABS))
+                                         :UNOP
+                                                                              
+                                                                              
+                                                                              
+                                         (LIST
+                                                                              
+                                                                              
+                                                                              
+                                          :F64)
+                                                                              
+                                                                              
+                                                                              
+                                         (LIST
+                                                                              
+                                                                              
+                                                                              
+                                          :ABS)))
                                                                               
                                                                               
                                                                               
@@ -11852,19 +12548,11 @@
                                                                               
                                                                               
                                                                               
-                                         (LIST
+                                         (%RULE
                                                                               
                                                                               
                                                                               
-                                          :UNOP
-                                                                              
-                                                                              
-                                                                              
-                                          (LIST
-                                                                              
-                                                                              
-                                                                              
-                                           :F64)
+                                          "Binstr/#134"
                                                                               
                                                                               
                                                                               
@@ -11872,7 +12560,23 @@
                                                                               
                                                                               
                                                                               
-                                           :NEG))
+                                           :UNOP
+                                                                              
+                                                                              
+                                                                              
+                                           (LIST
+                                                                              
+                                                                              
+                                                                              
+                                            :F64)
+                                                                              
+                                                                              
+                                                                              
+                                           (LIST
+                                                                              
+                                                                              
+                                                                              
+                                            :NEG)))
                                                                               
                                                                               
                                                                               
@@ -11972,19 +12676,11 @@
                                                                               
                                                                               
                                                                               
-                                           (LIST
+                                           (%RULE
                                                                               
                                                                               
                                                                               
-                                            :UNOP
-                                                                              
-                                                                              
-                                                                              
-                                            (LIST
-                                                                              
-                                                                              
-                                                                              
-                                             :F64)
+                                            "Binstr/#135"
                                                                               
                                                                               
                                                                               
@@ -11992,7 +12688,23 @@
                                                                               
                                                                               
                                                                               
-                                             :CEIL))
+                                             :UNOP
+                                                                              
+                                                                              
+                                                                              
+                                             (LIST
+                                                                              
+                                                                              
+                                                                              
+                                              :F64)
+                                                                              
+                                                                              
+                                                                              
+                                             (LIST
+                                                                              
+                                                                              
+                                                                              
+                                              :CEIL)))
                                                                               
                                                                               
                                                                               
@@ -12092,19 +12804,11 @@
                                                                               
                                                                               
                                                                               
-                                             (LIST
+                                             (%RULE
                                                                               
                                                                               
                                                                               
-                                              :UNOP
-                                                                              
-                                                                              
-                                                                              
-                                              (LIST
-                                                                              
-                                                                              
-                                                                              
-                                               :F64)
+                                              "Binstr/#136"
                                                                               
                                                                               
                                                                               
@@ -12112,7 +12816,23 @@
                                                                               
                                                                               
                                                                               
-                                               :FLOOR))
+                                               :UNOP
+                                                                              
+                                                                              
+                                                                              
+                                               (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                :F64)
+                                                                              
+                                                                              
+                                                                              
+                                               (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                :FLOOR)))
                                                                               
                                                                               
                                                                               
@@ -12212,19 +12932,11 @@
                                                                               
                                                                               
                                                                               
-                                               (LIST
+                                               (%RULE
                                                                               
                                                                               
                                                                               
-                                                :UNOP
-                                                                              
-                                                                              
-                                                                              
-                                                (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                 :F64)
+                                                "Binstr/#137"
                                                                               
                                                                               
                                                                               
@@ -12232,7 +12944,23 @@
                                                                               
                                                                               
                                                                               
-                                                 :TRUNC))
+                                                 :UNOP
+                                                                              
+                                                                              
+                                                                              
+                                                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                  :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                  :TRUNC)))
                                                                               
                                                                               
                                                                               
@@ -12332,19 +13060,11 @@
                                                                               
                                                                               
                                                                               
-                                                 (LIST
+                                                 (%RULE
                                                                               
                                                                               
                                                                               
-                                                  :UNOP
-                                                                              
-                                                                              
-                                                                              
-                                                  (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                   :F64)
+                                                  "Binstr/#138"
                                                                               
                                                                               
                                                                               
@@ -12352,7 +13072,23 @@
                                                                               
                                                                               
                                                                               
-                                                   :NEAREST))
+                                                   :UNOP
+                                                                              
+                                                                              
+                                                                              
+                                                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                    :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                    :NEAREST)))
                                                                               
                                                                               
                                                                               
@@ -12452,19 +13188,11 @@
                                                                               
                                                                               
                                                                               
-                                                   (LIST
+                                                   (%RULE
                                                                               
                                                                               
                                                                               
-                                                    :UNOP
-                                                                              
-                                                                              
-                                                                              
-                                                    (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                     :F64)
+                                                    "Binstr/#139"
                                                                               
                                                                               
                                                                               
@@ -12472,7 +13200,23 @@
                                                                               
                                                                               
                                                                               
-                                                     :SQRT))
+                                                     :UNOP
+                                                                              
+                                                                              
+                                                                              
+                                                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                      :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                      :SQRT)))
                                                                               
                                                                               
                                                                               
@@ -12572,19 +13316,11 @@
                                                                               
                                                                               
                                                                               
-                                                     (LIST
+                                                     (%RULE
                                                                               
                                                                               
                                                                               
-                                                      :BINOP
-                                                                              
-                                                                              
-                                                                              
-                                                      (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                       :F64)
+                                                      "Binstr/#140"
                                                                               
                                                                               
                                                                               
@@ -12592,7 +13328,23 @@
                                                                               
                                                                               
                                                                               
-                                                       :ADD))
+                                                       :BINOP
+                                                                              
+                                                                              
+                                                                              
+                                                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                        :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                        :ADD)))
                                                                               
                                                                               
                                                                               
@@ -12692,19 +13444,11 @@
                                                                               
                                                                               
                                                                               
-                                                       (LIST
+                                                       (%RULE
                                                                               
                                                                               
                                                                               
-                                                        :BINOP
-                                                                              
-                                                                              
-                                                                              
-                                                        (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                         :F64)
+                                                        "Binstr/#141"
                                                                               
                                                                               
                                                                               
@@ -12712,7 +13456,23 @@
                                                                               
                                                                               
                                                                               
-                                                         :SUB))
+                                                         :BINOP
+                                                                              
+                                                                              
+                                                                              
+                                                         (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                          :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                         (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                          :SUB)))
                                                                               
                                                                               
                                                                               
@@ -12812,19 +13572,11 @@
                                                                               
                                                                               
                                                                               
-                                                         (LIST
+                                                         (%RULE
                                                                               
                                                                               
                                                                               
-                                                          :BINOP
-                                                                              
-                                                                              
-                                                                              
-                                                          (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                           :F64)
+                                                          "Binstr/#142"
                                                                               
                                                                               
                                                                               
@@ -12832,7 +13584,23 @@
                                                                               
                                                                               
                                                                               
-                                                           :MUL))
+                                                           :BINOP
+                                                                              
+                                                                              
+                                                                              
+                                                           (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                            :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                           (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                            :MUL)))
                                                                               
                                                                               
                                                                               
@@ -12932,19 +13700,11 @@
                                                                               
                                                                               
                                                                               
-                                                           (LIST
+                                                           (%RULE
                                                                               
                                                                               
                                                                               
-                                                            :BINOP
-                                                                              
-                                                                              
-                                                                              
-                                                            (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                             :F64)
+                                                            "Binstr/#143"
                                                                               
                                                                               
                                                                               
@@ -12952,7 +13712,23 @@
                                                                               
                                                                               
                                                                               
-                                                             :DIV))
+                                                             :BINOP
+                                                                              
+                                                                              
+                                                                              
+                                                             (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                              :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                             (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                              :DIV)))
                                                                               
                                                                               
                                                                               
@@ -13052,19 +13828,11 @@
                                                                               
                                                                               
                                                                               
-                                                             (LIST
+                                                             (%RULE
                                                                               
                                                                               
                                                                               
-                                                              :BINOP
-                                                                              
-                                                                              
-                                                                              
-                                                              (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                               :F64)
+                                                              "Binstr/#144"
                                                                               
                                                                               
                                                                               
@@ -13072,7 +13840,23 @@
                                                                               
                                                                               
                                                                               
-                                                               :MIN))
+                                                               :BINOP
+                                                                              
+                                                                              
+                                                                              
+                                                               (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                               (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                :MIN)))
                                                                               
                                                                               
                                                                               
@@ -13172,19 +13956,11 @@
                                                                               
                                                                               
                                                                               
-                                                               (LIST
+                                                               (%RULE
                                                                               
                                                                               
                                                                               
-                                                                :BINOP
-                                                                              
-                                                                              
-                                                                              
-                                                                (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                 :F64)
+                                                                "Binstr/#145"
                                                                               
                                                                               
                                                                               
@@ -13192,7 +13968,23 @@
                                                                               
                                                                               
                                                                               
-                                                                 :MAX))
+                                                                 :BINOP
+                                                                              
+                                                                              
+                                                                              
+                                                                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                  :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                  :MAX)))
                                                                               
                                                                               
                                                                               
@@ -13292,19 +14084,11 @@
                                                                               
                                                                               
                                                                               
-                                                                 (LIST
+                                                                 (%RULE
                                                                               
                                                                               
                                                                               
-                                                                  :BINOP
-                                                                              
-                                                                              
-                                                                              
-                                                                  (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                   :F64)
+                                                                  "Binstr/#146"
                                                                               
                                                                               
                                                                               
@@ -13312,7 +14096,23 @@
                                                                               
                                                                               
                                                                               
-                                                                   :COPYSIGN))
+                                                                   :BINOP
+                                                                              
+                                                                              
+                                                                              
+                                                                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                    :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                    :COPYSIGN)))
                                                                               
                                                                               
                                                                               
@@ -13412,19 +14212,11 @@
                                                                               
                                                                               
                                                                               
-                                                                   (LIST
+                                                                   (%RULE
                                                                               
                                                                               
                                                                               
-                                                                    :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                    (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                     :I32)
+                                                                    "Binstr/#147"
                                                                               
                                                                               
                                                                               
@@ -13432,15 +14224,31 @@
                                                                               
                                                                               
                                                                               
-                                                                     :I64)
+                                                                     :CVTOP
                                                                               
                                                                               
                                                                               
-                                                                    (LIST
+                                                                     (LIST
                                                                               
                                                                               
                                                                               
-                                                                     :WRAP))
+                                                                      :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                      :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                      :WRAP)))
                                                                               
                                                                               
                                                                               
@@ -13540,19 +14348,11 @@
                                                                               
                                                                               
                                                                               
-                                                                     (LIST
+                                                                     (%RULE
                                                                               
                                                                               
                                                                               
-                                                                      :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                      (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                       :I32)
+                                                                      "Binstr/#148"
                                                                               
                                                                               
                                                                               
@@ -13560,15 +14360,7 @@
                                                                               
                                                                               
                                                                               
-                                                                       :F32)
-                                                                              
-                                                                              
-                                                                              
-                                                                      (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                       :TRUNC
+                                                                       :CVTOP
                                                                               
                                                                               
                                                                               
@@ -13576,7 +14368,31 @@
                                                                               
                                                                               
                                                                               
-                                                                        :S)))
+                                                                        :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                        :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                        :TRUNC
+                                                                              
+                                                                              
+                                                                              
+                                                                        (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                         :S))))
                                                                               
                                                                               
                                                                               
@@ -13676,19 +14492,11 @@
                                                                               
                                                                               
                                                                               
-                                                                       (LIST
+                                                                       (%RULE
                                                                               
                                                                               
                                                                               
-                                                                        :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                        (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                         :I32)
+                                                                        "Binstr/#149"
                                                                               
                                                                               
                                                                               
@@ -13696,15 +14504,7 @@
                                                                               
                                                                               
                                                                               
-                                                                         :F32)
-                                                                              
-                                                                              
-                                                                              
-                                                                        (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                         :TRUNC
+                                                                         :CVTOP
                                                                               
                                                                               
                                                                               
@@ -13712,7 +14512,31 @@
                                                                               
                                                                               
                                                                               
-                                                                          :U)))
+                                                                          :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                         (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                          :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                         (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                          :TRUNC
+                                                                              
+                                                                              
+                                                                              
+                                                                          (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                           :U))))
                                                                               
                                                                               
                                                                               
@@ -13812,19 +14636,11 @@
                                                                               
                                                                               
                                                                               
-                                                                         (LIST
+                                                                         (%RULE
                                                                               
                                                                               
                                                                               
-                                                                          :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                          (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                           :I32)
+                                                                          "Binstr/#150"
                                                                               
                                                                               
                                                                               
@@ -13832,15 +14648,7 @@
                                                                               
                                                                               
                                                                               
-                                                                           :F64)
-                                                                              
-                                                                              
-                                                                              
-                                                                          (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                           :TRUNC
+                                                                           :CVTOP
                                                                               
                                                                               
                                                                               
@@ -13848,7 +14656,31 @@
                                                                               
                                                                               
                                                                               
-                                                                            :S)))
+                                                                            :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                           (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                            :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                           (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                            :TRUNC
+                                                                              
+                                                                              
+                                                                              
+                                                                            (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                             :S))))
                                                                               
                                                                               
                                                                               
@@ -13948,19 +14780,11 @@
                                                                               
                                                                               
                                                                               
-                                                                           (LIST
+                                                                           (%RULE
                                                                               
                                                                               
                                                                               
-                                                                            :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                            (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                             :I32)
+                                                                            "Binstr/#151"
                                                                               
                                                                               
                                                                               
@@ -13968,15 +14792,7 @@
                                                                               
                                                                               
                                                                               
-                                                                             :F64)
-                                                                              
-                                                                              
-                                                                              
-                                                                            (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                             :TRUNC
+                                                                             :CVTOP
                                                                               
                                                                               
                                                                               
@@ -13984,7 +14800,32 @@
                                                                               
                                                                               
                                                                               
-                                                                              :U)))
+                                                                              :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                             (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                             (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              :TRUNC
+                                                                              
+                                                                              
+                                                                              
+                                                                              (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+ :U))))
                                                                               
                                                                               
                                                                               
@@ -14085,20 +14926,11 @@
                                                                               
                                                                               
                                                                               
-                                                                             (LIST
+                                                                             (%RULE
                                                                               
                                                                               
                                                                               
-                                                                              :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
- :I64)
+                                                                              "Binstr/#152"
                                                                               
                                                                               
                                                                               
@@ -14107,16 +14939,7 @@
                                                                               
                                                                               
                                                                               
- :I32)
-                                                                              
-                                                                              
-                                                                              
-                                                                              (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
- :EXTEND
+ :CVTOP
                                                                               
                                                                               
                                                                               
@@ -14126,7 +14949,37 @@
                                                                               
                                                                               
                                                                               
-  :S)))
+  :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+ (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+  :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+ (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+  :EXTEND
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+  (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+   :S))))
                                                                               
                                                                               
                                                                               
@@ -14232,22 +15085,12 @@
                                                                               
                                                                               
                                                                               
- (LIST
+ (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-  :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-  (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-   :I64)
+  "Binstr/#153"
                                                                               
                                                                               
                                                                               
@@ -14257,17 +15100,7 @@
                                                                               
                                                                               
                                                                               
-   :I32)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-  (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-   :EXTEND
+   :CVTOP
                                                                               
                                                                               
                                                                               
@@ -14277,7 +15110,37 @@
                                                                               
                                                                               
                                                                               
-    :U)))
+    :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+    :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+    :EXTEND
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+    (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+     :U))))
                                                                               
                                                                               
                                                                               
@@ -14393,22 +15256,12 @@
                                                                               
                                                                               
                                                                               
-   (LIST
+   (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-    :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-    (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-     :I64)
+    "Binstr/#154"
                                                                               
                                                                               
                                                                               
@@ -14418,17 +15271,7 @@
                                                                               
                                                                               
                                                                               
-     :F32)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-    (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-     :TRUNC
+     :CVTOP
                                                                               
                                                                               
                                                                               
@@ -14438,7 +15281,37 @@
                                                                               
                                                                               
                                                                               
-      :S)))
+      :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+      :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+      :TRUNC
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+      (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+       :S))))
                                                                               
                                                                               
                                                                               
@@ -14555,22 +15428,12 @@
                                                                               
                                                                               
                                                                               
-     (LIST
+     (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-      :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-      (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-       :I64)
+      "Binstr/#155"
                                                                               
                                                                               
                                                                               
@@ -14580,17 +15443,7 @@
                                                                               
                                                                               
                                                                               
-       :F32)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-      (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-       :TRUNC
+       :CVTOP
                                                                               
                                                                               
                                                                               
@@ -14600,7 +15453,37 @@
                                                                               
                                                                               
                                                                               
-        :U)))
+        :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+        :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+        :TRUNC
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+        (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+         :U))))
                                                                               
                                                                               
                                                                               
@@ -14723,22 +15606,12 @@
                                                                               
                                                                               
                                                                               
-       (LIST
+       (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-        :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-        (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-         :I64)
+        "Binstr/#156"
                                                                               
                                                                               
                                                                               
@@ -14748,17 +15621,7 @@
                                                                               
                                                                               
                                                                               
-         :F64)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-        (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-         :TRUNC
+         :CVTOP
                                                                               
                                                                               
                                                                               
@@ -14768,7 +15631,37 @@
                                                                               
                                                                               
                                                                               
-          :S)))
+          :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+         (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+          :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+         (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+          :TRUNC
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+          (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+           :S))))
                                                                               
                                                                               
                                                                               
@@ -14893,22 +15786,12 @@
                                                                               
                                                                               
                                                                               
-         (LIST
+         (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-          :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-          (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-           :I64)
+          "Binstr/#157"
                                                                               
                                                                               
                                                                               
@@ -14918,17 +15801,7 @@
                                                                               
                                                                               
                                                                               
-           :F64)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-          (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-           :TRUNC
+           :CVTOP
                                                                               
                                                                               
                                                                               
@@ -14938,7 +15811,37 @@
                                                                               
                                                                               
                                                                               
-            :U)))
+            :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+           (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+            :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+           (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+            :TRUNC
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+            (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+             :U))))
                                                                               
                                                                               
                                                                               
@@ -15063,22 +15966,12 @@
                                                                               
                                                                               
                                                                               
-           (LIST
+           (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-            :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-            (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-             :F32)
+            "Binstr/#158"
                                                                               
                                                                               
                                                                               
@@ -15088,17 +15981,7 @@
                                                                               
                                                                               
                                                                               
-             :I32)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-            (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-             :CONVERT
+             :CVTOP
                                                                               
                                                                               
                                                                               
@@ -15108,7 +15991,37 @@
                                                                               
                                                                               
                                                                               
-              :S)))
+              :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+             (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+              :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+             (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+              :CONVERT
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+              (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+               :S))))
                                                                               
                                                                               
                                                                               
@@ -15233,22 +16146,12 @@
                                                                               
                                                                               
                                                                               
-             (LIST
+             (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-              :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-              (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-               :F32)
+              "Binstr/#159"
                                                                               
                                                                               
                                                                               
@@ -15258,17 +16161,7 @@
                                                                               
                                                                               
                                                                               
-               :I32)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-              (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-               :CONVERT
+               :CVTOP
                                                                               
                                                                               
                                                                               
@@ -15278,7 +16171,37 @@
                                                                               
                                                                               
                                                                               
-                :U)))
+                :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+               (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+               (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                :CONVERT
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                 :U))))
                                                                               
                                                                               
                                                                               
@@ -15403,22 +16326,12 @@
                                                                               
                                                                               
                                                                               
-               (LIST
+               (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                 :F32)
+                "Binstr/#160"
                                                                               
                                                                               
                                                                               
@@ -15428,17 +16341,7 @@
                                                                               
                                                                               
                                                                               
-                 :I64)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                 :CONVERT
+                 :CVTOP
                                                                               
                                                                               
                                                                               
@@ -15448,7 +16351,37 @@
                                                                               
                                                                               
                                                                               
-                  :S)))
+                  :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                  :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                  :CONVERT
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                  (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                   :S))))
                                                                               
                                                                               
                                                                               
@@ -15573,22 +16506,12 @@
                                                                               
                                                                               
                                                                               
-                 (LIST
+                 (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                  :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                  (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                   :F32)
+                  "Binstr/#161"
                                                                               
                                                                               
                                                                               
@@ -15598,17 +16521,7 @@
                                                                               
                                                                               
                                                                               
-                   :I64)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                  (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                   :CONVERT
+                   :CVTOP
                                                                               
                                                                               
                                                                               
@@ -15618,7 +16531,37 @@
                                                                               
                                                                               
                                                                               
-                    :U)))
+                    :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                    :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                    :CONVERT
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                    (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                     :U))))
                                                                               
                                                                               
                                                                               
@@ -15743,22 +16686,12 @@
                                                                               
                                                                               
                                                                               
-                   (LIST
+                   (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                    :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                    (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                     :F32)
+                    "Binstr/#162"
                                                                               
                                                                               
                                                                               
@@ -15768,17 +16701,37 @@
                                                                               
                                                                               
                                                                               
-                     :F64)
+                     :CVTOP
                                                                               
                                                                               
                                                                               
                                                                               
-                    (LIST
+                     (LIST
                                                                               
                                                                               
                                                                               
                                                                               
-                     :DEMOTE))
+                      :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                      :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                      :DEMOTE)))
                                                                               
                                                                               
                                                                               
@@ -15903,22 +16856,12 @@
                                                                               
                                                                               
                                                                               
-                     (LIST
+                     (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                      :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                      (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                       :F64)
+                      "Binstr/#163"
                                                                               
                                                                               
                                                                               
@@ -15928,17 +16871,7 @@
                                                                               
                                                                               
                                                                               
-                       :I32)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                      (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                       :CONVERT
+                       :CVTOP
                                                                               
                                                                               
                                                                               
@@ -15948,7 +16881,37 @@
                                                                               
                                                                               
                                                                               
-                        :S)))
+                        :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                        :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                        :CONVERT
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                        (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                         :S))))
                                                                               
                                                                               
                                                                               
@@ -16073,22 +17036,12 @@
                                                                               
                                                                               
                                                                               
-                       (LIST
+                       (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                        :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                        (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                         :F64)
+                        "Binstr/#164"
                                                                               
                                                                               
                                                                               
@@ -16098,17 +17051,7 @@
                                                                               
                                                                               
                                                                               
-                         :I32)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                        (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                         :CONVERT
+                         :CVTOP
                                                                               
                                                                               
                                                                               
@@ -16118,7 +17061,37 @@
                                                                               
                                                                               
                                                                               
-                          :U)))
+                          :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                         (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                          :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                         (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                          :CONVERT
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                          (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                           :U))))
                                                                               
                                                                               
                                                                               
@@ -16243,22 +17216,12 @@
                                                                               
                                                                               
                                                                               
-                         (LIST
+                         (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                          :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                          (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                           :F64)
+                          "Binstr/#165"
                                                                               
                                                                               
                                                                               
@@ -16268,17 +17231,7 @@
                                                                               
                                                                               
                                                                               
-                           :I64)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                          (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                           :CONVERT
+                           :CVTOP
                                                                               
                                                                               
                                                                               
@@ -16288,7 +17241,37 @@
                                                                               
                                                                               
                                                                               
-                            :S)))
+                            :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                           (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                            :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                           (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                            :CONVERT
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                            (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                             :S))))
                                                                               
                                                                               
                                                                               
@@ -16413,22 +17396,12 @@
                                                                               
                                                                               
                                                                               
-                           (LIST
+                           (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                            :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                            (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                             :F64)
+                            "Binstr/#166"
                                                                               
                                                                               
                                                                               
@@ -16438,17 +17411,7 @@
                                                                               
                                                                               
                                                                               
-                             :I64)
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                            (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                             :CONVERT
+                             :CVTOP
                                                                               
                                                                               
                                                                               
@@ -16458,7 +17421,37 @@
                                                                               
                                                                               
                                                                               
-                              :U)))
+                              :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                             (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                              :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                             (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                              :CONVERT
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                              (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                               :U))))
                                                                               
                                                                               
                                                                               
@@ -16583,22 +17576,12 @@
                                                                               
                                                                               
                                                                               
-                             (LIST
+                             (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                              :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                              (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                               :F32)
+                              "Binstr/#167"
                                                                               
                                                                               
                                                                               
@@ -16608,17 +17591,37 @@
                                                                               
                                                                               
                                                                               
-                               :F64)
+                               :CVTOP
                                                                               
                                                                               
                                                                               
                                                                               
-                              (LIST
+                               (LIST
                                                                               
                                                                               
                                                                               
                                                                               
-                               :PROMOTE))
+                                :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                               (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                               (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                :PROMOTE)))
                                                                               
                                                                               
                                                                               
@@ -16743,22 +17746,12 @@
                                                                               
                                                                               
                                                                               
-                               (LIST
+                               (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                                :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                                (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                                 :I32)
+                                "Binstr/#168"
                                                                               
                                                                               
                                                                               
@@ -16768,17 +17761,37 @@
                                                                               
                                                                               
                                                                               
-                                 :F32)
+                                 :CVTOP
                                                                               
                                                                               
                                                                               
                                                                               
-                                (LIST
+                                 (LIST
                                                                               
                                                                               
                                                                               
                                                                               
-                                 :REINTERPRET))
+                                  :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                  :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                 (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                  :REINTERPRET)))
                                                                               
                                                                               
                                                                               
@@ -16903,22 +17916,12 @@
                                                                               
                                                                               
                                                                               
-                                 (LIST
+                                 (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                                  :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                                  (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                                   :I64)
+                                  "Binstr/#169"
                                                                               
                                                                               
                                                                               
@@ -16928,17 +17931,37 @@
                                                                               
                                                                               
                                                                               
-                                   :F64)
+                                   :CVTOP
                                                                               
                                                                               
                                                                               
                                                                               
-                                  (LIST
+                                   (LIST
                                                                               
                                                                               
                                                                               
                                                                               
-                                   :REINTERPRET))
+                                    :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                    :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                   (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                    :REINTERPRET)))
                                                                               
                                                                               
                                                                               
@@ -17063,22 +18086,12 @@
                                                                               
                                                                               
                                                                               
-                                   (LIST
+                                   (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                                    :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                                    (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                                     :F32)
+                                    "Binstr/#170"
                                                                               
                                                                               
                                                                               
@@ -17088,17 +18101,37 @@
                                                                               
                                                                               
                                                                               
-                                     :I32)
+                                     :CVTOP
                                                                               
                                                                               
                                                                               
                                                                               
-                                    (LIST
+                                     (LIST
                                                                               
                                                                               
                                                                               
                                                                               
-                                     :REINTERPRET))
+                                      :F32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                      :I32)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                     (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                      :REINTERPRET)))
                                                                               
                                                                               
                                                                               
@@ -17223,22 +18256,12 @@
                                                                               
                                                                               
                                                                               
-                                     (LIST
+                                     (%RULE
                                                                               
                                                                               
                                                                               
                                                                               
-                                      :CVTOP
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                                      (LIST
-                                                                              
-                                                                              
-                                                                              
-                                                                              
-                                       :F64)
+                                      "Binstr/#171"
                                                                               
                                                                               
                                                                               
@@ -17248,17 +18271,37 @@
                                                                               
                                                                               
                                                                               
-                                       :I64)
+                                       :CVTOP
                                                                               
                                                                               
                                                                               
                                                                               
-                                      (LIST
+                                       (LIST
                                                                               
                                                                               
                                                                               
                                                                               
-                                       :REINTERPRET))
+                                        :F64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                        :I64)
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                       (LIST
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                        :REINTERPRET)))
                                                                               
                                                                               
                                                                               
@@ -17348,7 +18391,8 @@
                                (EQUAL (CAR %T5) 11)
                                (LET* ((%T6 (CDR %T5)) (%T7 %T6) (%T8 %T7))
                                  (DECLARE (IGNORABLE %T6 %T7 %T8))
-                                 (LIST IN-STAR %T8))))))))
+                                 (LIST (%RULE "Bexpr/#1" IN-STAR)
+                                       %T8))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
 
@@ -17397,7 +18441,8 @@
                                    (ACL2::LEN %T2))
                                (LET* ((%T6 (CADR %T5)) (%T7 %T6) (%T8 %T7))
                                  (DECLARE (IGNORABLE %T6 %T7 %T8))
-                                 (LIST NIL %T8))))))))
+                                 (LIST (%RULE "Bcustom/#1" NIL)
+                                       %T8))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
 
@@ -17455,12 +18500,14 @@
                                   (AND (NULL %T12)
                                        (LET* ((%T13 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T13))
-                                         (LIST EN-STAR %T13))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T13))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T14 %T0))
                        (DECLARE (IGNORABLE %T14))
-                       (LIST NIL %T14))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T14))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T15))
@@ -17469,7 +18516,8 @@
                (ACL2::LEN %T0))
            (LET* ((%T16 (CADR %T15)))
              (DECLARE (IGNORABLE %T16))
-             (LIST (CAR (CDR (LIST NIL NIL)))
+             (LIST (%RULE "Bcustomsec/#1"
+                          (CAR (CDR (LIST NIL NIL))))
                    %T16))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
@@ -17488,7 +18536,8 @@
                                       (FT %T1)
                                       (%T2 (CADR %T0)))
                                  (DECLARE (IGNORABLE %T1 FT %T2))
-                                 (LIST (LIST :TYPE FT) %T2))))))
+                                 (LIST (%RULE "Btype/#1" (LIST :TYPE FT))
+                                       %T2))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
@@ -17600,7 +18649,8 @@
                                       (%T20 %T19)
                                       (%T21 %T20))
                                  (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
-                                 (LIST (GRAM/BTYPESEC/ITER22 EL-STAR)
+                                 (LIST (%RULE "Blist/#1"
+                                              (GRAM/BTYPESEC/ITER22 EL-STAR))
                                        %T21))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R NIL))))
@@ -17616,12 +18666,14 @@
                                   (AND (NULL %T25)
                                        (LET* ((%T26 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T26))
-                                         (LIST EN-STAR %T26))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T26))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T27 %T0))
                        (DECLARE (IGNORABLE %T27))
-                       (LIST NIL %T27))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T27))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
@@ -17633,7 +18685,8 @@
              (AND (TRUE-LISTP %T29)
                   (LET* ((TY-STAR %T29) (%T30 (CADR %T28)))
                     (DECLARE (IGNORABLE TY-STAR %T30))
-                    (LIST TY-STAR %T30))))))))
+                    (LIST (%RULE "Btypesec/#1" TY-STAR)
+                          %T30))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -17673,7 +18726,8 @@
                                        (%T11 %T10)
                                        (%T12 %T11))
                                   (DECLARE (IGNORABLE %T9 XT %T10 %T11 %T12))
-                                  (LIST (LIST :IMPORT NM_1 NM_2 XT)
+                                  (LIST (%RULE "Bimport/#1"
+                                               (LIST :IMPORT NM_1 NM_2 XT))
                                         %T12))))))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R NIL))))
@@ -17779,16 +18833,17 @@
                                   (%T18 (GRAM/BIMPORTSEC/REP17 0 N %T14)))
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
-                               %T18
-                               (<= (ACL2::LEN (CADR %T18))
-                                   (ACL2::LEN %T14))
-                               (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
-                                      (%T19 (CADR %T18))
-                                      (%T20 %T19)
-                                      (%T21 %T20))
-                                 (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
-                                 (LIST (GRAM/BIMPORTSEC/ITER22 EL-STAR)
-                                       %T21))))))))
+                             %T18
+                             (<= (ACL2::LEN (CADR %T18))
+                                 (ACL2::LEN %T14))
+                             (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
+                                    (%T19 (CADR %T18))
+                                    (%T20 %T19)
+                                    (%T21 %T20))
+                               (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
+                               (LIST (%RULE "Blist/#1"
+                                            (GRAM/BIMPORTSEC/ITER22 EL-STAR))
+                                     %T21))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
@@ -17803,12 +18858,14 @@
                                   (AND (NULL %T25)
                                        (LET* ((%T26 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T26))
-                                         (LIST EN-STAR %T26))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T26))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T27 %T0))
                        (DECLARE (IGNORABLE %T27))
-                       (LIST NIL %T27))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T27))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
@@ -17820,7 +18877,8 @@
              (AND (TRUE-LISTP %T29)
                   (LET* ((IM-STAR %T29) (%T30 (CADR %T28)))
                     (DECLARE (IGNORABLE IM-STAR %T30))
-                    (LIST IM-STAR %T30))))))))
+                    (LIST (%RULE "Bimportsec/#1" IM-STAR)
+                          %T30))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -17932,7 +18990,8 @@
                                       (%T20 %T19)
                                       (%T21 %T20))
                                  (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
-                                 (LIST (GRAM/BFUNCSEC/ITER22 EL-STAR)
+                                 (LIST (%RULE "Blist/#1"
+                                              (GRAM/BFUNCSEC/ITER22 EL-STAR))
                                        %T21))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R NIL))))
@@ -17948,12 +19007,14 @@
                                   (AND (NULL %T25)
                                        (LET* ((%T26 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T26))
-                                         (LIST EN-STAR %T26))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T26))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T27 %T0))
                        (DECLARE (IGNORABLE %T27))
-                       (LIST NIL %T27))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T27))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
@@ -17965,7 +19026,8 @@
              (AND (TRUE-LISTP %T29)
                   (LET* ((X-STAR %T29) (%T30 (CADR %T28)))
                     (DECLARE (IGNORABLE X-STAR %T30))
-                    (LIST X-STAR %T30))))))))
+                    (LIST (%RULE "Bfuncsec/#1" X-STAR)
+                          %T30))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -17983,7 +19045,8 @@
                                       (TT %T1)
                                       (%T2 (CADR %T0)))
                                  (DECLARE (IGNORABLE %T1 TT %T2))
-                                 (LIST (LIST :TABLE TT) %T2))))))
+                                 (LIST (%RULE "Btable/#1" (LIST :TABLE TT))
+                                       %T2))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
@@ -18088,16 +19151,17 @@
                                   (%T18 (GRAM/BTABLESEC/REP17 0 N %T14)))
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
-                               %T18
-                               (<= (ACL2::LEN (CADR %T18))
-                                   (ACL2::LEN %T14))
-                               (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
-                                      (%T19 (CADR %T18))
-                                      (%T20 %T19)
-                                      (%T21 %T20))
-                                 (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
-                                 (LIST (GRAM/BTABLESEC/ITER22 EL-STAR)
-                                       %T21))))))))
+                              %T18
+                              (<= (ACL2::LEN (CADR %T18))
+                                  (ACL2::LEN %T14))
+                              (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
+                                     (%T19 (CADR %T18))
+                                     (%T20 %T19)
+                                     (%T21 %T20))
+                                (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
+                                (LIST (%RULE "Blist/#1"
+                                             (GRAM/BTABLESEC/ITER22 EL-STAR))
+                                      %T21))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
@@ -18112,12 +19176,14 @@
                                   (AND (NULL %T25)
                                        (LET* ((%T26 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T26))
-                                         (LIST EN-STAR %T26))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T26))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T27 %T0))
                        (DECLARE (IGNORABLE %T27))
-                       (LIST NIL %T27))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T27))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
@@ -18129,7 +19195,8 @@
              (AND (TRUE-LISTP %T29)
                   (LET* ((TAB-STAR %T29) (%T30 (CADR %T28)))
                     (DECLARE (IGNORABLE TAB-STAR %T30))
-                    (LIST TAB-STAR %T30))))))))
+                    (LIST (%RULE "Btablesec/#1" TAB-STAR)
+                          %T30))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -18147,7 +19214,8 @@
                                       (MT %T1)
                                       (%T2 (CADR %T0)))
                                  (DECLARE (IGNORABLE %T1 MT %T2))
-                                 (LIST (LIST :MEMORY MT) %T2))))))
+                                 (LIST (%RULE "Bmem/#1" (LIST :MEMORY MT))
+                                       %T2))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R NIL))))
 
@@ -18259,7 +19327,8 @@
                                       (%T20 %T19)
                                       (%T21 %T20))
                                  (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
-                                 (LIST (GRAM/BMEMSEC/ITER22 EL-STAR)
+                                 (LIST (%RULE "Blist/#1"
+                                              (GRAM/BMEMSEC/ITER22 EL-STAR))
                                        %T21))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R NIL))))
@@ -18275,12 +19344,14 @@
                                   (AND (NULL %T25)
                                        (LET* ((%T26 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T26))
-                                         (LIST EN-STAR %T26))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T26))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T27 %T0))
                        (DECLARE (IGNORABLE %T27))
-                       (LIST NIL %T27))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T27))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
@@ -18292,7 +19363,8 @@
              (AND (TRUE-LISTP %T29)
                   (LET* ((MEM-STAR %T29) (%T30 (CADR %T28)))
                     (DECLARE (IGNORABLE MEM-STAR %T30))
-                    (LIST MEM-STAR %T30))))))))
+                    (LIST (%RULE "Bmemsec/#1" MEM-STAR)
+                          %T30))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -18300,31 +19372,32 @@
 (%TRY-GUARDS GRAM/BMEMSEC)
 
 (%TRY-LOGIC
-     (DEFUN GRAM/BGLOBAL (%S)
-       (DECLARE (IGNORABLE %S))
-       (LET ((%R (LET* ((%T0 (GRAM/BGLOBALTYPE %S)))
-                   (DECLARE (IGNORABLE %T0))
-                   (AND %T0
-                        (<= (ACL2::LEN (CADR %T0))
-                            (ACL2::LEN %S))
-                        (LET* ((%T1 (CAR %T0))
-                               (GT %T1)
-                               (%T2 (CADR %T0))
-                               (%T3 %T2)
-                               (%T4 (GRAM/BEXPR %T3)))
-                          (DECLARE (IGNORABLE %T1 GT %T2 %T3 %T4))
-                          (AND %T4
-                               (<= (ACL2::LEN (CADR %T4))
-                                   (ACL2::LEN %T3))
-                               (LET* ((%T5 (CAR %T4))
-                                      (E %T5)
-                                      (%T6 (CADR %T4))
-                                      (%T7 %T6)
-                                      (%T8 %T7))
-                                 (DECLARE (IGNORABLE %T5 E %T6 %T7 %T8))
-                                 (LIST (LIST :GLOBAL GT E) %T8))))))))
-         (DECLARE (IGNORABLE %R))
-         (IF %R %R NIL))))
+   (DEFUN GRAM/BGLOBAL (%S)
+     (DECLARE (IGNORABLE %S))
+     (LET ((%R (LET* ((%T0 (GRAM/BGLOBALTYPE %S)))
+                 (DECLARE (IGNORABLE %T0))
+                 (AND %T0
+                      (<= (ACL2::LEN (CADR %T0))
+                          (ACL2::LEN %S))
+                      (LET* ((%T1 (CAR %T0))
+                             (GT %T1)
+                             (%T2 (CADR %T0))
+                             (%T3 %T2)
+                             (%T4 (GRAM/BEXPR %T3)))
+                        (DECLARE (IGNORABLE %T1 GT %T2 %T3 %T4))
+                        (AND %T4
+                             (<= (ACL2::LEN (CADR %T4))
+                                 (ACL2::LEN %T3))
+                             (LET* ((%T5 (CAR %T4))
+                                    (E %T5)
+                                    (%T6 (CADR %T4))
+                                    (%T7 %T6)
+                                    (%T8 %T7))
+                               (DECLARE (IGNORABLE %T5 E %T6 %T7 %T8))
+                               (LIST (%RULE "Bglobal/#1" (LIST :GLOBAL GT E))
+                                     %T8))))))))
+       (DECLARE (IGNORABLE %R))
+       (IF %R %R NIL))))
 
 
 (%TRY-GUARDS GRAM/BGLOBAL)
@@ -18427,16 +19500,17 @@
                                   (%T18 (GRAM/BGLOBALSEC/REP17 0 N %T14)))
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
-                               %T18
-                               (<= (ACL2::LEN (CADR %T18))
-                                   (ACL2::LEN %T14))
-                               (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
-                                      (%T19 (CADR %T18))
-                                      (%T20 %T19)
-                                      (%T21 %T20))
-                                 (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
-                                 (LIST (GRAM/BGLOBALSEC/ITER22 EL-STAR)
-                                       %T21))))))))
+                             %T18
+                             (<= (ACL2::LEN (CADR %T18))
+                                 (ACL2::LEN %T14))
+                             (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
+                                    (%T19 (CADR %T18))
+                                    (%T20 %T19)
+                                    (%T21 %T20))
+                               (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
+                               (LIST (%RULE "Blist/#1"
+                                            (GRAM/BGLOBALSEC/ITER22 EL-STAR))
+                                     %T21))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
@@ -18451,12 +19525,14 @@
                                   (AND (NULL %T25)
                                        (LET* ((%T26 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T26))
-                                         (LIST EN-STAR %T26))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T26))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T27 %T0))
                        (DECLARE (IGNORABLE %T27))
-                       (LIST NIL %T27))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T27))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
@@ -18468,7 +19544,8 @@
              (AND (TRUE-LISTP %T29)
                   (LET* ((GLOB-STAR %T29) (%T30 (CADR %T28)))
                     (DECLARE (IGNORABLE GLOB-STAR %T30))
-                    (LIST GLOB-STAR %T30))))))))
+                    (LIST (%RULE "Bglobalsec/#1" GLOB-STAR)
+                          %T30))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -18476,31 +19553,32 @@
 (%TRY-GUARDS GRAM/BGLOBALSEC)
 
 (%TRY-LOGIC
-     (DEFUN GRAM/BEXPORT (%S)
-       (DECLARE (IGNORABLE %S))
-       (LET ((%R (LET* ((%T0 (GRAM/BNAME %S)))
-                   (DECLARE (IGNORABLE %T0))
-                   (AND %T0
-                        (<= (ACL2::LEN (CADR %T0))
-                            (ACL2::LEN %S))
-                        (LET* ((%T1 (CAR %T0))
-                               (NM %T1)
-                               (%T2 (CADR %T0))
-                               (%T3 %T2)
-                               (%T4 (GRAM/BEXTERNIDX %T3)))
-                          (DECLARE (IGNORABLE %T1 NM %T2 %T3 %T4))
-                          (AND %T4
-                               (<= (ACL2::LEN (CADR %T4))
-                                   (ACL2::LEN %T3))
-                               (LET* ((%T5 (CAR %T4))
-                                      (XX %T5)
-                                      (%T6 (CADR %T4))
-                                      (%T7 %T6)
-                                      (%T8 %T7))
-                                 (DECLARE (IGNORABLE %T5 XX %T6 %T7 %T8))
-                                 (LIST (LIST :EXPORT NM XX) %T8))))))))
-         (DECLARE (IGNORABLE %R))
-         (IF %R %R NIL))))
+  (DEFUN GRAM/BEXPORT (%S)
+    (DECLARE (IGNORABLE %S))
+    (LET ((%R (LET* ((%T0 (GRAM/BNAME %S)))
+                (DECLARE (IGNORABLE %T0))
+                (AND %T0
+                     (<= (ACL2::LEN (CADR %T0))
+                         (ACL2::LEN %S))
+                     (LET* ((%T1 (CAR %T0))
+                            (NM %T1)
+                            (%T2 (CADR %T0))
+                            (%T3 %T2)
+                            (%T4 (GRAM/BEXTERNIDX %T3)))
+                       (DECLARE (IGNORABLE %T1 NM %T2 %T3 %T4))
+                       (AND %T4
+                            (<= (ACL2::LEN (CADR %T4))
+                                (ACL2::LEN %T3))
+                            (LET* ((%T5 (CAR %T4))
+                                   (XX %T5)
+                                   (%T6 (CADR %T4))
+                                   (%T7 %T6)
+                                   (%T8 %T7))
+                              (DECLARE (IGNORABLE %T5 XX %T6 %T7 %T8))
+                              (LIST (%RULE "Bexport/#1" (LIST :EXPORT NM XX))
+                                    %T8))))))))
+      (DECLARE (IGNORABLE %R))
+      (IF %R %R NIL))))
 
 
 (%TRY-GUARDS GRAM/BEXPORT)
@@ -18603,16 +19681,17 @@
                                   (%T18 (GRAM/BEXPORTSEC/REP17 0 N %T14)))
                             (DECLARE (IGNORABLE %T12 N %T13 %T14 %T18))
                             (AND
-                               %T18
-                               (<= (ACL2::LEN (CADR %T18))
-                                   (ACL2::LEN %T14))
-                               (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
-                                      (%T19 (CADR %T18))
-                                      (%T20 %T19)
-                                      (%T21 %T20))
-                                 (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
-                                 (LIST (GRAM/BEXPORTSEC/ITER22 EL-STAR)
-                                       %T21))))))))
+                             %T18
+                             (<= (ACL2::LEN (CADR %T18))
+                                 (ACL2::LEN %T14))
+                             (LET* ((EL-STAR (CAR (CDR (CAR %T18))))
+                                    (%T19 (CADR %T18))
+                                    (%T20 %T19)
+                                    (%T21 %T20))
+                               (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
+                               (LIST (%RULE "Blist/#1"
+                                            (GRAM/BEXPORTSEC/ITER22 EL-STAR))
+                                     %T21))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R NIL))))
                     (DECLARE (IGNORABLE %T9 %T10 %T23))
@@ -18627,12 +19706,14 @@
                                   (AND (NULL %T25)
                                        (LET* ((%T26 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T26))
-                                         (LIST EN-STAR %T26))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T26))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T27 %T0))
                        (DECLARE (IGNORABLE %T27))
-                       (LIST NIL %T27))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T27))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
@@ -18644,27 +19725,30 @@
              (AND (TRUE-LISTP %T29)
                   (LET* ((EX-STAR %T29) (%T30 (CADR %T28)))
                     (DECLARE (IGNORABLE EX-STAR %T30))
-                    (LIST EX-STAR %T30))))))))
+                    (LIST (%RULE "Bexportsec/#1" EX-STAR)
+                          %T30))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
 
 (%TRY-GUARDS GRAM/BEXPORTSEC)
 
-(%TRY-LOGIC (DEFUN GRAM/BSTART (%S)
-              (DECLARE (IGNORABLE %S))
-              (LET ((%R (LET* ((%T0 (GRAM/BFUNCIDX %S)))
-                          (DECLARE (IGNORABLE %T0))
-                          (AND %T0
-                               (<= (ACL2::LEN (CADR %T0))
-                                   (ACL2::LEN %S))
-                               (LET* ((%T1 (CAR %T0))
-                                      (X %T1)
-                                      (%T2 (CADR %T0)))
-                                 (DECLARE (IGNORABLE %T1 X %T2))
-                                 (LIST (LIST (LIST :START X)) %T2))))))
-                (DECLARE (IGNORABLE %R))
-                (IF %R %R NIL))))
+(%TRY-LOGIC
+     (DEFUN GRAM/BSTART (%S)
+       (DECLARE (IGNORABLE %S))
+       (LET ((%R (LET* ((%T0 (GRAM/BFUNCIDX %S)))
+                   (DECLARE (IGNORABLE %T0))
+                   (AND %T0
+                        (<= (ACL2::LEN (CADR %T0))
+                            (ACL2::LEN %S))
+                        (LET* ((%T1 (CAR %T0))
+                               (X %T1)
+                               (%T2 (CADR %T0)))
+                          (DECLARE (IGNORABLE %T1 X %T2))
+                          (LIST (%RULE "Bstart/#1" (LIST (LIST :START X)))
+                                %T2))))))
+         (DECLARE (IGNORABLE %R))
+         (IF %R %R NIL))))
 
 
 (%TRY-GUARDS GRAM/BSTART)
@@ -18720,12 +19804,14 @@
                                   (AND (NULL %T12)
                                        (LET* ((%T13 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T13))
-                                         (LIST EN-STAR %T13))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T13))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T14 %T0))
                        (DECLARE (IGNORABLE %T14))
-                       (LIST NIL %T14))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T14))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T15))
@@ -18736,7 +19822,8 @@
                   (STARTOPT %T16)
                   (%T17 (CADR %T15)))
              (DECLARE (IGNORABLE %T16 STARTOPT %T17))
-             (LIST ($OPT_ STARTOPT) %T17))))))
+             (LIST (%RULE "Bstartsec/#1" ($OPT_ STARTOPT))
+                   %T17))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -18808,27 +19895,29 @@
           (%T6 %T5)
           (%T19
            (LET
-            ((%R (LET* ((%T7 (GRAM/BU32 %T6)))
-                   (DECLARE (IGNORABLE %T7))
-                   (AND %T7
-                        (<= (ACL2::LEN (CADR %T7))
-                            (ACL2::LEN %T6))
-                        (LET* ((%T8 (CAR %T7))
-                               (N %T8)
-                               (%T9 (CADR %T7))
-                               (%T10 %T9)
-                               (%T14 (GRAM/BELEM/REP13 0 N %T10)))
-                          (DECLARE (IGNORABLE %T8 N %T9 %T10 %T14))
-                          (AND %T14
-                               (<= (ACL2::LEN (CADR %T14))
-                                   (ACL2::LEN %T10))
-                               (LET* ((EL-STAR (CAR (CDR (CAR %T14))))
-                                      (%T15 (CADR %T14))
-                                      (%T16 %T15)
-                                      (%T17 %T16))
-                                 (DECLARE (IGNORABLE EL-STAR %T15 %T16 %T17))
-                                 (LIST (GRAM/BELEM/ITER18 EL-STAR)
-                                       %T17))))))))
+            ((%R
+              (LET* ((%T7 (GRAM/BU32 %T6)))
+               (DECLARE (IGNORABLE %T7))
+               (AND
+                %T7
+                (<= (ACL2::LEN (CADR %T7))
+                    (ACL2::LEN %T6))
+                (LET* ((%T8 (CAR %T7))
+                       (N %T8)
+                       (%T9 (CADR %T7))
+                       (%T10 %T9)
+                       (%T14 (GRAM/BELEM/REP13 0 N %T10)))
+                  (DECLARE (IGNORABLE %T8 N %T9 %T10 %T14))
+                  (AND %T14
+                       (<= (ACL2::LEN (CADR %T14))
+                           (ACL2::LEN %T10))
+                       (LET* ((EL-STAR (CAR (CDR (CAR %T14))))
+                              (%T15 (CADR %T14))
+                              (%T16 %T15)
+                              (%T17 %T16))
+                         (DECLARE (IGNORABLE EL-STAR %T15 %T16 %T17))
+                         (LIST (%RULE "Blist/#1" (GRAM/BELEM/ITER18 EL-STAR))
+                               %T17))))))))
             (DECLARE (IGNORABLE %R))
             (IF %R %R NIL))))
          (DECLARE (IGNORABLE %T3 E %T4 %T5 %T6 %T19))
@@ -18843,7 +19932,7 @@
                             (%T22 %T21)
                             (%T23 %T22))
                        (DECLARE (IGNORABLE X-STAR %T21 %T22 %T23))
-                       (LIST (LIST :ELEM E X-STAR)
+                       (LIST (%RULE "Belem/#1" (LIST :ELEM E X-STAR))
                              %T23)))))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
@@ -18956,7 +20045,8 @@
                                       (%T20 %T19)
                                       (%T21 %T20))
                                  (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
-                                 (LIST (GRAM/BELEMSEC/ITER22 EL-STAR)
+                                 (LIST (%RULE "Blist/#1"
+                                              (GRAM/BELEMSEC/ITER22 EL-STAR))
                                        %T21))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R NIL))))
@@ -18972,12 +20062,14 @@
                                   (AND (NULL %T25)
                                        (LET* ((%T26 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T26))
-                                         (LIST EN-STAR %T26))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T26))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T27 %T0))
                        (DECLARE (IGNORABLE %T27))
-                       (LIST NIL %T27))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T27))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
@@ -18989,7 +20081,8 @@
              (AND (TRUE-LISTP %T29)
                   (LET* ((ELEM-STAR %T29) (%T30 (CADR %T28)))
                     (DECLARE (IGNORABLE ELEM-STAR %T30))
-                    (LIST ELEM-STAR %T30))))))))
+                    (LIST (%RULE "Belemsec/#1" ELEM-STAR)
+                          %T30))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -19030,7 +20123,8 @@
                                       (%T7 %T6)
                                       (%T8 %T7))
                                  (DECLARE (IGNORABLE %T5 T^R %T6 %T7 %T8))
-                                 (LIST (GRAM/BLOCALS/ITER9 0 N T^R)
+                                 (LIST (%RULE "Blocals/#1"
+                                              (GRAM/BLOCALS/ITER9 0 N T^R))
                                        %T8))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
@@ -19098,29 +20192,32 @@
      (LET*
       ((%T0 %S)
        (%T13
-        (LET ((%R (LET* ((%T1 (GRAM/BU32 %T0)))
-                    (DECLARE (IGNORABLE %T1))
-                    (AND %T1
-                         (<= (ACL2::LEN (CADR %T1))
-                             (ACL2::LEN %T0))
-                         (LET* ((%T2 (CAR %T1))
-                                (N %T2)
-                                (%T3 (CADR %T1))
-                                (%T4 %T3)
-                                (%T8 (GRAM/BFUNC/REP7 0 N %T4)))
-                           (DECLARE (IGNORABLE %T2 N %T3 %T4 %T8))
-                           (AND %T8
-                                (<= (ACL2::LEN (CADR %T8))
-                                    (ACL2::LEN %T4))
-                                (LET* ((EL-STAR (CAR (CDR (CAR %T8))))
-                                       (%T9 (CADR %T8))
-                                       (%T10 %T9)
-                                       (%T11 %T10))
-                                  (DECLARE (IGNORABLE EL-STAR %T9 %T10 %T11))
-                                  (LIST (GRAM/BFUNC/ITER12 EL-STAR)
-                                        %T11))))))))
-          (DECLARE (IGNORABLE %R))
-          (IF %R %R NIL))))
+        (LET
+         ((%R
+           (LET* ((%T1 (GRAM/BU32 %T0)))
+            (DECLARE (IGNORABLE %T1))
+            (AND
+                %T1
+                (<= (ACL2::LEN (CADR %T1))
+                    (ACL2::LEN %T0))
+                (LET* ((%T2 (CAR %T1))
+                       (N %T2)
+                       (%T3 (CADR %T1))
+                       (%T4 %T3)
+                       (%T8 (GRAM/BFUNC/REP7 0 N %T4)))
+                  (DECLARE (IGNORABLE %T2 N %T3 %T4 %T8))
+                  (AND %T8
+                       (<= (ACL2::LEN (CADR %T8))
+                           (ACL2::LEN %T4))
+                       (LET* ((EL-STAR (CAR (CDR (CAR %T8))))
+                              (%T9 (CADR %T8))
+                              (%T10 %T9)
+                              (%T11 %T10))
+                         (DECLARE (IGNORABLE EL-STAR %T9 %T10 %T11))
+                         (LIST (%RULE "Blist/#1" (GRAM/BFUNC/ITER12 EL-STAR))
+                               %T11))))))))
+         (DECLARE (IGNORABLE %R))
+         (IF %R %R NIL))))
       (DECLARE (IGNORABLE %T0 %T13))
       (AND
        %T13
@@ -19129,24 +20226,26 @@
        (LET* ((%T14 (CAR %T13)))
         (DECLARE (IGNORABLE %T14))
         (AND
-          (TRUE-LISTP %T14)
-          (LET* ((LOCAL-STAR-STAR %T14)
-                 (%T15 (CADR %T13))
-                 (%T16 %T15)
-                 (%T17 (GRAM/BEXPR %T16)))
-            (DECLARE (IGNORABLE LOCAL-STAR-STAR %T15 %T16 %T17))
-            (AND %T17
-                 (<= (ACL2::LEN (CADR %T17))
-                     (ACL2::LEN %T16))
-                 (LET* ((%T18 (CAR %T17))
-                        (EXPR %T18)
-                        (%T19 (CADR %T17))
-                        (%T20 %T19)
-                        (%T21 %T20))
-                   (DECLARE (IGNORABLE %T18 EXPR %T19 %T20 %T21))
-                   (LIST (LIST ($CONCAT_ (GRAM/BFUNC/ITER22 LOCAL-STAR-STAR))
-                               EXPR)
-                         %T21))))))))))
+         (TRUE-LISTP %T14)
+         (LET* ((LOCAL-STAR-STAR %T14)
+                (%T15 (CADR %T13))
+                (%T16 %T15)
+                (%T17 (GRAM/BEXPR %T16)))
+          (DECLARE (IGNORABLE LOCAL-STAR-STAR %T15 %T16 %T17))
+          (AND
+           %T17
+           (<= (ACL2::LEN (CADR %T17))
+               (ACL2::LEN %T16))
+           (LET* ((%T18 (CAR %T17))
+                  (EXPR %T18)
+                  (%T19 (CADR %T17))
+                  (%T20 %T19)
+                  (%T21 %T20))
+            (DECLARE (IGNORABLE %T18 EXPR %T19 %T20 %T21))
+            (LIST (%RULE "Bfunc/#1"
+                         (LIST ($CONCAT_ (GRAM/BFUNC/ITER22 LOCAL-STAR-STAR))
+                               EXPR))
+                  %T21))))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -19181,7 +20280,8 @@
                                         (AND (NULL %T7)
                                              (LET* ((%T8 (NTHCDR LEN %T3)))
                                                (DECLARE (IGNORABLE %T8))
-                                               (LIST CODE %T8))))))))))))
+                                               (LIST (%RULE "Bcode/#1" CODE)
+                                                     %T8))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R NIL))))
 
@@ -19293,7 +20393,8 @@
                                       (%T20 %T19)
                                       (%T21 %T20))
                                  (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
-                                 (LIST (GRAM/BCODESEC/ITER22 EL-STAR)
+                                 (LIST (%RULE "Blist/#1"
+                                              (GRAM/BCODESEC/ITER22 EL-STAR))
                                        %T21))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R NIL))))
@@ -19309,12 +20410,14 @@
                                   (AND (NULL %T25)
                                        (LET* ((%T26 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T26))
-                                         (LIST EN-STAR %T26))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T26))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T27 %T0))
                        (DECLARE (IGNORABLE %T27))
-                       (LIST NIL %T27))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T27))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
@@ -19326,7 +20429,8 @@
              (AND (TRUE-LISTP %T29)
                   (LET* ((CODE-STAR %T29) (%T30 (CADR %T28)))
                     (DECLARE (IGNORABLE CODE-STAR %T30))
-                    (LIST CODE-STAR %T30))))))))
+                    (LIST (%RULE "Bcodesec/#1" CODE-STAR)
+                          %T30))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -19398,27 +20502,29 @@
           (%T6 %T5)
           (%T19
            (LET
-            ((%R (LET* ((%T7 (GRAM/BU32 %T6)))
-                   (DECLARE (IGNORABLE %T7))
-                   (AND %T7
-                        (<= (ACL2::LEN (CADR %T7))
-                            (ACL2::LEN %T6))
-                        (LET* ((%T8 (CAR %T7))
-                               (N %T8)
-                               (%T9 (CADR %T7))
-                               (%T10 %T9)
-                               (%T14 (GRAM/BDATA/REP13 0 N %T10)))
-                          (DECLARE (IGNORABLE %T8 N %T9 %T10 %T14))
-                          (AND %T14
-                               (<= (ACL2::LEN (CADR %T14))
-                                   (ACL2::LEN %T10))
-                               (LET* ((EL-STAR (CAR (CDR (CAR %T14))))
-                                      (%T15 (CADR %T14))
-                                      (%T16 %T15)
-                                      (%T17 %T16))
-                                 (DECLARE (IGNORABLE EL-STAR %T15 %T16 %T17))
-                                 (LIST (GRAM/BDATA/ITER18 EL-STAR)
-                                       %T17))))))))
+            ((%R
+              (LET* ((%T7 (GRAM/BU32 %T6)))
+               (DECLARE (IGNORABLE %T7))
+               (AND
+                %T7
+                (<= (ACL2::LEN (CADR %T7))
+                    (ACL2::LEN %T6))
+                (LET* ((%T8 (CAR %T7))
+                       (N %T8)
+                       (%T9 (CADR %T7))
+                       (%T10 %T9)
+                       (%T14 (GRAM/BDATA/REP13 0 N %T10)))
+                  (DECLARE (IGNORABLE %T8 N %T9 %T10 %T14))
+                  (AND %T14
+                       (<= (ACL2::LEN (CADR %T14))
+                           (ACL2::LEN %T10))
+                       (LET* ((EL-STAR (CAR (CDR (CAR %T14))))
+                              (%T15 (CADR %T14))
+                              (%T16 %T15)
+                              (%T17 %T16))
+                         (DECLARE (IGNORABLE EL-STAR %T15 %T16 %T17))
+                         (LIST (%RULE "Blist/#1" (GRAM/BDATA/ITER18 EL-STAR))
+                               %T17))))))))
             (DECLARE (IGNORABLE %R))
             (IF %R %R NIL))))
          (DECLARE (IGNORABLE %T3 E %T4 %T5 %T6 %T19))
@@ -19433,7 +20539,7 @@
                             (%T22 %T21)
                             (%T23 %T22))
                        (DECLARE (IGNORABLE B-STAR %T21 %T22 %T23))
-                       (LIST (LIST :DATA E B-STAR)
+                       (LIST (%RULE "Bdata/#1" (LIST :DATA E B-STAR))
                              %T23)))))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
@@ -19546,7 +20652,8 @@
                                       (%T20 %T19)
                                       (%T21 %T20))
                                  (DECLARE (IGNORABLE EL-STAR %T19 %T20 %T21))
-                                 (LIST (GRAM/BDATASEC/ITER22 EL-STAR)
+                                 (LIST (%RULE "Blist/#1"
+                                              (GRAM/BDATASEC/ITER22 EL-STAR))
                                        %T21))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R NIL))))
@@ -19562,12 +20669,14 @@
                                   (AND (NULL %T25)
                                        (LET* ((%T26 (NTHCDR LEN %T8)))
                                          (DECLARE (IGNORABLE %T26))
-                                         (LIST EN-STAR %T26))))))))))))))))))
+                                         (LIST (%RULE "Bsection_/#1" EN-STAR)
+                                               %T26))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
            (LET ((%R (LET* ((%T27 %T0))
                        (DECLARE (IGNORABLE %T27))
-                       (LIST NIL %T27))))
+                       (LIST (%RULE "Bsection_/#2" NIL)
+                             %T27))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R NIL))))))
       (DECLARE (IGNORABLE %T0 N^U %T28))
@@ -19579,7 +20688,8 @@
              (AND (TRUE-LISTP %T29)
                   (LET* ((DATA-STAR %T29) (%T30 (CADR %T28)))
                     (DECLARE (IGNORABLE DATA-STAR %T30))
-                    (LIST DATA-STAR %T30))))))))
+                    (LIST (%RULE "Bdatasec/#1" DATA-STAR)
+                          %T30))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 
@@ -20618,29 +21728,33 @@
                                                                               
                (LIST
                                                                               
-                (LIST
+                (%RULE
                                                                               
-                 :MODULE
+                 "Bmodule/#1"
                                                                               
-                 TYPE-STAR
+                 (LIST
                                                                               
-                 IMPORT-STAR
+                  :MODULE
                                                                               
-                 FUNC-STAR
+                  TYPE-STAR
                                                                               
-                 GLOBAL-STAR
+                  IMPORT-STAR
                                                                               
-                 TABLE-STAR
+                  FUNC-STAR
                                                                               
-                 MEM-STAR
+                  GLOBAL-STAR
                                                                               
-                 ELEM-STAR
+                  TABLE-STAR
                                                                               
-                 DATA-STAR
+                  MEM-STAR
                                                                               
-                 START-OPT
+                  ELEM-STAR
                                                                               
-                 EXPORT-STAR)
+                  DATA-STAR
+                                                                              
+                  START-OPT
+                                                                              
+                  EXPORT-STAR))
                                                                               
                 %T121)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
    (DECLARE (IGNORABLE %R))

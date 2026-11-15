@@ -28,7 +28,8 @@
 ## Current state
 
 - **Last updated**: 2026-11-15
-- **Milestones**: W0 done, **go** ([W0-feasibility](notes/W0-feasibility.md#w0-exit-gono-go-per-risk-2026-11-15))
+- **Milestones**: W0 done, **go** ([W0-feasibility](notes/W0-feasibility.md#w0-exit-gono-go-per-risk-2026-11-15));
+  W7 done ([W7-rule-tags](notes/W7-rule-tags.md))
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
@@ -44,9 +45,13 @@
   with rule names from translator tags (option 3a). D7, the translator may
   change generated output (1.0 included) for W7, provided all certifications
   and tests still pass.
-- **Next action**: W7 item 1 (design note `W7-rule-tags`), per the
-  headless order. W0's scripts are in `notes/data/w0-*/`; the throwaway
-  extractor (`w0-slice/extract-slice.lisp`) is the starting point for W2.
+- **Next action**: W1 (D5 note), then W2, W3, W4, per the headless
+  order. Work for W1–W5 items 1–3 exists in the tree, uncommitted (it was
+  built while the W7 spec reruns ran); each goes in with its own commit.
+- **Translator change (W7, for the user)**: `%RULE` (`rt/prelude.lisp`,
+  a macro: `(%RULE name x)` = `x`) and two emitter changes in
+  `il2acl2/compile.lisp` (`crule`, `cprod`). Reason: D6/D7, the stepper's
+  rule names. `gen/wasm-1.0` regenerated (tags only).
 - **W0 numbers for W1** (D5): option A costs at most 4.04× plain JSCL on
   the sample (limit 20×); the only deep recursion (65,541 on a 1-page
   module) is `$ALLOCMEM/ITER2` calling itself, tail recursive modulo
@@ -394,19 +399,31 @@ line, plus the branch and `call` lines). The page labels the
 highlighting as a display aid, not part of the semantics.
 
 ### W7: Rule tags in the translator (D7)
-1. [ ] Design note `W7-rule-tags`: where the translator emits the tag for
+1. [x] Design note `W7-rule-tags`: where the translator emits the tag for
        each relation shape (plain clause chain, split `Step`, search and
        iteration helpers, `:rel-override` (the `Instrs_ok` sequencer:
        no IL rule, no tag), enumeration variants, `:given-entry`), and the
        exact spelling of names (`Rel/rule-id`, as in the IL, e.g.
        `Step_pure/nop`)
-2. [ ] `%RULE` in `rt/prelude.lisp` (a macro that expands to its second
+       **Done 2026-11-15** ([W7-rule-tags](notes/W7-rule-tags.md#design-item-1)):
+       the tag wraps a rule's output inside its success list,
+       `(list (%RULE "Rel/id" out))`, so the shape `(list x)` that marks an
+       unconditional rule is kept; grammar productions are positional,
+       `Gram/#k`. Untagged: the `Instrs_ok` override, closure relations
+       (`Steps`), dropped rules, `def` clauses
+2. [x] `%RULE` in `rt/prelude.lisp` (a macro that expands to its second
        argument), and the emitter change in `il2acl2/`. Every relation is
        tagged, not just `Step*`: typing and the decode grammar get names too
        (decode tags are useful for a future decode view)
-3. [ ] Regenerate 1.0, 2.0 and 3.0 with `make gen`. Commit the new
+       **Done 2026-11-15**: one change in `crule`, one in `cprod`
+       (`cprods` passes the position); `%RULE` is imported by W1T, W2T and
+       W3T like the other rt names
+3. [x] Regenerate 1.0, 2.0 and 3.0 with `make gen`. Commit the new
        `gen/wasm-1.0` in the same commit as the translator change
-4. [ ] Gates: `make -C translate check`, `check-2.0`, `check-3.0` green.
+       **Done 2026-11-15**: tags 1.0 457, 2.0 927, 3.0 1,434 (1,147
+       distinct). `gen/wasm-1.0`: 5 files changed, `package.lsp` imports
+       `WRT::%RULE`
+4. [x] Gates: `make -C translate check`, `check-2.0`, `check-3.0` green.
        `t0-modes` and `t0-modes-3.0` match the manifests unchanged.
        Certification times recorded against the earlier ones (3.0:
        4 min 38 s, wasm3 M9).
@@ -420,9 +437,25 @@ highlighting as a display aid, not part of the semantics.
        a doubled TIMEOUT). Totals are not compared: they depend on
        timeouts (63,326/63,883 in wasm3 M8 against 63,324/63,880 in a
        later local run, 1 timeout and 1 crash)
-5. [ ] Coverage check: every rule id of `Step`, `Step_pure` and
+       **Done 2026-11-15** ([W7-rule-tags](notes/W7-rule-tags.md#gates-item-4)):
+       `check` exit 0 (71 s, 1.0 recertified), `check-2.0` exit 0 (140 s,
+       was 141 s), `check-3.0` exit 0 (279 s, was 284 s; M9 4 min 38 s);
+       manifests unchanged, `check-gen` passes. Spec runs (baseline at
+       d716fa8 in `/Users/Apple/dev/wasm-acl2-w7-baseline/`, after in
+       `/Users/Apple/dev/wasm-acl2-w7-after/`): identical `T7-CMD`
+       sequences for 258/258 (3.0, 65,009 lines) and 67/67 (1.0, 11,964
+       lines). The 9 scripts that timed out or crashed (3.0: 5, 1.0: 4)
+       were rerun once with a doubled TIMEOUT on both sides: identical, or
+       identical on the common prefix where the timeout cut them; 3.0
+       `call_ref` now completes on both sides (35/35)
+5. [x] Coverage check: every rule id of `Step`, `Step_pure` and
        `Step_read` in the IL appears as a tag in `gen/wasm-3.0`, or is
        listed as dropped by the probe. 218 reduction rules (wasm3 M3)
+       **Done 2026-11-15** ([W7-rule-tags](notes/W7-rule-tags.md#coverage-item-5)):
+       Step 36/36, Step_pure 79/79, Step_read 103/103: 218/218, none missing
+
+**W7 result (2026-11-15): exit met.** Gates green, manifests unchanged,
+identical per-command spec results, coverage 218/218.
 
 **Exit**: item 4 green, with unchanged mode manifests and identical
 per-command spec results; item 5 at 218 of 218 (or every missing one has

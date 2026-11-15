@@ -31,7 +31,7 @@
                     (DECLARE (IGNORABLE GLOBALINST))
                     (AND (EQUAL %A2
                                 (LIST :GLOBAL (%GET-FIELD GLOBALINST :TYPE)))
-                         (LIST T)))))))))
+                         (LIST (%RULE "Externaddr_ok/global" T))))))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R
       (LET
@@ -49,7 +49,7 @@
                           (DECLARE (IGNORABLE MEMINST))
                           (AND (EQUAL %A2
                                       (LIST :MEM (%GET-FIELD MEMINST :TYPE)))
-                               (LIST T)))))))))
+                               (LIST (%RULE "Externaddr_ok/mem" T))))))))))
        (DECLARE (IGNORABLE %R))
        (IF %R %R
         (LET
@@ -68,7 +68,7 @@
                       (DECLARE (IGNORABLE TABLEINST))
                       (AND (EQUAL %A2
                                   (LIST :TABLE (%GET-FIELD TABLEINST :TYPE)))
-                           (LIST T)))))))))
+                           (LIST (%RULE "Externaddr_ok/table" T))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
           (LET
@@ -87,25 +87,28 @@
                         (DECLARE (IGNORABLE FUNCINST))
                         (AND (EQUAL %A2
                                     (LIST :FUNC (%GET-FIELD FUNCINST :TYPE)))
-                             (LIST T)))))))))
+                             (LIST (%RULE "Externaddr_ok/func" T))))))))))
            (DECLARE (IGNORABLE %R))
            (IF %R %R
-            (LET ((%R (LET* ((S %A0) (EXTERNADDR %A1) (XT %A2))
-                        (DECLARE (IGNORABLE S EXTERNADDR XT))
-                        (AND (OR (< 0 0)
-                                 (AND (EQUAL 0 0)
-                                      (< (%SIZE (LIST S EXTERNADDR))
-                                         (%SIZE (LIST %A0 %A1 %A2)))))
-                             (LET* ((%T0 (EXTERNADDR_OK/SPLIT S EXTERNADDR)))
-                               (DECLARE (IGNORABLE %T0))
-                               (AND %T0
-                                    (LET* ((XT-PRIME (CAR %T0)))
-                                      (DECLARE (IGNORABLE XT-PRIME))
-                                      (AND (EXTERNTYPE_OK XT)
-                                           (EXTERNTYPE_SUB XT-PRIME XT)
-                                           (LIST T)))))))))
-              (DECLARE (IGNORABLE %R))
-              (IF %R %R NIL))))))))))
+            (LET
+             ((%R
+               (LET* ((S %A0) (EXTERNADDR %A1) (XT %A2))
+                (DECLARE (IGNORABLE S EXTERNADDR XT))
+                (AND
+                   (OR (< 0 0)
+                       (AND (EQUAL 0 0)
+                            (< (%SIZE (LIST S EXTERNADDR))
+                               (%SIZE (LIST %A0 %A1 %A2)))))
+                   (LET* ((%T0 (EXTERNADDR_OK/SPLIT S EXTERNADDR)))
+                     (DECLARE (IGNORABLE %T0))
+                     (AND %T0
+                          (LET* ((XT-PRIME (CAR %T0)))
+                            (DECLARE (IGNORABLE XT-PRIME))
+                            (AND (EXTERNTYPE_OK XT)
+                                 (EXTERNTYPE_SUB XT-PRIME XT)
+                                 (LIST (%RULE "Externaddr_ok/sub" T))))))))))
+             (DECLARE (IGNORABLE %R))
+             (IF %R %R NIL))))))))))
     T
     NIL))
   (DEFUN EXTERNADDR_OK/SPLIT (%A0 %A1)
@@ -116,32 +119,37 @@
       (LET* ((S %A0))
        (DECLARE (IGNORABLE S))
        (AND
-          (CONSP %A1)
-          (EQ (CAR %A1) :GLOBAL)
-          (TRUE-LISTP (CDR %A1))
-          (EQUAL (ACL2::LEN (CDR %A1)) 1)
-          (LET* ((A (CAR (CDR %A1))))
-            (DECLARE (IGNORABLE A))
-            (AND (< A (ACL2::LEN (%GET-FIELD S :GLOBALS)))
-                 (LET* ((GLOBALINST (NTH A (%GET-FIELD S :GLOBALS))))
-                   (DECLARE (IGNORABLE GLOBALINST))
-                   (LIST (LIST :GLOBAL (%GET-FIELD GLOBALINST :TYPE))))))))))
+        (CONSP %A1)
+        (EQ (CAR %A1) :GLOBAL)
+        (TRUE-LISTP (CDR %A1))
+        (EQUAL (ACL2::LEN (CDR %A1)) 1)
+        (LET* ((A (CAR (CDR %A1))))
+         (DECLARE (IGNORABLE A))
+         (AND
+          (< A (ACL2::LEN (%GET-FIELD S :GLOBALS)))
+          (LET* ((GLOBALINST (NTH A (%GET-FIELD S :GLOBALS))))
+           (DECLARE (IGNORABLE GLOBALINST))
+           (LIST (%RULE "Externaddr_ok/global"
+                        (LIST :GLOBAL (%GET-FIELD GLOBALINST :TYPE)))))))))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R
      (LET
       ((%R
-         (LET* ((S %A0))
-           (DECLARE (IGNORABLE S))
-           (AND (CONSP %A1)
-                (EQ (CAR %A1) :MEM)
-                (TRUE-LISTP (CDR %A1))
-                (EQUAL (ACL2::LEN (CDR %A1)) 1)
-                (LET* ((A (CAR (CDR %A1))))
-                  (DECLARE (IGNORABLE A))
-                  (AND (< A (ACL2::LEN (%GET-FIELD S :MEMS)))
-                       (LET* ((MEMINST (NTH A (%GET-FIELD S :MEMS))))
-                         (DECLARE (IGNORABLE MEMINST))
-                         (LIST (LIST :MEM (%GET-FIELD MEMINST :TYPE))))))))))
+        (LET* ((S %A0))
+         (DECLARE (IGNORABLE S))
+         (AND
+          (CONSP %A1)
+          (EQ (CAR %A1) :MEM)
+          (TRUE-LISTP (CDR %A1))
+          (EQUAL (ACL2::LEN (CDR %A1)) 1)
+          (LET* ((A (CAR (CDR %A1))))
+           (DECLARE (IGNORABLE A))
+           (AND
+               (< A (ACL2::LEN (%GET-FIELD S :MEMS)))
+               (LET* ((MEMINST (NTH A (%GET-FIELD S :MEMS))))
+                 (DECLARE (IGNORABLE MEMINST))
+                 (LIST (%RULE "Externaddr_ok/mem"
+                              (LIST :MEM (%GET-FIELD MEMINST :TYPE)))))))))))
       (DECLARE (IGNORABLE %R))
       (IF %R %R
        (LET
@@ -154,11 +162,14 @@
             (TRUE-LISTP (CDR %A1))
             (EQUAL (ACL2::LEN (CDR %A1)) 1)
             (LET* ((A (CAR (CDR %A1))))
-              (DECLARE (IGNORABLE A))
-              (AND (< A (ACL2::LEN (%GET-FIELD S :TABLES)))
-                   (LET* ((TABLEINST (NTH A (%GET-FIELD S :TABLES))))
-                     (DECLARE (IGNORABLE TABLEINST))
-                     (LIST (LIST :TABLE (%GET-FIELD TABLEINST :TYPE))))))))))
+             (DECLARE (IGNORABLE A))
+             (AND
+              (< A (ACL2::LEN (%GET-FIELD S :TABLES)))
+              (LET* ((TABLEINST (NTH A (%GET-FIELD S :TABLES))))
+               (DECLARE (IGNORABLE TABLEINST))
+               (LIST
+                   (%RULE "Externaddr_ok/table"
+                          (LIST :TABLE (%GET-FIELD TABLEINST :TYPE)))))))))))
         (DECLARE (IGNORABLE %R))
         (IF %R %R
          (LET
@@ -171,11 +182,14 @@
               (TRUE-LISTP (CDR %A1))
               (EQUAL (ACL2::LEN (CDR %A1)) 1)
               (LET* ((A (CAR (CDR %A1))))
-                (DECLARE (IGNORABLE A))
-                (AND (< A (ACL2::LEN (%GET-FIELD S :FUNCS)))
-                     (LET* ((FUNCINST (NTH A (%GET-FIELD S :FUNCS))))
-                       (DECLARE (IGNORABLE FUNCINST))
-                       (LIST (LIST :FUNC (%GET-FIELD FUNCINST :TYPE))))))))))
+               (DECLARE (IGNORABLE A))
+               (AND
+                (< A (ACL2::LEN (%GET-FIELD S :FUNCS)))
+                (LET* ((FUNCINST (NTH A (%GET-FIELD S :FUNCS))))
+                 (DECLARE (IGNORABLE FUNCINST))
+                 (LIST
+                     (%RULE "Externaddr_ok/func"
+                            (LIST :FUNC (%GET-FIELD FUNCINST :TYPE)))))))))))
           (DECLARE (IGNORABLE %R))
           (IF %R %R NIL)))))))))))
 

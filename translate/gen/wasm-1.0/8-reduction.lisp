@@ -186,10 +186,12 @@
                                (LET* ((INSTR-STAR (CAR (CAR %T51))))
                                 (DECLARE (IGNORABLE INSTR-STAR))
                                 (LIST
-                                 (APPEND
-                                  (STEP_PURE/ITER54 VAL-STAR)
-                                  (STEP_PURE/ITER55
-                                   INSTR-PRIME-STAR)))))))))))))))))))))))))))))))
+                                 (%RULE
+                                  "Step_pure/br-zero"
+                                  (APPEND
+                                   (STEP_PURE/ITER54 VAL-STAR)
+                                   (STEP_PURE/ITER55
+                                    INSTR-PRIME-STAR))))))))))))))))))))))))))))))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R
       (STEP_PURE/SEARCH56 (1+ %K)
@@ -302,8 +304,10 @@
                        (LET* ((INSTR-STAR (CAR (CAR %T70))))
                         (DECLARE (IGNORABLE INSTR-STAR))
                         (LIST
-                            (APPEND (STEP_PURE/ITER73 VAL-STAR)
-                                    (LIST (LIST :BR L))))))))))))))))))))))))
+                         (%RULE
+                           "Step_pure/br-succ"
+                           (APPEND (STEP_PURE/ITER73 VAL-STAR)
+                                   (LIST (LIST :BR L)))))))))))))))))))))))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R
       (STEP_PURE/SEARCH74 (1+ %K)
@@ -474,8 +478,11 @@
                              %T111
                              (LET* ((INSTR-STAR (CAR (CAR %T111))))
                               (DECLARE (IGNORABLE INSTR-STAR))
-                              (LIST (STEP_PURE/ITER114
-                                         VAL-STAR))))))))))))))))))))))))))))
+                              (LIST
+                               (%RULE
+                                   "Step_pure/return-frame"
+                                   (STEP_PURE/ITER114
+                                        VAL-STAR)))))))))))))))))))))))))))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R
       (STEP_PURE/SEARCH115 (1+ %K)
@@ -582,8 +589,11 @@
                      %T128
                      (LET* ((INSTR-STAR (CAR (CAR %T128))))
                       (DECLARE (IGNORABLE INSTR-STAR))
-                      (LIST (APPEND (STEP_PURE/ITER131 VAL-STAR)
-                                    (LIST (LIST :RETURN))))))))))))))))))))))
+                      (LIST
+                       (%RULE
+                           "Step_pure/return-label"
+                           (APPEND (STEP_PURE/ITER131 VAL-STAR)
+                                   (LIST (LIST :RETURN)))))))))))))))))))))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R
       (STEP_PURE/SEARCH132 (1+ %K)
@@ -666,15 +676,17 @@
                (LET* ((%T140 (CDR %T138)))
                 (DECLARE (IGNORABLE %T140))
                 (AND
-                    (TRUE-LISTP %T140)
-                    (LET* ((%T141 (STEP_PURE/MATCH142 %T140)))
-                      (DECLARE (IGNORABLE %T141))
-                      (AND %T141
-                           (LET* ((INSTR-STAR (CAR (CAR %T141))))
-                             (DECLARE (IGNORABLE INSTR-STAR))
-                             (AND (OR (NOT (EQUAL VAL-STAR NIL))
-                                      (NOT (EQUAL INSTR-STAR NIL)))
-                                  (LIST (LIST (LIST :TRAP))))))))))))))))))))
+                 (TRUE-LISTP %T140)
+                 (LET* ((%T141 (STEP_PURE/MATCH142 %T140)))
+                  (DECLARE (IGNORABLE %T141))
+                  (AND
+                   %T141
+                   (LET* ((INSTR-STAR (CAR (CAR %T141))))
+                     (DECLARE (IGNORABLE INSTR-STAR))
+                     (AND (OR (NOT (EQUAL VAL-STAR NIL))
+                              (NOT (EQUAL INSTR-STAR NIL)))
+                          (LIST (%RULE "Step_pure/trap-vals"
+                                       (LIST (LIST :TRAP)))))))))))))))))))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R
       (STEP_PURE/SEARCH144 (1+ %K)
@@ -695,7 +707,8 @@
                         (EQ (CAR %T0) :UNREACHABLE)
                         (TRUE-LISTP (CDR %T0))
                         (EQUAL (ACL2::LEN (CDR %T0)) 0)
-                        (LIST (LIST (LIST :TRAP))))))))
+                        (LIST (%RULE "Step_pure/unreachable"
+                                     (LIST (LIST :TRAP)))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R
     (LET ((%R (AND (TRUE-LISTP %A0)
@@ -706,7 +719,7 @@
                           (EQ (CAR %T1) :NOP)
                           (TRUE-LISTP (CDR %T1))
                           (EQUAL (ACL2::LEN (CDR %T1)) 0)
-                          (LIST NIL))))))
+                          (LIST (%RULE "Step_pure/nop" NIL)))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R
       (LET ((%R (AND (TRUE-LISTP %A0)
@@ -720,7 +733,7 @@
                                    (EQ (CAR %T3) :DROP)
                                    (TRUE-LISTP (CDR %T3))
                                    (EQUAL (ACL2::LEN (CDR %T3)) 0)
-                                   (LIST NIL))))))))
+                                   (LIST (%RULE "Step_pure/drop" NIL)))))))))
        (DECLARE (IGNORABLE %R))
        (IF %R %R
         (LET
@@ -731,32 +744,34 @@
             (LET* ((%T4 (CAR %A0)))
              (DECLARE (IGNORABLE %T4))
              (AND
-               (VAL-P %T4)
-               (LET* ((VAL_1 %T4) (%T5 (CAR (CDR %A0))))
-                 (DECLARE (IGNORABLE VAL_1 %T5))
-                 (AND (VAL-P %T5)
-                      (LET* ((VAL_2 %T5)
-                             (%T6 (CAR (CDR (CDR %A0)))))
-                        (DECLARE (IGNORABLE VAL_2 %T6))
-                        (AND (CONSP %T6)
-                             (EQ (CAR %T6) :CONST)
-                             (TRUE-LISTP (CDR %T6))
-                             (EQUAL (ACL2::LEN (CDR %T6)) 2)
-                             (LET* ((%T7 (CAR (CDR %T6))))
-                               (DECLARE (IGNORABLE %T7))
-                               (AND (CONSP %T7)
-                                    (EQ (CAR %T7) :I32)
-                                    (TRUE-LISTP (CDR %T7))
-                                    (EQUAL (ACL2::LEN (CDR %T7)) 0)
-                                    (LET* ((C (CAR (CDR (CDR %T6))))
-                                           (%T8 (CAR (CDR (CDR (CDR %A0))))))
-                                      (DECLARE (IGNORABLE C %T8))
-                                      (AND (CONSP %T8)
-                                           (EQ (CAR %T8) :SELECT)
-                                           (TRUE-LISTP (CDR %T8))
-                                           (EQUAL (ACL2::LEN (CDR %T8)) 0)
-                                           (NOT (EQUAL C 0))
-                                           (LIST (LIST VAL_1)))))))))))))))
+              (VAL-P %T4)
+              (LET* ((VAL_1 %T4) (%T5 (CAR (CDR %A0))))
+               (DECLARE (IGNORABLE VAL_1 %T5))
+               (AND
+                (VAL-P %T5)
+                (LET* ((VAL_2 %T5)
+                       (%T6 (CAR (CDR (CDR %A0)))))
+                  (DECLARE (IGNORABLE VAL_2 %T6))
+                  (AND (CONSP %T6)
+                       (EQ (CAR %T6) :CONST)
+                       (TRUE-LISTP (CDR %T6))
+                       (EQUAL (ACL2::LEN (CDR %T6)) 2)
+                       (LET* ((%T7 (CAR (CDR %T6))))
+                         (DECLARE (IGNORABLE %T7))
+                         (AND (CONSP %T7)
+                              (EQ (CAR %T7) :I32)
+                              (TRUE-LISTP (CDR %T7))
+                              (EQUAL (ACL2::LEN (CDR %T7)) 0)
+                              (LET* ((C (CAR (CDR (CDR %T6))))
+                                     (%T8 (CAR (CDR (CDR (CDR %A0))))))
+                                (DECLARE (IGNORABLE C %T8))
+                                (AND (CONSP %T8)
+                                     (EQ (CAR %T8) :SELECT)
+                                     (TRUE-LISTP (CDR %T8))
+                                     (EQUAL (ACL2::LEN (CDR %T8)) 0)
+                                     (NOT (EQUAL C 0))
+                                     (LIST (%RULE "Step_pure/select-true"
+                                                  (LIST VAL_1))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
           (LET
@@ -771,29 +786,31 @@
                 (LET* ((VAL_1 %T9) (%T10 (CAR (CDR %A0))))
                  (DECLARE (IGNORABLE VAL_1 %T10))
                  (AND
-                     (VAL-P %T10)
-                     (LET* ((VAL_2 %T10)
-                            (%T11 (CAR (CDR (CDR %A0)))))
-                       (DECLARE (IGNORABLE VAL_2 %T11))
-                       (AND (CONSP %T11)
-                            (EQ (CAR %T11) :CONST)
-                            (TRUE-LISTP (CDR %T11))
-                            (EQUAL (ACL2::LEN (CDR %T11)) 2)
-                            (LET* ((%T12 (CAR (CDR %T11))))
-                              (DECLARE (IGNORABLE %T12))
-                              (AND (CONSP %T12)
-                                   (EQ (CAR %T12) :I32)
-                                   (TRUE-LISTP (CDR %T12))
-                                   (EQUAL (ACL2::LEN (CDR %T12)) 0)
-                                   (LET* ((C (CAR (CDR (CDR %T11))))
-                                          (%T13 (CAR (CDR (CDR (CDR %A0))))))
-                                     (DECLARE (IGNORABLE C %T13))
-                                     (AND (CONSP %T13)
-                                          (EQ (CAR %T13) :SELECT)
-                                          (TRUE-LISTP (CDR %T13))
-                                          (EQUAL (ACL2::LEN (CDR %T13)) 0)
-                                          (EQUAL C 0)
-                                          (LIST (LIST VAL_2)))))))))))))))
+                  (VAL-P %T10)
+                  (LET* ((VAL_2 %T10)
+                         (%T11 (CAR (CDR (CDR %A0)))))
+                   (DECLARE (IGNORABLE VAL_2 %T11))
+                   (AND
+                       (CONSP %T11)
+                       (EQ (CAR %T11) :CONST)
+                       (TRUE-LISTP (CDR %T11))
+                       (EQUAL (ACL2::LEN (CDR %T11)) 2)
+                       (LET* ((%T12 (CAR (CDR %T11))))
+                         (DECLARE (IGNORABLE %T12))
+                         (AND (CONSP %T12)
+                              (EQ (CAR %T12) :I32)
+                              (TRUE-LISTP (CDR %T12))
+                              (EQUAL (ACL2::LEN (CDR %T12)) 0)
+                              (LET* ((C (CAR (CDR (CDR %T11))))
+                                     (%T13 (CAR (CDR (CDR (CDR %A0))))))
+                                (DECLARE (IGNORABLE C %T13))
+                                (AND (CONSP %T13)
+                                     (EQ (CAR %T13) :SELECT)
+                                     (TRUE-LISTP (CDR %T13))
+                                     (EQUAL (ACL2::LEN (CDR %T13)) 0)
+                                     (EQUAL C 0)
+                                     (LIST (%RULE "Step_pure/select-false"
+                                                  (LIST VAL_2))))))))))))))))
            (DECLARE (IGNORABLE %R))
            (IF %R %R
             (LET
@@ -843,9 +860,12 @@
                              (AND
                               (NOT (EQUAL C 0))
                               (LIST
-                               (LIST
-                                 (LIST :BLOCK
-                                       T-OPT INSTR_1-STAR))))))))))))))))))))
+                               (%RULE
+                                "Step_pure/if-true"
+                                (LIST
+                                 (LIST
+                                      :BLOCK
+                                      T-OPT INSTR_1-STAR)))))))))))))))))))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R
               (LET
@@ -895,10 +915,12 @@
                                (AND
                                 (EQUAL C 0)
                                 (LIST
-                                 (LIST
+                                 (%RULE
+                                  "Step_pure/if-false"
                                   (LIST
-                                       :BLOCK
-                                       T-OPT INSTR_2-STAR))))))))))))))))))))
+                                   (LIST
+                                      :BLOCK
+                                      T-OPT INSTR_2-STAR)))))))))))))))))))))
                (DECLARE (IGNORABLE %R))
                (IF %R %R
                 (LET
@@ -926,10 +948,13 @@
                           (LET* ((%T29 (STEP_PURE/MATCH30 %T28)))
                            (DECLARE (IGNORABLE %T29))
                            (AND
-                             %T29
-                             (LET* ((VAL-STAR (CAR (CAR %T29))))
-                               (DECLARE (IGNORABLE VAL-STAR))
-                               (LIST (STEP_PURE/ITER32 VAL-STAR))))))))))))))
+                            %T29
+                            (LET* ((VAL-STAR (CAR (CAR %T29))))
+                             (DECLARE (IGNORABLE VAL-STAR))
+                             (LIST
+                               (%RULE
+                                    "Step_pure/label-vals"
+                                    (STEP_PURE/ITER32 VAL-STAR)))))))))))))))
                  (DECLARE (IGNORABLE %R))
                  (IF %R %R
                   (LET
@@ -1005,14 +1030,17 @@
                                      (%T77 (CAR (CDR %A0))))
                                (DECLARE (IGNORABLE C %T77))
                                (AND
-                                 (CONSP %T77)
-                                 (EQ (CAR %T77) :BR_IF)
-                                 (TRUE-LISTP (CDR %T77))
-                                 (EQUAL (ACL2::LEN (CDR %T77)) 1)
-                                 (LET* ((L (CAR (CDR %T77))))
-                                   (DECLARE (IGNORABLE L))
-                                   (AND (NOT (EQUAL C 0))
-                                        (LIST (LIST (LIST :BR L))))))))))))))
+                                (CONSP %T77)
+                                (EQ (CAR %T77) :BR_IF)
+                                (TRUE-LISTP (CDR %T77))
+                                (EQUAL (ACL2::LEN (CDR %T77)) 1)
+                                (LET* ((L (CAR (CDR %T77))))
+                                 (DECLARE (IGNORABLE L))
+                                 (AND
+                                  (NOT (EQUAL C 0))
+                                  (LIST
+                                      (%RULE "Step_pure/br_if-true"
+                                             (LIST (LIST :BR L)))))))))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R
                         (LET
@@ -1038,13 +1066,15 @@
                                        (%T80 (CAR (CDR %A0))))
                                  (DECLARE (IGNORABLE C %T80))
                                  (AND
-                                     (CONSP %T80)
-                                     (EQ (CAR %T80) :BR_IF)
-                                     (TRUE-LISTP (CDR %T80))
-                                     (EQUAL (ACL2::LEN (CDR %T80)) 1)
-                                     (LET* ((L (CAR (CDR %T80))))
-                                       (DECLARE (IGNORABLE L))
-                                       (AND (EQUAL C 0) (LIST NIL))))))))))))
+                                  (CONSP %T80)
+                                  (EQ (CAR %T80) :BR_IF)
+                                  (TRUE-LISTP (CDR %T80))
+                                  (EQUAL (ACL2::LEN (CDR %T80)) 1)
+                                  (LET* ((L (CAR (CDR %T80))))
+                                    (DECLARE (IGNORABLE L))
+                                    (AND (EQUAL C 0)
+                                         (LIST (%RULE "Step_pure/br_if-false"
+                                                      NIL)))))))))))))
                          (DECLARE (IGNORABLE %R))
                          (IF %R %R
                           (LET
@@ -1085,9 +1115,12 @@
                                        (AND
                                         (< I (ACL2::LEN L-STAR))
                                         (LIST
-                                         (LIST
+                                         (%RULE
+                                          "Step_pure/br_table-lt"
                                           (LIST
-                                           :BR (NTH I L-STAR)))))))))))))))))
+                                           (LIST
+                                              :BR
+                                              (NTH I L-STAR))))))))))))))))))
                            (DECLARE (IGNORABLE %R))
                            (IF %R %R
                             (LET
@@ -1128,8 +1161,11 @@
                                          (AND
                                           (>= I (ACL2::LEN L-STAR))
                                           (LIST
-                                           (LIST
-                                            (LIST :BR L-PRIME))))))))))))))))
+                                           (%RULE
+                                            "Step_pure/br_table-ge"
+                                            (LIST
+                                             (LIST
+                                                 :BR L-PRIME)))))))))))))))))
                              (DECLARE (IGNORABLE %R))
                              (IF %R %R
                               (LET
@@ -1158,9 +1194,11 @@
                                         (LET* ((VAL-STAR (CAR (CAR %T91))))
                                          (DECLARE (IGNORABLE VAL-STAR))
                                          (AND
-                                             (EQUAL (ACL2::LEN %T90) N)
-                                             (LIST (STEP_PURE/ITER94
-                                                        VAL-STAR)))))))))))))
+                                          (EQUAL (ACL2::LEN %T90) N)
+                                          (LIST
+                                           (%RULE "Step_pure/frame-vals"
+                                                  (STEP_PURE/ITER94
+                                                       VAL-STAR))))))))))))))
                                (DECLARE (IGNORABLE %R))
                                (IF %R %R
                                 (LET
@@ -1263,8 +1301,11 @@
                                                       (ACL2::LEN (CDR %T148))
                                                       0)
                                                   (LIST
-                                                   (LIST
-                                                    (LIST :TRAP))))))))))))))
+                                                   (%RULE
+                                                    "Step_pure/trap-label"
+                                                    (LIST
+                                                     (LIST
+                                                         :TRAP)))))))))))))))
                                        (DECLARE (IGNORABLE %R))
                                        (IF %R %R
                                         (LET
@@ -1301,8 +1342,10 @@
                                                       (ACL2::LEN (CDR %T151))
                                                       0)
                                                   (LIST
-                                                   (LIST
-                                                      (LIST :TRAP))))))))))))
+                                                   (%RULE
+                                                    "Step_pure/trap-frame"
+                                                    (LIST
+                                                     (LIST :TRAP)))))))))))))
                                          (DECLARE (IGNORABLE %R))
                                          (IF %R %R
                                           (LET
@@ -1357,10 +1400,12 @@
                                                        (DECLARE
                                                             (IGNORABLE C))
                                                        (LIST
-                                                        (LIST
+                                                        (%RULE
+                                                         "Step_pure/unop-val"
                                                          (LIST
-                                                             :CONST T^R
-                                                             C)))))))))))))))
+                                                          (LIST
+                                                            :CONST T^R
+                                                            C))))))))))))))))
                                            (DECLARE (IGNORABLE %R))
                                            (IF %R %R
                                             (LET
@@ -1405,9 +1450,11 @@
                                                         ($UNOP_ T^R UNOP C_1)
                                                         NIL)
                                                       (LIST
-                                                       (LIST
+                                                       (%RULE
+                                                        "Step_pure/unop-trap"
                                                         (LIST
-                                                            :TRAP))))))))))))
+                                                         (LIST
+                                                           :TRAP)))))))))))))
                                              (DECLARE (IGNORABLE %R))
                                              (IF %R %R
                                               (LET
@@ -1500,10 +1547,12 @@
                                                              (DECLARE
                                                                (IGNORABLE C))
                                                              (LIST
-                                                              (LIST
+                                                              (%RULE
+                                                               "Step_pure/binop-val"
                                                                (LIST
-                                                                :CONST T^R
-                                                                C)))))))))))))))))
+                                                                (LIST
+                                                                 :CONST T^R
+                                                                 C))))))))))))))))))
                                                (DECLARE (IGNORABLE %R))
                                                (IF %R %R
                                                 (LET
@@ -1588,9 +1637,11 @@
                                                                BINOP C_1 C_2)
                                                              NIL)
                                                             (LIST
-                                                             (LIST
+                                                             (%RULE
+                                                              "Step_pure/binop-trap"
                                                               (LIST
-                                                               :TRAP))))))))))))))
+                                                               (LIST
+                                                                :TRAP)))))))))))))))
                                                  (DECLARE (IGNORABLE %R))
                                                  (IF %R %R
                                                   (LET
@@ -1651,11 +1702,13 @@
                                                               (IGNORABLE
                                                                    TESTOP C))
                                                            (LIST
-                                                            (LIST
+                                                            (%RULE
+                                                             "Step_pure/testop"
                                                              (LIST
-                                                                 :CONST
-                                                                 (LIST :I32)
-                                                                 C)))))))))))
+                                                              (LIST
+                                                                :CONST
+                                                                (LIST :I32)
+                                                                C))))))))))))
                                                    (DECLARE (IGNORABLE %R))
                                                    (IF %R %R
                                                     (LET
@@ -1749,11 +1802,14 @@
                                                                 (IGNORABLE
                                                                     RELOP C))
                                                                (LIST
-                                                                (LIST
+                                                                (%RULE
+                                                                 "Step_pure/relop"
                                                                  (LIST
-                                                                  :CONST
-                                                                  (LIST :I32)
-                                                                  C)))))))))))))
+                                                                  (LIST
+                                                                   :CONST
+                                                                   (LIST
+                                                                        :I32)
+                                                                   C))))))))))))))
                                                      (DECLARE (IGNORABLE %R))
                                                      (IF %R %R
                                                       (LET
@@ -1858,11 +1914,13 @@
                                                                       (IGNORABLE
                                                                           C))
                                                                      (LIST
-                                                                      (LIST
+                                                                      (%RULE
+                                                                       "Step_pure/cvtop-val"
                                                                        (LIST
-                                                                        :CONST
-                                                                        T_2
-                                                                        C)))))))))))))))))
+                                                                        (LIST
+                                                                         :CONST
+                                                                         T_2
+                                                                         C))))))))))))))))))
                                                        (DECLARE
                                                             (IGNORABLE %R))
                                                        (IF %R %R
@@ -1952,9 +2010,11 @@
                                                                       C_1)
                                                                      NIL)
                                                                     (LIST
-                                                                     (LIST
+                                                                     (%RULE
+                                                                      "Step_pure/cvtop-trap"
                                                                       (LIST
-                                                                       :TRAP))))))))))))))
+                                                                       (LIST
+                                                                        :TRAP)))))))))))))))
                                                          (DECLARE
                                                               (IGNORABLE %R))
                                                          (IF %R %R
@@ -2009,11 +2069,13 @@
                                                                      (IGNORABLE
                                                                           X))
                                                                    (LIST
-                                                                    (LIST
-                                                                     VAL VAL
+                                                                    (%RULE
+                                                                     "Step_pure/local.tee"
                                                                      (LIST
-                                                                      :LOCAL.SET
-                                                                      X)))))))))))
+                                                                      VAL VAL
+                                                                      (LIST
+                                                                       :LOCAL.SET
+                                                                       X))))))))))))
                                                            (DECLARE
                                                               (IGNORABLE %R))
                                                            (IF %R %R
@@ -2165,8 +2227,10 @@
                 (LET* ((N (CAR (CAR %T4))))
                  (DECLARE (IGNORABLE N))
                  (LIST
-                    (LIST (LIST :LABEL_%{%}% N NIL
-                                (STEP_READ/ITER5 INSTR-STAR))))))))))))))))))
+                  (%RULE
+                   "Step_read/block"
+                   (LIST (LIST :LABEL_%{%}% N NIL
+                               (STEP_READ/ITER5 INSTR-STAR)))))))))))))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R
     (LET
@@ -2202,9 +2266,11 @@
                 (LET* ((INSTR-STAR %T9))
                  (DECLARE (IGNORABLE INSTR-STAR))
                  (LIST
-                     (LIST (LIST :LABEL_%{%}%
-                                 0 (LIST (LIST :LOOP T-OPT INSTR-STAR))
-                                 (STEP_READ/ITER10 INSTR-STAR))))))))))))))))
+                  (%RULE
+                    "Step_read/loop"
+                    (LIST (LIST :LABEL_%{%}%
+                                0 (LIST (LIST :LOOP T-OPT INSTR-STAR))
+                                (STEP_READ/ITER10 INSTR-STAR)))))))))))))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R
       (LET
@@ -2232,7 +2298,9 @@
                (AND
                 (< X (ACL2::LEN ($FUNCADDR Z)))
                 (LIST
-                     (LIST (LIST :CALL_ADDR (NTH X ($FUNCADDR Z))))))))))))))
+                 (%RULE
+                    "Step_read/call"
+                    (LIST (LIST :CALL_ADDR (NTH X ($FUNCADDR Z)))))))))))))))
        (DECLARE (IGNORABLE %R))
        (IF %R %R
         (LET
@@ -2282,11 +2350,14 @@
                         (LET* ((A (CAR %T17)))
                          (DECLARE (IGNORABLE A))
                          (AND
-                           (< A (ACL2::LEN ($FUNCINST Z)))
-                           (EQUAL ($TYPE Z X)
-                                  (%GET-FIELD (NTH A ($FUNCINST Z))
-                                              :TYPE))
-                           (LIST (LIST (LIST :CALL_ADDR A))))))))))))))))))))
+                          (< A (ACL2::LEN ($FUNCINST Z)))
+                          (EQUAL ($TYPE Z X)
+                                 (%GET-FIELD (NTH A ($FUNCINST Z))
+                                             :TYPE))
+                          (LIST
+                           (%RULE
+                                "Step_read/call_indirect-call"
+                                (LIST (LIST :CALL_ADDR A)))))))))))))))))))))
          (DECLARE (IGNORABLE %R))
          (IF %R %R
           (LET
@@ -2303,27 +2374,30 @@
                 (TRUE-LISTP %T18)
                 (EQUAL (ACL2::LEN %T18) 2)
                 (LET* ((%T19 (CAR %T18)))
-                  (DECLARE (IGNORABLE %T19))
-                  (AND (CONSP %T19)
-                       (EQ (CAR %T19) :CONST)
-                       (TRUE-LISTP (CDR %T19))
-                       (EQUAL (ACL2::LEN (CDR %T19)) 2)
-                       (LET* ((%T20 (CAR (CDR %T19))))
-                         (DECLARE (IGNORABLE %T20))
-                         (AND (CONSP %T20)
-                              (EQ (CAR %T20) :I32)
-                              (TRUE-LISTP (CDR %T20))
-                              (EQUAL (ACL2::LEN (CDR %T20)) 0)
-                              (LET* ((I (CAR (CDR (CDR %T19))))
-                                     (%T21 (CAR (CDR %T18))))
-                                (DECLARE (IGNORABLE I %T21))
-                                (AND (CONSP %T21)
-                                     (EQ (CAR %T21) :CALL_INDIRECT)
-                                     (TRUE-LISTP (CDR %T21))
-                                     (EQUAL (ACL2::LEN (CDR %T21)) 1)
-                                     (LET* ((X (CAR (CDR %T21))))
-                                       (DECLARE (IGNORABLE X))
-                                       (LIST (LIST (LIST :TRAP)))))))))))))))
+                 (DECLARE (IGNORABLE %T19))
+                 (AND
+                  (CONSP %T19)
+                  (EQ (CAR %T19) :CONST)
+                  (TRUE-LISTP (CDR %T19))
+                  (EQUAL (ACL2::LEN (CDR %T19)) 2)
+                  (LET* ((%T20 (CAR (CDR %T19))))
+                   (DECLARE (IGNORABLE %T20))
+                   (AND
+                      (CONSP %T20)
+                      (EQ (CAR %T20) :I32)
+                      (TRUE-LISTP (CDR %T20))
+                      (EQUAL (ACL2::LEN (CDR %T20)) 0)
+                      (LET* ((I (CAR (CDR (CDR %T19))))
+                             (%T21 (CAR (CDR %T18))))
+                        (DECLARE (IGNORABLE I %T21))
+                        (AND (CONSP %T21)
+                             (EQ (CAR %T21) :CALL_INDIRECT)
+                             (TRUE-LISTP (CDR %T21))
+                             (EQUAL (ACL2::LEN (CDR %T21)) 1)
+                             (LET* ((X (CAR (CDR %T21))))
+                               (DECLARE (IGNORABLE X))
+                               (LIST (%RULE "Step_read/call_indirect-trap"
+                                            (LIST (LIST :TRAP))))))))))))))))
            (DECLARE (IGNORABLE %R))
            (IF %R %R
             (LET
@@ -2452,35 +2526,40 @@
                                                  (DECLARE
                                                     (IGNORABLE INSTR-STAR F))
                                                  (LIST
-                                                  (LIST
+                                                  (%RULE
+                                                   "Step_read/call_addr"
                                                    (LIST
-                                                    :FRAME_%{%}% N F
                                                     (LIST
+                                                     :FRAME_%{%}% N F
                                                      (LIST
-                                                      :LABEL_%{%}% N NIL
-                                                      (STEP_READ/ITER40
-                                                       INSTR-STAR))))))))))))))))))))))))))))))))))))))))))
+                                                      (LIST
+                                                       :LABEL_%{%}% N NIL
+                                                       (STEP_READ/ITER40
+                                                        INSTR-STAR)))))))))))))))))))))))))))))))))))))))))))
              (DECLARE (IGNORABLE %R))
              (IF %R %R
               (LET
-                ((%R (AND (CONSP %A0)
-                          (EQ (CAR %A0) :|%;%|)
-                          (TRUE-LISTP (CDR %A0))
-                          (EQUAL (ACL2::LEN (CDR %A0)) 2)
-                          (LET* ((Z (CAR (CDR %A0)))
-                                 (%T41 (CAR (CDR (CDR %A0)))))
-                            (DECLARE (IGNORABLE Z %T41))
-                            (AND (TRUE-LISTP %T41)
-                                 (EQUAL (ACL2::LEN %T41) 1)
-                                 (LET* ((%T42 (CAR %T41)))
-                                   (DECLARE (IGNORABLE %T42))
-                                   (AND (CONSP %T42)
-                                        (EQ (CAR %T42) :LOCAL.GET)
-                                        (TRUE-LISTP (CDR %T42))
-                                        (EQUAL (ACL2::LEN (CDR %T42)) 1)
-                                        (LET* ((X (CAR (CDR %T42))))
-                                          (DECLARE (IGNORABLE X))
-                                          (LIST (LIST ($LOCAL Z X)))))))))))
+               ((%R
+                 (AND
+                   (CONSP %A0)
+                   (EQ (CAR %A0) :|%;%|)
+                   (TRUE-LISTP (CDR %A0))
+                   (EQUAL (ACL2::LEN (CDR %A0)) 2)
+                   (LET* ((Z (CAR (CDR %A0)))
+                          (%T41 (CAR (CDR (CDR %A0)))))
+                     (DECLARE (IGNORABLE Z %T41))
+                     (AND (TRUE-LISTP %T41)
+                          (EQUAL (ACL2::LEN %T41) 1)
+                          (LET* ((%T42 (CAR %T41)))
+                            (DECLARE (IGNORABLE %T42))
+                            (AND (CONSP %T42)
+                                 (EQ (CAR %T42) :LOCAL.GET)
+                                 (TRUE-LISTP (CDR %T42))
+                                 (EQUAL (ACL2::LEN (CDR %T42)) 1)
+                                 (LET* ((X (CAR (CDR %T42))))
+                                   (DECLARE (IGNORABLE X))
+                                   (LIST (%RULE "Step_read/local.get"
+                                                (LIST ($LOCAL Z X))))))))))))
                (DECLARE (IGNORABLE %R))
                (IF %R %R
                 (LET
@@ -2492,19 +2571,22 @@
                     (EQUAL (ACL2::LEN (CDR %A0)) 2)
                     (LET* ((Z (CAR (CDR %A0)))
                            (%T43 (CAR (CDR (CDR %A0)))))
-                      (DECLARE (IGNORABLE Z %T43))
-                      (AND (TRUE-LISTP %T43)
-                           (EQUAL (ACL2::LEN %T43) 1)
-                           (LET* ((%T44 (CAR %T43)))
-                             (DECLARE (IGNORABLE %T44))
-                             (AND (CONSP %T44)
-                                  (EQ (CAR %T44) :GLOBAL.GET)
-                                  (TRUE-LISTP (CDR %T44))
-                                  (EQUAL (ACL2::LEN (CDR %T44)) 1)
-                                  (LET* ((X (CAR (CDR %T44))))
-                                    (DECLARE (IGNORABLE X))
-                                    (LIST (LIST (%GET-FIELD ($GLOBAL Z X)
-                                                            :VALUE)))))))))))
+                     (DECLARE (IGNORABLE Z %T43))
+                     (AND
+                      (TRUE-LISTP %T43)
+                      (EQUAL (ACL2::LEN %T43) 1)
+                      (LET* ((%T44 (CAR %T43)))
+                       (DECLARE (IGNORABLE %T44))
+                       (AND
+                          (CONSP %T44)
+                          (EQ (CAR %T44) :GLOBAL.GET)
+                          (TRUE-LISTP (CDR %T44))
+                          (EQUAL (ACL2::LEN (CDR %T44)) 1)
+                          (LET* ((X (CAR (CDR %T44))))
+                            (DECLARE (IGNORABLE X))
+                            (LIST (%RULE "Step_read/global.get"
+                                         (LIST (%GET-FIELD ($GLOBAL Z X)
+                                                           :VALUE))))))))))))
                  (DECLARE (IGNORABLE %R))
                  (IF %R %R
                   (LET
@@ -2549,11 +2631,14 @@
                                 (LET* ((AO (CAR (CDR (CDR (CDR %T48))))))
                                  (DECLARE (IGNORABLE AO))
                                  (AND
-                                    (> (+ (+ I (%GET-FIELD AO :OFFSET))
-                                          (/ ($SIZE T^R) 8))
-                                       (ACL2::LEN
-                                            (%GET-FIELD ($MEM Z 0) :BYTES)))
-                                    (LIST (LIST (LIST :TRAP))))))))))))))))))
+                                  (> (+ (+ I (%GET-FIELD AO :OFFSET))
+                                        (/ ($SIZE T^R) 8))
+                                     (ACL2::LEN
+                                          (%GET-FIELD ($MEM Z 0) :BYTES)))
+                                  (LIST
+                                    (%RULE
+                                         "Step_read/load-num-trap"
+                                         (LIST (LIST :TRAP)))))))))))))))))))
                    (DECLARE (IGNORABLE %R))
                    (IF %R %R
                     (LET
@@ -2609,8 +2694,10 @@
                                    (AND
                                     (EQUAL ($BYTES_ T^R C) %T53)
                                     (LIST
-                                     (LIST
-                                         (LIST :CONST T^R C))))))))))))))))))
+                                     (%RULE
+                                      "Step_read/load-num-val"
+                                      (LIST
+                                        (LIST :CONST T^R C)))))))))))))))))))
                      (DECLARE (IGNORABLE %R))
                      (IF %R %R
                       (LET
@@ -2677,8 +2764,11 @@
                                            (ACL2::LEN
                                              (%GET-FIELD ($MEM Z 0) :BYTES)))
                                           (LIST
-                                           (LIST
-                                            (LIST :TRAP))))))))))))))))))))))
+                                           (%RULE
+                                            "Step_read/load-pack-trap"
+                                            (LIST
+                                             (LIST
+                                                 :TRAP)))))))))))))))))))))))
                        (DECLARE (IGNORABLE %R))
                        (IF %R %R
                         (LET
@@ -2752,12 +2842,14 @@
                                            (AND
                                             (EQUAL ($IBYTES_ N C) %T71)
                                             (LIST
-                                             (LIST
+                                             (%RULE
+                                              "Step_read/load-pack-val"
                                               (LIST
-                                               :CONST INN
-                                               ($EXTEND__
-                                                  N ($SIZE INN)
-                                                  SX C)))))))))))))))))))))))
+                                               (LIST
+                                                :CONST INN
+                                                ($EXTEND__
+                                                 N ($SIZE INN)
+                                                 SX C))))))))))))))))))))))))
                          (DECLARE (IGNORABLE %R))
                          (IF %R %R
                           (LET
@@ -2791,12 +2883,14 @@
                                     (LET* ((%T76 (/ %T75 ($KI))))
                                      (DECLARE (IGNORABLE %T76))
                                      (AND
-                                       (NOT (EQUAL 64 0))
-                                       (NATP (/ %T76 64))
-                                       (LET* ((N (/ %T76 64)))
-                                         (DECLARE (IGNORABLE N))
-                                         (LIST (LIST (LIST :CONST (LIST :I32)
-                                                           N)))))))))))))))
+                                      (NOT (EQUAL 64 0))
+                                      (NATP (/ %T76 64))
+                                      (LET* ((N (/ %T76 64)))
+                                       (DECLARE (IGNORABLE N))
+                                       (LIST
+                                        (%RULE "Step_read/memory.size"
+                                               (LIST (LIST :CONST (LIST :I32)
+                                                           N))))))))))))))))
                            (DECLARE (IGNORABLE %R))
                            (IF %R %R
                              NIL))))))))))))))))))))))))))))
@@ -2912,12 +3006,15 @@
                         (LET* ((ADMININSTR-PRIME-STAR %T34))
                          (DECLARE (IGNORABLE ADMININSTR-PRIME-STAR))
                          (LIST
-                          (LIST
-                           :|%;%| Z-PRIME
-                           (APPEND
-                            (STEP/ITER35 VAL-STAR)
-                            (APPEND ADMININSTR-PRIME-STAR
-                                    ADMININSTR_1-STAR))))))))))))))))))))))))
+                          (%RULE
+                           "Step/ctxt-instrs"
+                           (LIST
+                            :|%;%| Z-PRIME
+                            (APPEND
+                              (STEP/ITER35 VAL-STAR)
+                              (APPEND
+                                   ADMININSTR-PRIME-STAR
+                                   ADMININSTR_1-STAR)))))))))))))))))))))))))
      (DECLARE (IGNORABLE %R))
      (IF %R %R
        (STEP/SEARCH36 (1- %K)
@@ -2935,19 +3032,22 @@
        (EQUAL (ACL2::LEN (CDR %A0)) 2)
        (LET* ((Z (CAR (CDR %A0)))
               (%T0 (CAR (CDR (CDR %A0)))))
-         (DECLARE (IGNORABLE Z %T0))
-         (AND (TRUE-LISTP %T0)
-              (LET* ((ADMININSTR-STAR %T0)
-                     (%T1 (STEP_PURE ADMININSTR-STAR)))
-                (DECLARE (IGNORABLE ADMININSTR-STAR %T1))
-                (AND %T1
-                     (LET* ((%T2 (CAR %T1)))
-                       (DECLARE (IGNORABLE %T2))
-                       (AND (TRUE-LISTP %T2)
-                            (LET* ((ADMININSTR-PRIME-STAR %T2))
-                              (DECLARE (IGNORABLE ADMININSTR-PRIME-STAR))
-                              (LIST (LIST :|%;%|
-                                          Z ADMININSTR-PRIME-STAR))))))))))))
+        (DECLARE (IGNORABLE Z %T0))
+        (AND
+         (TRUE-LISTP %T0)
+         (LET* ((ADMININSTR-STAR %T0)
+                (%T1 (STEP_PURE ADMININSTR-STAR)))
+          (DECLARE (IGNORABLE ADMININSTR-STAR %T1))
+          (AND
+             %T1
+             (LET* ((%T2 (CAR %T1)))
+               (DECLARE (IGNORABLE %T2))
+               (AND (TRUE-LISTP %T2)
+                    (LET* ((ADMININSTR-PRIME-STAR %T2))
+                      (DECLARE (IGNORABLE ADMININSTR-PRIME-STAR))
+                      (LIST (%RULE "Step/pure"
+                                   (LIST :|%;%|
+                                         Z ADMININSTR-PRIME-STAR)))))))))))))
     (DECLARE (IGNORABLE %R))
     (IF %R %R
      (LET
@@ -2961,18 +3061,20 @@
                 (%T3 (CAR (CDR (CDR %A0)))))
           (DECLARE (IGNORABLE Z %T3))
           (AND
-              (TRUE-LISTP %T3)
-              (LET* ((ADMININSTR-STAR %T3)
-                     (%T4 (STEP_READ (LIST :|%;%| Z ADMININSTR-STAR))))
-                (DECLARE (IGNORABLE ADMININSTR-STAR %T4))
-                (AND %T4
-                     (LET* ((%T5 (CAR %T4)))
-                       (DECLARE (IGNORABLE %T5))
-                       (AND (TRUE-LISTP %T5)
-                            (LET* ((ADMININSTR-PRIME-STAR %T5))
-                              (DECLARE (IGNORABLE ADMININSTR-PRIME-STAR))
-                              (LIST (LIST :|%;%|
-                                          Z ADMININSTR-PRIME-STAR))))))))))))
+           (TRUE-LISTP %T3)
+           (LET* ((ADMININSTR-STAR %T3)
+                  (%T4 (STEP_READ (LIST :|%;%| Z ADMININSTR-STAR))))
+            (DECLARE (IGNORABLE ADMININSTR-STAR %T4))
+            (AND
+             %T4
+             (LET* ((%T5 (CAR %T4)))
+               (DECLARE (IGNORABLE %T5))
+               (AND (TRUE-LISTP %T5)
+                    (LET* ((ADMININSTR-PRIME-STAR %T5))
+                      (DECLARE (IGNORABLE ADMININSTR-PRIME-STAR))
+                      (LIST (%RULE "Step/read"
+                                   (LIST :|%;%|
+                                         Z ADMININSTR-PRIME-STAR)))))))))))))
       (DECLARE (IGNORABLE %R))
       (IF %R %R
        (LET
@@ -3032,12 +3134,14 @@
                            (LET* ((ADMININSTR-PRIME-STAR %T12))
                             (DECLARE (IGNORABLE ADMININSTR-PRIME-STAR))
                             (LIST
-                             (LIST
-                              :|%;%| Z-PRIME
+                             (%RULE
+                              "Step/ctxt-label"
                               (LIST
+                               :|%;%| Z-PRIME
                                (LIST
-                                :LABEL_%{%}% N INSTR_0-STAR
-                                ADMININSTR-PRIME-STAR))))))))))))))))))))))))
+                                (LIST
+                                 :LABEL_%{%}% N INSTR_0-STAR
+                                 ADMININSTR-PRIME-STAR)))))))))))))))))))))))))
         (DECLARE (IGNORABLE %R))
         (IF %R %R
          (LET
@@ -3114,12 +3218,14 @@
                                (LET* ((ADMININSTR-PRIME-STAR %T20))
                                 (DECLARE (IGNORABLE ADMININSTR-PRIME-STAR))
                                 (LIST
-                                 (LIST
-                                  :|%;%| (LIST :|%;%| S-PRIME F)
+                                 (%RULE
+                                  "Step/ctxt-frame"
                                   (LIST
+                                   :|%;%| (LIST :|%;%| S-PRIME F)
                                    (LIST
-                                    :FRAME_%{%}% N F-PRIME-PRIME
-                                    ADMININSTR-PRIME-STAR))))))))))))))))))))))))))
+                                    (LIST
+                                     :FRAME_%{%}% N F-PRIME-PRIME
+                                     ADMININSTR-PRIME-STAR)))))))))))))))))))))))))))
           (DECLARE (IGNORABLE %R))
           (IF %R %R
            (LET
@@ -3151,21 +3257,23 @@
                         (%T37 (CAR (CDR (CDR %A0)))))
                   (DECLARE (IGNORABLE Z %T37))
                   (AND
-                     (TRUE-LISTP %T37)
-                     (EQUAL (ACL2::LEN %T37) 2)
-                     (LET* ((%T38 (CAR %T37)))
-                       (DECLARE (IGNORABLE %T38))
-                       (AND (VAL-P %T38)
-                            (LET* ((VAL %T38) (%T39 (CAR (CDR %T37))))
-                              (DECLARE (IGNORABLE VAL %T39))
-                              (AND (CONSP %T39)
-                                   (EQ (CAR %T39) :LOCAL.SET)
-                                   (TRUE-LISTP (CDR %T39))
-                                   (EQUAL (ACL2::LEN (CDR %T39)) 1)
-                                   (LET* ((X (CAR (CDR %T39))))
-                                     (DECLARE (IGNORABLE X))
-                                     (LIST (LIST :|%;%| ($WITH_LOCAL Z X VAL)
-                                                 NIL))))))))))))
+                   (TRUE-LISTP %T37)
+                   (EQUAL (ACL2::LEN %T37) 2)
+                   (LET* ((%T38 (CAR %T37)))
+                    (DECLARE (IGNORABLE %T38))
+                    (AND
+                     (VAL-P %T38)
+                     (LET* ((VAL %T38) (%T39 (CAR (CDR %T37))))
+                       (DECLARE (IGNORABLE VAL %T39))
+                       (AND (CONSP %T39)
+                            (EQ (CAR %T39) :LOCAL.SET)
+                            (TRUE-LISTP (CDR %T39))
+                            (EQUAL (ACL2::LEN (CDR %T39)) 1)
+                            (LET* ((X (CAR (CDR %T39))))
+                              (DECLARE (IGNORABLE X))
+                              (LIST (%RULE "Step/local.set"
+                                           (LIST :|%;%| ($WITH_LOCAL Z X VAL)
+                                                 NIL)))))))))))))
               (DECLARE (IGNORABLE %R))
               (IF %R %R
                (LET
@@ -3183,17 +3291,20 @@
                      (EQUAL (ACL2::LEN %T40) 2)
                      (LET* ((%T41 (CAR %T40)))
                       (DECLARE (IGNORABLE %T41))
-                      (AND (VAL-P %T41)
-                           (LET* ((VAL %T41) (%T42 (CAR (CDR %T40))))
-                             (DECLARE (IGNORABLE VAL %T42))
-                             (AND (CONSP %T42)
-                                  (EQ (CAR %T42) :GLOBAL.SET)
-                                  (TRUE-LISTP (CDR %T42))
-                                  (EQUAL (ACL2::LEN (CDR %T42)) 1)
-                                  (LET* ((X (CAR (CDR %T42))))
-                                    (DECLARE (IGNORABLE X))
-                                    (LIST (LIST :|%;%| ($WITH_GLOBAL Z X VAL)
-                                                NIL))))))))))))
+                      (AND
+                       (VAL-P %T41)
+                       (LET* ((VAL %T41) (%T42 (CAR (CDR %T40))))
+                        (DECLARE (IGNORABLE VAL %T42))
+                        (AND
+                           (CONSP %T42)
+                           (EQ (CAR %T42) :GLOBAL.SET)
+                           (TRUE-LISTP (CDR %T42))
+                           (EQUAL (ACL2::LEN (CDR %T42)) 1)
+                           (LET* ((X (CAR (CDR %T42))))
+                             (DECLARE (IGNORABLE X))
+                             (LIST (%RULE "Step/global.set"
+                                          (LIST :|%;%| ($WITH_GLOBAL Z X VAL)
+                                                NIL)))))))))))))
                 (DECLARE (IGNORABLE %R))
                 (IF %R %R
                  (LET
@@ -3250,9 +3361,11 @@
                                      (/ ($SIZE T^R) 8))
                                   (ACL2::LEN (%GET-FIELD ($MEM Z 0) :BYTES)))
                                  (LIST
-                                  (LIST
-                                       :|%;%|
-                                       Z (LIST (LIST :TRAP)))))))))))))))))))
+                                  (%RULE
+                                   "Step/store-num-trap"
+                                   (LIST
+                                      :|%;%|
+                                      Z (LIST (LIST :TRAP))))))))))))))))))))
                   (DECLARE (IGNORABLE %R))
                   (IF %R %R
                    (LET
@@ -3309,13 +3422,15 @@
                                    (LET* ((B-STAR %T53))
                                     (DECLARE (IGNORABLE B-STAR))
                                     (LIST
-                                     (LIST
+                                     (%RULE
+                                      "Step/store-num-val"
+                                      (LIST
                                        :|%;%|
                                        ($WITH_MEM
                                             Z 0 (+ I (%GET-FIELD AO :OFFSET))
                                             (/ ($SIZE T^R) 8)
                                             B-STAR)
-                                       NIL))))))))))))))))))
+                                       NIL)))))))))))))))))))
                     (DECLARE (IGNORABLE %R))
                     (IF %R %R
                      (LET
@@ -3387,11 +3502,13 @@
                                             (ACL2::LEN
                                              (%GET-FIELD ($MEM Z 0) :BYTES)))
                                            (LIST
-                                            (LIST
-                                             :|%;%| Z
+                                            (%RULE
+                                             "Step/store-pack-trap"
                                              (LIST
+                                              :|%;%| Z
                                               (LIST
-                                               :TRAP)))))))))))))))))))))))))
+                                               (LIST
+                                                :TRAP))))))))))))))))))))))))))
                       (DECLARE (IGNORABLE %R))
                       (IF %R %R
                        (LET
@@ -3467,15 +3584,17 @@
                                              (LET* ((B-STAR %T72))
                                               (DECLARE (IGNORABLE B-STAR))
                                               (LIST
-                                               (LIST
-                                                :|%;%|
-                                                ($WITH_MEM
-                                                 Z 0
-                                                 (+
+                                               (%RULE
+                                                "Step/store-pack-val"
+                                                (LIST
+                                                 :|%;%|
+                                                 ($WITH_MEM
+                                                  Z 0
+                                                  (+
                                                    I (%GET-FIELD AO :OFFSET))
-                                                 (/ N 8)
-                                                 B-STAR)
-                                                NIL))))))))))))))))))))))))
+                                                  (/ N 8)
+                                                  B-STAR)
+                                                 NIL)))))))))))))))))))))))))
                         (DECLARE (IGNORABLE %R))
                         (IF %R %R
                          (LET
@@ -3520,15 +3639,17 @@
                                       ((MI (CAR ($GROWMEMORY ($MEM Z 0) N))))
                                       (DECLARE (IGNORABLE MI))
                                       (LIST
-                                       (LIST
-                                        :|%;%| ($WITH_MEMINST Z 0 MI)
+                                       (%RULE
+                                        "Step/memory.grow-succeed"
                                         (LIST
+                                         :|%;%| ($WITH_MEMINST Z 0 MI)
                                          (LIST
-                                          :CONST (LIST :I32)
-                                          (/
-                                           (ACL2::LEN
+                                          (LIST
+                                           :CONST (LIST :I32)
+                                           (/
+                                            (ACL2::LEN
                                               (%GET-FIELD ($MEM Z 0) :BYTES))
-                                           (* 64 ($KI)))))))))))))))))))
+                                            (* 64 ($KI))))))))))))))))))))
                           (DECLARE (IGNORABLE %R))
                           (IF %R %R
                            (LET
@@ -3568,12 +3689,15 @@
                                        (TRUE-LISTP (CDR %T82))
                                        (EQUAL (ACL2::LEN (CDR %T82)) 0)
                                        (LIST
-                                        (LIST
-                                         :|%;%| Z
+                                        (%RULE
+                                         "Step/memory.grow-fail"
                                          (LIST
-                                          (LIST :CONST (LIST :I32)
-                                                ($INV_SIGNED_
-                                                     32 (- 1)))))))))))))))))
+                                          :|%;%| Z
+                                          (LIST
+                                           (LIST
+                                               :CONST (LIST :I32)
+                                               ($INV_SIGNED_
+                                                    32 (- 1))))))))))))))))))
                             (DECLARE (IGNORABLE %R))
                             (IF %R %R
                               NIL)))))))))))))))))))))))))))))
@@ -3634,31 +3758,35 @@
  (DEFUN EVAL_EXPR (%A0 %A1 %A2)
   (DECLARE (IGNORABLE %A0 %A1 %A2))
   (LET
-   ((%R (LET* ((Z %A0))
-          (DECLARE (IGNORABLE Z))
-          (AND (TRUE-LISTP %A1)
-               (LET* ((INSTR-STAR %A1)
-                      (Z-PRIME %A2)
-                      (%T1 (STEPS (LIST :|%;%|
-                                        Z (EVAL_EXPR/ITER0 INSTR-STAR)))))
-                 (DECLARE (IGNORABLE INSTR-STAR Z-PRIME %T1))
-                 (AND %T1
-                      (LET* ((%T2 (CAR %T1)))
-                        (DECLARE (IGNORABLE %T2))
-                        (AND (CONSP %T2)
-                             (EQ (CAR %T2) :|%;%|)
-                             (TRUE-LISTP (CDR %T2))
-                             (EQUAL (ACL2::LEN (CDR %T2)) 2)
-                             (EQUAL (CAR (CDR %T2)) Z-PRIME)
-                             (LET* ((%T3 (CAR (CDR (CDR %T2)))))
-                               (DECLARE (IGNORABLE %T3))
-                               (AND (TRUE-LISTP %T3)
-                                    (LET* ((%T4 (EVAL_EXPR/MATCH5 %T3)))
-                                      (DECLARE (IGNORABLE %T4))
-                                      (AND %T4
-                                           (LET* ((VAL-STAR (CAR (CAR %T4))))
-                                             (DECLARE (IGNORABLE VAL-STAR))
-                                             (LIST VAL-STAR))))))))))))))
+   ((%R
+     (LET* ((Z %A0))
+      (DECLARE (IGNORABLE Z))
+      (AND
+       (TRUE-LISTP %A1)
+       (LET* ((INSTR-STAR %A1)
+              (Z-PRIME %A2)
+              (%T1 (STEPS (LIST :|%;%|
+                                Z (EVAL_EXPR/ITER0 INSTR-STAR)))))
+        (DECLARE (IGNORABLE INSTR-STAR Z-PRIME %T1))
+        (AND
+         %T1
+         (LET* ((%T2 (CAR %T1)))
+          (DECLARE (IGNORABLE %T2))
+          (AND
+            (CONSP %T2)
+            (EQ (CAR %T2) :|%;%|)
+            (TRUE-LISTP (CDR %T2))
+            (EQUAL (ACL2::LEN (CDR %T2)) 2)
+            (EQUAL (CAR (CDR %T2)) Z-PRIME)
+            (LET* ((%T3 (CAR (CDR (CDR %T2)))))
+              (DECLARE (IGNORABLE %T3))
+              (AND (TRUE-LISTP %T3)
+                   (LET* ((%T4 (EVAL_EXPR/MATCH5 %T3)))
+                     (DECLARE (IGNORABLE %T4))
+                     (AND %T4
+                          (LET* ((VAL-STAR (CAR (CAR %T4))))
+                            (DECLARE (IGNORABLE VAL-STAR))
+                            (LIST (%RULE "Eval_expr/" VAL-STAR)))))))))))))))
    (DECLARE (IGNORABLE %R))
    (IF %R %R NIL))))
 

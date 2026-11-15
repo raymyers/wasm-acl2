@@ -2154,7 +2154,11 @@
                                    ((and (eq mode :split) sa (cx-get :split-shape cx)) (cexp sb env cx))
                                    ((eq mode :split) (cexp (car (last comps)) env cx))
                                    (t (mv t cx)))
-              (build-steps-cx (append s1 s2 s3) (list 'list out) cx))))))))))
+              (build-steps-cx (append s1 s2 s3)
+                                  ;; demo plan W7: (%RULE "Rel/id" out), a macro
+                                  ;; of rt/prelude.lisp that expands to out
+                                  (list 'list (list (gsym "%RULE") (concatenate 'string rel "/" (second r)) out))
+                                  cx))))))))))
 
 (defun crules (rs mode formals rel cx)
   ;; in :split mode a rule whose output cannot be computed (e.g. unreachable:
@@ -2925,7 +2929,7 @@
                 (cx (cx-put :gram-name (second g) cx)))
            (mv-let (pname cx) (cx-fresh "%T" cx)
              (let ((pv (gsym pname)))
-               (mv-let (terms cx) (cprods (gram-prods g) pv benv cx)
+               (mv-let (terms cx) (cprods (gram-prods g) pv benv (cx-put :prod-total (len (gram-prods g)) cx))
                  (let* ((cx (cx-put :gram-subst saved-subst cx))
                         (cx (cx-put :gram-name saved-name cx)))
                    (mv-let (tname cx) (cx-fresh "%T" cx)
@@ -2937,16 +2941,22 @@
                                                            (list (quote len) pv)))))
                            (list 'car tv) (list 'cadr tv) env cx))))))))))))
 
+ ;; :prod-total (set by the caller) is the number of productions of the
+ ;; grammar, so (car prods) is production number total+1-len(prods); cprod
+ ;; reads it as :prod-k for its rule tag (demo plan W7)
  (defun cprods (prods pos env cx)
    (if (endp prods) (mv nil cx)
-     (mv-let (term cx) (cprod (car prods) pos env cx)
-       (mv-let (rest cx) (cprods (cdr prods) pos env cx)
-         (mv (cons term rest) cx)))))
+     (let ((total (nfix (cx-get :prod-total cx))))
+       (mv-let (term cx) (cprod (car prods) pos env (cx-put :prod-k (- (+ total 1) (len prods)) cx))
+         (mv-let (rest cx) (cprods (cdr prods) pos env (cx-put :prod-total total cx))
+           (mv (cons term rest) cx))))))
 
  ;; one production: (list (list result rest)) or nil
  (defun cprod (p pos env cx)
    (mv-let (sym e prems) (prod-parts p)
-     (let* ((svar (cdr (assoc-equal (cx-get :gram-name cx) (cx-get :sized cx))))
+     (let* ((tag (concatenate 'string (cx-get :gram-name cx) "/#"
+                              (nat-str (nfix (cx-get :prod-k cx)))))
+            (svar (cdr (assoc-equal (cx-get :gram-name cx) (cx-get :sized cx))))
             (prems (if svar (drop-size-prems prems svar) prems)))
        (mv-let (s1 v p1 env cx) (csym sym pos env cx)
          (declare (ignore v))
@@ -2955,7 +2965,8 @@
              (mv-let (s2 env cx) (cprems prems env cx)
                (mv-let (r cx) (cexp e env cx)
                  (mv (build-steps (append s1 (list (list* :bind pv p1)) s2)
-                                  (list 'list r pv))
+                                  ;; demo plan W7: (%RULE "Gram/#k" r)
+                                  (list 'list (list (gsym "%RULE") tag r) pv))
                      cx)))))))))
  )
 
@@ -2968,7 +2979,7 @@
            (names (exp-param-names ps))
            (formals (gsyms-prefixed "%A" (len names))))
       (mv-let (bsteps benv) (bind-names-terms names formals cx)
-        (mv-let (terms cx) (cprods (gram-prods x) sv benv cx)
+        (mv-let (terms cx) (cprods (gram-prods x) sv benv (cx-put :prod-total (len (gram-prods x)) cx))
           (mv (if (cx-get :gram-rec cx)
                   ;; recursive grammar: measure 2|S| (its loops use 2|S|+1)
                   (mk-defun-measure (fn-sym :gram (second x) cx) (cons sv formals)
