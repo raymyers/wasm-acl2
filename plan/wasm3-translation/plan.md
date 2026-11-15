@@ -5,14 +5,12 @@
 > ([wasm1 plan](../wasm1-translation/plan.md)): decode → instantiate →
 > invoke → run, then validation, then logic mode and proofs.
 >
-> **Status: DRAFT** (written 2026-11-14 at the end of
-> [wasm3-translation-prep](../wasm3-translation-prep/plan.md) P7). The user
-> decided D1-D6 on 2026-11-14 (§1). The mode-table design, the last piece
-> the draft waited for, is done
-> ([M5-mode-table](notes/M5-mode-table.md)); the user has not yet reviewed
-> the plan as a whole.
-> Every number below comes from a probe or test run and cites the prep note
-> that holds it.
+> **Status: ready to start** (written 2026-11-14 at the end of
+> [wasm3-translation-prep](../wasm3-translation-prep/plan.md) P7; revised
+> the same day after the mode-table design and a readiness review with the
+> user). The user decided D1-D6 (§1) and the M5 choices.
+> Every number below comes from a probe or test run and cites the note
+> that holds it. Per-session procedure: [step.md](step.md).
 >
 > **Source of truth**: `specification/wasm-3.0/*.spectec` at the pinned rev
 > `WebAssembly/spec@943c5df` (flake input), `0.*`-`5.*` (25 of 37 files).
@@ -22,11 +20,13 @@
 ## Current state
 
 - **Last updated**: 2026-11-14
-- **Milestones**: M5 item 1 (mode table design and core) ✅; nothing else
-  started
-- **Next action**: M0. For M5: translate `Heaptype_sub/trans`, which is
-  **not admissible**, with an enumeration variant
-  ([M5-mode-table](notes/M5-mode-table.md))
+- **Milestones**: M5 items 1 and 2 (mode table design and core; `trans`
+  triage) ✅; nothing else started
+- **Next action**: M0, then M0b and M1 (see "Order and dependencies")
+- **Readiness review (2026-11-14)**: added [step.md](step.md), M0b (GC and
+  exception test data early), behavioural exits for M5 and M6, design
+  sessions before M6 and M7, `assert_invalid` moved to M7, and the
+  dependency section
 - **Decided by the user (2026-11-14)**: the `:witness` config kind and
   entries stay; `trans` is translated with an enumeration variant, after
   M0 and M1 (its three parts are in the note)
@@ -111,11 +111,13 @@ From the P1 gap list as updated through P4
 - **Patterns** (P4): retry of sequence elements (G9); counted iterations
   without domains or with output domains (G3, G4); elided projections.
 - **Typed recognizers** (S8): unchanged; type arguments are still dropped.
-- **Nondeterminism**: D4, open.
+- **Nondeterminism**: D4, decided: the deterministic profile with the
+  choices fixed to V8; M1 implements them.
 
 ## 5. Milestones (D6 order)
 
-Each ends with 1.0 `make check` and 2.0 `make check-2.0` green.
+Each ends with 1.0 `make check` and 2.0 `make check-2.0` green, and from
+M0 on also `make check-3.0`.
 
 ### M0: 3.0 as a target
 - [ ] Check in `il/wasm-3.0.il.sexp` and its decls; `check-il SPEC=3.0`;
@@ -126,6 +128,16 @@ Each ends with 1.0 `make check` and 2.0 `make check-2.0` green.
 **Exit**: `make gen SPEC=3.0` and a scratch-free certification of
 `gen/wasm-3.0` in `:program` mode (today: 97 s in the experiment of
 [P5-conformance](../wasm3-translation-prep/notes/P5-conformance.md)).
+
+### M0b: Test data for GC and exceptions
+- [ ] Build the reference interpreter's script converter in the flake (the
+      pinned spec checkout has the interpreter) and convert the spec-test-3
+      scripts that `wast2json` cannot: 31 of 259, among them 16 of 17
+      GC scripts and 3 of 5 exception scripts ([P5-conformance](../wasm3-translation-prep/notes/P5-conformance.md))
+- [ ] Same output format as `wasm3-spec-tests`, so the driver reads both
+
+**Exit**: converted scripts recorded as N of 259 (228 today); the GC
+scripts are available to M5, M6 and M7 as test data.
 
 ### M1: Numerics and builtins
 - [ ] The 13 builtins of §3 in `rt/`; the 11 choice parameters per D4;
@@ -179,32 +191,65 @@ recorded as N/M.
       `HEAPTYPE_SUB/UP` that keeps the group's size-check measure, and the
       argument for the rules that cannot be enumerated. After M0 and M1, so
       that it can be run
+- [ ] Behavioural cases, in a test book that calls the generated
+      relations directly (`tests/sem-3.0/`, as 1.0 `t6-typing`): subtyping
+      and type-validity cases with the expected answer taken from the spec
+      rules or the reference interpreter. At least: `I31 <: ANY`,
+      `STRUCT <: ANY`, `deftype <: EQ`, `NONE <: I31`, `REC i` against a
+      declared supertype and its supertype, a `_IDX` on each side, a mutable
+      field (invariant) and an immutable one, a function type (contravariant
+      parameters), and one negative case per abstract hierarchy. Write the
+      book before `trans`, so that it records the failures first
 - [ ] Hand-over items 1, 3, 4 of the note (demand inside a `rec` group,
       `c(a, b)` halves as positions, the list of `:fun` relations called with
-      a bound output)
+      a bound output). Not needed for the exit
 
 **Exit**: the 19-relation type group has no dropped rule, or each dropped
-rule has a written completeness argument.
+rule has a written completeness argument; and the behavioural cases pass,
+recorded as N of M.
 
 ### M6: Instruction typing
-- [ ] Certify and test instruction typing (all 110 `Instr_ok` rules translate
-      since the prep, G5 included); local-initialization tracking; subsumption (`Instrtype_sub`)
-- [ ] Go/no-go on one witness for instruction typing: the 3.0 `:witness`
-      entry is provisional. The rules to argue are `Instr_ok/block`, `loop`,
-      `if`, `try_table` and `Instrs_ok/seq`, `sub`
-      ([M5-mode-table](notes/M5-mode-table.md), experiment B)
+- [ ] **Design session first** (go/no-go, a decision for the user): is one
+      witness enough for instruction typing under 3.0 subsumption and
+      local-initialization tracking? The 3.0 `:witness` entry is
+      provisional. The rules to argue are `Instr_ok/block`, `loop`, `if`,
+      `try_table` and `Instrs_ok/seq`, `sub`
+      ([M5-mode-table](notes/M5-mode-table.md), experiment B). Outcomes:
+      keep check + output variant with a written principal-type argument;
+      or enumeration variants where one witness fails; or Strategy B (a
+      validator from the spec's algorithm, tested against the rules)
+- [ ] Behavioural cases in `tests/sem-3.0/`, calling `INSTRS_OK` directly
+      on instruction sequences with a given context and type: one accepted
+      and one rejected case for each of the six rules above, subsumption at
+      a block end and at a call, an uninitialized non-defaultable local,
+      and dead code after `unreachable`, `br` and `throw`. Expected answers
+      from V8 (`WebAssembly.validate` on a module that wraps the sequence)
+- [ ] Certify instruction typing (all 110 `Instr_ok` rules translate since
+      the prep, G5 included) and make the cases pass under the chosen strategy
 
-**Exit**: 110 of 110 `Instr_ok` rules; spec-test-3 `assert_invalid` N/M.
+**Exit**: the strategy decision recorded; 110 of 110 `Instr_ok` rules (or
+the validator, under Strategy B); behavioural cases N of M.
 
 ### M7: `Module_ok`
-- [ ] Generic modes for the staged contexts, or a counted override as in 1.0
+- [ ] **Design session first** (a decision for the user): how to
+      translate `Module_ok`. Its context is built in stages from the
+      outputs of its own premises (types, then imports, then functions and
+      globals), now with tags and recursive types. Options: staged modes
+      in the translator (a context that grows premise by premise), or a
+      counted `:rel-override` as in 1.0 (about 80 lines there; estimate
+      the 3.0 size before choosing). Variants on demand do not help
+      ([M5-mode-table](notes/M5-mode-table.md), hand-over item 6)
+- [ ] Implement the choice; `$instantiate` with validation switched on
+- [ ] Module-level validation on spec-test-3, GC and exception scripts
+      included (M0b): `assert_invalid` rejected, and every module that the
+      scripts instantiate accepted
 
-**Exit**: no stub in the D3 scope.
+**Exit**: no stub in the D3 scope; `assert_invalid` N/M and valid modules
+accepted N/M, each miss listed with its cause.
 
 ### M8: Conformance
-- [ ] spec-test-3 at scale: 228 convertible scripts (P5); GC and exception
-      scripts need the reference interpreter's converter (wabt converts 1 of 17
-      GC scripts)
+- [ ] spec-test-3 at scale: every script M0b converts (228 with `wast2json`
+      alone, P5)
 
 **Exit**: N/M for spec-test-3 recorded; estimate 1.5-2 h wall with 8
 sessions at today's speed (P6).
@@ -215,6 +260,25 @@ sessions at today's speed (P6).
       `R/OUT..` variants made on demand
 
 **Exit**: a recorded logic / guards / program count, compared by a test book.
+
+### Order and dependencies
+
+```
+M0 ──┬─ M0b ─────────────────────────────┐
+     ├─ M1 ─┬─ M2 ── M3 ── M4 ───────────┼─ M8 ── M9
+     │      └─ M5 ── M6 ── M7 ───────────┘
+```
+
+- M0 first: nothing in 3.0 can be certified or run before it.
+- M0b and M1 need only M0 and can run in parallel.
+- Execution (M2, M3, M4) and typing (M5, M6, M7) are independent after
+  M1. D6 puts execution first, but a typing design session (M6, M7) can
+  be held at any time, since it produces a note and a decision.
+- M5 `trans` and every behavioural test need M0 and M1 (generated 3.0
+  code must load). The GC cases of M5 to M7 need M0b.
+- M6 needs M5 (instruction typing calls subtyping). M7 needs M6.
+- M8 needs M4 and M7 and M0b. M9 last; the `trans` design keeps the type
+  group's termination measure for it.
 
 ### Deferred
 - Text format (`6.*`, 69 grammar stubs: `text` terminals, G6).
@@ -240,7 +304,7 @@ Module_ok` unless M7 avoids it, possibly `:rel-override Heaptype_sub`
 | Typing complete only with hand-written parts | `trans` is not admissible and is dropped today, so GC subtyping through abstract heap types is rejected; 8 rules rely on one witness ([M5-mode-table](notes/M5-mode-table.md)) | after M5: `trans` by enumeration or override. After M6: if one witness is not enough under subsumption, Strategy B (AL) for instruction typing |
 | Runtime too slow for spec-test-3 | 10.4 ms per page per step (P6) | M3's store-free termination check; without it, run with a time budget and a skip list |
 | Certification time in logic mode | one guard proof >15 min (P5) | M9: per-event wall-clock limits, or `:program` for the decoder |
-| Conformance data for GC/exceptions | wabt converts 1/17 GC, 2/5 exception scripts (P5) | M8: build the reference interpreter's converter |
+| Conformance data for GC/exceptions | wabt converts 1/17 GC, 2/5 exception scripts (P5) | M0b: build the reference interpreter's converter, before the typing milestones need the data |
 | `Step` split completeness (wasm1 T8) inherited, plus `ctxt-handler` | wasm1 W13 | carried; Strategy B (AL) remains the fallback for `Step` |
 
 ## 8. Notes consumed
