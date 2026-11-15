@@ -19,7 +19,7 @@
 > It shows the configuration (W5), the WAT line (W6) and the name of the
 > SpecTec rule that fired (W7, W8).
 >
-> **Status: W0 in progress** (written 2026-11-15, after the wasm3 plan M0..M9).
+> **Status: W0 done (go); W7 next** (written 2026-11-15, after the wasm3 plan M0..M9).
 > Per-session procedure: [step.md](step.md). Survey behind this plan:
 > [S0-survey](notes/S0-survey.md).
 
@@ -28,7 +28,7 @@
 ## Current state
 
 - **Last updated**: 2026-11-15
-- **Milestones**: W0 in progress (items 1 to 4 done)
+- **Milestones**: W0 done, **go** ([W0-feasibility](notes/W0-feasibility.md#w0-exit-gono-go-per-risk-2026-11-15))
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
@@ -44,9 +44,13 @@
   with rule names from translator tags (option 3a). D7, the translator may
   change generated output (1.0 included) for W7, provided all certifications
   and tests still pass.
-- **Next action**: W0 item 5 (option A cost sample), then the W0 exit.
-  The throwaway extractor of items 2 and 3 is in `notes/data/w0-slice/`
-  (`measure.sh`); the item 4 scripts in `notes/data/w0-depth/`.
+- **Next action**: W7 item 1 (design note `W7-rule-tags`), per the
+  headless order. W0's scripts are in `notes/data/w0-*/`; the throwaway
+  extractor (`w0-slice/extract-slice.lisp`) is the starting point for W2.
+- **W0 numbers for W1** (D5): option A costs at most 4.04× plain JSCL on
+  the sample (limit 20×); the only deep recursion (65,541 on a 1-page
+  module) is `$ALLOCMEM/ITER2` calling itself, tail recursive modulo
+  `cons`. Both D5 conditions hold so far; W1 records it.
 - **New extractor rewrite, for the user** (W0 item 3, W2 item 7):
   clause-chain flattening. Reason: the decoder's clause chain nests 1,010
   deep and the JS parsers of node (default stack), Chromium and Firefox
@@ -238,8 +242,12 @@ demo/driver/*.lisp (JS-facing glue) ──────────────�
        self-recursion: go. JSCL's `equal` and `append` recurse on `cdr`
        (shim replaces them)
 
-5. [ ] Option A cost sample (for D5 (i)): `+`, `*`, `floor`, `logand` and
-       `ash` on fixnums, plain JSCL against the shim tower, 10^6 ops each
+5. [x] Option A cost sample (for D5 (i)): `+`, `*`, `floor`, `logand` and
+       `ash` on fixnums, plain JSCL against the shim tower, 10^6 ops each.
+       **Done 2026-11-15** ([W0-feasibility](notes/W0-feasibility.md#item-5-option-a-cost-sample-2026-11-15)):
+       prototype tower (safe-integer numbers, BigInt beyond) / plain JSCL:
+       `+` 3.24, `*` 3.28, `floor` 3.93, `logand` 0.14, `ash` 0.89 / 0.75
+       (max over two runs 4.04×). Results equal
 
 **Exit**: note `W0-feasibility` with the numbers above, and a go/no-go for
 each risk. **No-go** (stops the plan for the user) if, after pruning has
@@ -248,6 +256,11 @@ it in node takes over 60 s, or the measured deepest recursion of a 1-page
 module overflows a Chromium Worker's stack and is not self-recursion (so
 no rewrite can help). Anything below these limits is go, with the numbers
 recorded.
+
+**W0 result (2026-11-15): go.** 3.75 MB JS, 0.10 s node load, no pruning;
+the deepest recursion overflows a Chromium Worker but is self-recursion;
+option A ≤ 4.04×. One new requirement: clause-chain flattening (W2 item 7).
+[W0-feasibility](notes/W0-feasibility.md#w0-exit-gono-go-per-risk-2026-11-15).
 
 ### W1: Numbers and stack (confirm D5)
 The user has decided A + (b), conditionally (D5). This milestone records

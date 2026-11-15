@@ -3,7 +3,7 @@
 - Date: 2026-11-15
 - Repo commit: fbe1979 (+ the W0 commits)
 - JSCL: jscl-project/jscl@54c88494e9f8f22e4c24c666e84aab7053f18cee
-- Status: draft (items 1 to 4 done; item 5 pending)
+- Status: final (W0 done: go)
 - Feeds demo plan: W0 exit, W1 (D5 conditions), §5 risks
 - Incorporated in demo plan: yes (W0 items as they complete)
 
@@ -224,8 +224,54 @@ Worker at about 2,000 JSCL frames, a function body of a few thousand
 instructions would overflow. W2's report lists the self-recursive
 functions and which of them the rewrite covers.
 
+### Item 5: option A cost sample (2026-11-15)
+`data/w0-numbers/tower.lisp`: a prototype of option A in the planned
+representation (integer = JS number when |n| ≤ 2^53 − 1, else a JS
+BigInt, normalized back; BigInt paths in `big.js`). Each op checks its
+operands' type and range like the real shim would: `t+`/`t*` compute in
+doubles and fall back to BigInt when the result leaves the safe range;
+`t-floor` (single valued, as ACL2's), `t-logand`, `t-ash` take the double
+path when the operands are within 2^30 and the BigInt path otherwise.
+JSCL's `+` throws a type error on a BigInt (`variable-arity-call` checks
+`typeof == "number"`), which confirms that option A must shadow the CL
+numeric functions rather than extend them.
+
+10^6 ops each on fixnum operands (loop `(setq s (op i k))`, best of 5
+after 2 warm-up runs, node 24.18.1), raw output `data/w0-numbers/bench.out`:
+
+| op | plain JSCL (ms) | tower (ms) | tower / plain |
+|---|---|---|---|
+| `+` | 15.14 | 49.09 | 3.24 |
+| `*` | 15.16 | 49.77 | 3.28 |
+| `floor` | 49.67 | 195.36 | 3.93 |
+| `logand` | 338.75 | 47.14 | 0.14 |
+| `ash` (left) | 56.89 | 50.49 | 0.89 |
+| `ash` (right) | 57.77 | 43.22 | 0.75 |
+
+All results equal plain JSCL's. The slow path works (`t+ (2^53 − 1) 2` =
+9007199254740993, `t* 2^40 2^40` = 1208925819614629174706176). An earlier
+run gave 3.03 / 3.06 / 4.04 / 0.14 / 0.86 / 0.74. JSCL's own `logand` is
+slow because it is variadic (`&rest` and a `do` loop); the tower's binary
+version avoids that.
+
+**D5 (i)**: at most **4.04×** on the sample, against the 20× limit. Holds.
+
+## W0 exit: go/no-go per risk (2026-11-15)
+| risk | measured | limit | verdict |
+|---|---|---|---|
+| JS size | 3.75 MB (all books, flattened) | 100 MB (no-go), 50 MB (pruning) | **go**, no pruning |
+| node load | 0.10 s (+ 0.16 s `jscl.js`) | 60 s | **go** |
+| JS parser depth (new) | 1,010 nested forms break node (default), Chromium, Firefox; 111 after clause-chain flattening loads everywhere | — | **go** with W2 item 7 |
+| runtime recursion | 65,541 deep on a 1-page module, overflows a Chromium Worker (2,047) | no-go only if not self-recursion | **go**: self-recursion (`$ALLOCMEM/ITER2`, tail modulo `cons`), rewrite (b) |
+| numbers (D5 (i)) | tower ≤ 4.04× plain | 20× | **go** |
+| JSCL reader | ratio literals read as symbols, silently | — | **go**, extractor rewrites them (planned) |
+
+**W0: go.** No condition of the no-go rule holds. D5 (ii) also holds (the
+overflowing recursion is self-recursion), which W1 records.
+
 ## Open questions
-- Item 5 (option A cost).
+- None for W0. For W1/W2: the recursions that scale with input size and are
+  not plain tail-modulo-`cons` (item 4, last paragraph).
 
 ## Data
 - Items 2 and 3: `sh plan/wasm3-demo/notes/data/w0-slice/measure.sh` from
@@ -242,6 +288,8 @@ functions and which of them the rewrite covers.
   `sh plan/wasm3-demo/notes/data/w0-depth/run-probes.sh` (after
   `measure.sh`), from the repo root inside `nix develop`. Output of both:
   `data/w0-depth/depth.out`.
+- Item 5: `sh plan/wasm3-demo/notes/data/w0-numbers/run-bench.sh` (after
+  `measure.sh`); output `data/w0-numbers/bench.out`.
 - `make -C demo check` inside `nix develop` (needs nothing else).
 - `nix build .#jscl` rebuilds the JSCL package (about 1 min on an M-series
   Mac).
