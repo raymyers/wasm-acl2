@@ -4,8 +4,7 @@
   instruction typing). Also model-choice item 3 of the prep
 - Date: 2026-11-14
 - Repo commit: 56837fd plus this note's commit
-- Status: final for the findings and the fix; the strategy is a
-  **recommendation waiting for the user's decision**
+- Status: final. **The user chose option C on 2026-11-14**
 - Feeds wasm3 plan: §5 M5, M6, M7; §6 (config budget); §7 (risks)
 
 ## Summary
@@ -178,8 +177,6 @@ lines of ACL2, against about 80 lines for the 1.0 `Module_ok` override.
 
 ## Open questions
 
-- Decision: option C, option B, or accept option A as "sound but
-  incomplete" for now.
 - Is the 10-entry table enough, or do the operand-polymorphic rules that
   now compile in the output variant (`drop`, `ref.is_null`,
   `ref.as_non_null`, `br_on_null`, `ref.test`, `ref.cast`, the two

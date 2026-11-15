@@ -21,12 +21,12 @@
 
 - **Last updated**: 2026-11-14
 - **Milestones**: M5 items 1 and 2 (mode table design and core; `trans`
-  triage) ✅; M6 item 1 (design session) held, **decision pending**
-- **Waiting for the user**: the instruction-typing strategy
-  ([M6-instruction-typing-strategy](notes/M6-instruction-typing-strategy.md)).
-  Recommended: option C, a hand-written sequencer that proposes types
-  while the generated rules check every step. Generated 3.0 instruction
-  typing has no subsumption and cannot get it mechanically
+  triage) ✅; M6 items 1 and 2 (design session; decision) ✅
+- **Decided by the user (2026-11-14)**: instruction typing by option C
+  ([M6-instruction-typing-strategy](notes/M6-instruction-typing-strategy.md)):
+  a hand-written sequencer proposes each instruction's type and the
+  generated rules check every step. Generated 3.0 instruction typing has
+  no subsumption and cannot get it mechanically
 - **3.0 probe now**: 2 stubs, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
 - **Next action**: M0, then M0b and M1 (see "Order and dependencies")
@@ -224,11 +224,10 @@ recorded as N of M.
       byte-identical). The rest is subsumption (no mechanical reading:
       `Instrs_ok/sub` is now a visibly dropped rule), dead code and
       `trans`. **No-go** for check + output variant alone
-- [ ] **User decision**: option C (recommended: a hand-written sequencer
+- [x] **User decision (2026-11-14): option C**: a hand-written sequencer
       proposes each instruction's type, the generated `INSTR_OK` and
-      `RESULTTYPE_SUB` check every step), option B (hand-written
-      validator), or stay incomplete for now
-- [ ] If C: translator support, namely `:rel-override` for a member of a
+      `RESULTTYPE_SUB` check every step
+- [ ] Translator support for it, namely `:rel-override` for a member of a
       `rec` group, sub-component output positions, and a kept whole-type
       variant of `Instr_ok`; then the sequencer and its table for the 10
       rules the output variant drops
