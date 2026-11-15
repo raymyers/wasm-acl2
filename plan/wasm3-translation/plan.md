@@ -6,10 +6,9 @@
 > invoke → run, then validation, then logic mode and proofs.
 >
 > **Status: DRAFT** (written 2026-11-14 at the end of
-> [wasm3-translation-prep](../wasm3-translation-prep/plan.md) P7). Two things
-> are missing before it is final: the user's decisions D1-D6 (§1 lists
-> them as *assumed*, with the prep work already built on D2, D3 and D5),
-> and the mode-table design, which the prep plan assigns to a Fable session
+> [wasm3-translation-prep](../wasm3-translation-prep/plan.md) P7). The user
+> decided D1-D6 on 2026-11-14 (§1). Missing before it is final: the
+> mode-table design, which the prep plan assigns to a Fable session
 > ([suggested model choice](../wasm3-translation-prep/suggested-model-choice.md)).
 > Every number below comes from a probe or test run and cites the prep note
 > that holds it.
@@ -23,7 +22,7 @@
 
 - **Last updated**: 2026-11-14
 - **Milestones**: none started; this plan is a draft (see the status note)
-- **Next action**: user confirms or changes D1-D6 (§1); a Fable session
+- **Next action**: a Fable session
   designs the mode table (M5 depends on it)
 - **Start from**: `make -C translate probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
   and `make -C translate check-2.0` (the 2.0 gate, green)
@@ -34,12 +33,12 @@
 
 | # | Decision | State | Effect on this plan |
 |---|---|---|---|
-| D1 | 2.0 as a stepping stone | **assumed yes**, and done: 2.0 certifies with 1 stub, 8,724 scalar + 528 SIMD vectors agree with V8 ([P4-wasm2-result](../wasm3-translation-prep/notes/P4-wasm2-result.md)) | 2.0 stays a regression target (`make check-2.0`) |
-| D2 | One tree, per-version `il/`, `config/`, `gen/`, package; shared `rt/` | **assumed**, implemented: `SPEC=`, `W<major>T`, `rt/` in package `WRT` ([P2-layout](../wasm3-translation-prep/notes/P2-layout.md)) | none, if confirmed |
-| D3 | 3.0 scope: `0.*`-`5.*`; `X.*` out; `6.*` text and `7.*` soundness deferred | **assumed**, implemented in the flake (`wasm3-il`) | §5 lists deferred milestones |
-| D4 | Nondeterminism: deterministic profile, choices fixed to V8 | **open** (the 11 choice parameters are classified, [P3-builtin-inventory](../wasm3-translation-prep/notes/P3-builtin-inventory.md)) | M1 implements the choices |
-| D5 | Hints via a SpecTec printer patch | **assumed**, implemented (`nix/spectec-ast-print-hints.patch`, [P3-hints](../wasm3-translation-prep/notes/P3-hints.md)) | offering it upstream is open |
-| D6 | Execution first, typing second | **assumed** | milestone order of §5 |
+| D1 | 2.0 as a stepping stone | **decided (2026-11-14): yes**, and done: 2.0 certifies with 1 stub, 8,724 scalar + 528 SIMD vectors agree with V8 ([P4-wasm2-result](../wasm3-translation-prep/notes/P4-wasm2-result.md)) | 2.0 stays a regression target (`make check-2.0`) |
+| D2 | One tree, per-version `il/`, `config/`, `gen/`, package; shared `rt/` | **decided (2026-11-14)**, implemented: `SPEC=`, `W<major>T`, `rt/` in package `WRT` ([P2-layout](../wasm3-translation-prep/notes/P2-layout.md)) | none, if confirmed |
+| D3 | 3.0 scope: `0.*`-`5.*`; `X.*` out; `6.*` text and `7.*` soundness deferred | **decided (2026-11-14)**, implemented in the flake (`wasm3-il`) | §5 lists deferred milestones |
+| D4 | Nondeterminism: deterministic profile, choices fixed to V8 | **decided (2026-11-14): deterministic, V8** (the 11 choice parameters are classified, [P3-builtin-inventory](../wasm3-translation-prep/notes/P3-builtin-inventory.md)) | M1 implements the choices |
+| D5 | Hints via a SpecTec printer patch | **decided (2026-11-14)**, implemented (`nix/spectec-ast-print-hints.patch`, [P3-hints](../wasm3-translation-prep/notes/P3-hints.md)) | offering it upstream is open |
+| D6 | Execution first, typing second | **decided (2026-11-14)** | milestone order of §5 |
 
 ## 2. Where 3.0 stands (probe, D3 scope, 2026-11-14)
 
