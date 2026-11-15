@@ -246,3 +246,20 @@ sequencer's table needs 18 entries, not 10. Checked by hand on a context:
 `call` of `$f` gives `[(ref null i31)] -> []`, a block gives its declared
 type, `ref.i31` gives `[i32] -> [(ref i31)]`, and `drop` gives no result.
 Gates green; 1.0 byte-identical.
+
+### Step 2 done (2026-11-15): `:rel-override` inside a rec group
+
+A member of a rec group may now have a `:rel-override` with a `:mode`
+(a declared mode for it). Its defuns replace the compiled ones, with the
+translator-package names turned into generated names, so the clique step
+puts them in the group's mutual recursion (`crel-or-override`,
+`override-gsyms` in `compile.lisp`; `override-mode-pairs` in `emit.lisp`).
+Tested on a scratch config with a stand-in `Instrs_ok` (one instruction,
+checked by `INSTR_OK`): it certifies inside the clique, and `i32.add` at
+`[i32 i32] -> [i32]` is accepted (`data/override-M6-2026-11-15/`). No
+override is in the real config yet: the real one is the sequencer, and
+its interface depends on step 3.
+
+**What remains needs the user's choice of step 3 (a or b)**: under (a) the
+sequencer must compute `x*` from given `t_1*`, `t_2*`; under (b) it only
+checks `t_1* ->_(x*) t_2*`. Both use steps 1 and 2 as they are.

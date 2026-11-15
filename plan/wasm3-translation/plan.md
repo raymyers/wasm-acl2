@@ -66,8 +66,9 @@
   and honest), 0 declared modes
 - **Next action**: M6 item 3 (the sequencer, option C), as planned in the M6
   strategy note's update of 2026-11-15: step 1 done (kept whole-type variant
-  `INSTR_OK/OUT2`, new config kind `:keep-variant`; 18 rules for the table);
-  next `:rel-override` of `Instrs_ok` inside its rec group, the
+  `INSTR_OK/OUT2`, new config kind `:keep-variant`; 18 rules for the table)
+  and step 2 done (`:rel-override` inside a rec group, with `:mode`; tested on
+  a scratch config); next, the
   callers passing `t_2*`, then the sequencer. **For the user before step 3**:
   (a) sub-component output positions (as recommended) or (b) five `:il-patch`
   entries with `x* = []`, equivalent by `Instrs_ok/sub` and cheaper. The V8

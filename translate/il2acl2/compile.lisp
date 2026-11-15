@@ -2333,11 +2333,25 @@
 
 (defun mode-of (id cx) (cdr (cdr (assoc-equal id (cx-get :modes cx)))))
 
+; A member of a rec group with a config :rel-override (wasm3 M6): its
+; hand-written defuns replace the compiled ones, with the translator-package
+; symbols as generated names (so that the clique step puts them in the
+; group's mutual recursion like generated functions); its mode is the
+; entry's :mode (a declared mode).
+(defun override-gsyms (x)
+  (cond ((and (symbolp x) x (equal (symbol-package-name x) "IL2ACL2")) (gsym (symbol-name x)))
+        ((consp x) (cons (override-gsyms (car x)) (override-gsyms (cdr x))))
+        (t x)))
+
+(defun crel-or-override (x mode cx)
+  (let ((ov (assoc-equal (second x) (cx-get :rel-overrides cx))))
+    (if ov (mv (override-gsyms (cdr ov)) cx) (crel x mode cx))))
+
 ; Compile members with their registered modes; (mv defuns erroring-ids cx)
 (defun crel-members (xs cx)
   (if (endp xs) (mv nil nil cx)
     (let ((nerr (len (cx-get :errs cx))))
-      (mv-let (d1 cx) (crel (car xs) (mode-of (second (car xs)) cx) cx)
+      (mv-let (d1 cx) (crel-or-override (car xs) (mode-of (second (car xs)) cx) cx)
         (let ((bad (if (equal (len (cx-get :errs cx)) nerr) nil (list (second (car xs))))))
           (mv-let (d2 b2 cx) (crel-members (cdr xs) cx)
             (mv (append d1 d2) (append bad b2) cx)))))))

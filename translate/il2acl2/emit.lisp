@@ -296,6 +296,13 @@
   (if (endp es) nil
     (cons (cons (second (car es)) (cadr (member :defuns (car es)))) (rel-override-alist (cdr es)))))
 
+(defun override-mode-pairs (es)
+  ;; (:rel-override "Rel" :mode m ...) -> (("Rel" . m) ...): the mode of an
+  ;; overridden member of a rec group (wasm3 M6)
+  (cond ((endp es) nil)
+        ((member :mode (car es)) (cons (cons (second (car es)) (cadr (member :mode (car es)))) (override-mode-pairs (cdr es))))
+        (t (override-mode-pairs (cdr es)))))
+
 (defun config-overrides (config)
   ;; config: list of entries (:def "id" :reason "...")
   (cond ((endp config) nil)
@@ -646,7 +653,8 @@
                              (cons :rel-overrides (rel-override-alist (config-entries config :rel-override)))
                              (cons :memo (memo-rels (config-entries config :memoize)))
                              (cons :memo-no-inline (memo-no-inline (config-entries config :memoize)))
-                             (cons :declared-modes (declared-mode-pairs (config-entries config :modes)))
+                             (cons :declared-modes (append (declared-mode-pairs (config-entries config :modes))
+                                                          (override-mode-pairs (config-entries config :rel-override))))
                              (cons :witness-ok (memo-rels (config-entries config :witness)))
                              (cons :fuel-rels (memo-rels (config-entries config :fuel)))
                              (cons :rt-names rt-names)
