@@ -22,7 +22,7 @@
 
 - **Last updated**: 2026-11-14
 - **Milestones**: none started; this plan is a draft (see the status note)
-- **Next action**: a Fable session
+- **Next action**: M0; in parallel a Fable session
   designs the mode table (M5 depends on it)
 - **Start from**: `make -C translate probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
   and `make -C translate check-2.0` (the 2.0 gate, green)

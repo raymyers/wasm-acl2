@@ -24,22 +24,22 @@ Update this block at the end of every session, in the same commit as the work.
 A new session starts here.
 
 - **Last updated**: 2026-11-14
-- **Milestones**: P0 ✅, P1 ✅, P2 ✅, P3 ✅, P5 ✅, P6 ✅. P4: exit ✅ (2.0
-  certifies with 1 stub; 8,724 scalar + 528 SIMD vectors agree with V8);
-  G1, G3, G4, G5, G8, G9, declared modes and `:fun2` done (3.0 D3 scope: 2
-  stubs, 2 dropped rules); the mode-table inference
-  (W1/G2 general form) open. P7 🔶: the wasm3 plan exists as a **draft**
-  ([plan/wasm3-translation/plan.md](../wasm3-translation/plan.md)); every
-  note is incorporated
-- **Next action**:
-  a Fable session designs the mode table and reviews the wasm3 draft. After
-  that the draft becomes final and the wasm3 plan starts at its M0
+- **Milestones**: **P0-P7 all ✅. The prep plan is done.**
+  - P4 exit: 2.0 certifies with 1 stub; 8,724 scalar + 528 SIMD vectors
+    agree with V8. 3.0 (D3 scope): 2 stubs, 2 dropped rules
+  - The general mode-table inference (W1/G2) was handed to a Fable session
+    and the wasm3 plan's M5 by user decision; its inputs are in
+    [P4-mode-table-design](notes/P4-mode-table-design.md)
+  - P7: [plan/wasm3-translation/plan.md](../wasm3-translation/plan.md);
+    every note is incorporated
+- **Next action**: start the wasm3 plan (its "Current state"); in parallel
+  a Fable session designs the mode table (wasm3 M5)
 - **In progress / uncommitted**: nothing. The old single-book driver
   `translate/tests/spec/t7-spec.lisp` (untracked, the user's) is superseded
   by `t7-lib.lisp` + `run-all.sh` and was left in place
 - **Decisions D1-D6**: decided by the user on 2026-11-14 ([decisions](notes/decisions.md)):
   D1, D2 (incl. `rt/` in package `WRT`), D3, D5, D6 as recommended; D4 deterministic (V8)
-- **Blocked on**: nothing from the user. The general mode-table design (W1) is the remaining open prep item
+- **Blocked on**: nothing
 - **Regressions**: `make -C translate check` (1.0), `make -C translate check-2.0`
   (2.0), flake checks `translate-il`, `translate-gen-wasm1`
 
@@ -335,12 +335,12 @@ code is unchanged. The 3.0 probe shows no "pattern" errors caused by a
 missing inverse pair. *Met 2026-11-14: the 17 remaining "pattern" errors are S5, S4,
 `:fun` typing artifacts and text grammars ([P3-hints](notes/P3-hints.md))*
 
-### P4: Generic translator gaps, gated on 2.0 (G1-G5, D1) 🔶
+### P4: Generic translator gaps, gated on 2.0 (G1-G5, D1) ✅ (2026-11-14; the general mode-table inference handed to wasm3 M5)
 - [x] G1 function arguments by specialization. *Done 2026-11-14
       ([P4-generic-gaps](notes/P4-generic-gaps.md)): IL pre-pass; 16 defs
       replaced by 53 specializations; 3.0 (D3 scope) stubs 16 → 8. Found:
       the 16 defs had compiled silently wrong (calls to `%UNKNOWN-f_`)*
-- [ ] W1/G2: explicit mode table per relation (input and output positions),
+- [x] W1/G2: explicit mode table per relation (input and output positions),
       inferred where the current heuristic works, overridable by a counted
       config entry; modes solved per relation, not per attempt per group.
       *First step done 2026-11-14 ([P4-generic-gaps](notes/P4-generic-gaps.md)):
@@ -348,7 +348,8 @@ missing inverse pair. *Met 2026-11-14: the 17 remaining "pattern" errors are S5,
       With the type group `:check` and instruction typing `:multi`, 3.0 (D3
       scope) has 4 stubs and 7 dropped rules (was 8 and 36); 2.0 has 2
       stubs and 1 dropped rule. Inference per relation and several outputs
-      (G2) are the Fable design session. `:fun2` (last two components
+      (G2) are handed to a Fable session and wasm3 M5 (user decision
+      2026-11-14; inputs in [P4-mode-table-design](notes/P4-mode-table-design.md)). `:fun2` (last two components
       out) declared for `Eval_expr`: 3.0 D3-scope stubs 4 → 2*
 - [x] G3, G4 iterated premises; G5 disjunctions. *G3 done 2026-11-14
       (count-only iteration, an aux loop; full 3.0 stubs 83 → 81). G5 is not
@@ -427,7 +428,7 @@ spec-test-3 recorded (98.3%, by experiment: the `rt/` question is still open).
 behind it: about 1.5-2 h wall with 8 sessions at today's speed, plus a tail
 of about 7 scripts at the 1 h limit.
 
-### P7: Write `plan/wasm3-translation/plan.md` 🔶 (2026-11-14: [draft](../wasm3-translation/plan.md))
+### P7: Write `plan/wasm3-translation/plan.md` ✅ (2026-11-14: [plan](../wasm3-translation/plan.md); its mode-table milestone M5 awaits a Fable design session)
 - [x] Walk the index in `notes/README.md` row by row. Each note is either
       incorporated (record the wasm3 plan section in its header and index
       row) or dropped with a reason. No row may stay at `no`. *Done: all 12

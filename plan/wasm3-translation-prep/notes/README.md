@@ -75,6 +75,7 @@ says `yes` or `dropped` in the last column.
 | [P3-builtin-inventory.md](P3-builtin-inventory.md) | P3 (items 3-4: builtin classification, inventory) | final | builtin inventory, config budget, decisions | yes (draft plan) |
 | [P5-conformance.md](P5-conformance.md) | P5 (spec-test-1 result, 3.0 data, dry run partial) | draft | milestones, risks, probe table | yes (draft plan) |
 | [P6-runtime-baseline.md](P6-runtime-baseline.md) | P6 (all items: step cost, 3.0 approach, crash sites, spec-test-3 estimate) | final | risks, milestones, scheme delta | yes (draft plan) |
+| [P4-mode-table-design.md](P4-mode-table-design.md) | P4 (W1 design inputs; design handed to Fable / wasm3 M5) | final | scheme delta, milestones, risks | yes (draft plan) |
 | [P4-wasm2-result.md](P4-wasm2-result.md) | P4 (2.0 full target, the P4 exit) | final | milestones, builtin inventory, risks, config budget | yes (draft plan) |
 | [P4-generic-gaps.md](P4-generic-gaps.md) | P4 (G1, G3, G4, G9 done; G5, G8 with the mode table) | draft | scheme delta, gap list, config budget | yes (draft plan) |
 | [decisions.md](decisions.md) | all (D1-D6) | draft (nothing confirmed) | decisions | yes (draft plan) |
