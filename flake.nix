@@ -117,6 +117,7 @@
           # spec-test-<major> converted for the conformance driver (see below)
           mkSpecTests =
             major: flags: withSpectest: withRefInterp:
+            # withSpectest: false, or the spectest .wat file to compile
             pkgs.runCommand "wasm${major}-spec-tests"
               {
                 nativeBuildInputs = [
@@ -146,7 +147,7 @@
                 done
                 for d in work/*; do cp $d/*.wasm $out/ 2> /dev/null || true; done
                 node ${./translate/tests/oracle/gen-spec-tests.mjs} work $out spec-test-${major}
-                ${lib.optionalString withSpectest "wat2wasm ${./translate/tests/spec/spectest.wat} -o $out/spectest.wasm"}
+                ${lib.optionalString (withSpectest != false) "wat2wasm --enable-memory64 ${withSpectest} -o $out/spectest.wasm"}
               '';
         in
         rec {
@@ -241,7 +242,7 @@
           "--disable-reference-types"
           "--disable-simd"
           "--disable-mutable-globals"
-        ]) true false;
+        ]) ./translate/tests/spec/spectest.wat false;
         # The 3.0 proposals only. Not --enable-all: it includes compact imports (not
         # in 3.0), which wabt then writes, and 70 modules no longer decode (wasm3 M2).
         wasm3-spec-tests = mkSpecTests "3" (lib.concatStringsSep " " [
@@ -254,7 +255,7 @@
           "--enable-multi-memory"
           "--enable-relaxed-simd"
           "--enable-tail-call"
-        ]) true true;
+        ]) ./translate/tests/spec/spectest-3.0.wat true;
 
         # ACL2 plus just the community books this project depends on.
         #

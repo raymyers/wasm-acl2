@@ -64,9 +64,15 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now** (after M1): **1** stub (`Module_ok`), 0 builtins missing in `rt/`, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: none without the user: M7 is a design session waiting for
-  the `Module_ok` decision (step.md: no items after it before the decision);
-  M8 needs M7; M9 comes after M8.
+- **Next action**: M9 (logic mode and proofs).
+- **M7 and M8 done (2026-11-15)**: user decision proposer and checker;
+  `Module_ok` translated (config `:given-entry`), 0 stubs; spec-test-3 with
+  validation: 63,326 of 63,883 commands, valid modules 2,263/2,263,
+  `assert_invalid` 2,683/2,690, `assert_unlinkable` 200/200
+  ([M7-module-ok](notes/M7-module-ok.md)). New: config kind `:given-entry`;
+  `:decreasing` pairs `Types_ok`, `Globals_ok`; translator fix for equations
+  with a variable-free option; `spectest-3.0.wat`; `make gen` fails on a
+  raw Lisp error
 - **M6 done (2026-11-15)**: the option C sequencer is in the 3.0 config;
   24 of 24 V8 cases; 0 dropped rules in 3.0. **For the user**: step 3 used
   mechanism (b), three `:il-patch` entries with `x* = []` (equivalent by
@@ -417,25 +423,39 @@ the validator, under Strategy B); behavioural cases N of M.
       cycles through the context `C` (function types; data and element
       types). Experiment: in the new mode `(:given "C" "C'")` the generated
       rule compiles with 0 errors (29 before)
-- [ ] **User decision**: proposer and checker (recommended: about 60 to 80
+- [x] **User decision**: proposer and checker (recommended: about 60 to 80
       hand-written lines compute `C'` and `C`; the generated `MODULE_OK/W`
       checks them on every call), or a plain override as in 1.0 (about 110
       lines, tied to the rule by tests only)
-- [ ] Implement the choice: a config kind for "entry function plus given
+      **Decided by the user 2026-11-15: proposer and checker**
+- [x] Implement the choice: a config kind for "entry function plus given
       variables", the proposer; `$instantiate` with validation switched on
-- [ ] Module-level validation on spec-test-3, GC and exception scripts
+      Done 2026-11-15 ([M7-module-ok](notes/M7-module-ok.md)): config kind `:given-entry`,
+      the proposer (about 45 lines), `$instantiate` validates, `:il-variant` removed
+- [x] Module-level validation on spec-test-3, GC and exception scripts
       included (M0b): `assert_invalid` rejected, and every module that the
       scripts instantiate accepted
+      Done: `assert_invalid` 2,683/2,690, valid modules 2,263/2,263
 
 **Exit**: no stub in the D3 scope; `assert_invalid` N/M and valid modules
 accepted N/M, each miss listed with its cause.
+**Met 2026-11-15**: 0 stubs; `assert_invalid` 2,683 of 2,690 (the 7 are data: 3 text-only,
+4 without data count section); valid modules 2,263 of 2,263; `assert_unlinkable` 200/200.
 
 ### M8: Conformance
-- [ ] spec-test-3 at scale: every script M0b converts (228 with `wast2json`
+- [x] spec-test-3 at scale: every script M0b converts (228 with `wast2json`
       alone, P5)
+      Done 2026-11-15 (`make spec SPEC=3.0`, all 259 scripts converted, 258 run:
+      not `skip-stack-guard-page`; [M7-module-ok](notes/M7-module-ok.md), [M4-conformance](notes/M4-conformance.md))
 
 **Exit**: N/M for spec-test-3 recorded; estimate 1.5-2 h wall with 8
 sessions at today's speed (P6).
+**Met 2026-11-15**: **63,326 of 63,883** commands, with validation; 10 min 41 s with 8
+sessions (not 1.5-2 h: the store-free step of M3). Not counted: `assert_exhaustion`
+and text-format `assert_malformed`. What fails is listed by cause in M4-conformance
+(an aborted `memory_copy` action, step budget, relaxed SIMD with wabt's lost
+`either` data, aborted grows); the M0b recommendation (convert everything through
+the reference interpreter) is still open for the user.
 
 ### M9: Logic mode and proofs
 - [ ] `%TRY-LOGIC` time limits: one 3.0 guard proof ran >15 min (P5)
@@ -471,7 +491,7 @@ M0 ──┬─ M0b ────────────────────
 
 ## 6. Config budget
 
-Today `config/wasm-3.0.lsp` has 17 entries (since M6: `:keep-variant "Instr_ok"`, `:rel-override "Instrs_ok"` (the sequencer) and 3 `:il-patch "Instr_ok"`; above the earlier estimate of 12-13, because option C needs them): `:def utf8` (with `:inverse`), since M1 `:def utf8single`, since M2 `:il-patch "Belem"`, since M4 `:il-variant "instantiate"` (test-only, removed with M7),
+Today `config/wasm-3.0.lsp` has 17 entries (since M7: `:given-entry "Module_ok"` replaces the test-only `:il-variant`; since M6: `:keep-variant "Instr_ok"`, `:rel-override "Instrs_ok"` (the sequencer) and 3 `:il-patch "Instr_ok"`; above the earlier estimate of 12-13, because option C needs them): `:def utf8` (with `:inverse`), since M1 `:def utf8single`, since M2 `:il-patch "Belem"`, since M4 `:il-variant "instantiate"` (test-only, removed with M7),
 `:split Step ctxt-instrs`, `:decreasing`, `:memoize` (since M0 with
 `:recursive nil`), `:sized`, `:builtins` (11 choice + 1 host +
 `$s33_to_u32`), `:witness` (4 relations), since M5 `:fuel` (the type

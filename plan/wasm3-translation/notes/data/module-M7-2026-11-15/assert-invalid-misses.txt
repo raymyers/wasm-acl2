@@ -1,0 +1,3 @@
+address "address.1.wat"
+simd--simd_address "simd--simd_address.5.wat"
+simd--simd_address "simd--simd_address.6.wat"

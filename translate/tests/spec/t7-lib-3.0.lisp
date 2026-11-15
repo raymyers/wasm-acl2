@@ -4,11 +4,10 @@
 ; .wasm bytes -> GRAM/BMODULE -> $instantiate_unchecked (imports resolved
 ; through `register`ed instances and the spectest module) -> $invoke + STEP.
 ; Differences from 1.0:
-; - Instantiation uses $instantiate_unchecked, the TEST-ONLY variant of
-;   $instantiate without Module_ok (a stub until wasm3 M7) and without
-;   Externaddr_ok (config :il-variant, decision D6). So modules are not
-;   validated, imports are matched by name only, and assert_invalid is
-;   skipped (counted as :ASSERT_INVALID-SKIPPED).
+; - Instantiation uses $instantiate, which validates the module (Module_ok,
+;   proposer and checker since wasm3 M7) and matches the import types
+;   (Externaddr_ok); assert_invalid is checked with MODULE_OK. (Until M7 the
+;   test-only $instantiate_unchecked was used.)
 ; - 3.0 values: v128 by lanes, references (null, i31, struct, array, func,
 ;   exn, host, extern), `either` results, uncaught exceptions.
 ; - Each command runs as its own top-level form (run-one-3.0.lsp, ld with
@@ -175,7 +174,7 @@
   ;; (mv status store inst): status :ok, :unlinkable, :invalid, :trap, :exception, :fuel
   (mv-let (ok addrs) (resolve-imports (nth 2 m) e)
     (if (not ok) (mv :unlinkable nil nil)
-      (let ((c ($instantiate_unchecked (env-store e) m addrs)))
+      (let ((c ($instantiate (env-store e) m addrs)))
         (if (null c) (mv :invalid nil nil)
           (mv-let (s instrs f) (final-config c)
             (cond ((eq instrs :fuel) (mv :fuel nil nil))
@@ -227,7 +226,10 @@
                      (t (eq r :exception)))))
            (mv k ok r e state))))
       (:assert_exhaustion (mv :assert_exhaustion-skipped nil nil e state))   ; no call-stack limit in the spec
-      (:assert_invalid (mv :assert_invalid-skipped nil nil e state))         ; Module_ok: wasm3 M7
+      (:assert_invalid
+       (mv-let (m state) (parse-file (cadr c) state)
+         (let ((r (if m (if (module_ok m) :accepted :rejected) :not-parsed)))
+           (mv k (eq r :rejected) r e state))))
       (:assert_malformed
        (if (eq (cadddr c) :text)
            (mv :assert_malformed-text-skipped nil nil e state)

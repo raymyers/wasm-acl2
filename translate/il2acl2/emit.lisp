@@ -278,6 +278,12 @@
   ;; (:memoize "label" :rels ("Rel" ...) ...)
   (if (endp es) nil (append (cadr (member :rels (car es))) (memo-rels (cdr es)))))
 
+(defun given-entry-alist (es)
+  ;; (:given-entry "Rel" :given ("v" ...) :defuns (...)) -> ("Rel" (v ...) . defuns)
+  (if (endp es) nil
+    (cons (cons (second (car es)) (cons (cadr (member :given (car es))) (cadr (member :defuns (car es)))))
+          (given-entry-alist (cdr es)))))
+
 (defun keep-variant-pairs (es)
   ;; (:keep-variant "Rel" :out i ...) -> (("Rel" . i) ...)
   (if (endp es) nil
@@ -519,6 +525,10 @@
                          (if (set-difference-equal (intersection-equal ids (strip-cars (cdr (assoc-eq :def tbl)))) cl)
                              (list (cfg-err e "a listed def has clauses (not a builtin)"))
                            nil))))
+    (:given-entry (cond ((not (tbl-has :rel (second e) tbl)) (list (cfg-err e "relation not in the IL")))
+                        ((not (and (consp (cadr (member :given e))) (string-listp (cadr (member :given e)))))
+                         (list (cfg-err e ":given must name rule variables")))
+                        (t nil)))
     (:keep-variant (cond ((not (tbl-has :rel (second e) tbl)) (list (cfg-err e "relation not in the IL")))
                          ((not (natp (cadr (member :out e)))) (list (cfg-err e ":out missing")))
                          (t nil)))
@@ -659,6 +669,7 @@
                              (cons :fuel-rels (memo-rels (config-entries config :fuel)))
                              (cons :rt-names rt-names)
                              (cons :keep-variants (keep-variant-pairs (config-entries config :keep-variant)))
+                             (cons :given-entries (given-entry-alist (config-entries config :given-entry)))
                              (cons :typ-defs (typ-defs forms))
                              (cons :rel-defs (rel-defs forms))
                              (cons :gram-defs (gram-defs forms))

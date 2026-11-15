@@ -1,0 +1,39 @@
+== br_on_non_null br_on_non_null.0.wasm
+FUNC 0: (:NO-PROPOSAL :BLOCK :STACK NIL)
+  expr_ok NIL
+FUNC 1: (:NO-PROPOSAL :BLOCK :STACK NIL)
+  expr_ok NIL
+FUNC 9: (:NO-PROPOSAL :BLOCK :STACK NIL)
+== br_on_null br_on_null.0.wasm
+FUNC 6: (:NO-PROPOSAL :BLOCK :STACK NIL)
+  expr_ok NIL
+ :OK
+W3T p!>Bye.
+== br_table br_table.0.wasm
+FUNC 70: (:NO-PROPOSAL :BLOCK :STACK NIL)
+  expr_ok NIL
+FUNC 73: (:NO-PROPOSAL :BLOCK :STACK NIL)
+  expr_ok NIL
+FUNC 75: (:NO-PROPOSAL :BLOCK :STACK NIL)
+== gc--br_on_cast_fail gc--br_on_cast_fail.0.wasm
+FUNC 2: (:NO-PROPOSAL :BLOCK :STACK NIL)
+  expr_ok NIL
+ :OK
+W3T p!>Bye.
+== gc--ref_test gc--ref_test.0.wasm
+FUNC 1: 
+(:INSTR_OK-FAILS (:EXTERN.CONVERT_ANY)
+                 :PROPOSED ((:REF NIL (:I31)))
+                 NIL ((:REF NIL (:EXTERN)))
+                 :STACK ((:REF NIL (:I31)) (:I32)))
+== ref_as_non_null ref_as_non_null.0.wasm
+FUNC 6: 
+(:INSTR_OK-FAILS (:REF.AS_NON_NULL)
+                 :PROPOSED ((:REF ((:NULL)) (:BOT)))
+                 NIL ((:BOT))
+                 :STACK NIL)
+== unreached-valid unreached-valid.1.wasm
+FUNC 0: (:NO-PROPOSAL :BLOCK :STACK NIL)
+  expr_ok NIL
+ :OK
+W3T p!>Bye.

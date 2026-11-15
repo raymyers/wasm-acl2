@@ -649,6 +649,12 @@
 (defun has-unbound (e env)
   (consp (unbound-vars (remove-duplicates-equal (fv-exp e)) env)))
 
+(defun varfree-opt-p (x)
+  ;; does term X contain an option iteration e? without iteration variables
+  (cond ((atom x) nil)
+        ((and (is x "ITER") (true-listp x) (= (len x) 3) (atom-is (third x) "OPT")) t)
+        (t (or (varfree-opt-p (car x)) (varfree-opt-p (cdr x))))))
+
 (defun remove-nth (i l)
   (cond ((atom l) nil) ((zp i) (cdr l)) (t (cons (car l) (remove-nth (1- i) (cdr l))))))
 
@@ -1596,6 +1602,15 @@
        ((and (nodep e "CMP" 4) (atom-is (second e) "EQ")
              (has-unbound (fifth e) env) (not (has-unbound (fourth e) env)))
         (mv-let (v cx) (cexp (fourth e) env cx) (cpat (fifth e) v env cx)))
+       ((and (nodep e "CMP" 4) (atom-is (second e) "EQ") (not (has-unbound e env))
+             (or (varfree-opt-p (fifth e)) (varfree-opt-p (fourth e))))
+        ;; an equality with a variable-free option e? on one side (wasm3 M7:
+        ;; Instr_ok/br_on_non_null, C.LABELS[l] = t* (REF NULL? ht)): as an
+        ;; expression e? would always give e, so that side is a pattern
+        ;; matched against the other, where e? matches nothing or e
+        (if (varfree-opt-p (fifth e))
+            (mv-let (v cx) (cexp (fourth e) env cx) (cpat (fifth e) v env cx))
+          (mv-let (v cx) (cexp (fifth e) env cx) (cpat (fourth e) v env cx))))
        ((has-unbound e env)
         (mv nil env (cx-err "condition with unbound variables" e cx)))
        (t (mv-let (c cx) (cexp e env cx) (mv (list (list :test c)) env cx))))))
@@ -3308,6 +3323,20 @@
          (mv (override-events (cdr (assoc-equal (second x) (cx-get :rel-overrides cx))))
              nil nil
              (cx-put :modes (put-assoc-equal (second x) (cons :fun :fun) (cx-get :modes cx)) cx)))
+        ((and (is x "REL") (assoc-equal (second x) (cx-get :given-entries cx)))
+         ;; config :given-entry (wasm3 M7): the relation compiled in mode
+         ;; (:given "v" ...) to R/W, which checks every premise with the
+         ;; named variables as inputs, then the hand-written entry R that
+         ;; proposes them; callers see R with its :fun interface
+         (let* ((ge (cdr (assoc-equal (second x) (cx-get :given-entries cx))))
+                (nerr (len (cx-get :errs cx))))
+           (mv-let (ds cx) (crel-1 x (cons :given (car ge))
+                                   (cx-put :rec-rels nil (cx-put :rel-formals nil cx)))
+             (mv (append ds (override-events (cdr ge)))
+                 nil nil
+                 (cx-put :modes (put-assoc-equal (second x) (cons :fun :fun) (cx-get :modes cx))
+                         (if (equal (len (cx-get :errs cx)) nerr) cx
+                           (cx-put :stubs (cons (cdr (fn-sym :rel (second x) cx)) (cx-get :stubs cx)) cx)))))))
         ((or (is x "REL") (and (is x "REC") (is (cadr x) "REL")))
          (mv-let (ds cx) (crel-form x cx)
            (mv (clique-events x ds cx) nil nil cx)))

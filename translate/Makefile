@@ -68,6 +68,7 @@ translator:
 gen: translator
 	mkdir -p $(GEN)
 	{ echo '$(TARGET)'; cat il2acl2/run.lsp; } | $(ACL2) > gen.log 2>&1 || (tail -40 gen.log; exit 1)
+	@! grep -q "raw-lisp-error" gen.log || { grep -B2 -A4 "raw-lisp-error" gen.log | head -20; echo "gen: a raw Lisp error (e.g. an unreadable config); see gen.log"; exit 1; }
 	@echo "$(GEN)/ regenerated (log: gen.log)"
 
 # Regenerate twice from scratch copies and compare both with gen/wasm-<v>/.
