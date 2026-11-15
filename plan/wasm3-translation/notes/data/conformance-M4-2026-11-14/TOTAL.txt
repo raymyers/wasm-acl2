@@ -1,0 +1,11 @@
+T7 spec-test-3: 60447 of 61193 commands pass; scripts: 256 done, 0 timeout, 2 crashed
+  :MODULE 2262/2263
+  :ASSERT_RETURN 52106/52643
+  :ASSERT_UNLINKABLE 16/200
+  :ASSERT_MALFORMED 710/710
+  CRASH 0/24
+  :ASSERT_EXCEPTION 18/18
+  :ASSERT_TRAP 4924/4924
+  :ASSERT_UNINSTANTIABLE 54/54
+  :ACTION 357/357
+assert_return + assert_trap outside gc/: 56460 of 56986

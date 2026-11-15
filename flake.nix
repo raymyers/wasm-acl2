@@ -254,7 +254,7 @@
           "--enable-multi-memory"
           "--enable-relaxed-simd"
           "--enable-tail-call"
-        ]) false true;
+        ]) true true;
 
         # ACL2 plus just the community books this project depends on.
         #

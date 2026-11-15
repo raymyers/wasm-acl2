@@ -19,7 +19,8 @@
 #   make test        certify the translator, gen/, rt/ and every test book
 #   make compare     T9 reports: run the WASM1 tree on the same oracle vectors
 #   make spec-data   fetch the conformance data (Nix): 1.0 into tests/spec/data, else tests/spec/data-<v>
-#   make spec        T7 report: run spec-test-1 on the generated semantics (slow)
+#   make spec        T7 report: run spec-test-1 on the generated semantics (slow;
+#                    SPEC=3.0: spec-test-3 with the 3.0 driver)
 #   make decode SPEC=3.0  decode every spec-test module with the generated parser (slow)
 #   make probe SPEC=3.0  probe table for one spec version (plan/wasm3-translation-prep P0)
 #   make modes       rewrite gen/wasm-1.0/modes.lsp from certified books (t0-modes checks it)
@@ -125,9 +126,18 @@ spec-data:
 # SPEC_TIMEOUT seconds each); results in tests/spec/results/ (SUMMARY, TOTAL).
 SPEC_JOBS ?= 8
 SPEC_TIMEOUT ?= 3600
+# SPEC=3.0 (wasm3 M4): the 3.0 driver t7-lib-3.0 (instantiation through the
+# test-only $instantiate_unchecked), results in tests/spec/results-3.0/; a
+# shorter default limit per script (SPEC_TIMEOUT_3, 600 s).
+SPEC_TIMEOUT_3 ?= 600
 spec:
+ifeq ($(SPEC),3.0)
+	$(CERT) --acl2 $(ACL2) tests/spec/t7-lib-3.0
+	cd tests/spec && sh run-all-3.0.sh $(ACL2) $(SPEC_JOBS) $(SPEC_TIMEOUT_3)
+else
 	$(CERT) --acl2 $(ACL2) tests/spec/t7-lib
 	cd tests/spec && sh run-all.sh $(ACL2) $(SPEC_JOBS) $(SPEC_TIMEOUT)
+endif
 
 # Decode run (wasm3 M2): every module of the converted spec-test-<major> data
 # through the generated binary parser, one ACL2 session per script; results in

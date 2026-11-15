@@ -30,7 +30,9 @@
   well-formed module but 4 that wabt writes malformed, every malformed one
   rejected, [M2-decode](notes/M2-decode.md)); M3 ✅ (218 of 218 reduction rules; a step
   costs 0.011 ms with or without memory, was 5.39 ms at 1 page;
-  [M3-execution](notes/M3-execution.md)); M5 items 1 and 2 (mode table design
+  [M3-execution](notes/M3-execution.md)); M4 ✅ (`make spec SPEC=3.0`: spec-test-3
+  `assert_return` + `assert_trap` outside gc/ 56,460 of 56,986, all commands
+  60,447 of 61,193, 10 min 37 s, [M4-conformance](notes/M4-conformance.md)); M5 items 1 and 2 (mode table design
   and core; `trans` triage) ✅; M6 items 1 and 2 (design session;
   decision) ✅
 - **New config entries in M0 (for the user)**: `:program` (every
@@ -60,10 +62,17 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now** (after M1): **1** stub (`Module_ok`), 0 builtins missing in `rt/`, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M4 (the 3.0 driver: `$instantiate` as a test-only path,
-  values, execution limits; then spec-test-3 `assert_return` / `assert_trap`
-  for the non-GC scripts), and M5 `trans` on the typing side. M7 waits for
-  the user's decision above
+- **Next action**: M5 `trans` (enumeration variant, decided), then M6 item 3
+  (the sequencer, option C). M7 waits for the user's decision above. M8
+  needs M7; the execution side is ready for it
+- **For the user (M4)**: new config KIND `:il-variant` and the entry
+  `$instantiate_unchecked` (TEST-ONLY: `$instantiate` without `Module_ok` and
+  `Externaddr_ok`, decision D6; remove with M7); new `:decreasing` pair
+  `("Ref_ok" . 1)` (the size check cut `Ref_ok/extern`, so no externref had a
+  type). Translator: a partial inverse (result `X?`, e.g. `$inv_isize`) is now
+  unwrapped; it broke every float vector comparison and the lane, splat and
+  extend loads. 1.0 output byte-identical. The relaxed-SIMD failures (33) are
+  wabt's `either` data again (see the M0b recommendation)
 - **Changed in M3 (for the user)**: the 3.0 `:decreasing` entry has a new
   pair `("Step" 0 2)` (a path: the instructions of the configuration),
   reason in the config. Translator: an inverse equation may solve for a
@@ -279,16 +288,25 @@ within a small factor of the no-memory step (0.03 ms).
 **Met 2026-11-14**: 218 of 218; 0.011 ms/step at 1 page, the same as with no memory.
 
 ### M4: Instantiation and invocation
-- [ ] `$instantiate` without `Module_ok` as a test-only path (D6)
-- [ ] Execution limits in the 3.0 driver (from M3 item 3): a `memory.grow` or
+- [x] `$instantiate` without `Module_ok` as a test-only path (D6). Done 2026-11-15
+      ([M4-conformance](notes/M4-conformance.md)): new config kind `:il-variant`;
+      `$instantiate_unchecked` (no `Module_ok`, no `Externaddr_ok`)
+- [x] Execution limits in the 3.0 driver (from M3 item 3): a `memory.grow` or
       `table.grow` above a bound, and segment bounds at instantiation, reported
       as a resource limit (like `assert_exhaustion`), not run (P6: two spec-test-1
-      crashes each)
-- [ ] 3.0 driver values: `v128` lanes, references, exceptions (the data is
-      already converted, [P5-conformance](../wasm3-translation-prep/notes/P5-conformance.md))
+      crashes each). Done as containment: each command its own form, an aborted
+      one is a failure of kind CRASH (24 in spec-test-3); 200,000 steps per action;
+      `timeout -k`
+- [x] 3.0 driver values: `v128` lanes, references, exceptions (the data is
+      already converted, [P5-conformance](../wasm3-translation-prep/notes/P5-conformance.md)).
+      Done: `tests/spec/t7-lib-3.0.lisp`, `make spec SPEC=3.0` (10 min 37 s)
 
 **Exit**: spec-test-3 `assert_return`/`assert_trap` for the non-GC scripts
 recorded as N/M.
+**Met 2026-11-15**: **56,460 of 56,986** (99.1%); all commands 60,447 of 61,193.
+The run found and fixed two translator-level bugs (partial inverses; `Ref_ok`
+cut by the size check). What fails: 446 after an aborted `memory_copy` action,
+43 step budget, 33 relaxed SIMD (wabt data), 4 after an aborted grow.
 
 ### M5: Type validation and subtyping (mode table)
 - [x] Mode table design (Fable): inference per relation, any output
@@ -418,15 +436,15 @@ M0 ──┬─ M0b ────────────────────
 
 ## 6. Config budget
 
-Today `config/wasm-3.0.lsp` has 11 entries: `:def utf8` (with `:inverse`), since M1 `:def utf8single`, since M2 `:il-patch "Belem"`,
+Today `config/wasm-3.0.lsp` has 12 entries: `:def utf8` (with `:inverse`), since M1 `:def utf8single`, since M2 `:il-patch "Belem"`, since M4 `:il-variant "instantiate"` (test-only, removed with M7),
 `:split Step ctxt-instrs`, `:decreasing`, `:memoize` (since M0 with
 `:recursive nil`), `:sized`, `:builtins` (11 choice + 1 host +
 `$s33_to_u32`), `:witness` (4 relations), since M5 `:fuel` (the type
-group), and since M0 `:program` (certification mode, removed in M9), 11 in all. The `:modes` entry (22 pairs at the end of the prep) is gone
+group), and since M0 `:program` (certification mode, removed in M9), 12 in all. The `:decreasing` entry has gained `("Step" 0 2)` (M3) and `("Ref_ok" . 1)` (M4). The `:modes` entry (22 pairs at the end of the prep) is gone
 since the mode table. 1.0 has 8 (the `:witness` entry is new), 2.0 has 9
 (two `:il-patch` for a 2.0 source bug; `:witness` replaced `:modes`).
 Expected additions for 3.0: `:rel-override Module_ok` unless M7 avoids it,
-possibly `:rel-override Heaptype_sub` (M5), about 12 or 13 entries in total
+possibly `:rel-override Heaptype_sub` (M5), about 12 or 13 entries in total (M7 removes `:il-variant`, M9 `:program`)
 (M9 removes `:program`).
 
 ## 7. Risks and go/no-go points
@@ -435,7 +453,7 @@ possibly `:rel-override Heaptype_sub` (M5), about 12 or 13 entries in total
 |---|---|---|
 | The size-check termination discipline does not fit 3.0 types | 13 of 22 type cases wrong ([review-checker-blind-spots](notes/review-checker-blind-spots.md)) | M5: fuel for the type group; if a relation outside it shows the same shape, the probe cannot tell, only behavioural cases can |
 | Typing complete only with hand-written parts | `trans` is not admissible and is dropped today, so GC subtyping through abstract heap types is rejected; 8 rules rely on one witness ([M5-mode-table](notes/M5-mode-table.md)) | after M5: `trans` by enumeration or override. After M6: if one witness is not enough under subsumption, Strategy B (AL) for instruction typing |
-| Runtime too slow for spec-test-3 | 10.4 ms per page per step (P6); since M3 0.011 ms per step at 1 page (store not traversed) | M3's store-free termination check; without it, run with a time budget and a skip list |
+| Runtime too slow for spec-test-3 | 10.4 ms per page per step (P6); since M3 0.011 ms per step at 1 page (store not traversed); since M4 spec-test-3 runs in 10 min 37 s with 8 sessions | M3's store-free termination check; without it, run with a time budget and a skip list |
 | Certification time in logic mode | one guard proof >15 min (P5) | M9: per-event wall-clock limits, or `:program` for the decoder |
 | Conformance data for GC/exceptions | wabt converts 1/17 GC, 2/5 exception scripts (P5); resolved by M0b, 259/259 | wabt's data has wrong expectations in 9 scripts ([M0b-test-data](notes/M0b-test-data.md)): M8 should convert everything through the reference interpreter (recommended, the user decides) |
 | `Step` split completeness (wasm1 T8) inherited, plus `ctxt-handler` | wasm1 W13 | carried; Strategy B (AL) remains the fallback for `Step` |

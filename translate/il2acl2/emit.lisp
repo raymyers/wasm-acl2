@@ -196,6 +196,19 @@
         ((is (car forms) "REL") (cons (cons (second (car forms)) (car forms)) (rel-defs (cdr forms))))
         (t (rel-defs (cdr forms)))))
 
+(defun opt-result-defs (forms)
+  ;; ids of the defs whose result type is an option X? (partial defs, e.g. the
+  ;; inverse $inv_isize: an inverse binding takes the element, wasm3 M4)
+  (cond ((endp forms) nil)
+        ((is (car forms) "REC") (append (opt-result-defs (cdr (car forms))) (opt-result-defs (cdr forms))))
+        ((and (is (car forms) "DEF")
+              (mv-let (ps more) (def-parts (car forms))
+                (declare (ignore ps))
+                (and (consp more) (is (car more) "ITER") (true-listp (car more))
+                     (atom-is (third (car more)) "OPT"))))
+         (cons (second (car forms)) (opt-result-defs (cdr forms))))
+        (t (opt-result-defs (cdr forms)))))
+
 (defun gram-defs (forms)
   ;; alist grammar id -> its GRAM form (for inlining parametric grammars)
   (cond ((endp forms) nil)
@@ -225,6 +238,41 @@
     (let ((p (car ps)))
       (apply-patches (apply-patch forms (second p) (cadr (member :old p)) (cadr (member :new p)))
                      (cdr ps)))))
+
+; Config (:il-variant "f" :name "g" :drop-premises ("R" ...)): a copy of def
+; f named g whose clauses lack the premises on the relations R (a rule
+; premise, or an iteration of one). Placed right after f; f is unchanged.
+; wasm3 M4: instantiate_unchecked, $instantiate without Module_ok (a stub
+; until M7) and Externaddr_ok (which needs Module_ok's import types), the
+; test-only path of decision D6.
+(defun prem-on-p (x names)
+  (and (consp x)
+       (or (and (is x "RULE") (member-equal (second x) names))
+           (and (is x "ITER") (consp (cdr x)) (prem-on-p (second x) names)))))
+
+(defun drop-prems (items names)
+  (cond ((atom items) items)
+        ((prem-on-p (car items) names) (drop-prems (cdr items) names))
+        (t (cons (car items) (drop-prems (cdr items) names)))))
+
+(defun drop-prems-clauses (items names)
+  (cond ((atom items) items)
+        ((is (car items) "CLAUSE") (cons (drop-prems (car items) names) (drop-prems-clauses (cdr items) names)))
+        (t (cons (car items) (drop-prems-clauses (cdr items) names)))))
+
+(defun apply-variant (forms id name names)
+  (cond ((endp forms) nil)
+        ((and (is (car forms) "DEF") (equal (second (car forms)) id))
+         (list* (car forms)
+                (list* (car (car forms)) name (drop-prems-clauses (cddr (car forms)) names))
+                (cdr forms)))
+        (t (cons (car forms) (apply-variant (cdr forms) id name names)))))
+
+(defun apply-variants (forms vs)
+  (if (endp vs) forms
+    (let ((v (car vs)))
+      (apply-variants (apply-variant forms (second v) (cadr (member :name v)) (cadr (member :drop-premises v)))
+                      (cdr vs)))))
 
 (defun memo-rels (es)
   ;; (:memoize "label" :rels ("Rel" ...) ...)
@@ -459,6 +507,11 @@
                          (if (set-difference-equal (intersection-equal ids (strip-cars (cdr (assoc-eq :def tbl)))) cl)
                              (list (cfg-err e "a listed def has clauses (not a builtin)"))
                            nil))))
+    (:il-variant (let ((x (il-form-named (second e) forms)))
+                   (cond ((not (and x (is x "DEF"))) (list (cfg-err e (concatenate 'string "def " (second e) " not in the IL"))))
+                         ((not (stringp (cadr (member :name e)))) (list (cfg-err e ":name missing")))
+                         ((il-form-named (cadr (member :name e)) forms) (list (cfg-err e ":name is already defined")))
+                         (t nil))))
     (:il-patch (let ((x (il-form-named (second e) forms)))
                  (cond ((null x) (list (cfg-err e (concatenate 'string (second e) " not in the IL"))))
                        ((not (occurs-in (cadr (member :old e)) x))
@@ -572,7 +625,8 @@
             (if cerrs
                 (mv (msg "Config entries that do not match the IL, or unclassified builtins (~s0):~|~x1" config-file cerrs) state)
             (let* ((config (car cfg))
-                   (forms (apply-patches forms (config-entries config :il-patch)))
+                   (forms (apply-variants (apply-patches forms (config-entries config :il-patch))
+                                         (config-entries config :il-variant)))
                    (spec (mv-list 3 (specialize-fn-args forms)))
                    (forms (first spec))
                    (cx (list (cons :tbl (mangle-table forms))
@@ -590,7 +644,8 @@
                              (cons :rt-names rt-names)
                              (cons :typ-defs (typ-defs forms))
                              (cons :rel-defs (rel-defs forms))
-                             (cons :gram-defs (gram-defs forms)))))
+                             (cons :gram-defs (gram-defs forms))
+                             (cons :opt-defs (opt-result-defs forms)))))
               (mv-let (parts builtins skipped cx)
                 (let ((files (or (decl-files decls nil) (list "all"))))
                   (cforms-parts forms (suffix-min (form-file-indices forms decls files) (1- (len files)))
