@@ -1,0 +1,3 @@
+T6 instruction typing (3.0): 24 of 24 cases agree with V8 (encodings
+T).
+Wrong (name V8 generated): NIL

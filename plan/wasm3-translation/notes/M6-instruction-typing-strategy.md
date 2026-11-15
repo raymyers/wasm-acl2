@@ -263,3 +263,24 @@ its interface depends on step 3.
 **What remains needs the user's choice of step 3 (a or b)**: under (a) the
 sequencer must compute `x*` from given `t_1*`, `t_2*`; under (b) it only
 checks `t_1* ->_(x*) t_2*`. Both use steps 1 and 2 as they are.
+
+### The sequencer, drafted and measured with step 3 (b) (2026-11-15, scratch only)
+
+`data/sequencer-M6-2026-11-15/sequencer-b.lsp` is the sequencer as a
+`:rel-override` of `Instrs_ok` in check mode (about 90 lines), with the
+three `:il-patch` entries of (b) (`x*`, `x_1*`, `x_2*` set to `[]` in
+`Instr_ok`, exactly the five premises of `block`, `loop`, `if`,
+`try_table`). `run.sh` appends it to a **scratch copy** of the config,
+translates into `.probe/seq`, certifies and runs the V8 book there.
+Measured: **24 of 24 agree with V8** (16 with the generated rules
+alone): subsumption at a block end, the function end and a call, an
+initialized non-defaultable local, dead code after `unreachable`, `br`
+and `throw`, `br` with a value now pass, and every invalid body is still
+rejected. The table has the 18 entries of step 1; proposals come from
+`INSTR_OK/OUT2`; every proposal is checked by `INSTR_OK`, every pop by
+`RESULTTYPE_SUB`. Not done: `return_call_ref` and `return_call_indirect`
+have no table entry yet (they are rejected), and the 1.0/2.0 sequencer.
+
+The real config is unchanged: whether the callers get `t_2*` by (b), as
+measured here, or by (a), sub-component output positions, is the user's
+choice. Under (a) the same `seq-run` serves; only the interface changes.
