@@ -10,9 +10,9 @@ GEN     ?= ../translate/gen/wasm-3.0
 SPECDIR ?= ../translate/tests/spec
 LISP    := $(BUILD)/lisp
 
-.PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract clean
+.PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract js vectors units clean
 
-all: $(BUILD)/hello.js extract
+all: $(BUILD)/hello.js js
 
 $(BUILD)/jscl.js: $(JSCL_HOME)/dist/jscl.js
 	@mkdir -p $(BUILD)
@@ -48,7 +48,43 @@ check-extract:
 	@echo "check-extract: two runs identical ($$(ls $(BUILD)/lisp-a | wc -l | tr -d ' ') files)"
 	@test -z "$$(git status --porcelain ../translate)" || { git status --short ../translate; echo "check-extract: translate/ changed"; exit 1; }
 
-check: jscl-hello wabt-hello browser-hello check-extract
+# W3: shim + extracted semantics -> $(BUILD)/wasm3.js (num.js and list.js first:
+# the number tower and list primitives that the shim initializes). Needs `extract`.
+SHIM := shim/acl2.lisp shim/rule.lisp
+
+js: extract $(BUILD)/jscl.js
+	IN="$(SHIM) $$(sed 's|^|$(LISP)/|' $(LISP)/ORDER | tr '\n' ' ')" OUT=$(BUILD)/wasm3-core.js \
+	  $(JSCL_XC) --non-interactive --load shim/compile.lisp > $(BUILD)/wasm3.log 2>&1 \
+	  || { grep -v '^loading' $(BUILD)/wasm3.log | sed -n '/^Backtrace/q;p' | tail -30; exit 1; }
+	@grep 'DEMO-COMPILE\|is undefined' $(BUILD)/wasm3.log | sort | uniq
+	cat shim/num.js shim/list.js $(BUILD)/wasm3-core.js > $(BUILD)/wasm3.js
+	@ls -l $(BUILD)/wasm3.js | awk '{print "wasm3.js", $$5, "bytes"}'
+
+# W3: a test bundle per ACL2 test book: shim + books (without driver.lisp,
+# whose helper names the test books reuse) + the book's checking functions.
+BOOKS = $$(grep -v '^driver.lisp$$' $(LISP)/ORDER | sed 's|^|$(LISP)/|' | tr '\n' ' ')
+$(BUILD)/test-%.js: js
+	IN="$(SHIM) $(BOOKS) $(LISP)/tests/$*.lisp test/vectors-glue.lisp" OUT=$(BUILD)/test-$*-core.js \
+	  $(JSCL_XC) --non-interactive --load shim/compile.lisp > $(BUILD)/test-$*.log 2>&1 \
+	  || { grep -v '^loading' $(BUILD)/test-$*.log | sed -n '/^Backtrace/q;p' | tail -30; exit 1; }
+	@grep 'is undefined' $(BUILD)/test-$*.log | grep -v HOSTCALL-HOOK | sort | uniq || true
+	cat shim/num.js shim/list.js $(BUILD)/test-$*-core.js > $@
+
+# W3 item 3: shim unit tests (shim only, expected values printed by ACL2)
+$(BUILD)/test-units.js: js
+	IN="$(SHIM) test/units-pkg.lisp $(LISP)/tests/units.lisp" OUT=$(BUILD)/test-units-core.js \
+	  $(JSCL_XC) --non-interactive --load shim/compile.lisp > $(BUILD)/test-units.log 2>&1 \
+	  || { grep -v '^loading' $(BUILD)/test-units.log | sed -n '/^Backtrace/q;p' | tail -30; exit 1; }
+	cat shim/num.js shim/list.js $(BUILD)/test-units-core.js > $@
+units: $(BUILD)/test-units.js
+	$(NODE) test/units.js $(BUILD)
+
+# W3 item 2: numeric (8,724) and SIMD (1,008) vectors, as the ACL2 books check them
+vectors: $(BUILD)/test-numerics.js $(BUILD)/test-simd.js
+	$(NODE) test/vectors.js $(BUILD) numerics
+	$(NODE) test/vectors.js $(BUILD) simd
+
+check: jscl-hello wabt-hello browser-hello check-extract vectors units
 
 clean:
 	rm -r -f build

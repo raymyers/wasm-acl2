@@ -30,7 +30,7 @@
 - **Last updated**: 2026-11-15
 - **Milestones**: W0 done, **go** ([W0-feasibility](notes/W0-feasibility.md#w0-exit-gono-go-per-risk-2026-11-15));
   W7 done ([W7-rule-tags](notes/W7-rule-tags.md)); W1 done, D5 final
-  ([W1-numbers-stack](notes/W1-numbers-stack.md)); W2 done ([W2-extractor](notes/W2-extractor.md))
+  ([W1-numbers-stack](notes/W1-numbers-stack.md)); W2 done ([W2-extractor](notes/W2-extractor.md)); W3 done ([W3-shim](notes/W3-shim.md))
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
@@ -56,8 +56,22 @@
   Rewrites: literals (`%Q`, `%BIG`), clause-chain flattening, the stack
   rewrite (tail calls, CONS heads, continuations, calls inside clause
   chains; the last two found by W4 on `br_table.0.wasm`).
-- **Next action**: W3 (shim), then W4, per the headless
-  order. Work for W3–W5 items 1–3 exists in the tree, uncommitted (it was
+- **Shim (W3), for the user** (each with its reason next to it in
+  `demo/shim/`, table in [W3-shim](notes/W3-shim.md)): `num.js`, the D5
+  tower (add sub mul div neg, lt le gt ge eq, min max abs signum, floor
+  ceiling truncate round mod rem, expt ash logand logior logxor lognot
+  logbitp logcount integerLength, evenp oddp zerop plusp minusp integerp
+  rationalp numerator denominator, q, big); `list.js`, JS loops (equal len
+  trueListp count take updateNth append2 revappend memberEqual memberEq
+  assocEqual; `count` memoized by cons identity, found in W4);
+  `acl2.lisp`: the ACL2 numeric macros on the tower, `%Q %BIG`, natp posp
+  zp nfix ifix rfix, `WHILE`, equal len true-listp append reverse take
+  update-nth member-equal member-eq assoc-equal acl2-count put-assoc-equal
+  alistp remove-duplicates-equal subsetp-equal iff hons-copy make-ord, mv
+  mv-let, `%DEFATTACH`, `%MEMOIZE` (identity), intern$; `rule.lisp`:
+  `%RULE` (identity until W8).
+- **Next action**: W4 (whole semantics in node), per the headless
+  order. Work for W4–W5 items 1–3 exists in the tree, uncommitted (it was
   built while the W7 spec reruns ran); each goes in with its own commit.
 - **Translator change (W7, for the user)**: `%RULE` (`rt/prelude.lisp`,
   a macro: `(%RULE name x)` = `x`) and two emitter changes in
@@ -356,18 +370,30 @@ lists 0 unknown events. `git status translate/` is clean after the run.
 `translate/` clean (`make -C demo check-extract`).
 
 ### W3: Shim and numerics in node
-1. [ ] `demo/shim` per §3 and D5, covering the W2 item 2 list (0 left)
-2. [ ] Vector runner in node. The extractor converts the ACL2 test data
+1. [x] `demo/shim` per §3 and D5, covering the W2 item 2 list (0 left)
+       **Done 2026-11-15** ([W3-shim](notes/W3-shim.md#shim-contents-each-with-its-reason-in-the-source)):
+       `num.js` (D5 tower), `list.js` (loops; `acl2-count` memoized),
+       `acl2.lisp`, `rule.lisp`; all 59 ACL2 names of the W2 report covered
+2. [x] Vector runner in node. The extractor converts the ACL2 test data
        (`tests/sem/numeric-vectors.lsp`, `tests/sem-3.0/simd-vectors-3.0.lsp`,
        numeric data under `tests/sem-3.0`), and the runner applies the same
        builtins and compares the results. The runner re-implements no test
        logic beyond the comparison that the ACL2 test books make
-3. [ ] Shim unit tests for `equal`, `acl2-count`, ratios and bignum edge
+       **Done 2026-11-15** ([W3-shim](notes/W3-shim.md#vector-runner-item-2)):
+       the books' own `CHECK-VECTORS` and `CHECK-SIMD`, extracted by name;
+       numerics 8,724/8,724 (243 ms), SIMD 1,008/1,008 (356 ms), full
+       relaxed profile 480/480
+3. [x] Shim unit tests for `equal`, `acl2-count`, ratios and bignum edge
        cases (2^53 ± 1, 2^64, negative `mod`/`floor`, `ash` both ways),
        with expected values printed by ACL2
+       **Done 2026-11-15** ([W3-shim](notes/W3-shim.md#unit-tests-item-3)): 119/119
 
 **Exit**: 8,724/8,724 numeric and 1,008/1,008 SIMD vectors (incl. 480
 relaxed) pass under JSCL in node, the ACL2 counts (wasm3 M1).
+
+**W3 result (2026-11-15): exit met.** 8,724/8,724 and 1,008/1,008 (480
+relaxed) under JSCL in node; units 119/119. `make -C demo check` runs
+`vectors` and `units`.
 
 ### W4: The whole semantics in node
 1. [ ] All books (or the pruned set) load. `demo/driver` provides
