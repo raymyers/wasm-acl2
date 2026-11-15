@@ -64,7 +64,8 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now** (after M1): **1** stub (`Module_ok`), 0 builtins missing in `rt/`, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M6 item 3 (the sequencer, option C, decided). M7 waits for
+- **Next action**: M6 item 3 (the sequencer, option C, decided; the V8 cases
+  record 16 of 24 before it). M7 waits for
   the user's decision above. M8 needs M7; the execution side is ready for it.
   Optional: M5 hand-over items 1, 3, 4 (not needed for the exit)
 - **Changed in M5 (for the user)**: translator feature "enumeration variants"
@@ -377,12 +378,16 @@ recorded as N of M.
       `rec` group, sub-component output positions, and a kept whole-type
       variant of `Instr_ok`; then the sequencer and its table for the 10
       rules the output variant drops
-- [ ] Behavioural cases in `tests/sem-3.0/`, calling `INSTRS_OK` directly
+- [x] Behavioural cases in `tests/sem-3.0/`, calling `INSTRS_OK` directly
       on instruction sequences with a given context and type: one accepted
       and one rejected case for each of the six rules above, subsumption at
       a block end and at a call, an uninitialized non-defaultable local,
       and dead code after `unreachable`, `br` and `throw`. Expected answers
       from V8 (`WebAssembly.validate` on a module that wraps the sequence)
+      Done 2026-11-15 ([M6-typing-cases](notes/M6-typing-cases.md)): 24 bodies through
+      `EXPR_OK`, `make check-3.0`; **16 of 24** agree with V8, the 8 wrong ones are
+      valid bodies rejected (subsumption 3, dead code 3, `br` with a value, an
+      initialized local); none accepted wrongly
 - [ ] Certify instruction typing (all 110 `Instr_ok` rules translate since
       the prep, G5 included) and make the cases pass under the chosen
       strategy. Start from the 23 cases of the note's data directory

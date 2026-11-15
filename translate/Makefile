@@ -205,8 +205,8 @@ check-2.0:
 check-3.0:
 	$(MAKE) check-il SPEC=3.0
 	$(MAKE) gen SPEC=3.0
-	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-3.0/wasm3 tests/sem-3.0/t3-numerics-3.0 tests/sem-3.0/t3-simd-3.0 tests/sem-3.0/t3-builtins-3.0 tests/sem-3.0/t5-subtyping-3.0
-	@grep -h "T3 numerics (3.0)\|T3 SIMD (3.0)\|T3 builtins (3.0)\|T5 subtyping (3.0)" tests/sem-3.0/*.cert.out
+	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-3.0/wasm3 tests/sem-3.0/t3-numerics-3.0 tests/sem-3.0/t3-simd-3.0 tests/sem-3.0/t3-builtins-3.0 tests/sem-3.0/t5-subtyping-3.0 tests/sem-3.0/t6-instr-typing-3.0
+	@grep -h "T3 numerics (3.0)\|T3 SIMD (3.0)\|T3 builtins (3.0)\|T5 subtyping (3.0)\|T6 instruction typing (3.0)" tests/sem-3.0/*.cert.out
 	@echo "gen/wasm-3.0 certified; stubs: $$(sed -n "/^; Stubs/,/^;$$/p" gen/wasm-3.0/wasm3.lisp | grep -c "^;   ")"
 
 clean:
