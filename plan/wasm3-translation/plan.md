@@ -62,7 +62,8 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now** (after M1): **1** stub (`Module_ok`), 0 builtins missing in `rt/`, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M5 `trans` (enumeration variant, decided), then M6 item 3
+- **Next action**: M5 `trans` (enumeration variant, decided; the behavioural
+  book records 35 of 46 before it, all 11 wrong ones need `trans`), then M6 item 3
   (the sequencer, option C). M7 waits for the user's decision above. M8
   needs M7; the execution side is ready for it
 - **For the user (M4)**: new config KIND `:il-variant` and the entry
@@ -330,7 +331,7 @@ cut by the size check). What fails: 446 after an aborted `memory_copy` action,
       `HEAPTYPE_SUB/UP` that keeps the group's size-check measure, and the
       argument for the rules that cannot be enumerated. After M0 and M1, so
       that it can be run
-- [ ] Behavioural cases, in a test book that calls the generated
+- [x] Behavioural cases, in a test book that calls the generated
       relations directly (`tests/sem-3.0/`, as 1.0 `t6-typing`): subtyping
       and type-validity cases with the expected answer taken from the spec
       rules or the reference interpreter. At least: `I31 <: ANY`,
@@ -339,6 +340,9 @@ cut by the size check). What fails: 446 after an aborted `memory_copy` action,
       field (invariant) and an immutable one, a function type (contravariant
       parameters), and one negative case per abstract hierarchy. Write the
       book before `trans`, so that it records the failures first
+      Done 2026-11-15 ([M5-subtyping-cases](notes/M5-subtyping-cases.md)):
+      `tests/sem-3.0/t5-subtyping-3.0.lisp`, in `make check-3.0`; **35 of 46**
+      right, the 11 wrong ones all need `trans`
 - [ ] Hand-over items 1, 3, 4 of the note (demand inside a `rec` group,
       `c(a, b)` halves as positions, the list of `:fun` relations called with
       a bound output). Not needed for the exit
