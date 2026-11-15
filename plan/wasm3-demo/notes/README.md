@@ -14,3 +14,4 @@ exist. Raw outputs go under `data/<name>/` together with the script that made th
 | Note | Milestone | Status | Summary |
 |---|---|---|---|
 | [S0-survey](S0-survey.md) | planning | final | 27 books / 486,141 lines / ~33 MB; JSCL has no bignums or ratios; memory is a 65,536-element list per page |
+| [W0-feasibility](W0-feasibility.md) | W0 | draft | toolchain in the flake (JSCL image, wabt.js, Playwright Chromium+Firefox); hello passes in node and both browsers |

@@ -1,5 +1,22 @@
 {
   "nodes": {
+    "jscl-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794674230,
+        "narHash": "sha256-GLa6SRjFchViH2Aq15EZpZLp/QKJVkwNl9ma1CayKdc=",
+        "owner": "jscl-project",
+        "repo": "jscl",
+        "rev": "54c88494e9f8f22e4c24c666e84aab7053f18cee",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jscl-project",
+        "repo": "jscl",
+        "rev": "54c88494e9f8f22e4c24c666e84aab7053f18cee",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1786384358,
@@ -18,6 +35,7 @@
     },
     "root": {
       "inputs": {
+        "jscl-src": "jscl-src",
         "nixpkgs": "nixpkgs",
         "wasm-spec": "wasm-spec"
       }

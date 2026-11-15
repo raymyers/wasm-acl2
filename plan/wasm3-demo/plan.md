@@ -19,7 +19,7 @@
 > It shows the configuration (W5), the WAT line (W6) and the name of the
 > SpecTec rule that fired (W7, W8).
 >
-> **Status: not started** (written 2026-11-15, after the wasm3 plan M0..M9).
+> **Status: W0 in progress** (written 2026-11-15, after the wasm3 plan M0..M9).
 > Per-session procedure: [step.md](step.md). Survey behind this plan:
 > [S0-survey](notes/S0-survey.md).
 
@@ -28,7 +28,7 @@
 ## Current state
 
 - **Last updated**: 2026-11-15
-- **Milestones**: none started
+- **Milestones**: W0 in progress (item 1 done)
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
@@ -44,7 +44,12 @@
   with rule names from translator tags (option 3a). D7, the translator may
   change generated output (1.0 included) for W7, provided all certifications
   and tests still pass.
-- **Next action**: W0 item 1 (toolchain in the flake).
+- **Next action**: W0 item 2 (hand-run slice). A throwaway extractor for it lives under
+  `notes/data/w0-slice/`.
+- **Toolchain** (W0 item 1): flake input `jscl-src` (54c8849), packages
+  `jscl` and `wabt-js`; the dev shell adds `jscl`, `jscl-xc`,
+  `playwright-test`, `pngquant` and the variables `JSCL_HOME`, `WABT_JS`,
+  `PLAYWRIGHT_NODE_MODULES`, `PLAYWRIGHT_BROWSERS_PATH`.
 - **Headless order** (one item per session, as step.md says): W0, W7,
   W1, W2, W3, W4, W5, W6, W8, W9. W7 goes early so that W2's event table
   sees `%RULE` from the start.
@@ -180,12 +185,17 @@ demo/driver/*.lisp (JS-facing glue) ──────────────�
 ## 4. Milestones
 
 ### W0: Feasibility spike (go/no-go)
-1. [ ] Toolchain in the flake (D2, D8): `nix develop` gives `jscl` (node),
+1. [x] Toolchain in the flake (D2, D8): `nix develop` gives `jscl` (node),
        the SBCL-hosted cross compiler, wabt's JS build, and Playwright
        with headless Chromium and Firefox. `make -C demo jscl-hello`
        compiles and runs a one-line file in node. `make -C demo
        browser-hello` loads it in both headless browsers, and writes the
-       first progress screenshot (step.md)
+       first progress screenshot (step.md).
+       **Done 2026-11-15** ([W0-feasibility](notes/W0-feasibility.md)):
+       `nix/jscl.nix` (SBCL 2.6.6 image `jscl-xc` saved after bootstrap),
+       wabt.js 1.0.39, Playwright 1.61.1 with nixpkgs Chromium 1228 and
+       Firefox 1532. `make -C demo check`: node PASS, wabt.js PASS,
+       Chromium PASS, Firefox PASS. Screenshot `progress/01-W0-browser-hello.png`
 2. [ ] Hand-run slice: `rt/prelude`, `rt/builtins*`, and the books
        `0_*`/`1_*` through a throwaway version of the extractor table,
        compiled with JSCL and loaded in node. Record what JSCL rejects

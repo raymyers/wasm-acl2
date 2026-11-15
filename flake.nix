@@ -10,10 +10,21 @@
       url = "github:WebAssembly/spec/943c5df07e84f11d2b83078964df5812530afbd2";
       flake = false;
     };
+
+    # JSCL, pinned (demo plan D2): compiles the extracted 3.0 semantics to JS.
+    jscl-src = {
+      url = "github:jscl-project/jscl/54c88494e9f8f22e4c24c666e84aab7053f18cee";
+      flake = false;
+    };
   };
 
   outputs =
-    { self, nixpkgs, wasm-spec }:
+    {
+      self,
+      nixpkgs,
+      wasm-spec,
+      jscl-src,
+    }:
     let
       systems = [
         "x86_64-linux"
@@ -152,6 +163,26 @@
         in
         rec {
         default = wasm-acl2;
+
+        # Demo toolchain (plan/wasm3-demo D2, D8).
+        jscl = import ./nix/jscl.nix {
+          inherit pkgs;
+          src = jscl-src;
+        };
+        # wabt's JS build (wabt.js, one file with the wasm inlined): the page
+        # converts WAT to binary with it (D3). Pinned npm tarball.
+        wabt-js =
+          pkgs.runCommand "wabt-js-1.0.39"
+            {
+              src = pkgs.fetchurl {
+                url = "https://registry.npmjs.org/wabt/-/wabt-1.0.39.tgz";
+                hash = "sha256-oQ1PSxW5HeirLMtHAO8SGFc28LyW7oCeU6sX9+p0P9I=";
+              };
+            }
+            ''
+              mkdir -p $out/lib/node_modules/wabt
+              tar xzf $src -C $out/lib/node_modules/wabt --strip-components=1
+            '';
 
         # The reference interpreter (see wasmRefInterp above), wasm3 M0b.
         wasm-ref-interp = wasmRefInterp;
@@ -444,6 +475,12 @@
             # tests/oracle: WAT -> wasm, then run it under Node.
             pkgs.wabt
             pkgs.nodejs
+            # plan/wasm3-demo: JSCL, Playwright (headless Chromium and Firefox
+            # from nixpkgs, so nothing is downloaded at test time), pngquant for
+            # the progress screenshots. wabt.js is reached through $WABT_JS.
+            self.packages.${pkgs.stdenv.hostPlatform.system}.jscl
+            pkgs.playwright-test
+            pkgs.pngquant
           ];
 
           shellHook =
@@ -455,6 +492,11 @@
               export ACL2_SYSTEM_BOOKS=${acl2}/share/acl2/books
               export CERT=${acl2}/share/acl2/books/build/cert.pl
               export ACL2_LISP=sbcl
+              export JSCL_HOME=${self.packages.${pkgs.stdenv.hostPlatform.system}.jscl}/share/jscl
+              export WABT_JS=${self.packages.${pkgs.stdenv.hostPlatform.system}.wabt-js}/lib/node_modules/wabt
+              export PLAYWRIGHT_NODE_MODULES=${pkgs.playwright-test}/lib/node_modules
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+              export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 
               echo "wasm-acl2 dev shell"
               echo "  make all      certify top + proofs + tests"
