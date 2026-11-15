@@ -64,7 +64,13 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now** (after M1): **1** stub (`Module_ok`), 0 builtins missing in `rt/`, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M9 (logic mode and proofs).
+- **Next action**: none; the plan (M0..M9) is done. For the user, still open: the M0b
+  recommendation (convert every script through the reference interpreter);
+  the deferred text format and soundness judgements.
+- **M9 done (2026-11-15)**: config `:program` replaced by `(:logic "time-limited
+  attempts" :seconds 20)` (new: `%TRY-LOGIC-T` / `%TRY-GUARDS-T`, reason in the
+  config); certification 4 min 38 s; manifest :guards 429, :logic 692, :program 288,
+  checked by `t0-modes-3.0` in `check-3.0` ([M9-logic-mode](notes/M9-logic-mode.md)).
 - **M7 and M8 done (2026-11-15)**: user decision proposer and checker;
   `Module_ok` translated (config `:given-entry`), 0 stubs; spec-test-3 with
   validation: 63,326 of 63,883 commands, valid modules 2,263/2,263,
@@ -458,11 +464,15 @@ and text-format `assert_malformed`. What fails is listed by cause in M4-conforma
 the reference interpreter) is still open for the user.
 
 ### M9: Logic mode and proofs
-- [ ] `%TRY-LOGIC` time limits: one 3.0 guard proof ran >15 min (P5)
-- [ ] Mode manifest for 3.0 (`modes.lsp`, as 1.0), including the
+- [x] `%TRY-LOGIC` time limits: one 3.0 guard proof ran >15 min (P5)
+      Done 2026-11-15 ([M9-logic-mode](notes/M9-logic-mode.md)): config `(:logic ... :seconds 20)`
+      replaces `:program`; certification 4 min 38 s; 4 attempts hit the limit
+- [x] Mode manifest for 3.0 (`modes.lsp`, as 1.0), including the
       `R/OUT..` variants made on demand
+      Done: `tests/sem-3.0/modes-3.0.lsp`, `make modes SPEC=3.0`, test book `t0-modes-3.0` in `check-3.0`
 
 **Exit**: a recorded logic / guards / program count, compared by a test book.
+**Met 2026-11-15**: :guards 429, :logic 692, :program 288; `t0-modes-3.0` matches.
 
 ### Order and dependencies
 
@@ -495,7 +505,7 @@ Today `config/wasm-3.0.lsp` has 17 entries (since M7: `:given-entry "Module_ok"`
 `:split Step ctxt-instrs`, `:decreasing`, `:memoize` (since M0 with
 `:recursive nil`), `:sized`, `:builtins` (11 choice + 1 host +
 `$s33_to_u32`), `:witness` (4 relations), since M5 `:fuel` (the type
-group), and since M0 `:program` (certification mode, removed in M9), 12 in all. The `:decreasing` entry has gained `("Step" 0 2)` (M3) and `("Ref_ok" . 1)` (M4). The `:modes` entry (22 pairs at the end of the prep) is gone
+group), and since M0 `:program` (certification mode; replaced in M9 by `:logic` with `:seconds 20`), 12 in all. The `:decreasing` entry has gained `("Step" 0 2)` (M3) and `("Ref_ok" . 1)` (M4). The `:modes` entry (22 pairs at the end of the prep) is gone
 since the mode table. 1.0 has 8 (the `:witness` entry is new), 2.0 has 9
 (two `:il-patch` for a 2.0 source bug; `:witness` replaced `:modes`).
 Expected additions for 3.0: `:rel-override Module_ok` unless M7 avoids it,
@@ -509,7 +519,7 @@ possibly `:rel-override Heaptype_sub` (M5), about 12 or 13 entries in total (M7 
 | The size-check termination discipline does not fit 3.0 types | 13 of 22 type cases wrong ([review-checker-blind-spots](notes/review-checker-blind-spots.md)) | M5: fuel for the type group; if a relation outside it shows the same shape, the probe cannot tell, only behavioural cases can |
 | Typing complete only with hand-written parts | `trans` is not admissible and is dropped today, so GC subtyping through abstract heap types is rejected; 8 rules rely on one witness ([M5-mode-table](notes/M5-mode-table.md)) | after M5: `trans` by enumeration or override. After M6: if one witness is not enough under subsumption, Strategy B (AL) for instruction typing |
 | Runtime too slow for spec-test-3 | 10.4 ms per page per step (P6); since M3 0.011 ms per step at 1 page (store not traversed); since M4 spec-test-3 runs in 10 min 37 s with 8 sessions | M3's store-free termination check; without it, run with a time budget and a skip list |
-| Certification time in logic mode | one guard proof >15 min (P5) | M9: per-event wall-clock limits, or `:program` for the decoder |
+| Certification time in logic mode | one guard proof >15 min (P5); since M9 4 min 38 s with 20 s per attempt | resolved (M9); the modes depend on the machine, so `t0-modes-3.0` may report a change on a slower one |
 | Conformance data for GC/exceptions | wabt converts 1/17 GC, 2/5 exception scripts (P5); resolved by M0b, 259/259 | wabt's data has wrong expectations in 9 scripts ([M0b-test-data](notes/M0b-test-data.md)): M8 should convert everything through the reference interpreter (recommended, the user decides) |
 | `Step` split completeness (wasm1 T8) inherited, plus `ctxt-handler` | wasm1 W13 | carried; Strategy B (AL) remains the fallback for `Step` |
 

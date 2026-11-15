@@ -151,3 +151,27 @@
 ; first whatever R is
 (defun $relaxed_trunc__ (m n sx f)
   (or ($trunc__ m n sx f) ($trunc_sat__ m n sx f)))
+
+; ---------------------------------------------------------------------
+; Logic mode with time limits (wasm3 M9; config (:logic ... :seconds n)).
+; As %TRY-LOGIC / %TRY-GUARDS (prelude.lisp), but every attempt also runs
+; under a prover time limit of SECONDS: the step limits alone do not bound
+; wall time (one 3.0 guard proof ran more than 15 minutes, prep P5). An
+; attempt that hits the limit falls back like one that fails. A time limit
+; depends on the machine, so the mode manifest (tests/sem-3.0/modes-3.0.lsp)
+; records the result on the machine that wrote it.
+(defun %timed (secs ev) (list 'with-prover-time-limit secs ev))
+(defun %timed-alts (secs evs) (if (atom evs) nil (cons (%timed secs (car evs)) (%timed-alts secs (cdr evs)))))
+
+(defmacro %try-logic-t (secs ev)
+  `(make-event '(:or ,@(%timed-alts secs
+                         (list* (list 'with-prover-step-limit 200000 (%logic-version ev))
+                                (list 'with-prover-step-limit 2000000 (%gz-version ev))
+                                (and (consp ev) (eq (car ev) 'defun) (consp (cdr ev)) (consp (cddr ev))
+                                     (true-listp (caddr ev))
+                                     (%measure-alts ev (caddr ev)))))
+                     ,(%program-version ev))))
+
+(defmacro %try-guards-t (secs name)
+  `(make-event '(:or (with-prover-time-limit ,secs (with-prover-step-limit 100000 (verify-guards ,name)))
+                     (value-triple :guards-not-verified))))

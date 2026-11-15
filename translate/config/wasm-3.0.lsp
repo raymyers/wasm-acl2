@@ -43,8 +43,8 @@
   :rels ("Heaptype_ok")
   :reason "The rec group of Heaptype_ok (19 relations: type validation and subtyping) terminates by a depth bound, (%TFUEL) in rt/prelude.lisp, instead of the generated check that every recursive premise has smaller inputs. That check cut valid derivations: a rule that passes its arguments unchanged to another relation of the group (Valtype_sub/ref to Reftype_sub), one that replaces a type index by the defined type (Heaptype_sub/typeidx-l), one that recurses under a larger context (Deftype_ok). Measured: 9 of 22 type cases right with the size check (wasm3 notes, review-checker-blind-spots). A derivation deeper than the bound is not found; a failing search through a cyclic context ends at the bound.")
 
- (:program "certification mode"
-  :reason "Every generated event is admitted in :program mode (the book default `(program)`), not through %TRY-LOGIC/%TRY-GUARDS. Not a translation exception: it bounds certification time. With the logic attempts, one guard proof in 5_2-binary_types ran more than 15 CPU minutes (prep P5-conformance), and the prover step limits do not bound wall time. Execution is the same in both modes. Removed in wasm3 M9 (logic mode and proofs), which needs per-event time limits first.")
+ (:logic "time-limited attempts" :seconds 20
+  :reason "wasm3 M9 (replaces the :program entry of M0): every generated event goes through %TRY-LOGIC-T / %TRY-GUARDS-T (rt/builtins-3.0.lisp): logic mode and guard verification are tried as for 1.0 (%TRY-LOGIC: step limits and the same alternatives), and each attempt also has a prover time limit of :seconds, because the step limits do not bound wall time (one 3.0 guard proof ran more than 15 minutes, prep P5). An attempt that hits a limit falls back (program mode, or guards not verified). The time limit makes the result depend on the machine; tests/sem-3.0/modes-3.0.lsp records it.")
 
  (:il-patch "Belem"
   :old (list (iter (case "REF.FUNC" (var "y")) list (dom "y" (var "y*"))))

@@ -26,7 +26,7 @@
 #   make modes       rewrite gen/wasm-1.0/modes.lsp from certified books (t0-modes checks it)
 #   make check       check-il + check-gen + test (1.0)
 #   make check-2.0   2.0 gate: regenerate, certify, run the 2.0 numeric and SIMD vectors
-#   make check-3.0   3.0 gate: regenerate, certify (:program mode), run the 3.0 numeric, SIMD and builtin tests
+#   make check-3.0   3.0 gate: regenerate, certify (logic mode, timed), run the 3.0 tests and the mode manifest
 
 NIX  ?= nix
 ACL2 ?= acl2
@@ -103,9 +103,15 @@ test:
 # Rewrite gen/wasm-1.0/modes.lsp (the mode manifest that tests/sem/t0-modes
 # checks) from freshly certified books. Run after an intended mode change.
 modes:
+ifeq ($(SPEC),3.0)
+	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-3.0/wasm3 tests/sem/modes-lib
+	cd tests/sem-3.0 && $(ACL2) < modes-write-3.0.lsp > modes-write.log 2>&1 || { tail -30 modes-write.log; exit 1; }
+	@grep -o "modes-3.0.lsp: .*" tests/sem-3.0/modes-write.log
+else
 	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-1.0/wasm1 tests/sem/modes-lib
 	cd tests/sem && $(ACL2) < modes-write.lsp > modes-write.log 2>&1 || { tail -30 modes-write.log; exit 1; }
 	@grep -o "modes.lsp: .*" tests/sem/modes-write.log
+endif
 
 # T9 side-by-side reports (include the WASM1 tree; see the .cert.out files).
 compare:
@@ -200,13 +206,13 @@ check-2.0:
 	@grep -h "T3 numerics (2.0)\|T3 SIMD (2.0)" tests/sem-2.0/*.cert.out
 
 # The 3.0 gate (wasm3 M0): regenerate 3.0 from the checked-in IL (gen/wasm-3.0 is
-# not checked in) and certify it. The config entry :program makes every generated
-# event :program mode (logic mode is wasm3 M9). Then the 3.0 numeric, SIMD (with
+# not checked in) and certify it, in logic mode with time-limited attempts (config
+# :logic, wasm3 M9); t0-modes-3.0 compares the modes with tests/sem-3.0/modes-3.0.lsp. Then the 3.0 numeric, SIMD (with
 # relaxed SIMD) and builtin tests (wasm3 M1).
 check-3.0:
 	$(MAKE) check-il SPEC=3.0
 	$(MAKE) gen SPEC=3.0
-	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-3.0/wasm3 tests/sem-3.0/t3-numerics-3.0 tests/sem-3.0/t3-simd-3.0 tests/sem-3.0/t3-builtins-3.0 tests/sem-3.0/t5-subtyping-3.0 tests/sem-3.0/t6-instr-typing-3.0
+	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-3.0/wasm3 tests/sem-3.0/t3-numerics-3.0 tests/sem-3.0/t3-simd-3.0 tests/sem-3.0/t3-builtins-3.0 tests/sem-3.0/t5-subtyping-3.0 tests/sem-3.0/t6-instr-typing-3.0 tests/sem-3.0/t0-modes-3.0
 	@grep -h "T3 numerics (3.0)\|T3 SIMD (3.0)\|T3 builtins (3.0)\|T5 subtyping (3.0)\|T6 instruction typing (3.0)" tests/sem-3.0/*.cert.out
 	@echo "gen/wasm-3.0 certified; stubs: $$(sed -n "/^; Stubs/,/^;$$/p" gen/wasm-3.0/wasm3.lisp | grep -c "^;   ")"
 

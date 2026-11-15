@@ -29,3 +29,4 @@ translate/tests/sem/modes-write.log
 translate/gen/wasm-2.0/
 translate/gen/wasm-3.0/
 workxxx.*
+translate/tests/sem-3.0/modes-write.log

@@ -37,11 +37,11 @@
 
 (mutual-recursion
 (defun %modes-defun-names (x acc)
-  ;; names of the defuns in a generated event (inside %TRY-LOGIC, MUTUAL-RECURSION)
+  ;; names of the defuns in a generated event (inside %TRY-LOGIC, %TRY-LOGIC-T, MUTUAL-RECURSION)
   (cond ((atom x) acc)
         ((and (symbolp (car x)) (equal (symbol-name (car x)) "DEFUN") (consp (cdr x)) (symbolp (cadr x)))
          (if (member-eq (cadr x) acc) acc (cons (cadr x) acc)))
-        ((and (symbolp (car x)) (member-equal (symbol-name (car x)) '("%TRY-LOGIC" "MUTUAL-RECURSION")))
+        ((and (symbolp (car x)) (member-equal (symbol-name (car x)) '("%TRY-LOGIC" "%TRY-LOGIC-T" "MUTUAL-RECURSION")))
          (%modes-defun-names-list (cdr x) acc))
         (t acc)))
 

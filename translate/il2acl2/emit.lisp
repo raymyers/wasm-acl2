@@ -49,11 +49,17 @@
 ; each event: (%TRY-LOGIC ev) then (%TRY-GUARDS name); with PROGRAM (config
 ; :program, wasm3 M0) the event as it is, under the book's (program) default
 (defun wrap-try-logic (evs pkg program)
+  ;; PROGRAM: nil (the default attempts), t (config :program: the events as
+  ;; they are) or a number of seconds (config :logic: timed attempts, wasm3 M9)
   (cond ((endp evs) nil)
-        (program evs)
+        ((eq program t) evs)
         ;; config :memoize events go out as they are
         ((and (consp (car evs)) (eq (car (car evs)) (quote acl2::memoize)))
          (cons (car evs) (wrap-try-logic (cdr evs) pkg program)))
+        ((natp program)
+         (list* (list (intern$ "%TRY-LOGIC-T" pkg) program (car evs))
+                (list (intern$ "%TRY-GUARDS-T" pkg) program (event-first-name (car evs)))
+                (wrap-try-logic (cdr evs) pkg program)))
         (t (list* (list (intern$ "%TRY-LOGIC" pkg) (car evs))
            (list (intern$ "%TRY-GUARDS" pkg) (event-first-name (car evs)))
            (wrap-try-logic (cdr evs) pkg program)))))
@@ -512,6 +518,7 @@
     (:witness (check-names e :rel (cadr (member :rels e)) tbl "relation"))
     (:fuel (check-names e :rel (cadr (member :rels e)) tbl "relation"))
     (:program (if (stringp (second e)) nil (list (cfg-err e "label missing"))))
+    (:logic (if (natp (cadr (member :seconds e))) nil (list (cfg-err e ":seconds missing"))))
     (:split (if (member-equal (cons (second e) (third e)) (rule-pairs forms)) nil
               (list (cfg-err e (concatenate 'string "rule " (second e) "/" (third e) " not in the IL")))))
     (:inverse (check-inverse-pairs e (cadr (member :pairs e)) overrides tbl))
@@ -740,6 +747,12 @@
                                                 "(include-book \"portcullis\")")
                                           nil state)))))))))))))))))))
 
+(defun certify-mode (config)
+  ;; t for config :program, the seconds of config :logic, else nil
+  (cond ((config-entries config :program) t)
+        ((config-entries config :logic) (nfix (cadr (member :seconds (car (config-entries config :logic))))))
+        (t nil)))
+
 (defun write-parts (parts prev target program state)
   ;; each part: (in-package), include the previous part (the runtime for the
   ;; first), the defaults that are local to a book, then its events
@@ -758,7 +771,7 @@
                           ""
                           (concatenate 'string "(include-book \"" prev "\")")
                           ""
-                          (if program "(program) ; config :program" "(set-verify-guards-eagerness 0)")
+                          (if (eq program t) "(program) ; config :program" "(set-verify-guards-eagerness 0)")
                           "(set-bogus-mutual-recursion-ok t) ; stubbed members of a rec group"
                           "")
                     forms state)
@@ -862,7 +875,7 @@
           (mv (msg "Translator symbols leaked into generated code: ~x0" bad) state)
         (mv-let (rt-files rt-book state) (rt-files-for (tgt :version target) state)
          (declare (ignore rt-files))
-        (mv-let (erp state) (write-parts parts rt-book target (config-entries config :program) state)
+        (mv-let (erp state) (write-parts parts rt-book target (certify-mode config) state)
           (if erp (mv erp state)
             (write-file (concatenate 'string (tgt :outdir target) (tgt :book target) ".lisp")
                         header nil state))))))))
