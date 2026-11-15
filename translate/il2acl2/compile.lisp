@@ -1172,6 +1172,17 @@
 
 (defun out-mode-p (mode) (and (consp mode) (eq (car mode) :out)))
 
+;; Mode (:given "v" ...) (wasm3 M7): as :fun, with the named rule variables
+;; as extra inputs after the relation's own. For a rule whose premises
+;; depend on each other through a value they build together (Module_ok's
+;; context C): hand-written code proposes the value, and the generated rule,
+;; in which every equation on it is then a test, checks it. Function R/W.
+(defun given-mode-p (mode) (and (consp mode) (eq (car mode) :given)))
+
+(defun given-env (names syms env)
+  (if (or (endp names) (endp syms)) env
+    (given-env (cdr names) (cdr syms) (acons (car names) (car syms) env))))
+
 (defun out-exp (comps outs)
   ;; the output of mode (:out . outs): the component, or a tuple of them
   (let ((os (take-positions comps outs 0)))
@@ -1975,6 +1986,7 @@
   (mv-let (comps prems) (rule-parts r)
     (mv-let (sa sb) (split-last comps)
     (let* ((ins (cond ((out-mode-p mode) (drop-positions comps (cdr mode) 0))
+                      ((given-mode-p mode) (butlast comps 1))
                       ((eq mode :fun) (butlast comps 1))
                       ((eq mode :fun2) (butlast comps 2))     ; declared: two outputs (G2)
                       ((and (eq mode :split) sa (cx-get :split-shape cx)) (append (butlast comps 1) (list sa)))
@@ -1982,10 +1994,14 @@
                       (t comps)))
            (cx (cx-put :redex (and (member-equal (cons rel (second r)) (cx-get :split-rules cx)) t) cx)))
       (mv-let (s1 env dfr cx) (cpat-args-defer ins formals nil cx)
-        (let ((cx (cx-put :redex nil cx)))
+        (let ((cx (cx-put :redex nil cx))
+              (env (if (given-mode-p mode)
+                       (given-env (cdr mode) (nthcdr (len ins) formals) env)
+                     env)))
           (mv-let (s2 env cx) (cprems prems env (cx-put :rule-occ (append (fv-exp (cons (quote tup) comps)) (fv-prems prems)) (cx-put :dfr dfr cx)))
             (mv-let (s3 cx) (deferred-tests (cx-get :dfr cx) env (cx-put :dfr nil cx))
             (mv-let (out cx) (cond ((out-mode-p mode) (cexp (out-exp comps (cdr mode)) env cx))
+                                   ((given-mode-p mode) (cexp (car (last comps)) env cx))
                                    ((eq mode :fun) (cexp (car (last comps)) env cx))
                                    ((eq mode :fun2) (cexp (cons (quote tup) (nthcdr (- (len comps) 2) comps)) env cx))
                                    ((and (eq mode :split) sa (cx-get :split-shape cx)) (cexp sb env cx))
@@ -2039,6 +2055,8 @@
 (defun crel-1-body (x mode cx)
   (mv-let (n rules) (rel-parts x)
     (let* ((name (cond ((out-mode-p mode) (variant-name (second x) (cdr mode) cx))
+                       ((given-mode-p mode)
+                        (gsym (concatenate 'string (cdr (fn-sym :rel (second x) cx)) "/W")))
                        ((eq mode :split) (split-name (second x) cx))
                        (t (fn-sym :rel (second x) cx))))
            (cx (cx-put :fn (cdr name) cx)) (cx (cx-put :n 0 cx)) (cx (cx-put :aux nil cx))
@@ -2062,14 +2080,15 @@
                       (mk-defun name (list a) (list aux (list (gsym "%FUEL")) a)))
                 cx)))
        (t
-        (let* ((formals (gsyms-prefixed "%A" (if (out-mode-p mode) (nfix (- n (len (cdr mode))))
+        (let* ((formals (gsyms-prefixed "%A" (if (given-mode-p mode) (+ (nfix (1- n)) (len (cdr mode)))
+                                             (if (out-mode-p mode) (nfix (- n (len (cdr mode))))
                                              (if (eq mode :fun2) (nfix (- n 2))
                                                (if (or (eq mode :fun) (and (eq mode :split) (not (rel-splits-p x))))
-                                                 (1- n) n)))))
+                                                 (1- n) n))))))
                (cx (cx-put :rel-formals (and (member-equal (second x) (cx-get :rec-rels cx)) formals) cx))
                (cx (cx-put :cur-rel (second x) cx)))
           (mv-let (cs cx) (crules rules mode formals (second x) cx)
-            (let ((body (if (or (out-mode-p mode) (member-eq mode '(:fun :fun2 :split))) (chain-results cs) (list 'if (chain-results cs) t nil))))
+            (let ((body (if (or (out-mode-p mode) (given-mode-p mode) (member-eq mode '(:fun :fun2 :split))) (chain-results cs) (list 'if (chain-results cs) t nil))))
               (mv (append (reverse (cx-get :aux cx))
                           (list (cond
                                  ((and (cx-get :rel-formals cx) (cx-get :fuel-group cx))

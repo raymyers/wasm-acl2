@@ -33,6 +33,10 @@
   null i31)` was rejected. Fixed with the user's go-ahead: the group
   terminates by fuel (config `:fuel`); 20 of 22 right, the 2 left need
   `trans` ([review-checker-blind-spots](notes/review-checker-blind-spots.md))
+- **Waiting for the user**: the `Module_ok` strategy
+  ([M7-module-ok-strategy](notes/M7-module-ok-strategy.md)). Recommended:
+  hand-written code proposes the contexts `C'` and `C`, the generated rule
+  checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now**: 2 stubs, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
 - **Next action**: M0, then M0b and M1 (see "Order and dependencies")
@@ -258,15 +262,17 @@ recorded as N of M.
 the validator, under Strategy B); behavioural cases N of M.
 
 ### M7: `Module_ok`
-- [ ] **Design session first** (a decision for the user): how to
-      translate `Module_ok`. Its context is built in stages from the
-      outputs of its own premises (types, then imports, then functions and
-      globals), now with tags and recursive types. Options: staged modes
-      in the translator (a context that grows premise by premise), or a
-      counted `:rel-override` as in 1.0 (about 80 lines there; estimate
-      the 3.0 size before choosing). Variants on demand do not help
-      ([M5-mode-table](notes/M5-mode-table.md), hand-over item 6)
-- [ ] Implement the choice; `$instantiate` with validation switched on
+- [x] **Design session**, held 2026-11-14
+      ([M7-module-ok-strategy](notes/M7-module-ok-strategy.md)): two
+      cycles through the context `C` (function types; data and element
+      types). Experiment: in the new mode `(:given "C" "C'")` the generated
+      rule compiles with 0 errors (29 before)
+- [ ] **User decision**: proposer and checker (recommended: about 60 to 80
+      hand-written lines compute `C'` and `C`; the generated `MODULE_OK/W`
+      checks them on every call), or a plain override as in 1.0 (about 110
+      lines, tied to the rule by tests only)
+- [ ] Implement the choice: a config kind for "entry function plus given
+      variables", the proposer; `$instantiate` with validation switched on
 - [ ] Module-level validation on spec-test-3, GC and exception scripts
       included (M0b): `assert_invalid` rejected, and every module that the
       scripts instantiate accepted
