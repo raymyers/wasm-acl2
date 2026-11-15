@@ -1916,26 +1916,34 @@
                       (list 'if r (list 'car r) rest))
                 cx)))))))
 
+; Body of a definition that could not be translated (listed in the header).
+(defun stub-defun-msg (name formals msg)
+  (mk-defun name formals
+            (list (quote prog2$)
+                  (list (quote er) (quote acl2::hard?) (list (quote quote) name) msg)
+                  nil)))
+
+(defun stub-defun (name formals)
+  (stub-defun-msg name formals "Not translated (see the stub list in the file header)."))
+
 ; (mv defun-or-nil builtin cx). Builtins (no clauses) are not emitted;
-; BUILTIN is then (name-string . arity).
+; BUILTIN is then (name-string . arity). A builtin whose name rt/ does not
+; define (cx :rt-names, wasm3 M0) is emitted as a stub instead and listed
+; in :stubs, so the books certify and only a call of it signals an error.
 (defun cdef (x cx)
   (mv-let (ps more) (def-parts x)
     (let* ((arity (len (exp-params ps)))
            (formals (gsyms-prefixed "%A" arity))
            (name (fn-sym :def (second x) cx))
            (cls (cdr more)))
-      (if (endp cls)
-          (mv nil (cons (cdr name) arity) cx)
-        (mv-let (body cx) (cclauses cls formals cx)
-          (mv (mk-defun name formals body) nil cx))))))
-
-; Body of a definition that could not be translated (listed in the header).
-(defun stub-defun (name formals)
-  (mk-defun name formals
-            (list (quote prog2$)
-                  (list (quote er) (quote acl2::hard?) (list (quote quote) name)
-                        "Not translated (see the stub list in the file header).")
-                  nil)))
+      (cond ((and (endp cls) (cx-get :rt-names cx)
+                  (not (member-equal (cdr name) (cx-get :rt-names cx))))
+             (mv (stub-defun-msg name formals "Builtin with no definition in rt/ yet (see the file header).")
+                 nil
+                 (cx-put :stubs (cons (cdr name) (cx-get :stubs cx)) cx)))
+            ((endp cls) (mv nil (cons (cdr name) arity) cx))
+            (t (mv-let (body cx) (cclauses cls formals cx)
+                 (mv (mk-defun name formals body) nil cx)))))))
 
 ; --- Relations (plan §2.5) ----------------------------------------------
 ;
@@ -2884,17 +2892,41 @@
                (fuel-entries (cdr ds) names)))
         (t (fuel-entries (cdr ds) names))))
 
-(defun all-needy (ds extras)
+; Only the functions that use the fuel take it (wasm3 M0: ACL2 rejects an
+; irrelevant formal, e.g. SUBTYPE_OK2/ALL1, an aux that calls only itself
+; and a builtin): those whose body mentions %FUEL (the relation functions)
+; and, to a fixpoint, those that call one of them.
+(defun gsym-occurs-any (names x)
+  (cond ((endp names) nil)
+        ((gsym-occurs (car names) x) t)
+        (t (gsym-occurs-any (cdr names) x))))
+
+(defun fuel-users-1 (ds acc)
+  (cond ((endp ds) acc)
+        ((and (consp (car ds)) (eq (car (car ds)) 'defun)
+              (not (member-equal (second (car ds)) acc))
+              (or (gsym-occurs (gsym "%FUEL") (cdddr (car ds)))
+                  (gsym-occurs-any acc (cdddr (car ds)))))
+         (fuel-users-1 (cdr ds) (cons (second (car ds)) acc)))
+        (t (fuel-users-1 (cdr ds) acc))))
+
+(defun fuel-users (ds acc n)
+  (let ((acc2 (fuel-users-1 ds acc)))
+    (if (or (zp n) (equal (len acc2) (len acc))) acc2
+      (fuel-users ds acc2 (1- n)))))
+
+(defun fuel-needy (ds users extras)
   (cond ((endp ds) nil)
-        ((and (consp (car ds)) (eq (car (car ds)) 'defun))
-         (cons (cons (second (car ds)) extras) (all-needy (cdr ds) extras)))
-        (t (all-needy (cdr ds) extras))))
+        ((and (consp (car ds)) (eq (car (car ds)) 'defun) (member-equal (second (car ds)) users))
+         (cons (cons (second (car ds)) extras) (fuel-needy (cdr ds) users extras)))
+        (t (fuel-needy (cdr ds) users extras))))
 
 (defun fuel-wrap (ds ids cx)
   (let* ((names (rel-fn-names ids cx))
          (entries (fuel-entries ds names))
          (ds (gsym-rename ds (fuel-renames ds names)))
-         (ds (apply-needy ds (all-needy ds (list (gsym "%FUEL"))))))
+         (users (fuel-users ds nil (len ds)))
+         (ds (apply-needy ds (fuel-needy ds users (list (gsym "%FUEL"))))))
     (append ds entries)))
 
 ; (mv events builtins skipped cx)
@@ -2977,10 +3009,10 @@
 (defun hons-copy-args (fs)
   (if (endp fs) nil (cons (list (quote acl2::hons-copy) (car fs)) (hons-copy-args (cdr fs)))))
 
-(defun memo-wrap (ds names)
-  ;; (mv defuns memoize-events)
+(defun memo-wrap (ds names no-inline)
+  ;; (mv defuns memoize-events); NO-INLINE: config :memoize ... :recursive nil
   (if (endp ds) (mv nil nil)
-    (mv-let (rest mems) (memo-wrap (cdr ds) names)
+    (mv-let (rest mems) (memo-wrap (cdr ds) names no-inline)
       (let ((d (car ds)))
         (if (and (member-equal (defun-name d) names) (memo-measure d))
             (let* ((inner (gsym (concatenate 'string (defun-name d) "/%M")))
@@ -2988,7 +3020,10 @@
                    (entry (mk-defun-measure (second d) formals (memo-measure d)
                                             (cons inner (hons-copy-args formals)))))
               (mv (list* entry (list* 'defun inner (cddr d)) rest)
-                  (cons (list (quote acl2::memoize) (list 'quote inner)) mems)))
+                  (cons (if no-inline
+                              (list (quote acl2::memoize) (list (quote quote) inner) :recursive nil)
+                            (list (quote acl2::memoize) (list (quote quote) inner)))
+                          mems)))
           (mv (cons d rest) mems))))))
 
 (defun clique-events (x ds cx)
@@ -3002,7 +3037,7 @@
            (memo0 (rel-mangled-memo (cx-get :memo cx) cx))
            (memo (append memo0 (suffix-all memo0 "/SPLIT"))))
       (mv-let (outside inside) (split-clique ds in)
-        (mv-let (inside mems) (memo-wrap inside memo)
+        (mv-let (inside mems) (memo-wrap inside memo (cx-get :memo-no-inline cx))
           (append outside
                   (if (consp (cdr inside)) (list (cons 'mutual-recursion inside)) inside)
                   mems))))))

@@ -20,8 +20,21 @@
 ## Current state
 
 - **Last updated**: 2026-11-14
-- **Milestones**: M5 items 1 and 2 (mode table design and core; `trans`
-  triage) ✅; M6 items 1 and 2 (design session; decision) ✅
+- **Milestones**: M0 ✅ (3.0 is a target: IL checked in, `make check-3.0`
+  certifies `gen/wasm-3.0` in-tree in :program mode, 1 min 32 s,
+  [M0-target](notes/M0-target.md)); M5 items 1 and 2 (mode table design
+  and core; `trans` triage) ✅; M6 items 1 and 2 (design session;
+  decision) ✅
+- **New config entries in M0 (for the user)**: `:program` (every
+  generated 3.0 event in :program mode; reason: one guard proof ran
+  more than 15 min, the step limits do not bound wall time; M9 removes
+  it), and `:recursive nil` in the 3.0 `:memoize` entry (memoize used to
+  recompile the huge `Instr_ok` body at every include, 22 s × 12 books;
+  memoization still works: 0.01 s against more than 300 s unmemoized).
+  Two translator changes: a builtin that `rt/` lacks becomes a listed stub
+  (27 stubs in `gen/wasm-3.0` until M1), and `%FUEL` goes only to
+  functions that use it (an M5 bug that only certification showed). 1.0
+  output is byte-identical
 - **Decided by the user (2026-11-14)**: instruction typing by option C
   ([M6-instruction-typing-strategy](notes/M6-instruction-typing-strategy.md)):
   a hand-written sequencer proposes each instruction's type and the
@@ -39,7 +52,9 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now**: 2 stubs, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M0, then M0b and M1 (see "Order and dependencies")
+- **Next action**: M0b and M1, which need only M0 and can run in either
+  order (see "Order and dependencies"). M7 waits for the user's decision
+  above
 - **Readiness review (2026-11-14)**: added [step.md](step.md), M0b (GC and
   exception test data early), behavioural exits for M5 and M6, design
   sessions before M6 and M7, `assert_invalid` moved to M7, and the
@@ -48,8 +63,9 @@
   entries stay; `trans` is translated with an enumeration variant, after
   M0 and M1 (its three parts are in the note)
 - **Notes**: [notes/](notes/README.md)
-- **Start from**: `make -C translate probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
-  and `make -C translate check-2.0` (the 2.0 gate, green)
+- **Start from**: `make -C translate probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`,
+  `make -C translate check-2.0` and `make -C translate check-3.0` (both
+  gates green, 2026-11-14)
 
 ---
 
@@ -76,7 +92,7 @@ From `make probe SPEC=3.0 EXCLUDE='X.* 6.* 7.*'`
 | Rules / relations | 509 / 85 | |
 | Schema errors | 0 | 3 (full 3.0) |
 | Phase-1 events | 1,240 | 993 |
-| Stubs | **2**: `Module_ok`, `$utf8single` | 35 |
+| Stubs | **2**: `Module_ok`, `$utf8single` (probe; `gen/wasm-3.0` also stubs the 25 builtins `rt/` lacks until M1, [M0-target](notes/M0-target.md)) | 35 |
 | Relations emitted without some rules | 3, with 3 rules dropped (`Heaptype_sub/trans`, `Step_read/array.new_data-num`, and since the M6 session `Instrs_ok/sub`) | (whole-relation stubs) |
 | Reduction rules (`Step`, `Step_read`, `Step_pure`) failing | **1 of 218** | about 10 |
 | Clause-less defs | 89 = 77 numeric (13 not in `rt/`) + 11 choice + 1 host | |
@@ -137,14 +153,20 @@ Each ends with 1.0 `make check` and 2.0 `make check-2.0` green, and from
 M0 on also `make check-3.0`.
 
 ### M0: 3.0 as a target
-- [ ] Check in `il/wasm-3.0.il.sexp` and its decls; `check-il SPEC=3.0`;
+- [x] Check in `il/wasm-3.0.il.sexp` and its decls; `check-il SPEC=3.0`;
       promote `config/wasm-3.0.lsp` from provisional (its entries are all
-      validated today)
-- [ ] `make check-3.0` like `check-2.0`
+      validated today). Done 2026-11-14 ([M0-target](notes/M0-target.md))
+- [x] `make check-3.0` like `check-2.0`. Done 2026-11-14: regenerates and
+      certifies `gen/wasm-3.0` in-tree in **1 min 32 s** (certification
+      1 min 26 s). Needed: builtins missing in `rt/` emitted as stubs (27
+      stubs: the probe's 2 + 13 numeric + 11 choice + `$hostcall`), config
+      `:program`, `%FUEL` only where used (a translator bug from M5), and
+      `:memoize ... :recursive nil` (without it 7 min 6 s)
 
 **Exit**: `make gen SPEC=3.0` and a scratch-free certification of
 `gen/wasm-3.0` in `:program` mode (today: 97 s in the experiment of
 [P5-conformance](../wasm3-translation-prep/notes/P5-conformance.md)).
+**Met 2026-11-14**: 1 min 26 s in-tree, no scratch tree ([M0-target](notes/M0-target.md)).
 
 ### M0b: Test data for GC and exceptions
 - [ ] Build the reference interpreter's script converter in the flake (the
@@ -321,15 +343,16 @@ M0 ──┬─ M0b ────────────────────
 
 ## 6. Config budget
 
-Today `config/wasm-3.0.lsp` has 8 entries: `:def utf8` (with `:inverse`),
-`:split Step ctxt-instrs`, `:decreasing`, `:memoize`, `:sized`,
-`:builtins` (11 choice + 1 host + `$s33_to_u32`), `:witness` (4
-relations), and since M5 `:fuel` (the type group), 8 in all. The `:modes` entry (22 pairs at the end of the prep) is gone
+Today `config/wasm-3.0.lsp` has 9 entries: `:def utf8` (with `:inverse`),
+`:split Step ctxt-instrs`, `:decreasing`, `:memoize` (since M0 with
+`:recursive nil`), `:sized`, `:builtins` (11 choice + 1 host +
+`$s33_to_u32`), `:witness` (4 relations), since M5 `:fuel` (the type
+group), and since M0 `:program` (certification mode, removed in M9), 9 in all. The `:modes` entry (22 pairs at the end of the prep) is gone
 since the mode table. 1.0 has 8 (the `:witness` entry is new), 2.0 has 9
 (two `:il-patch` for a 2.0 source bug; `:witness` replaced `:modes`).
 Expected additions for 3.0: `:def utf8single` (S5), `:rel-override
 Module_ok` unless M7 avoids it, possibly `:rel-override Heaptype_sub`
-(M5), about 9 or 10 entries in total.
+(M5), about 10 or 11 entries in total (M9 removes `:program`).
 
 ## 7. Risks and go/no-go points
 

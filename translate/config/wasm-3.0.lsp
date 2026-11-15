@@ -1,12 +1,11 @@
-; PROVISIONAL (wasm3 prep P2): the WASM 1.0 config without its 1.0-only
-; :il-patch (Bmodule) and :rel-override (Module_ok) entries, i.e. what the
-; P0/P1 probes used. Several remaining entries name 1.0 ids that do not exist
-; in 3.0 (W5); config validation (P2) and P3 replace them.
-; Removed by P2 config validation: ("bytes_" . "inv_bytes_") (no bytes_ here).
-; P3: inverse pairs now come from hint(inverse) in the IL (no :inverse entry).
-; il2acl2 configuration: the counted, named exceptions to the generic
-; translation (plan §1 "Rules of the game"). Keep this list short; each entry
-; says why the IL cannot be translated mechanically.
+; il2acl2 configuration for WASM 3.0 (wasm3 M0: checked in with the IL and
+; validated against it on every run; config-entry-errors). The counted,
+; named exceptions to the generic translation (plan §1 "Rules of the game").
+; Keep this list short; each entry says why the IL cannot be translated
+; mechanically. History: it began as the 1.0 config without the 1.0-only
+; :il-patch (Bmodule) and :rel-override (Module_ok) entries (prep P2);
+; ("bytes_" . "inv_bytes_") went in P2 (no bytes_ here); since P3 the
+; inverse pairs come from hint(inverse) in the IL (no :inverse entry).
 (
  (:def "utf8" :inverse "inv_utf8"
   :reason "Clauses 2-4 define the bytes b_1..b_4 only through an arithmetic equation on ch (the inverse direction); no matching/binding translation exists. Hand-written in rt/builtins.lisp, with its inverse inv_utf8 (used to solve utf8(x) = bytes in Bname; the other inverse pairs come from hint(inverse) in the IL).")
@@ -26,9 +25,9 @@
   :pairs (("Instr_ok" . 1) ("Instrs_ok" . 1))
   :reason "Instruction typing recurses into sub-instructions under an EXTENDED context (block/loop/if add a label), so the size of all inputs can grow. The instruction component (index 1) decreases, or stays equal with a smaller stack (frame). Recursive premise calls are ordered lexicographically by (size of component 1, size of all inputs).")
 
- (:memoize "search memo"
+ (:memoize "search memo" :recursive nil
   :rels ("Instr_ok" "Instrs_ok")
-  :reason "Performance only (memoization is semantically the identity). Instrs_ok/seq splits instr_1* instr_2* at every point and recurses on both halves, so REJECTING an ill-typed sequence explores exponentially many derivations (17 instructions: ~60 s). Memoizing the typing functions on hons-copied arguments makes the search polynomial (sub-sequences x stacks).")
+  :reason "Performance only (memoization is semantically the identity). Instrs_ok/seq splits instr_1* instr_2* at every point and recurses on both halves, so REJECTING an ill-typed sequence explores exponentially many derivations (17 instructions: ~60 s). Memoizing the typing functions on hons-copied arguments makes the search polynomial (sub-sequences x stacks). 3.0 adds :recursive nil: memoize wraps the compiled function instead of recompiling its body (the memoized function R/%M recurses only through its entry R, which calls the memoized R/%M, so recursive calls are still memoized); with the default the four memoize events of 2_3-validation_instructions took 22 s at every include of that book (12 books include it), measured in wasm3 M0.")
 
  (:sized "||BX||"
   :pairs (("Bsection_" . "len") ("Bcode" . "len"))
@@ -40,4 +39,7 @@
  (:fuel "type validation and subtyping"
   :rels ("Heaptype_ok")
   :reason "The rec group of Heaptype_ok (19 relations: type validation and subtyping) terminates by a depth bound, (%TFUEL) in rt/prelude.lisp, instead of the generated check that every recursive premise has smaller inputs. That check cut valid derivations: a rule that passes its arguments unchanged to another relation of the group (Valtype_sub/ref to Reftype_sub), one that replaces a type index by the defined type (Heaptype_sub/typeidx-l), one that recurses under a larger context (Deftype_ok). Measured: 9 of 22 type cases right with the size check (wasm3 notes, review-checker-blind-spots). A derivation deeper than the bound is not found; a failing search through a cyclic context ends at the bound.")
+
+ (:program "certification mode"
+  :reason "Every generated event is admitted in :program mode (the book default `(program)`), not through %TRY-LOGIC/%TRY-GUARDS. Not a translation exception: it bounds certification time. With the logic attempts, one guard proof in 5_2-binary_types ran more than 15 CPU minutes (prep P5-conformance), and the prover step limits do not bound wall time. Execution is the same in both modes. Removed in wasm3 M9 (logic mode and proofs), which needs per-event time limits first.")
 )

@@ -7,7 +7,7 @@
 # SPEC=1.0|2.0|3.0 selects the spec version (default 1.0): the IL
 # il/wasm-<v>.il.sexp, the config config/wasm-<v>.lsp, the output directory
 # gen/wasm-<v>/, the book wasm<major>.lisp and the package W<major>T.
-# Only 1.0 is checked in and tested; see notes/P2-layout.md of the prep plan.
+# gen/ is checked in for 1.0 only; 2.0 and 3.0 are rebuilt by their gates.
 #
 #   make il          regenerate il/wasm-<v>.il.sexp via Nix (pinned SpecTec)
 #   make check-il    fail if the checked-in IL differs from a fresh regeneration
@@ -23,6 +23,7 @@
 #   make modes       rewrite gen/wasm-1.0/modes.lsp from certified books (t0-modes checks it)
 #   make check       check-il + check-gen + test (1.0)
 #   make check-2.0   2.0 gate: regenerate, certify, run the 2.0 numeric and SIMD vectors
+#   make check-3.0   3.0 gate: regenerate and certify gen/wasm-3.0 (:program mode)
 
 NIX  ?= nix
 ACL2 ?= acl2
@@ -42,7 +43,7 @@ TARGET := (assign il2acl2-target (quote (:version "$(SPEC)" :pkg "$(PKG)" :il "$
 GEN_PATTERNS := *.lisp *.lsp *.acl2
 TEST_BOOKS := $(patsubst %.lisp,%,$(wildcard tests/*.lisp tests/sem/*.lisp))
 
-.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors spec-data spec probe modes check-2.0
+.PHONY: il check-il gen check-gen test check clean translator vectors compare corpus invoke-vectors spec-data spec probe modes check-2.0 check-3.0
 
 il:
 	$(NIX) build ..#wasm$(SPEC_MAJOR)-il --no-link --print-out-paths > .il-out
@@ -175,6 +176,15 @@ check-2.0:
 	$(MAKE) gen SPEC=2.0
 	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-2.0/wasm2 tests/sem-2.0/t3-numerics-2.0 tests/sem-2.0/t3-simd-2.0
 	@grep -h "T3 numerics (2.0)\|T3 SIMD (2.0)" tests/sem-2.0/*.cert.out
+
+# The 3.0 gate (wasm3 M0): regenerate 3.0 from the checked-in IL (gen/wasm-3.0 is
+# not checked in) and certify it. The config entry :program makes every generated
+# event :program mode (logic mode is wasm3 M9). No 3.0 vectors yet (M1).
+check-3.0:
+	$(MAKE) check-il SPEC=3.0
+	$(MAKE) gen SPEC=3.0
+	$(CERT) --acl2 $(ACL2) -j $(JOBS) gen/wasm-3.0/wasm3
+	@echo "gen/wasm-3.0 certified; stubs: $$(sed -n "/^; Stubs/,/^;$$/p" gen/wasm-3.0/wasm3.lisp | grep -c "^;   ")"
 
 clean:
 	rm -rf .check-gen-1 .check-gen-2 gen.log

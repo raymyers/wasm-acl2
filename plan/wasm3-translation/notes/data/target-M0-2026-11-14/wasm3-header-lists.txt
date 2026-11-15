@@ -1,0 +1,137 @@
+; Builtins and overrides (hand-written in translate/rt/builtins.lisp),
+; as (name . arity):
+;   $INV_CONCAT_/1
+;   $UTF8/1
+;   $S33_TO_U32/1
+;   $IBITS_/2
+;   $FBITS_/2
+;   $IBYTES_/2
+;   $FBYTES_/2
+;   $NBYTES_/2
+;   $VBYTES_/2
+;   $INV_IBITS_/2
+;   $INV_FBITS_/2
+;   $INV_IBYTES_/2
+;   $INV_FBYTES_/2
+;   $INV_NBYTES_/2
+;   $INV_VBYTES_/2
+;   $TRUNCZ/1
+;   $ICLZ_/2
+;   $ICTZ_/2
+;   $IPOPCNT_/2
+;   $IQ15MULR_SAT_/4
+;   $IAVGR_/4
+;   $INOT_/2
+;   $IREV_/2
+;   $IAND_/3
+;   $IANDNOT_/3
+;   $IOR_/3
+;   $IXOR_/3
+;   $ISHL_/3
+;   $ISHR_/4
+;   $IROTL_/3
+;   $IROTR_/3
+;   $IBITSELECT_/4
+;   $FABS_/2
+;   $FNEG_/2
+;   $FSQRT_/2
+;   $FCEIL_/2
+;   $FFLOOR_/2
+;   $FTRUNC_/2
+;   $FNEAREST_/2
+;   $FADD_/3
+;   $FSUB_/3
+;   $FMUL_/3
+;   $FDIV_/3
+;   $FMIN_/3
+;   $FMAX_/3
+;   $FPMIN_/3
+;   $FPMAX_/3
+;   $FCOPYSIGN_/3
+;   $FEQ_/3
+;   $FNE_/3
+;   $FLT_/3
+;   $FGT_/3
+;   $FLE_/3
+;   $FGE_/3
+;   $WRAP__/3
+;   $EXTEND__/4
+;   $TRUNC__/4
+;   $TRUNC_SAT__/4
+;   $DEMOTE__/3
+;   $PROMOTE__/3
+;   $CONVERT__/4
+;   $NARROW__/4
+;   $REINTERPRET__/3
+;   $LANES_/2
+;   $INV_LANES_/2
+;
+; Defs with function parameters, replaced by specializations (G1):
+;   ivunop_ fvunop_ ivbinop_ ivbinopsx_ ivbinopsxnd_ fvbinop_ ivternopnd_ fvternop_ ivrelop_ ivrelopsx_ fvrelop_ ivshiftop_ ivshiftopsx_ ivswizzlop_ ivextunop__ ivextbinop__
+; Specializations (53):
+;   fvunop_.fabs_ fvunop_.fneg_ fvunop_.fsqrt_ fvunop_.fceil_ fvunop_.ffloor_ fvunop_.ftrunc_ fvunop_.fnearest_ ivunop_.iabs_ ivunop_.ineg_ ivunop_.ipopcnt_ ivbinop_.iadd_ ivbinop_.isub_ ivbinop_.imul_ ivbinopsx_.iadd_sat_ ivbinopsx_.isub_sat_ ivbinopsx_.imin_ ivbinopsx_.imax_ ivbinopsx_.iavgr_ ivbinopsx_.iq15mulr_sat_ ivbinopsxnd_.irelaxed_q15mulr_ fvbinop_.fadd_ fvbinop_.fsub_ fvbinop_.fmul_ fvbinop_.fdiv_ fvbinop_.fmin_ fvbinop_.fmax_ fvbinop_.fpmin_ fvbinop_.fpmax_ fvbinop_.frelaxed_min_ fvbinop_.frelaxed_max_ ivternopnd_.irelaxed_laneselect_ fvternop_.frelaxed_madd_ fvternop_.frelaxed_nmadd_ ivrelop_.ieq_ ivrelop_.ine_ ivrelopsx_.ilt_ ivrelopsx_.igt_ ivrelopsx_.ile_ ivrelopsx_.ige_ fvrelop_.feq_ fvrelop_.fne_ fvrelop_.flt_ fvrelop_.fgt_ fvrelop_.fle_ fvrelop_.fge_ ivshiftop_.ishl_ ivshiftopsx_.ishr_ ivswizzlop_.iswizzle_lane_ ivswizzlop_.irelaxed_swizzle_lane_ ivextunop__.ivadd_pairwise_ ivextbinop__.ivmul_ ivextbinop__.ivdot_ ivextbinop__.ivrelaxed_dot_
+;
+; Builtins that are not numeric functions (config :builtins):
+;   choice (nondeterminism parameter): ND R_fmadd R_fmin R_fmax R_idot R_idot_add R_iq15mulr R_trunc_u R_trunc_s R_swizzle R_laneselect
+;   host hook: hostcall
+;   notation (unused): 
+;
+; Numeric builtins with no definition in rt/ yet (emitted as stubs until added):
+;   inv_concatn_ zbytes_ cbytes_ inv_zbytes_ inv_cbytes_ ceilz irelaxed_q15mulr_ irelaxed_laneselect_ frelaxed_min_ frelaxed_max_ frelaxed_madd_ frelaxed_nmadd_ relaxed_trunc__
+;
+; Config overrides:
+;
+; Stubs (an unsupported construct; body signals an error):
+;   MODULE_OK
+;   $INV_CONCATN_
+;   $ND
+;   $UTF8SINGLE
+;   $R_FMADD
+;   $R_FMIN
+;   $R_FMAX
+;   $R_IDOT
+;   $R_IDOT_ADD
+;   $R_IQ15MULR
+;   $R_TRUNC_U
+;   $R_TRUNC_S
+;   $R_SWIZZLE
+;   $R_LANESELECT
+;   $ZBYTES_
+;   $CBYTES_
+;   $INV_ZBYTES_
+;   $INV_CBYTES_
+;   $CEILZ
+;   $IRELAXED_Q15MULR_
+;   $IRELAXED_LANESELECT_
+;   $FRELAXED_MIN_
+;   $FRELAXED_MAX_
+;   $FRELAXED_MADD_
+;   $FRELAXED_NMADD_
+;   $RELAXED_TRUNC__
+;   $HOSTCALL
+;
+; Rules not translated (each relation is emitted without them; sound
+; but incomplete), as relation translated/total: dropped rules:
+;   Heaptype_sub (check) 20/21: Heaptype_sub/trans
+;   Instrs_ok (multi) 4/5: Instrs_ok/sub
+;   Step_read (fun) 102/103: Step_read/array.new_data-num
+;
+; Rules dropped from the R/SPLIT variants of multi-mode relations (their
+; output is not computable from the inputs; the R check variants keep them):
+;   Instr_ok/unreachable
+;   Instr_ok/select-impl
+;   Instr_ok/br
+;   Instr_ok/br_table
+;   Instr_ok/return
+;   Instr_ok/return_call
+;   Instr_ok/return_call_ref
+;   Instr_ok/return_call_indirect
+;   Instr_ok/throw
+;   Instr_ok/throw_ref
+;   Instrs_ok/sub
+;   Ref_ok/sub
+;   Externaddr_ok/sub
+;
+; Not translated yet:
+;
+; Parts (one book per source file, in IL order; each includes the one before):
