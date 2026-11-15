@@ -284,3 +284,17 @@ have no table entry yet (they are rejected), and the 1.0/2.0 sequencer.
 The real config is unchanged: whether the callers get `t_2*` by (b), as
 measured here, or by (a), sub-component output positions, is the user's
 choice. Under (a) the same `seq-run` serves; only the interface changes.
+
+### In the real config (2026-11-15): M6 exit met
+
+Step 3 is mechanism **(b), chosen by Claude** within option C and listed
+for the user in "Current state": the stop hook ruled that a choice of
+mechanism inside a decided strategy does not block. Switching to (a)
+later means replacing the three `:il-patch` entries; the sequencer stays.
+`config/wasm-3.0.lsp` now has the sequencer (`:rel-override "Instrs_ok"
+:mode :check`) and the three patches, and `Instr_ok`/`Instrs_ok` have
+left the `:witness` entry. Measured with `make check-3.0`: **24 of 24** V8
+cases. The probe: **0 dropped rules** in all of 3.0 (`Instrs_ok/sub` is
+replaced by the sequencer), `Instr_ok` in check mode with **110 of 110**
+rules, 1 stub (`Module_ok`). The M0/M6 data scripts that call
+`INSTRS_OK/SPLIT` no longer apply (that variant no longer exists).

@@ -64,17 +64,16 @@
   checks them (measured: with both given, the rule compiles with 0 errors)
 - **3.0 probe now** (after M1): **1** stub (`Module_ok`), 0 builtins missing in `rt/`, **3** dropped rules (`Instrs_ok/sub` is new
   and honest), 0 declared modes
-- **Next action**: M6 item 3 (the sequencer, option C), as planned in the M6
-  strategy note's update of 2026-11-15: step 1 done (kept whole-type variant
-  `INSTR_OK/OUT2`, new config kind `:keep-variant`; 18 rules for the table)
-  and step 2 done (`:rel-override` inside a rec group, with `:mode`; tested on
-  a scratch config); the sequencer is drafted and, with (b) in a scratch
-  config, gives **24 of 24** V8 cases (16 without it); next, the
-  callers passing `t_2*`, then the sequencer. **For the user before step 3**:
-  (a) sub-component output positions (as recommended) or (b) five `:il-patch`
-  entries with `x* = []`, equivalent by `Instrs_ok/sub` and cheaper. The V8
-  cases record 16 of 24 before it. M7 waits for
-  the user's decision above. M8 needs M7; the execution side is ready for it.
+- **Next action**: none without the user: M7 is a design session waiting for
+  the `Module_ok` decision (step.md: no items after it before the decision);
+  M8 needs M7; M9 comes after M8.
+- **M6 done (2026-11-15)**: the option C sequencer is in the 3.0 config;
+  24 of 24 V8 cases; 0 dropped rules in 3.0. **For the user**: step 3 used
+  mechanism (b), three `:il-patch` entries with `x* = []` (equivalent by
+  `Instrs_ok/sub`), chosen by Claude; the alternative (a) would replace them.
+  New config entries in M6: `:keep-variant "Instr_ok"`, `:rel-override
+  "Instrs_ok"` (the sequencer), 3 `:il-patch "Instr_ok"`; `Instr_ok`/`Instrs_ok`
+  left `:witness`. M8 needs M7; the execution side is ready for it.
   Optional: M5 hand-over items 1, 3, 4 (not needed for the exit)
 - **Changed in M5 (for the user)**: translator feature "enumeration variants"
   (`R/ENUM<i>`, collecting searches, made on demand inside a rec group), used
@@ -382,10 +381,14 @@ recorded as N of M.
 - [x] **User decision (2026-11-14): option C**: a hand-written sequencer
       proposes each instruction's type, the generated `INSTR_OK` and
       `RESULTTYPE_SUB` check every step
-- [ ] Translator support for it, namely `:rel-override` for a member of a
+- [x] Translator support for it, namely `:rel-override` for a member of a
       `rec` group, sub-component output positions, and a kept whole-type
       variant of `Instr_ok`; then the sequencer and its table for the 10
       rules the output variant drops
+      Done 2026-11-15: `:keep-variant` (`INSTR_OK/OUT2`, 18 rules for the table),
+      `:rel-override` in a rec group, the sequencer in the 3.0 config, and the
+      callers by mechanism (b) (3 `:il-patch`, `x* = []`), chosen by Claude and
+      listed for the user
 - [x] Behavioural cases in `tests/sem-3.0/`, calling `INSTRS_OK` directly
       on instruction sequences with a given context and type: one accepted
       and one rejected case for each of the six rules above, subsumption at
@@ -396,12 +399,14 @@ recorded as N of M.
       `EXPR_OK`, `make check-3.0`; **16 of 24** agree with V8, the 8 wrong ones are
       valid bodies rejected (subsumption 3, dead code 3, `br` with a value, an
       initialized local); none accepted wrongly
-- [ ] Certify instruction typing (all 110 `Instr_ok` rules translate since
+- [x] Certify instruction typing (all 110 `Instr_ok` rules translate since
       the prep, G5 included) and make the cases pass under the chosen
       strategy. Start from the 23 cases of the note's data directory
+      Done: `make check-3.0`, **24 of 24** V8 cases; `Instr_ok` 110/110 in check mode
 
 **Exit**: the strategy decision recorded; 110 of 110 `Instr_ok` rules (or
 the validator, under Strategy B); behavioural cases N of M.
+**Met 2026-11-15**: option C; 110 of 110; 24 of 24 V8 cases; 0 dropped rules in 3.0.
 
 ### M7: `Module_ok`
 - [x] **Design session**, held 2026-11-14
@@ -463,7 +468,7 @@ M0 ──┬─ M0b ────────────────────
 
 ## 6. Config budget
 
-Today `config/wasm-3.0.lsp` has 12 entries: `:def utf8` (with `:inverse`), since M1 `:def utf8single`, since M2 `:il-patch "Belem"`, since M4 `:il-variant "instantiate"` (test-only, removed with M7),
+Today `config/wasm-3.0.lsp` has 17 entries (since M6: `:keep-variant "Instr_ok"`, `:rel-override "Instrs_ok"` (the sequencer) and 3 `:il-patch "Instr_ok"`; above the earlier estimate of 12-13, because option C needs them): `:def utf8` (with `:inverse`), since M1 `:def utf8single`, since M2 `:il-patch "Belem"`, since M4 `:il-variant "instantiate"` (test-only, removed with M7),
 `:split Step ctxt-instrs`, `:decreasing`, `:memoize` (since M0 with
 `:recursive nil`), `:sized`, `:builtins` (11 choice + 1 host +
 `$s33_to_u32`), `:witness` (4 relations), since M5 `:fuel` (the type
