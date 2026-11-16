@@ -1,5 +1,7 @@
+; E7: microbenchmark of the parts of one machine step (1,000,000 calls each).
+; From engine/fast inside nix develop: acl2 < micro.lsp | grep MICRO
 (ld "cert.acl2")
-(include-book "machine")
+(include-book "../machine/machine")
 (in-package "WE")
 :q
 (defparameter *redex* '((:const (:i32) 7) (:const (:i32) 2) (:binop (:i32) (:sub))))
