@@ -30,7 +30,8 @@
 - **Last updated**: 2026-11-15
 - **Milestones**: W0 done, **go** ([W0-feasibility](notes/W0-feasibility.md#w0-exit-gono-go-per-risk-2026-11-15));
   W7 done ([W7-rule-tags](notes/W7-rule-tags.md)); W1 done, D5 final
-  ([W1-numbers-stack](notes/W1-numbers-stack.md)); W2 done ([W2-extractor](notes/W2-extractor.md)); W3 done ([W3-shim](notes/W3-shim.md))
+  ([W1-numbers-stack](notes/W1-numbers-stack.md)); W2 done ([W2-extractor](notes/W2-extractor.md)); W3 done ([W3-shim](notes/W3-shim.md));
+  W4 done ([W4-semantics-node](notes/W4-semantics-node.md))
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
@@ -70,9 +71,15 @@
   alistp remove-duplicates-equal subsetp-equal iff hons-copy make-ord, mv
   mv-let, `%DEFATTACH`, `%MEMOIZE` (identity), intern$; `rule.lisp`:
   `%RULE` (identity until W8).
-- **Next action**: W4 (whole semantics in node), per the headless
-  order. Work for W4–W5 items 1–3 exists in the tree, uncommitted (it was
-  built while the W7 spec reruns ran); each goes in with its own commit.
+- **Driver (W4), for the user** (`demo/driver/glue.lisp`, reasons next
+  to each): `DECODE`, `INSTANTIATE`, `DO-ACTION`, `EMPTY-ENV`,
+  `LOAD-MODULE`, `INVOKE` (binds `*spec-fuel*`), `RUN-CMD`, `SPECTEST-ENV`,
+  `W3T::READ-BYTES` (asks the JS host), `HOST-CALL` (attached as
+  `%HOSTCALL-HOOK`), `REGISTER-HOST`; `driver/host.js` (default host: no
+  result).
+- **Next action**: W5 (browser page), per the headless order. W5 items
+  1–3 exist in the tree, uncommitted (built by a subagent while the W7 spec
+  reruns ran, smoke test passing); item 4 (Step mode) is not started.
 - **Translator change (W7, for the user)**: `%RULE` (`rt/prelude.lisp`,
   a macro: `(%RULE name x)` = `x`) and two emitter changes in
   `il2acl2/compile.lisp` (`crule`, `cprod`). Reason: D6/D7, the stepper's
@@ -396,14 +403,26 @@ relaxed) under JSCL in node; units 119/119. `make -C demo check` runs
 `vectors` and `units`.
 
 ### W4: The whole semantics in node
-1. [ ] All books (or the pruned set) load. `demo/driver` provides
+1. [x] All books (or the pruned set) load. `demo/driver` provides
        `decode(bytes)`, `instantiate(module, imports)` and
        `invoke(inst, name, args, fuel)`, built on the extracted
        `t7-lib-3.0` helpers
-2. [ ] Host imports: `%hostcall-hook` attached to a JS callback (the
+       **Done 2026-11-15** ([W4-semantics-node](notes/W4-semantics-node.md#driver-item-1)):
+       all books + driver helpers + glue, `wasm3.js` 3.96 MB, node load 0.13 s
+       (+ 0.17 s `jscl.js`); `DECODE`, `LOAD-MODULE` (decode + instantiate
+       against an environment of registered instances), `INVOKE` (with fuel),
+       `RUN-CMD`
+2. [x] Host imports: `%hostcall-hook` attached to a JS callback (the
        `spectest` module of `tests/spec/spectest-3.0.wat`, plus a `print`
        for the page)
-3. [ ] Conformance in node: a script runner over the converted spec-test-3
+       **Done 2026-11-15** ([W4-semantics-node](notes/W4-semantics-node.md#host-imports-item-2)):
+       `HOST-CALL` asks `globalThis.DEMOHOST`; `REGISTER-HOST` makes a
+       module's exports host functions. `make -C demo host`: `f(20) =
+       inc(20) * 2 = 42` with `inc` in JS. The spectest module is an ordinary
+       module (its prints are no-op wasm functions), run as in t7. The
+       semantics calls a host several times per step, so a host answers as a
+       function; the page's `print` (W5) records once per step
+3. [x] Conformance in node: a script runner over the converted spec-test-3
        data (`translate/tests/spec/data-3.0/<name>.lsp` and `.wasm`), on
        this fixed subset (names as in `results-3.0/NAMES`): `i32`, `i64`,
        `f32`, `f64`, `memory`, `call_indirect`, `br_table`,
@@ -416,11 +435,28 @@ relaxed) under JSCL in node; units 119/119. `make -C demo check` runs
        them in the session: `make -C translate spec-data SPEC=3.0`, then
        `make -C translate spec SPEC=3.0` (about 11 min), at the current
        commit. Record that commit in the note
-4. [ ] Timing: ms per step in node, against 0.011 ms in ACL2 (wasm3 M3)
+       **Done 2026-11-15** ([W4-semantics-node](notes/W4-semantics-node.md#conformance-item-3)):
+       baseline the after-W7 `results-3.0/` (commit 0f36ff1). **7,087/7,087
+       commands agree** in 12/12 scripts, compared per command (a CRASH in
+       ACL2 prints no `T7-CMD` line; 7,086 lines + 1). `call_indirect` on
+       ACL2's prefix (ACL2 killed at 600 s); #72 `fib-i64(20)` fails on both
+       sides (ACL2 CRASH, node `:FUEL`). Two bugs found and fixed on the way:
+       the stack rewrite missed shapes (`br_table`), and `acl2-count` was 80%
+       of the time (memoized)
+4. [x] Timing: ms per step in node, against 0.011 ms in ACL2 (wasm3 M3)
+       **Done 2026-11-15** ([W4-semantics-node](notes/W4-semantics-node.md#timing-item-4)):
+       0.32–3.84 ms per step on 5 invokes; the same invokes in ACL2: node is
+       about 32× slower on `fac-iter` (0.87 ms against about 0.027 ms per
+       step), 1.8× on `fac-rec`, 4× faster on `call_indirect` `fac-i64(25)`
+       (1.44 s against 6.4 s)
 
 **Exit**: the chosen subset agrees with ACL2 command by command (a
 disagreement is a shim or extractor bug, never a "known difference"). The
 per-step time is recorded.
+
+**W4 result (2026-11-15): exit met.** 7,087/7,087 commands agree; per-step
+time recorded. `make -C demo check` adds `host` and `conformance-quick`
+(the subset without `call_indirect`).
 
 ### W5: Browser page
 1. [ ] `demo/web`: Worker that loads `wasm3.js`, page UI per §3 and D4

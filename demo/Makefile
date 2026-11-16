@@ -10,7 +10,7 @@ GEN     ?= ../translate/gen/wasm-3.0
 SPECDIR ?= ../translate/tests/spec
 LISP    := $(BUILD)/lisp
 
-.PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract js vectors units clean
+.PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract js vectors units host conformance-data conformance conformance-quick clean
 
 all: $(BUILD)/hello.js js
 
@@ -51,13 +51,13 @@ check-extract:
 # W3: shim + extracted semantics -> $(BUILD)/wasm3.js (num.js and list.js first:
 # the number tower and list primitives that the shim initializes). Needs `extract`.
 SHIM := shim/acl2.lisp shim/rule.lisp
-
+GLUE := driver/glue.lisp
 js: extract $(BUILD)/jscl.js
-	IN="$(SHIM) $$(sed 's|^|$(LISP)/|' $(LISP)/ORDER | tr '\n' ' ')" OUT=$(BUILD)/wasm3-core.js \
+	IN="$(SHIM) $$(sed 's|^|$(LISP)/|' $(LISP)/ORDER | tr '\n' ' ') $(GLUE)" OUT=$(BUILD)/wasm3-core.js \
 	  $(JSCL_XC) --non-interactive --load shim/compile.lisp > $(BUILD)/wasm3.log 2>&1 \
 	  || { grep -v '^loading' $(BUILD)/wasm3.log | sed -n '/^Backtrace/q;p' | tail -30; exit 1; }
 	@grep 'DEMO-COMPILE\|is undefined' $(BUILD)/wasm3.log | sort | uniq
-	cat shim/num.js shim/list.js $(BUILD)/wasm3-core.js > $(BUILD)/wasm3.js
+	cat shim/num.js shim/list.js driver/host.js $(BUILD)/wasm3-core.js > $(BUILD)/wasm3.js
 	@ls -l $(BUILD)/wasm3.js | awk '{print "wasm3.js", $$5, "bytes"}'
 
 # W3: a test bundle per ACL2 test book: shim + books (without driver.lisp,
@@ -84,7 +84,26 @@ vectors: $(BUILD)/test-numerics.js $(BUILD)/test-simd.js
 	$(NODE) test/vectors.js $(BUILD) numerics
 	$(NODE) test/vectors.js $(BUILD) simd
 
-check: jscl-hello wabt-hello browser-hello check-extract vectors units
+# W4 item 2: host imports through %HOSTCALL-HOOK (a JS host function)
+host: js
+	$(NODE) test/host.js $(BUILD)
+
+# W4 item 3: the spec-test-3 subset, command by command against ACL2's
+# results-3.0/ (gitignored: `make -C translate spec-data SPEC=3.0` and
+# `make -C translate spec SPEC=3.0`, about 11 min). `conformance` is the whole
+# subset (about 25 min, most of it call_indirect, which ACL2 does not finish
+# either); `conformance-quick` (in `check`) leaves call_indirect out.
+CONF_QUICK := i32 i64 f32 f64 memory br_table simd--simd_i32x4_arith simd--simd_lane gc--struct gc--i31 exceptions--try_table
+CONF_ALL   := $(CONF_QUICK) call_indirect
+conformance-data:
+	@for n in $(CONF_ALL); do test -f $(SPECDIR)/results-3.0/$$n.out && test -f $(SPECDIR)/data-3.0/$$n.lsp \
+	  || { echo "conformance: $(SPECDIR)/results-3.0/$$n.out or data-3.0/$$n.lsp missing (make -C translate spec-data spec SPEC=3.0)"; exit 1; }; done
+conformance: js conformance-data
+	$(NODE) test/conformance.js $(BUILD) $(SPECDIR)/data-3.0 $(SPECDIR)/results-3.0 $(CONF_ALL)
+conformance-quick: js conformance-data
+	$(NODE) test/conformance.js $(BUILD) $(SPECDIR)/data-3.0 $(SPECDIR)/results-3.0 $(CONF_QUICK)
+
+check: jscl-hello wabt-hello browser-hello check-extract vectors units host conformance-quick
 
 clean:
 	rm -r -f build

@@ -1,0 +1,35 @@
+W3T !>W4-ACL2 fac.0.wasm fac-iter (3 runs follow)
+; (W4-DO A ...) took 
+; 0.01 seconds realtime, 0.01 seconds runtime
+; (W4-DO A ...) took 
+; 0.01 seconds realtime, 0.01 seconds runtime
+; (W4-DO A ...) took 
+; 0.01 seconds realtime, 0.01 seconds runtime
+W3T !>W4-ACL2 fac.0.wasm fac-rec (3 runs follow)
+; (W4-DO A ...) took 
+; 0.73 seconds realtime, 0.72 seconds runtime
+; (W4-DO A ...) took 
+; 0.73 seconds realtime, 0.73 seconds runtime
+; (W4-DO A ...) took 
+; 0.73 seconds realtime, 0.73 seconds runtime
+W3T !>W4-ACL2 call_indirect.0.wasm fac-i64 (3 runs follow)
+; (W4-DO A ...) took 
+; 6.43 seconds realtime, 6.36 seconds runtime
+; (W4-DO A ...) took 
+; 6.39 seconds realtime, 6.35 seconds runtime
+; (W4-DO A ...) took 
+; 6.39 seconds realtime, 6.35 seconds runtime
+W3T !>W4-ACL2 memory_redundancy.0.wasm test_redundant_load (3 runs follow)
+; (W4-DO A ...) took 
+; 0.00 seconds realtime, 0.00 seconds runtime
+; (W4-DO A ...) took 
+; 0.00 seconds realtime, 0.00 seconds runtime
+; (W4-DO A ...) took 
+; 0.00 seconds realtime, 0.00 seconds runtime
+W3T !>W4-ACL2 br_table.0.wasm large (3 runs follow)
+; (W4-DO A ...) took 
+; 0.01 seconds realtime, 0.01 seconds runtime
+; (W4-DO A ...) took 
+; 0.01 seconds realtime, 0.01 seconds runtime
+; (W4-DO A ...) took 
+; 0.01 seconds realtime, 0.01 seconds runtime

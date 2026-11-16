@@ -1,0 +1,43 @@
+warning: Git tree '/Users/Apple/dev/wasm-acl2' has uncommitted changes
+wasm-acl2 dev shell
+  make all      certify top + proofs + tests
+  make top      certify just the library
+  make proofs / make tests
+  (cd tests/oracle && bash check-all.sh)   Node.js oracle
+loading boot.lisp!
+loading setf!
+loading utils.lisp!
+loading ffi.lisp!
+loading hash-table.lisp!
+loading defstruct.lisp!
+loading lambda-list.lisp!
+loading numbers.lisp!
+loading char.lisp!
+loading list.lisp!
+loading array.lisp!
+loading string.lisp!
+loading sequence.lisp!
+loading symbol.lisp!
+loading package.lisp!
+loading types.lisp!
+            compile basic types
+loading stream.lisp!
+loading print.lisp!
+loading misc.lisp!
+loading read.lisp!
+loading backquote.lisp!
+loading compiler-codegen.lisp!
+loading compiler.lisp!
+loading std-object
+loading std-generic
+loading std-method
+build standard mop hierarchy
+            elapsed time:0.018 sec.
+compile standard clos methods!
+             elapsed time:0.004 sec.
+loading conditions.lisp!
+loading structures.lisp!
+loading format.lisp!
+loading documentation.lisp!
+loading toplevel.lisp!
+W4-FIB memoized count: load :OK, fib-i64(20) -> :FUEL, 10697826 STEP calls, 789254 ms

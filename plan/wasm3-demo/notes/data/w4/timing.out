@@ -1,0 +1,5 @@
+W4-TIME fac.0.wasm fac-iter[25]: load :OK, result ((:CONST (:I64) 7034535277573963776)), 367 steps, 320.9 ms, 0.8744 ms/step
+W4-TIME fac.0.wasm fac-rec[25]: load :OK, result ((:CONST (:I64) 7034535277573963776)), 334 steps, 1282.3 ms, 3.8393 ms/step
+W4-TIME call_indirect.0.wasm fac-i64[25]: load :OK, result ((:CONST (:I64) 7034535277573963776)), 384 steps, 1443.6 ms, 3.7594 ms/step
+W4-TIME memory_redundancy.0.wasm test_redundant_load[]: load :OK, result ((:CONST (:I32) 128)), 12 steps, 5.1 ms, 0.4265 ms/step
+W4-TIME br_table.0.wasm large[100]: load :OK, result ((:CONST (:I32) 0)), 10 steps, 3.2 ms, 0.3223 ms/step
