@@ -105,3 +105,34 @@
 (make-event
  `(progn ,@(length-lemmas '(w3t::step_read/split/r-load-pack-oob w3t::step/r-store-num-oob
                             w3t::step/r-store-pack-oob w3t::step_read/split/r-memory.size))))
+
+; The packed load reads only its window: two byte lists that agree on it
+; give the same result. l = (const at i) (load inn ((:_ n sx)) x ao).
+(defun pack-load-addr (l)
+  (+ (caddr (car l)) (wrt::%get-field (car (cddddr (cadr l))) :offset)))
+(defun pack-load-size (l)
+  (/ (cadr (car (caddr (cadr l)))) 8))
+
+(defthm load-pack-val-reads-its-window
+  (implies (and (one-memory-p z) (true-listp z) (equal (len z) 3)
+                (equal (take (pack-load-size l) (nthcdr (pack-load-addr l) b1))
+                       (take (pack-load-size l) (nthcdr (pack-load-addr l) b2))))
+           (equal (w3t::step_read/split/r-load-pack-val (list :|%;%| (put-z-bytes z b1) l))
+                  (w3t::step_read/split/r-load-pack-val (list :|%;%| (put-z-bytes z b2) l))))
+  :hints (("Goal" :in-theory (enable w3t::step_read/split/r-load-pack-val) :do-not-induct t)))
+
+; The packed store writes a splice too: l = (const at i) (const inn c) (store inn (n) x ao).
+(defun store-pack-splice (l b)
+  (let* ((i (caddr (car l))) (st (caddr l)) (inn (cadr st)) (n (car (caddr st)))
+         (c (caddr (cadr l)))
+         (addr (+ i (wrt::%get-field (car (cddddr st)) :offset))))
+    (append (take addr b)
+            (w3t::$ibytes_ n (w3t::$wrap__ (w3t::$size inn) n c))
+            (nthcdr (+ addr (/ n 8)) b))))
+
+(defthm store-pack-val-is-splice
+  (implies (and (single-memory-store-p z l) (true-listp z) (equal (len z) 3) (store-fields-p (cadr z)))
+           (equal (w3t::step/r-store-pack-val (list :|%;%| (put-z-bytes z b) l))
+                  (put-result-bytes (w3t::step/r-store-pack-val (list :|%;%| (put-z-bytes z nil) l))
+                                    (store-pack-splice l b))))
+  :hints (("Goal" :in-theory (enable w3t::step/r-store-pack-val) :do-not-induct t)))
