@@ -1,21 +1,22 @@
 // W5 item 3: the page (build/web, `make web`) in headless Chromium and
-// Firefox. Every example (and two more exports) runs through the UI; the
+// Firefox. Every example (and two more exports) runs through the UI (Run
+// to end from a fresh session; the page has one view, the stepper); the
 // semantics' result must equal the native WebAssembly result in the same
 // browser. Also checks fuel (W5 item 2: factorial with fuel 50 is out of
 // fuel after 50 steps) and Stop (a long run is stopped, a fresh Worker
-// loads, and the next run works). W5 item 4, Step mode: factorial run to
-// its end in Step mode takes as many steps as in Run mode, with the same
-// result; the GC example is stepped to its end one Step click at a time;
+// loads, and the next run works). W5 item 4: factorial stepped 100 steps
+// and then run to its end takes as many steps as running it to its end
+// straight away, with the same result; the GC example is stepped to its end one Step click at a time;
 // the memory example shows the first changed bytes (address 4 := 01).
 // One line per check per browser; exits non-zero on a mismatch, a failed
 // check or a page error.
-// Usage: node smoke.mjs BUILD_WEB_DIR. SHOT=<png>: Run-mode screenshot,
-// SHOT_STEP=<png>: Step-mode screenshot mid-run, SHOT_LINE=<png>: Step mode
-// with the line highlight (W6), SHOT_RULES=<png>: Step mode with the rule
+// Usage: node smoke.mjs BUILD_WEB_DIR. SHOT=<png>: screenshot after Run to end,
+// SHOT_STEP=<png>: screenshot mid-run, SHOT_LINE=<png>: stepping
+// with the line highlight (W6), SHOT_RULES=<png>: stepping with the rule
 // chain (W8) (all Chromium).
 // W8 item 2: the GC example's Step clicks each show a non-empty rule chain;
 // print host: the print example prints the same lines on both sides, in
-// Run mode and in Step mode (Step x5 requests), each line once.
+// one Run to end and in Step x5 requests, each line once.
 // SMOKE_JSON=<file>: the measurements as JSON.
 import path from 'node:path';
 import fs from 'node:fs';
@@ -48,7 +49,7 @@ async function runOne(page, r, fuel = 200000) {
   const inputs = await page.$$('#args input');
   for (let k = 0; k < inputs.length; k++) await inputs[k].fill(r.args[k] ?? '');
   await page.fill('#fuel', String(fuel));
-  await page.click('#run');
+  await page.click('#toend');
   await page.waitForSelector('#sem[data-state="done"]', { timeout: TIMEOUT });
   return page.evaluate(() => {
     const s = document.querySelector('#sem'), n = document.querySelector('#nat');
@@ -58,7 +59,7 @@ async function runOne(page, r, fuel = 200000) {
   });
 }
 
-// --- Step mode ---------------------------------------------------------------
+// --- stepping ----------------------------------------------------------------
 const idle = page => page.waitForFunction(() => !document.querySelector('#restart').disabled, null, { timeout: TIMEOUT });
 const sv = page => page.evaluate(() => {
   const v = document.querySelector('#stepview'), s = document.querySelector('#sem'), n = document.querySelector('#nat');
@@ -66,7 +67,7 @@ const sv = page => page.evaluate(() => {
     redex: (document.querySelector('#sv-instrs .redex') || {}).textContent || null,
     mem: [...document.querySelectorAll('#sv-mem .row')].map(r => ({ addr: Number(r.dataset.addr), new: r.dataset.new })) };
 });
-// a fresh Step-mode session at step 0 for run R
+// a fresh session at step 0 for run R
 async function session(page, r) {
   await page.selectOption('#example', r.id);
   await page.selectOption('#export', r.export);
@@ -80,10 +81,9 @@ async function session(page, r) {
 }
 async function stepChecks(b, page, rep) {
   const runs = Object.fromEntries(rep.runs.map(r => [r.id + '/' + r.export, r]));
-  await page.click('#mode-step');
   rep.step = {};
 
-  // factorial: Step x100 once, then Run to end; count and result as in Run mode
+  // factorial: Step x100 once, then Run to end; count and result as Run to end alone
   const fac = runs['factorial/fac'];
   await session(page, SHOT_RUN);
   await page.fill('#n', '100');
@@ -96,7 +96,7 @@ async function stepChecks(b, page, rep) {
   const workerMs = await page.$eval('#sem', e => Number(e.dataset.ms));
   const facOk = after100 === 100 && end.done && end.steps === Number(fac.steps) && end.sem === fac.sem && end.sem === end.nat;
   rep.step.factorial = { after100, steps: end.steps, runSteps: Number(fac.steps), sem: end.sem, nat: end.nat, workerMs, toEndMs };
-  line(b, facOk, `step mode fac(20): Step x100 -> ${after100} steps; Run to end -> ${end.steps} steps (Run mode ${fac.steps}), ${end.sem} (Run mode ${fac.sem}, native ${end.nat}); worker ${(workerMs / end.steps).toFixed(2)} ms/step`);
+  line(b, facOk, `step mode fac(20): Step x100 -> ${after100} steps; Run to end -> ${end.steps} steps (straight Run to end ${fac.steps}), ${end.sem} (straight ${fac.sem}, native ${end.nat}); worker ${(workerMs / end.steps).toFixed(2)} ms/step`);
 
   // GC example stepped to its end, one click per step
   const gc = runs['gc/f'];
@@ -117,7 +117,7 @@ async function stepChecks(b, page, rep) {
   const chained = chains.filter(c => c.length).length;
   rep.step.gcChains = chains;
   line(b, chained === clicks && clicks > 0, `W8 rule chains: ${chained}/${clicks} steps of gc f(3, 4) show a non-empty chain (last: ${(chains[chains.length - 1] || []).join(' › ')})`);
-  line(b, gcOk, `step mode gc f(3, 4): ${clicks} Step clicks to the normal form, ${st.steps} steps (Run mode ${gc.steps}), ${st.sem} (native ${st.nat}); ${perClick.toFixed(0)} ms per click (UI round trip)`);
+  line(b, gcOk, `step mode gc f(3, 4): ${clicks} Step clicks to the normal form, ${st.steps} steps (Run to end ${gc.steps}), ${st.sem} (native ${st.nat}); ${perClick.toFixed(0)} ms per click (UI round trip)`);
 
   // memory example: step until the first memory diff
   await session(page, { id: 'memory', export: 'squares', args: ['3'] });
@@ -190,7 +190,7 @@ async function printChecks(b, page, rep) {
   const p = await prints(page);
   const ok = st.done && p.sem === want && p.nat === want;
   rep.prints = { step: p, requests: reqs, steps: st.steps };
-  line(b, ok, `print host, Step mode (${reqs} Step x5 requests, ${st.steps} steps): semantics ${p.sem}, native ${p.nat}`);
+  line(b, ok, `print host, stepping (${reqs} Step x5 requests, ${st.steps} steps): semantics ${p.sem}, native ${p.nat}`);
   if (b === 'chromium' && process.env.SHOT_RULES) {
     await session(page, { id: 'print', export: 'squares', args: ['4'] });
     await page.fill('#n', '26');
@@ -228,7 +228,7 @@ try {
       await page.selectOption('#example', 'factorial');
       await (await page.$('#args input')).fill('100000000');
       await page.fill('#fuel', '1000000000');
-      await page.click('#run');
+      await page.click('#toend');
       await page.waitForTimeout(1500);
       const before = await page.$eval('#sem', e => e.dataset.state);
       const ts = Date.now();

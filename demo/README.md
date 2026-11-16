@@ -22,6 +22,19 @@ make -C demo                        # demo/build/: wasm3.js and the page (build/
 make -C demo check                  # the tests below
 ```
 
+To view the page locally, serve the built directory (not `web/`, which lacks
+`wasm3.js`, `wabt.js` and `jscl.js`):
+
+```sh
+make -C demo                                  # once, to populate build/web
+python3 -m http.server 8000 -d demo/build/web # from the repo root
+# then open http://localhost:8000/
+```
+
+Use a server rather than `file://`: the page starts a Web Worker, which
+browsers refuse to load from `file://`. `nix build .#wasm3-demo` output
+can be served the same way (`python3 -m http.server -d result`).
+
 `nix build .#wasm3-demo` builds the page as a static directory (the site
 root) without the dev shell.
 
@@ -31,7 +44,7 @@ byte-identical and `translate/` is untouched), `vectors` and `units` (the
 shim against ACL2's numeric and SIMD vectors and unit values), `host`
 (host imports), `conformance-quick` (spec-test-3 scripts command by
 command against ACL2's results), `smoke` (the page in headless Chromium
-and Firefox against native `WebAssembly`, Run and Step mode), `lines`
+and Firefox against native `WebAssembly`: Step, Run to end, breakpoints), `lines`
 (the WAT line of every step against hand-written lines) and `chains`
 (rule chains of every step against hand-written ones). `conformance-quick`
 and `conformance` (the whole subset, about 25 minutes) need ACL2's spec

@@ -1,6 +1,7 @@
-// demo/web/app.js: the page (plan/wasm3-demo W5). Run mode runs an export
-// to completion under the fuel; Step mode (W5 item 4, D6 level 1) takes one
-// `step` of the reduction relation per click and shows the configuration.
+// demo/web/app.js: the page (plan/wasm3-demo W5). One view, the stepper
+// (W5 item 4, D6 level 1): Step takes one `step` of the reduction relation
+// and shows the configuration; Run to end goes on to the result under the
+// fuel (or to a breakpoint), which is what the earlier Run mode did.
 // WAT is turned into bytes here by the bundled wabt (D3: only the binary
 // reaches the semantics); the semantics runs in worker.js, the native
 // engine here.
@@ -8,19 +9,22 @@
 (() => {
   const $ = id => document.getElementById(id);
   const ui = { example: $('example'), src: $('src'), msg: $('src-msg'), format: $('format'), exp: $('export'),
-    args: $('args'), fuel: $('fuel'), run: $('run'), stop: $('stop'), engine: $('engine'),
+    args: $('args'), fuel: $('fuel'), stop: $('stop'), engine: $('engine'),
     step: $('step'), stepn: $('stepn'), n: $('n'), toend: $('toend'), restart: $('restart'), nextline: $('nextline'),
     printed: $('printed') };
   const breakpoints = new Set();       // printed line numbers (W6)
   let wabt = null, worker = null, ready = false, reqId = 0, running = null, info = null;
-  let mode = 'run', sess = null;      // sess: the Step-mode session {startId, loadMs, totalMs, done}
+  let sess = null;                    // the session {startId, loadMs, totalMs, done}
+  let autoStart = false;              // an example was loaded: start its session once the Worker is ready
 
-  // --- theme -------------------------------------------------------------
-  $('theme').onclick = () => {
-    const dark = document.documentElement.dataset.theme
-      ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.dataset.theme = dark ? 'light' : 'dark';
-  };
+  // --- left pane: the printed module or the editable source ------------------
+  function setView(v) {
+    $('source').dataset.view = v;
+    $('tab-module').setAttribute('aria-selected', String(v === 'module'));
+    $('tab-source').setAttribute('aria-selected', String(v === 'source'));
+  }
+  $('tab-module').onclick = () => setView('module');
+  $('tab-source').onclick = () => setView('source');
 
   // --- worker --------------------------------------------------------------
   // window.demoLoad: load time of each Worker start (read by the smoke test)
@@ -38,6 +42,7 @@
         window.demoLoad.push({ workerMs: Math.round(m.loadMs), totalMs: Math.round(ms) });
         ui.engine.dataset.state = 'ready'; ui.engine.textContent = `semantics: ready (${(ms / 1000).toFixed(1)} s)`;
         setButtons();
+        if (autoStart && !sess) beginSession();
       } else if (m.type === 'failed') {
         ui.engine.dataset.state = 'failed'; ui.engine.textContent = 'semantics: failed to load';
         ui.msg.textContent = 'Worker: ' + m.message;
@@ -65,7 +70,6 @@
   }
   function setButtons() {
     const idle = ready && !running && !!info;
-    ui.run.disabled = !idle;
     ui.step.disabled = ui.stepn.disabled = ui.toend.disabled = ui.nextline.disabled = !idle || !!(sess && sess.done);
     ui.restart.disabled = !idle;
     ui.stop.disabled = !running;
@@ -83,6 +87,7 @@
       try { fns = ModInfo.exportsOf(bytes); } catch (e) { ui.msg.textContent = 'reading exports: ' + e.message; }
       info = { bytes, fns };
       ui.format.textContent = `${ModInfo.isWat(src) ? 'WAT → ' : 'hex → '}${bytes.length} bytes`;
+      renderPrinted(Lines.print(wabt, bytes));       // the Module tab follows the source
     } catch (e) {
       ui.format.textContent = '';
       ui.msg.textContent = String(e.message || e).replace(/^parseWat failed:\s*/, '');
@@ -106,7 +111,7 @@
       const i = document.createElement('input');
       i.value = values ? (values[k] ?? '') : (old[k] ?? '');
       i.dataset.type = t;
-      i.addEventListener('keydown', e => { if (e.key === 'Enter') (mode === 'run' ? run() : stepAction('step')); });
+      i.addEventListener('keydown', e => { if (e.key === 'Enter') stepAction('runToEnd'); });
       i.addEventListener('input', () => endSession());
       l.appendChild(i); ui.args.appendChild(l);
     });
@@ -119,7 +124,8 @@
     ui.exp.value = ex.export;
     renderArgs(ex.args);
     clearResults();
-    if (mode === 'step') beginSession();
+    setView('module');
+    autoStart = !beginSession();         // examples start at step 0; edited source waits for a click
   }
   // the export, its arguments and the fuel, or null (with a message)
   function request() {
@@ -188,15 +194,6 @@
     $('sem-steps').textContent = '—';
   }
 
-  // --- Run mode -------------------------------------------------------------
-  function run() {
-    if (ui.run.disabled) return;
-    const q = request();
-    if (!q) return;
-    post('run', { bytes: info.bytes, name: q.fn.name, args: q.args, fuel: q.fuel });
-    showSem({ status: 'running' });
-    showNative(q.fn, q.args);              // on the page's own engine, after the message is posted
-  }
   function stop() {
     if (!running) return;
     const elapsed = performance.now() - running.t0;
@@ -207,21 +204,14 @@
     startWorker();
   }
 
-  // --- Step mode ------------------------------------------------------------
-  function setMode(m) {
-    mode = m;
-    document.body.classList.toggle('mode-step', m === 'step');
-    $('mode-run').setAttribute('aria-selected', String(m === 'run'));
-    $('mode-step').setAttribute('aria-selected', String(m === 'step'));
-    clearResults();
-    endSession();
-    if (m === 'step') beginSession();
-  }
+  // --- the session ------------------------------------------------------------
   // loads the module and $invoke's the export: the view shows step 0
   function beginSession() {
     if (!ready || running || !info) return false;
     const q = request();
     if (!q) return false;
+    autoStart = false;
+    setView('module');
     const printed = Lines.print(wabt, info.bytes);
     renderPrinted(printed);
     const startId = post('start', { bytes: info.bytes, name: q.fn.name, args: q.args, fuel: q.fuel, printed: printed.text });
@@ -234,9 +224,11 @@
   function stepAction(type) {
     if (type !== 'restart' && ui.step.disabled) return;
     if (type === 'restart' || !sess) { if (!beginSession()) return; if (type === 'restart') return; }
+    setView('module');
     const id = ++reqId;                  // queued behind a start, if one was just posted
     running = { id, t0: running ? running.t0 : performance.now() };
     worker.postMessage({ type, id, n: Math.max(1, Math.floor(Number(ui.n.value)) || 1), breakpoints: [...breakpoints] });
+    if (type === 'runToEnd' || type === 'nextLine') { $('sem').dataset.state = 'running'; $('sem').dataset.status = 'running'; $('sem-status').textContent = STATUS.running; }
     setButtons();
   }
   function onState(m) {
@@ -304,7 +296,7 @@
     sv.dataset.steps = ''; sv.dataset.done = ''; sv.dataset.status = '';
     $('sv-steps').textContent = '0';
     $('sv-nest').textContent = '';
-    $('sv-instrs').innerHTML = note ? `<li class="end">${esc(note)}</li>` : '';
+    $('sv-instrs').innerHTML = `<li class="end">${esc(note || 'Step or Run to end starts the export from its first configuration.')}</li>`;
     $('sv-locals').innerHTML = '';
     $('sv-mem').innerHTML = ''; $('sv-mem').dataset.count = '0';
   }
@@ -336,23 +328,20 @@
   }
 
   // --- wiring ---------------------------------------------------------------
-  ui.run.onclick = run;
   ui.stop.onclick = stop;
   ui.step.onclick = () => stepAction('step');
   ui.stepn.onclick = () => stepAction('stepN');
   ui.toend.onclick = () => stepAction('runToEnd');
   ui.nextline.onclick = () => stepAction('nextLine');
   ui.restart.onclick = () => { clearResults(); endSession(); stepAction('restart'); };
-  $('mode-run').onclick = () => setMode('run');
-  $('mode-step').onclick = () => setMode('step');
   ui.fuel.addEventListener('input', () => endSession());
   ui.exp.onchange = () => { renderArgs([]); clearResults(); endSession(); };
   ui.example.onchange = () => loadExample(ui.example.value);
   let timer = null;
-  ui.src.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(compile, 300); });
+  ui.src.addEventListener('input', () => { autoStart = false; clearTimeout(timer); timer = setTimeout(compile, 300); });
   ui.src.addEventListener('keydown', e => {
     if (e.key === 'Tab') { e.preventDefault(); document.execCommand('insertText', false, '  '); }
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) (mode === 'run' ? run() : stepAction('step'));
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { clearTimeout(timer); stepAction('runToEnd'); }
   });
 
   // --- start ---------------------------------------------------------------
