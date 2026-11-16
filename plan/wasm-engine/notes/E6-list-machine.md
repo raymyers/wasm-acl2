@@ -1,9 +1,9 @@
 # The list machine: dispatch on the head instruction, the spec's own rule functions on the redex
 
-- Milestone: E6 (items 1 to 4 done; item 5 has two open differences)
+- Milestone: E6 (all five items)
 - Date: 2026-11-15
 - Repo commit: 174d6fb plus this note's commit
-- Status: draft (two commands of differential test 2 differ)
+- Status: final
 - Feeds engine plan: E6, E7 (primitives, rates), E8 (widening), E11 (shape of the simulation lemmas), E3 (constraints C1, C2)
 - Incorporated in engine plan: yes (E6, "Current state")
 
@@ -28,8 +28,12 @@
   At every step `machine-abs` after the step equals the spec stepped
   `machine-clock` times.
 - **Differential test 2**: over 258 spec-test scripts, 33,113 commands
-  give the same result and store as the spec (14,303 inside S0) and 2
-  differ (`fib-i32` in `call_indirect.wast`), which are being checked.
+  give the same result and store as the spec, 14,303 of them inside S0,
+  with no disagreement in S0. Two S1 commands (`fib-i32` 2 and 5 in
+  `call_indirect.wast`) were reported different in the first run. They
+  were printed after the script's time limit had signalled the session,
+  re-running commands that had already agreed, and every replay from the
+  same states agrees (section below). The exit (S0) is met.
 - The list machine is already 23 to 27,000 times faster than the spec on
   code without memory traffic (914,349 spec steps/s on the counting loop,
   2 ms against 54 s on the call chain of depth 150). On memory traffic it
@@ -195,12 +199,30 @@ ran before the limit was compared.
 The two differences are both in `call_indirect.wast`: `fib-i32` with 2
 and with 5. The spec returns 2 and 8; the machine reported `:stuck`. The
 first run had `call_indirect` at arity 1 (stuck on 3 commands of
-`block.wast`); after the fix these two remained. Run alone (differential test 1 on
-`call_indirect.0.wasm`, 80 machine steps, result 2) and in the script with
-the earlier commands run on the machine (driver mode `D2-ONLY`), the same
-commands agree. So the difference depends on the script state that the
-spec's runs of the earlier commands left. A third run of the whole script
-with a 2,400 s limit was started to see the stuck state.
+`block.wast`); after the fix these two remained. What the evidence says about them:
+
+- In the first run the two `DIFFER` lines are the last output before
+  `D2-EXIT 137`, the exit after `timeout -k 30 900` sent TERM at 900 s and
+  KILL 30 s later (`data/e6-machine/call_indirect-first-run-tail.txt`).
+  Before them, the same run had already compared `fib-i32` 0, 1, 2, 5 as
+  **same** (lines 256 to 262). The script contains only one set of
+  `fib-i32` commands (checked in `data-3.0/call_indirect.lsp`). So the two
+  lines re-ran commands that had passed, in a session that was being
+  interrupted: they are an artefact of the time limit, not a result of
+  the machine.
+- Replays: `fib-i32` alone from a fresh instantiation (differential test
+  1 on `call_indirect.0.wasm`: 80 machine steps, result 2, 0
+  disagreements); the script with only `fib-i32` compared and the rest run
+  on the machine (`call_indirect-replay-fib-i32-only.txt`); the script with
+  every command compared except the five `fib-i64` ones
+  (`call_indirect-replay-without-fib-i64.txt`); the script with `fib-i64`
+  and `fib-i32` compared (`call_indirect-replay-fib-only.txt`). In all of
+  them `fib-i32` 2 and 5 agree.
+- `fib-i32 20` on the machine: 10,946, at once
+  (`call_indirect-fib-i32-20-machine.txt`). On the spec it had not
+  finished after 30 minutes (deep recursion, E0) and was stopped.
+- The harness now kills with KILL at the limit (`timeout -s KILL`), so
+  nothing is printed after it.
 
 ### Rates (not an E6 goal; input to E7)
 

@@ -13,6 +13,6 @@ if [ -n "$names" ]; then cp "$names" "$out/NAMES"; else
 export timeout out here
 xargs -P "$jobs" -I{} sh -c '
   { echo "(assign t7-name \"{}\")"; cat "$here/difftest2-one.lsp"; } |
-    timeout -k 30 "$timeout" acl2 > "$out/{}.out" 2>&1
+    timeout -s KILL "$timeout" acl2 > "$out/{}.out" 2>&1
   echo "D2-EXIT $?" >> "$out/{}.out"' < "$out/NAMES"
 sh "$here/difftest2-summary.sh" "$out"

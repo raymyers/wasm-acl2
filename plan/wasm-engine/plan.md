@@ -34,8 +34,8 @@
 > Generated code is never edited by hand. Everything that certified or
 > passed before must still certify and pass.
 >
-> **Status: in execution. E0, E2 (go), E3, E5 and E4 item 2 complete; E1
-> (item 5) and E6 (item 5) in progress** (written 2026-11-15, at `d845f70`; revised the same day for
+> **Status: in execution. E0, E2 (go), E3, E5, E6 and E4 items 1 and 2
+> complete; E1 (item 5) and E11 (S0) in progress** (written 2026-11-15, at `d845f70`; revised the same day for
 > 3.0 and MuPDF). Per-session procedure: [step.md](step.md). Prompts behind
 > this plan: [seed.md](seed.md).
 
@@ -48,7 +48,9 @@
   are `:logic`; [E2-step-logic](notes/E2-step-logic.md)), E5 (machine
   design; [E5-machine](notes/E5-machine.md)) and E0 (baseline: 23,000 to
   40,000 spec steps/s on flat code; [E0-baseline](notes/E0-baseline.md))
-- **Also complete**: E3 (the theorem for any machine, its run level, and
+- **Also complete**: E6 (the list machine; C1 and C3 proved; test 1: 0
+  disagreements; test 2: 14,303 S0 commands, none differs;
+  [E6-list-machine](notes/E6-list-machine.md)). E3 (the theorem for any machine, its run level, and
   the spec facts behind C3; [E3-theorem](notes/E3-theorem.md)). For the
   list machine, C1 and C3 are proved; C2 is E11
 - **In progress**: E1, every item but 5 done (census, reference renders,
@@ -56,9 +58,10 @@
   target; [E1-mupdf-target](notes/E1-mupdf-target.md)). Item 5: the small
   target passes the generated decoder and `Module_ok` (73 min and 85 s);
   the full module's parse was still running after more than 100 CPU
-  minutes. E6: items 1 to 4 done, item 5 has two differing commands
-  ([E6-list-machine](notes/E6-list-machine.md)). E4 item 2 done (one
-  function per rule, with E2)
+  minutes. E11 (S0) started: C2 for every clock-0 step is proved
+  (`engine/machine/clock0.lisp`); for the clock-1 steps the first test
+  shows that an `append`/`take`/`nthcdr` library comes first. E4 items 1
+  and 2 done
 - **`engine/` exists**: `make -C engine check` is a gate from now on. It
   needs `translate/gen/wasm-3.0` certified (`make -C translate check-3.0`)
 - **Who did what (user's instruction, 2026-11-15)**: the session of
@@ -85,11 +88,12 @@
   recurses once per byte; SBCL's default stack ends near 32 pages. Run
   with `SBCL_USER_ARGS='--control-stack-size 1000'` (64 pages) or `4000`
   (MuPDF's 352 pages) ([E0-baseline](notes/E0-baseline.md))
-- **Next action**: settle the two `fib-i32` differences of E6
-  differential test 2 (`call_indirect.wast`) and close E6; record the full
-  module's decode (E1 item 5); then E4 (items 1, 3, 4: the per-rule lemma
-  generator of `rules/terminal.lisp` is the start of the dispatch lemmas),
-  then E7 (the list machine of
+- **Next action**: record the full module's decode when it ends (E1
+  item 5); then E7 (the stobj machine: the memory rules need array fast
+  paths, see "What this means for E7" in
+  [E6-list-machine](notes/E6-list-machine.md)), and on the proof track
+  the list library and dispatch lemmas for C2's clock-1 steps (E4 item 4,
+  E11 S0) (the list machine of
   [E5-machine](notes/E5-machine.md), S0 first, written over primitives so
   that E7 can put a stobj under it), then E4 items 1, 3 and 4
 - **Changed by E2, for every later session**: a relation function is now
@@ -465,18 +469,18 @@ new item.
       `(abs (machine-step s))` equals the spec stepped `(clock s)` times:
       0 disagreements in 10 runs (10,050 machine steps), including a trap
       and an uncaught exception (2026-11-15)
-- [ ] Differential test 2: the spec test scripts whose modules are inside
+- [x] Differential test 2: the spec test scripts whose modules are inside
       the machine's subset, per-command results compared with the
       generated semantics. Run on all 258 scripts: 33,113 commands agree
       (14,303 in S0, 17,991 in S1, 176 in S2, 66 in S3), 24,773 stop at
-      instructions outside D5, **2 differ** (`call_indirect.wast`,
-      `fib-i32` 2 and 5: spec 2 and 8, machine stuck). Run alone, or after
-      the earlier commands on the machine, the same commands agree; being
-      checked
+      instructions outside D5, none differs in S0. Two S1 lines reported
+      different were printed after the time limit signalled the session
+      (re-runs of commands that had agreed); every replay agrees
+      (2026-11-16)
 
 **Exit**: both differential tests pass with zero disagreements for S0.
 Scripts and commands inside S0 recorded
-([E6-list-machine](notes/E6-list-machine.md)).
+([E6-list-machine](notes/E6-list-machine.md)). Met (2026-11-16).
 
 ### E7: Stobj machine
 
