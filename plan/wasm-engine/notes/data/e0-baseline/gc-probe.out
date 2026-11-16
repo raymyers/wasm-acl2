@@ -1,0 +1,180 @@
+wasm-acl2 dev shell
+  make all      certify top + proofs + tests
+  make top      certify just the library
+  make proofs / make tests
+  (cd tests/oracle && bash check-all.sh)   Node.js oracle
+This is SBCL 2.6.6, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ + ACL2 Version 8.7                                                     +
+ +   built August 12, 2026  00:46:05.                                   +
+ + Copyright (C) 2026, Regents of the University of Texas.              +
+ + ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and   +
+ + you are welcome to redistribute it under certain conditions.  For    +
+ + details, see the LICENSE file distributed with ACL2.                 +
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>>> "ACL2"
+ACL2 !>>>>
+Summary
+Form:  ( DEFPKG "IL2ACL2" ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ "IL2ACL2"
+ACL2 !>>>>
+Summary
+Form:  ( DEFPKG "WRT" ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ "WRT"
+ACL2 !>>>>Bye.
+ :EOF
+ACL2 !>>>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>>> "ACL2"
+ACL2 !>>>>
+Summary
+Form:  ( DEFPKG "W3T" ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ "W3T"
+ACL2 !>>>>Bye.
+ :EOF
+ACL2 !>>>Bye.
+ :EOF
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "../../translate/gen/wasm-3.0/wasm3" ...)
+Rules: NIL
+Time:  2.14 seconds (prove: 0.00, print: 0.00, other: 2.14)
+ "/Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/wasm3.lisp"
+ACL2 !>> "W3T"
+W3T !>>W3T p!>> T
+W3T p!>>
+Summary
+Form:  ( DEFUN READ-BYTES-LOOP ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ READ-BYTES-LOOP
+W3T p!>>
+Summary
+Form:  ( DEFUN READ-BYTES ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ READ-BYTES
+W3T p!>>
+Summary
+Form:  ( DEFCONST *S0* ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ *S0*
+W3T p!>>
+Summary
+Form:  ( DEFUN RUN-STEPS ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ RUN-STEPS
+W3T p!>>
+Summary
+Form:  ( DEFUN FIND-EXPORT ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ FIND-EXPORT
+W3T p!>>
+Summary
+Form:  ( DEFUN STR-BYTES ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ STR-BYTES
+W3T p!>>
+Summary
+Form:  ( DEFUN BENCH1 ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ BENCH1
+W3T p!>>
+Summary
+Form:  ( DEFUN I32 ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ I32
+W3T p!>>
+Summary
+Form:  ( DEFUN I64 ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ I64
+W3T p!>>
+Summary
+Form:  ( DEFUN B3 ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ B3
+W3T p!>>Bye.
+ :EOF
+ACL2 p!> "W3T"
+W3T p!>
+Exiting the ACL2 read-eval-print loop.  To re-enter, execute (LP).
+* *GCS*
+* (#<FUNCTION (LAMBDA ()) {80561506DB}>)
+* GCRUN
+* BENCH wasm/count-1.wasm run ((:CONST (:I32) 20000)): inst-steps 0 steps
+160011 ms 3951 steps/s 40500 result ((:CONST (:I32) 0))
+GCPROBE nursery 1677721600: gcs 1 gc-ms 0 real-ms 3975
+NIL
+* BENCH wasm/count-1.wasm run ((:CONST (:I32) 20000)): inst-steps 0 steps
+160011 ms 3965 steps/s 40351 result ((:CONST (:I32) 0))
+GCPROBE nursery 268435456: gcs 6 gc-ms 42 real-ms 4048
+NIL
+* BENCH wasm/count-1.wasm run ((:CONST (:I32) 20000)): inst-steps 0 steps
+160011 ms 4077 steps/s 39244 result ((:CONST (:I32) 0))
+GCPROBE nursery 67108864: gcs 22 gc-ms 159 real-ms 4033
+NIL
+* BENCH wasm/count-1.wasm run ((:CONST (:I32) 20000)): inst-steps 0 steps
+160011 ms 4691 steps/s 34107 result ((:CONST (:I32) 0))
+GCPROBE nursery 16777216: gcs 88 gc-ms 627 real-ms 4473
+NIL
+* 

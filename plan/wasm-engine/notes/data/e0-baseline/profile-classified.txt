@@ -1,0 +1,95 @@
+== wasm/count-1.wasm n=20000: 3760 samples
+   95.5%  allocation (__bzero, memset), charged to:
+       58.0%  rule matching (rule functions, their SEARCH/MATCH helpers)
+       36.0%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+        1.4%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+        0.0%  other spec functions (numerics, aux)
+  self time outside allocation:
+        1.4%  list and shape tests (TRUE-LISTP, LEN, TAKE, *-P)
+        0.9%  rule matching (rule functions, their SEARCH/MATCH helpers)
+        0.9%  termination check (%SIZE / ACL2-COUNT)
+        0.6%  other (Lisp runtime)
+        0.6%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+        0.1%  store and memory
+        0.1%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+        0.0%  other spec functions (numerics, aux)
+  combined (allocation charged to its caller):
+       58.9%  rule matching (rule functions, their SEARCH/MATCH helpers)
+       36.6%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+        1.5%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+        1.4%  list and shape tests (TRUE-LISTP, LEN, TAKE, *-P)
+        0.9%  termination check (%SIZE / ACL2-COUNT)
+        0.6%  other (Lisp runtime)
+        0.1%  store and memory
+        0.0%  other spec functions (numerics, aux)
+== wasm/nested-1.wasm n=5000: 2885 samples
+   67.3%  allocation (__bzero, memset), charged to:
+       37.7%  rule matching (rule functions, their SEARCH/MATCH helpers)
+       27.8%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+        1.8%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+        0.0%  other spec functions (numerics, aux)
+  self time outside allocation:
+       14.8%  termination check (%SIZE / ACL2-COUNT)
+        7.5%  rule matching (rule functions, their SEARCH/MATCH helpers)
+        6.1%  list and shape tests (TRUE-LISTP, LEN, TAKE, *-P)
+        2.3%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+        0.7%  other (Lisp runtime)
+        0.7%  store and memory
+        0.6%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+        0.0%  other spec functions (numerics, aux)
+  combined (allocation charged to its caller):
+       45.2%  rule matching (rule functions, their SEARCH/MATCH helpers)
+       30.1%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+       14.8%  termination check (%SIZE / ACL2-COUNT)
+        6.1%  list and shape tests (TRUE-LISTP, LEN, TAKE, *-P)
+        2.3%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+        0.7%  other (Lisp runtime)
+        0.7%  store and memory
+        0.1%  other spec functions (numerics, aux)
+== wasm/memloop-16.wasm n=2000: 2353 samples
+   40.0%  allocation (__bzero, memset), charged to:
+       24.6%  rule matching (rule functions, their SEARCH/MATCH helpers)
+       14.2%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+        0.8%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+        0.2%  store and memory
+        0.2%  other (Lisp runtime)
+        0.1%  other spec functions (numerics, aux)
+  self time outside allocation:
+       51.3%  store and memory
+        3.1%  termination check (%SIZE / ACL2-COUNT)
+        2.3%  list and shape tests (TRUE-LISTP, LEN, TAKE, *-P)
+        1.9%  rule matching (rule functions, their SEARCH/MATCH helpers)
+        0.8%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+        0.4%  other (Lisp runtime)
+        0.1%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+        0.0%  other spec functions (numerics, aux)
+  combined (allocation charged to its caller):
+       51.5%  store and memory
+       26.5%  rule matching (rule functions, their SEARCH/MATCH helpers)
+       15.1%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+        3.1%  termination check (%SIZE / ACL2-COUNT)
+        2.3%  list and shape tests (TRUE-LISTP, LEN, TAKE, *-P)
+        0.9%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+        0.5%  other (Lisp runtime)
+        0.1%  other spec functions (numerics, aux)
+== wasm/calls-1.wasm n=50: 933 samples
+   24.5%  allocation (__bzero, memset), charged to:
+       14.3%  rule matching (rule functions, their SEARCH/MATCH helpers)
+       10.0%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+        0.3%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+  self time outside allocation:
+       69.3%  termination check (%SIZE / ACL2-COUNT)
+        2.5%  rule matching (rule functions, their SEARCH/MATCH helpers)
+        2.4%  list and shape tests (TRUE-LISTP, LEN, TAKE, *-P)
+        0.9%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+        0.2%  other (Lisp runtime)
+        0.2%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+        0.0%  other spec functions (numerics, aux)
+  combined (allocation charged to its caller):
+       69.3%  termination check (%SIZE / ACL2-COUNT)
+       16.7%  rule matching (rule functions, their SEARCH/MATCH helpers)
+       10.8%  relation functions STEP, STEP_PURE, STEP_READ (unnamed in the profile)
+        2.4%  list and shape tests (TRUE-LISTP, LEN, TAKE, *-P)
+        0.5%  contexts: STEP/R-CTXT-*, STEP/SEARCH* (split, rebuild)
+        0.2%  other (Lisp runtime)
+        0.0%  other spec functions (numerics, aux)

@@ -34,8 +34,8 @@
 > Generated code is never edited by hand. Everything that certified or
 > passed before must still certify and pass.
 >
-> **Status: in execution. E2 (go), E5 and E4 item 2 complete; E1 and E3 in
-> progress** (written 2026-11-15, at `d845f70`; revised the same day for
+> **Status: in execution. E0, E2 (go), E5 and E4 item 2 complete; E1 and
+> E3 in progress** (written 2026-11-15, at `d845f70`; revised the same day for
 > 3.0 and MuPDF). Per-session procedure: [step.md](step.md). Prompts behind
 > this plan: [seed.md](seed.md).
 
@@ -45,8 +45,9 @@
 
 - **Last updated**: 2026-11-15
 - **Milestones complete**: E2 (**go**: `STEP`, `STEP_READ`, `STEPS/%FUEL`
-  are `:logic`; [E2-step-logic](notes/E2-step-logic.md)) and E5 (machine
-  design; [E5-machine](notes/E5-machine.md))
+  are `:logic`; [E2-step-logic](notes/E2-step-logic.md)), E5 (machine
+  design; [E5-machine](notes/E5-machine.md)) and E0 (baseline: 23,000 to
+  40,000 spec steps/s on flat code; [E0-baseline](notes/E0-baseline.md))
 - **In progress**: E1 items 1 to 3 done (fork `raymyers/mupdf`, branch
   `wasm3-exceptions` at `3eae43d`, rebuilt module with no legacy exception
   opcode, same pixels as the published one in V8;
@@ -76,9 +77,13 @@
   review"): the fast host layer enters under a trust tag in the view
   driver, and the first theorem is one direction (a machine that is stuck
   claims nothing). Neither blocks a session
+- **Spec runs with large memories**: the generated `$ALLOCMEM/ITER2`
+  recurses once per byte; SBCL's default stack ends near 32 pages. Run
+  with `SBCL_USER_ARGS='--control-stack-size 1000'` (64 pages) or `4000`
+  (MuPDF's 352 pages) ([E0-baseline](notes/E0-baseline.md))
 - **Next action**: the rest of E1 (items 4 to 9; item 5, the module
   through the generated decoder and `Module_ok`, is the one with an
-  unknown outcome), then E0, then E6 (the list machine of
+  unknown outcome), then E6 (the list machine of
   [E5-machine](notes/E5-machine.md), S0 first, written over primitives so
   that E7 can put a stobj under it), then E4 items 1, 3 and 4
 - **Changed by E2, for every later session**: a relation function is now
@@ -191,6 +196,13 @@ measures the shares):
   instruction.
 - Memory is a list of bytes. A store rebuilds it (D9).
 
+Measured by E0 ([E0-baseline](notes/E0-baseline.md)): on flat code the
+rules that are tried and fail cost most, by allocation (about 9 KB a
+step). Context recursion costs little by itself, but the termination
+check before each recursive premise makes a step at depth d cost d². Every
+load and store walks the whole byte list, in the out-of-bounds rules,
+which come first.
+
 Prior art to read in E5: x86isa (logic and executable definitions of one
 machine in ACL2), WasmRef-Isabelle (a fast interpreter proved against the
 WasmCert-Isabelle semantics).
@@ -247,19 +259,30 @@ engine/host/ , engine/view/  MuPDF's 22 imports; pixels to a viewer (E10)
 
 ### E0: Baseline and profile
 
-- [ ] Benchmark set in `engine/bench/`: the M3 counting loop, a loop with
+- [x] Benchmark set in `engine/bench/`: the M3 counting loop, a loop with
       a store and a load, nested blocks 8 deep, a recursive call chain, a
       `try_table` that catches a `throw`, the factorial of the demo. Each
       as WAT and as a configuration, run on the generated 3.0 semantics
-- [ ] Steps per second for each, with memory at 1, 16 and 64 pages
-- [ ] Profile of the counting loop and the nested-block loop: share of
-      time in rule matching, in `ctxt-*` recursion and term rebuilding,
-      in the termination check, in the store
-- [ ] Record what `STEP` returns (shape of the result, how "no rule
-      applies" and `TRAP` appear)
+      (through the generated decoder, `$instantiate` and `$invoke`;
+      results checked, 2026-11-15)
+- [x] Steps per second for each, with memory at 1, 16 and 64 pages: flat
+      code 23,000 to 40,000, independent of memory; the memory loop
+      20,652 / 4,366 / 1,261 (each load and store walks the byte list);
+      the call chain 5,036 at depth 10, 80 at depth 100 (a step costs d²).
+      64 pages need a 1,000 MB control stack (`$ALLOCMEM/ITER2` recurses
+      once per byte) (2026-11-15)
+- [x] Profile of the counting loop and the nested-block loop (and the
+      memory loop and the call chain): rule matching by allocation (about
+      9 KB a step, 45% to 59% of the time, with 30% to 37% more in the
+      relation functions), the termination check (15% nested, 69% at call
+      depth 50), the store (51% in the out-of-bounds load and store rules
+      at 16 pages), contexts' own time 0.5% to 2.3% (2026-11-15)
+- [x] Record what `STEP` returns: `NIL` or a list of exactly one
+      configuration; a trap is `((:TRAP))`, an uncaught exception
+      `((:REF.EXN_ADDR a) (:THROW_REF))`, and neither steps (2026-11-15)
 
 **Exit**: a table of measured rates and a ranked list of costs, in
-`notes/E0-baseline.md`.
+`notes/E0-baseline.md` (met: [E0-baseline](notes/E0-baseline.md)).
 
 ### E1: MuPDF as a 3.0 module
 

@@ -12,6 +12,7 @@ not exist.
 
 | Note | Milestone | Status | One line |
 |---|---|---|---|
+| [E0-baseline](E0-baseline.md) | E0 | final | Flat code runs at 23,000 to 40,000 spec steps/s; allocation by failing rules is the main cost; loads and stores cost O(memory), a step at call depth d costs d²; 64 pages need a larger control stack |
 | [E1-mupdf-target](E1-mupdf-target.md) | E1 | draft | The published MuPDF module uses legacy exceptions; fork `raymyers/mupdf`, branch `wasm3-exceptions`, switches the build to the 3.0 encoding; rebuilt module renders the same pixels in V8 |
 | [E2-step-logic](E2-step-logic.md) | E2, E4 item 2 | final | Go: `STEP`, `STEP_READ`, `STEPS/%FUEL` are `:logic`. Three missing measures, then one function per rule (D4 (a)) because the `REF_OK` termination proof was too large with the rules inline |
 | [E3-theorem](E3-theorem.md) | E3 | draft | The theorem is stated for any machine (six constrained functions, four constraints) and its run level is proved with no `skip-proofs`; E11 proves the constraints for the real machine |
