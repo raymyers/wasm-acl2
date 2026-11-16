@@ -1,6 +1,7 @@
-; E7: the fast machine. Phase A (test before proving, D7): the machine runs
-; and is compared with the list machine of E6; the refinement theorem comes
-; next, from the lemmas of frame.lisp and memory.lisp.
+; E7: the fast machine. Logic mode, guards verified (it runs as compiled
+; Lisp). Tested against the list machine of E6 at every step (fasttest.lsp);
+; the refinement theorem comes next, from the lemmas of frame.lisp and
+; memory.lisp. Code generators are in program mode.
 ;
 ; The state is the stobj FM. Its fields are those of the list machine's
 ; state, except that memory 0's bytes live in the byte array MEM and the
@@ -27,14 +28,13 @@
   (fm-ctrl :type t) (fm-status :type t)
   (fm-mem :type (common-lisp::array (common-lisp::unsigned-byte 8) (0)) :resizable t :initially 0))
 
-(program)
 (set-irrelevant-formals-ok t)
 (set-ignore-ok t)
 
 ; --- the array -----------------------------------------------------------
 
 (defun mem-to-list-loop (i fm acc)       ; bytes 0..i-1 consed onto ACC, in order
-  (declare (xargs :stobjs fm))
+  (declare (xargs :stobjs fm :guard (and (natp i) (<= i (fm-mem-length fm))) :measure (nfix i)))
   (if (zp i) acc
     (mem-to-list-loop (1- i) fm (cons (fm-memi (1- i) fm) acc))))
 
@@ -42,23 +42,27 @@
   (declare (xargs :stobjs fm))
   (mem-to-list-loop (fm-mem-length fm) fm nil))
 
+(defun byte-or-zero (b)
+  (declare (xargs :guard t))
+  (if (and (natp b) (< b 256)) b 0))
+
 (defun list-to-mem-loop (l i fm)
-  (declare (xargs :stobjs fm))
-  (if (atom l) fm
-    (let ((fm (update-fm-memi i (car l) fm))) (list-to-mem-loop (cdr l) (1+ i) fm))))
+  (declare (xargs :stobjs fm :guard (natp i)))
+  (if (or (atom l) (not (and (natp i) (< i (fm-mem-length fm))))) fm
+    (let ((fm (update-fm-memi i (byte-or-zero (car l)) fm))) (list-to-mem-loop (cdr l) (1+ i) fm))))
 
 (defun list-to-mem (l fm)                ; the array becomes the byte list L
   (declare (xargs :stobjs fm))
-  (let ((fm (resize-fm-mem (len l) fm))) (list-to-mem-loop l 0 fm)))
+  (let ((fm (resize-fm-mem (len-t l) fm))) (list-to-mem-loop l 0 fm)))
 
 (defun mem-window (a n fm)               ; (take n (nthcdr a bytes))
-  (declare (xargs :stobjs fm))
+  (declare (xargs :stobjs fm :guard (natp n)))
   (if (zp n) nil
     (cons (if (and (natp a) (< a (fm-mem-length fm))) (fm-memi a fm) nil)
           (mem-window (1+ (nfix a)) (1- n) fm))))
 
 (defun mem-write (a bytes fm)            ; write BYTES at A (the splice of $WITH_MEM)
-  (declare (xargs :stobjs fm))
+  (declare (xargs :stobjs fm :guard t))
   (if (atom bytes) fm
     (let ((fm (if (and (natp a) (< a (fm-mem-length fm)) (natp (car bytes)) (< (car bytes) 256))
                   (update-fm-memi a (car bytes) fm)
@@ -67,18 +71,22 @@
 
 ; --- the store without its bytes -------------------------------------------
 
-(defun store-without-bytes (s) (put-mem0-bytes s nil))
-(defun mem0-of-store (s) (wrt::%get-field (car (wrt::%get-field s :mems)) :bytes))
+(defun store-without-bytes (s) (declare (xargs :guard t)) (ec-call (put-mem0-bytes s nil)))
+(defun mem0-of-store (s)
+  (declare (xargs :guard t))
+  (wrt::%get-field (car-t (wrt::%get-field s :mems)) :bytes))
 
 ; --- generated fast versions of the memory rules ---------------------------
 
 (defun bytes-form-p (x)                  ; (%get-field ($mem z x) ':bytes)
+  (declare (xargs :mode :program))
   (and (consp x) (eq (car x) 'wrt::%get-field)
        (consp (cadr x)) (eq (car (cadr x)) 'w3t::$mem)
        (equal (caddr x) '':bytes)))
 
 (mutual-recursion
  (defun subst-memory (term)
+   (declare (xargs :mode :program))
    (cond ((or (atom term) (eq (car term) 'quote)) term)
          ((and (eq (car term) 'len) (bytes-form-p (cadr term)))
           '(fm-mem-length fm))
@@ -94,6 +102,7 @@
                 (subst-memory-list (cdr term))))
          (t (cons (car term) (subst-memory-list (cdr term))))))
  (defun subst-memory-list (terms)
+   (declare (xargs :mode :program))
    (if (atom terms) nil (cons (subst-memory (car terms)) (subst-memory-list (cdr terms))))))
 
 (defconst *fast-memory-rules*
@@ -107,31 +116,38 @@
     w3t::step_read/split/r-memory.copy-oob w3t::step_read/split/r-memory.copy-zero
     w3t::step_read/split/r-memory.copy-le w3t::step_read/split/r-memory.copy-gt))
 
+(defconst *fast-memory-step-rules*
+  '(w3t::step/r-store-num-oob w3t::step/r-store-num-val w3t::step/r-store-pack-oob w3t::step/r-store-pack-val))
+
 (defun fast-name (fn)
+  (declare (xargs :mode :program))
   (intern-in-package-of-symbol (concatenate 'string "FAST-" (symbol-name fn)) 'we::here))
 
 (defun fast-defuns (fns wrld)
+  (declare (xargs :mode :program))
   (if (endp fns) nil
     (let* ((fn (car fns)) (formals (acl2::formals fn wrld))
            (body (getpropc fn 'acl2::unnormalized-body nil wrld)))
       (cons `(defun ,(fast-name fn) (,@formals fm)
-               (declare (xargs :stobjs fm :mode :program) (ignorable fm))
+               (declare (xargs :stobjs fm :verify-guards nil) (ignorable fm))
                ,(subst-memory body))
             (fast-defuns (cdr fns) wrld)))))
 
 (defun fast-dispatch-cases (fns)
+  (declare (xargs :mode :program))
   (if (endp fns) nil
     (cons `(,(car fns) (,(fast-name (car fns)) arg fm)) (fast-dispatch-cases (cdr fns)))))
 
 (make-event
  `(progn ,@(fast-defuns *fast-memory-rules* (w state))
          (defun fast-memory-rule (fn arg fm)
-           (declare (xargs :stobjs fm :mode :program))
+           (declare (xargs :stobjs fm :verify-guards nil))
            (case fn ,@(fast-dispatch-cases *fast-memory-rules*) (otherwise nil)))))
 
 ; --- applying a rule --------------------------------------------------------
 
 (defun frame-safe-rules (rules)          ; pure, or a frame lemma in frame.lisp
+  (declare (xargs :mode :program))
   (cond ((endp rules) nil)
         ((or (eq (rule-kind (car rules)) :pure)
              (and (d5-rule-p (car rules)) (not (memory-rule-p (car rules)))
@@ -142,7 +158,7 @@
 ; computed once (the test per rule application used string operations)
 (make-event `(defconst *frame-safe-rules* ',(frame-safe-rules *step-rules*)))
 
-(defun frame-safe-p (fn) (member-eq fn *frame-safe-rules*))
+(defun frame-safe-p (fn) (declare (xargs :guard t)) (sym-member fn *frame-safe-rules*))
 
 (defun fm-z (fm) (declare (xargs :stobjs fm)) (list :|%;%| (fm-store fm) (fm-frame fm)))
 
@@ -152,6 +168,7 @@
 ; administrative term the redex is (entry rules). (Rule ids are OPCODE-...;
 ; the keyword is computed once per rule.)
 (defun rule-op-keywords (rules)
+  (declare (xargs :mode :program))
   (if (endp rules) nil
     (let* ((id (rule-id (car rules))) (dash (search "-" id))
            (op (if dash (subseq id 0 dash) id)) (op (if (equal op "IF") "IFELSE" op)))
@@ -160,47 +177,51 @@
 (make-event `(defconst *rule-op-keyword* ',(rule-op-keywords *step-rules*)))
 
 (defun head-in-p (kw instrs)
+  (declare (xargs :guard t))
   (and (consp instrs)
-       (or (and (consp (car instrs)) (eq (car (car instrs)) kw))
+       (or (and (consp (car instrs)) (equal (car (car instrs)) kw))
            (head-in-p kw (cdr instrs)))))
 
 (defun rule-may-match (fn redex)
-  (let ((kw (cdr (assoc-eq fn *rule-op-keyword*))))
+  (declare (xargs :guard t))
+  (let ((kw (cdr (assoc-equal fn *rule-op-keyword*))))
     (or (head-in-p kw redex)
         (and (consp redex) (null (cdr redex)) (admin-kind (car redex))
-             (head-in-p kw (car (drop-n 3 (car redex))))))))
+             (head-in-p kw (car-t (drop-n 3 (car redex))))))))
 
 ; (mv fired z' instrs' fm): rule FN on REDEX in state Z (whose store has no bytes)
 (defun fast-apply-rule (fn z redex fm)
-  (declare (xargs :stobjs fm))
+  (declare (xargs :stobjs fm :guard t))
   (cond
-   ((member-eq fn *fast-memory-rules*)
-    (let* ((arg (if (eq (rule-kind fn) :pure) redex (list :|%;%| z redex)))
-           (r (fast-memory-rule fn arg fm)))
+   ((sym-member fn *fast-memory-rules*)
+    ; every memory rule is a STEP_READ/SPLIT rule (configuration in,
+    ; instructions out) or a STEP rule (configuration in, configuration out)
+    (let* ((step-rule (sym-member fn *fast-memory-step-rules*))
+           (r (ec-call (fast-memory-rule fn (list :|%;%| z redex) fm))))
       (cond ((atom r) (mv nil z nil fm))
-            ((eq (rule-kind fn) :step)
-             (let* ((cfg (car r)) (z2 (cadr cfg)))
+            (step-rule
+             (let* ((cfg (car r)) (z2 (car-t (drop-n 1 cfg))) (res (car-t (drop-n 2 cfg))))
                (if (and (consp z2) (eq (car z2) :write))
                    ; ($with_mem z x i j b): the store is z, b is spliced in at i;
                    ; $with_mem gives no state when b is not a true list
-                   (if (true-listp (cadddr z2))
-                       (let ((fm (mem-write (caddr z2) (cadddr z2) fm)))
-                         (mv t (cadr z2) (caddr cfg) fm))
-                     (mv t nil (caddr cfg) fm))
-                 (mv t z2 (caddr cfg) fm))))
+                   (if (true-listp (car-t (drop-n 3 z2)))
+                       (let ((fm (mem-write (car-t (drop-n 2 z2)) (car-t (drop-n 3 z2)) fm)))
+                         (mv t (car-t (drop-n 1 z2)) res fm))
+                     (mv t nil res fm))
+                 (mv t z2 res fm))))
             (t (mv t z (car r) fm)))))
    ((frame-safe-p fn)
     (mv-let (ok z2 res) (apply-rule fn z redex) (mv ok z2 res fm)))
    ((not (rule-may-match fn redex)) (mv nil z nil fm))
    (t ; the slow fallback
-    (let* ((zfull (put-z-bytes z (mem-to-list fm))))
+    (let* ((zfull (ec-call (put-z-bytes z (mem-to-list fm)))))
       (mv-let (ok z2 res) (apply-rule fn zfull redex)
         (if (not ok) (mv nil z nil fm)
-          (let* ((fm (list-to-mem (mem0-of-store (cadr z2)) fm)))
-            (mv t (put-z-bytes z2 nil) res fm))))))))
+          (let* ((fm (list-to-mem (mem0-of-store (car-t (drop-n 1 z2))) fm)))
+            (mv t (ec-call (put-z-bytes z2 nil)) res fm))))))))
 
 (defun fast-try-rules (rules z redex fm)
-  (declare (xargs :stobjs fm))
+  (declare (xargs :stobjs fm :guard t))
   (if (atom rules) (mv nil z nil fm)
     (mv-let (ok z2 res fm) (fast-apply-rule (car rules) z redex fm)
       (if ok (mv t z2 res fm) (fast-try-rules (cdr rules) z redex fm)))))
@@ -215,23 +236,26 @@
 ; its fixed path. It computes what FAST-TRY-RULES computes.
 
 (defun rule-call-form (fn)
+  (declare (xargs :mode :program))
   ; (mv fired z' instrs' fm) for rule FN, with Z, REDEX, FM bound
   (cond ((member-eq fn *fast-memory-rules*) `(fast-apply-rule ',fn z redex fm))
         ((not (frame-safe-p fn)) `(fast-apply-rule ',fn z redex fm))
         ((eq (rule-kind fn) :pure)
-         `(let ((r (,fn redex))) (if (consp r) (mv t z (car r) fm) (mv nil z nil fm))))
+         `(let ((r (ec-call (,fn redex)))) (if (consp r) (mv t z (car r) fm) (mv nil z nil fm))))
         ((eq (rule-kind fn) :read)
-         `(let ((r (,fn (list :|%;%| z redex)))) (if (consp r) (mv t z (car r) fm) (mv nil z nil fm))))
-        (t `(let ((r (,fn (list :|%;%| z redex))))
+         `(let ((r (ec-call (,fn (list :|%;%| z redex))))) (if (consp r) (mv t z (car r) fm) (mv nil z nil fm))))
+        (t `(let ((r (ec-call (,fn (list :|%;%| z redex)))))
               (if (consp r) (mv t (car-t (drop-n 1 (car r))) (car-t (drop-n 2 (car r))) fm)
                 (mv nil z nil fm))))))
 
 (defun chain-form (rules)
+  (declare (xargs :mode :program))
   (if (endp rules) '(mv nil z nil fm)
     `(mv-let (ok z2 res fm) ,(rule-call-form (car rules))
        (if ok (mv t z2 res fm) ,(chain-form (cdr rules))))))
 
 (defun place-fn-name (place)
+  (declare (xargs :mode :program))
   (intern-in-package-of-symbol
    (if (consp place)
        (concatenate 'string "FAST-TRY-" (symbol-name (car place)) "-" (symbol-name (cadr place)))
@@ -239,13 +263,15 @@
    'we::here))
 
 (defun place-defuns (alist)
+  (declare (xargs :mode :program))
   (if (endp alist) nil
     (cons `(defun ,(place-fn-name (caar alist)) (z redex fm)
-             (declare (xargs :stobjs fm))
+             (declare (xargs :stobjs fm :guard t))
              ,(chain-form (cdar alist)))
           (place-defuns (cdr alist)))))
 
 (defun op-dispatch-cases (alist)
+  (declare (xargs :mode :program))
   (cond ((endp alist) nil)
         ((and (consp (caar alist)) (eq (car (caar alist)) :op))
          (cons `(,(cadr (caar alist)) (,(place-fn-name (caar alist)) z redex fm))
@@ -253,6 +279,7 @@
         (t (op-dispatch-cases (cdr alist)))))
 
 (defun op-keys (places)
+  (declare (xargs :mode :program))
   (cond ((endp places) nil)
         ((and (consp (car places)) (eq (car (car places)) :op))
          (cons (cadr (car places)) (op-keys (cdr places))))
@@ -261,13 +288,14 @@
 (make-event
  `(progn ,@(place-defuns *rule-places*)
          (defun fast-try-op (kw z redex fm)
-           (declare (xargs :stobjs fm))
+           (declare (xargs :stobjs fm :guard t))
            (case kw ,@(op-dispatch-cases *rule-places*) (otherwise (mv nil z nil fm))))
          (defun op-has-rules (kw)
+           (declare (xargs :guard t))
            (case kw (,(op-keys (strip-cars *rule-places*)) t)
              (otherwise nil)))
          (defun fast-try-entry (k z redex fm)
-           (declare (xargs :stobjs fm))
+           (declare (xargs :stobjs fm :guard t))
            (case k (:l (fast-try-entry-l z redex fm)) (:h (fast-try-entry-h z redex fm))
              (otherwise (fast-try-entry-f z redex fm))))))
 
@@ -293,7 +321,7 @@
 
 (defun fast-exit-step (fm)
   (declare (xargs :stobjs fm))
-  (let* ((e (car (fm-ctrl fm))) (k (entry-kind e))
+  (let* ((e (car-t (fm-ctrl fm))) (k (entry-kind e))
          (term (admin-term k (entry-n e) (if (eq k :f) (fm-frame fm) (entry-x e))
                            (rev-onto (fm-vals fm) (fm-is fm))))
          (outer-frame (if (eq k :f) (entry-x e) (fm-frame fm))))
@@ -301,7 +329,7 @@
       (fast-try-entry k (list :|%;%| (fm-store fm) outer-frame) (list term) fm)
       (if ok
           (fm-set (car-t (drop-n 1 z2)) (car-t (drop-n 2 z2)) (entry-v e) (app res (entry-r e))
-                  (cdr (fm-ctrl fm)) :run fm)
+                  (cdr-t (fm-ctrl fm)) :run fm)
         (update-fm-status :stuck fm)))))
 
 (defun fast-anyprefix-step (fm)
@@ -314,7 +342,7 @@
 
 (defun fast-op-step (fm)
   (declare (xargs :stobjs fm))
-  (let* ((i (car (fm-is fm))) (vals (fm-vals fm)) (kw (entry-kind i))
+  (let* ((i (car-t (fm-is fm))) (vals (fm-vals fm)) (kw (entry-kind i))
          (k (redex-arity i (fm-z fm) vals)))
     (cond ((or (not (op-has-rules kw)) (not (natp k))) (update-fm-status :unsupported fm))
           ((< (len-t vals) k) (update-fm-status :stuck fm))
@@ -322,7 +350,7 @@
                (fast-try-op kw (fm-z fm) (rev-onto (take-n k vals) (list i)) fm)
                (if ok
                    (fm-set (car-t (drop-n 1 z2)) (car-t (drop-n 2 z2)) (drop-n k vals)
-                           (app res (cdr (fm-is fm))) (fm-ctrl fm) :run fm)
+                           (app res (cdr-t (fm-is fm))) (fm-ctrl fm) :run fm)
                  (update-fm-status :stuck fm)))))))
 
 (defun fast-step (fm)
@@ -339,7 +367,7 @@
                  (fast-op-step fm))
                 ((and (sym-member (entry-kind i) '(:trap :throw_ref))
                       (or (consp (cdr is))
-                          (if (eq (entry-kind i) :trap) (consp vals) (consp (cdr vals)))))
+                          (if (eq (entry-kind i) :trap) (consp vals) (consp (cdr-t vals)))))
                  (fast-anyprefix-step fm))
                 ((and (equal i '(:trap)) (atom ctrl)) (update-fm-status :trap fm))
                 ((and (equal i '(:throw_ref)) (atom ctrl) (eq (entry-kind (car-t vals)) :ref.exn_addr))
@@ -349,7 +377,7 @@
                 (t (fast-op-step fm))))))))
 
 (defun fast-run (n fm)                   ; at most N steps
-  (declare (xargs :stobjs fm))
+  (declare (xargs :stobjs fm :guard (natp n) :measure (nfix n)))
   (if (or (zp n) (not (eq (fm-status fm) :run))) fm
     (let ((fm (fast-step fm))) (fast-run (1- n) fm))))
 
@@ -359,12 +387,12 @@
 ; --- between the two machines -----------------------------------------------
 
 (defun fm-load-ms (s fm)                  ; list state -> FM
-  (declare (xargs :stobjs fm))
+  (declare (xargs :stobjs fm :guard t))
   (let* ((store (ms-store s))
          (fm (list-to-mem (mem0-of-store store) fm)))
     (fm-set (store-without-bytes store) (ms-frame s) (ms-vals s) (ms-is s) (ms-ctrl s) (ms-status s) fm)))
 
 (defun fm->ms (fm)                        ; FM -> list state (bytes put back)
   (declare (xargs :stobjs fm))
-  (ms (put-mem0-bytes (fm-store fm) (mem-to-list fm))
+  (ms (ec-call (put-mem0-bytes (fm-store fm) (mem-to-list fm)))
       (fm-frame fm) (fm-vals fm) (fm-is fm) (fm-ctrl fm) (fm-status fm)))

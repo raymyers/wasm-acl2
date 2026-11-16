@@ -1,6 +1,6 @@
 # The fast machine: memory in an array, equal to the list machine at every step
 
-- Milestone: E7 (Phase A: the machine runs and is tested; the refinement theorem is next)
+- Milestone: E7 (Phase A done; Phase B started: logic mode, guards verified; the refinement theorem is next)
 - Date: 2026-11-16
 - Repo commit: 9b37c94 plus this note's commit
 - Status: draft
@@ -120,6 +120,20 @@ updates. The next cuts are clean fast paths for the hottest instructions
 (`local.get/set/tee`, `binop`, `relop`, `br_if`), each proved equal to its
 rule (E4 item 3's clean forms), and guard-verified raw execution in Phase
 B.
+
+### Logic mode, guards verified (Phase B, first step)
+
+`fast.lisp` is now in logic mode with every guard of the machine verified
+(certifies in 3.0 s); the code generators stay in program mode. The
+spec's functions are reached through `ec-call`, as in the list machine;
+the generated memory-rule versions are logic mode without verified guards
+(their bodies are spec terms) and are called through `ec-call`; a write
+into the array checks that the value is a byte (that the spec writes only
+bytes is a Phase B obligation). Still equal to the list machine at every
+step, 7 of 7 slides identical to V8 (`data/e7-fast/fasttest-logic.out`,
+`slides-fast-logic.txt`). It is somewhat slower than the program-mode
+version: count 88 ms (81), throw 147 ms (83), slides 0.40 to 0.85 s (0.33
+to 0.69).
 
 ## Open questions
 
