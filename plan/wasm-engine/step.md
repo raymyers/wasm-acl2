@@ -27,6 +27,7 @@ Execute these steps:
 # Tech guidelines
 
 Use Nix to run the whole toolchain (ACL2, SBCL, node, Emscripten).
+For interactive ACL2 work (trying proofs, inspecting checkpoints, `:pe`, xdoc lookups), use the `acl2-mcp` tools (`start_session`, `evaluate`, `end_session`, `xdoc_search`) instead of piping into `acl2` by hand; it runs our acl2-with-wasm-books build. End your sessions when done. A session result is never a gate: an item is done only when `make` certifies the book.
 One session at a time works on `translate/`: check `git status` and `git log` first, and do not start if another session's work is in the tree.
 Numbers in PLAN come from a measurement or a test run, never from estimates.
 Do not leave findings only in the conversation, a scratch directory or /tmp.
