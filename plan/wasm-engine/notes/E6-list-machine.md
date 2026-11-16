@@ -333,6 +333,19 @@ non-value. This was not continued here.
     same key, `alistp` of `put-assoc-equal`, and `put-assoc-equal` of the
     value already there, it proves in 1.15 s.
   So part 3 needs a small record library first, then the generator.
+
+  **Part 3 as a book** (2026-11-16): `engine/fast/frame.lisp` certifies
+  in 184 s with the four record lemmas and one generated frame lemma per
+  rule function that is neither pure (pure rules take no state) nor a
+  memory rule: 98 rule functions, **81 lemmas proved, 17 not**
+  (`data/e6-machine/e7-frame-failed.txt`). The 17 are rules that update
+  another part of the store or read types through it: `global.set`,
+  `table.set`, `table.grow`, `elem.drop`, `data.drop`, `throw`, the two
+  host-call rules, `struct.new`/`struct.set`, `array.new_fixed`/
+  `array.set`, and the read rules `br_on_cast`, `ref.test`, `ref.cast`
+  and `return_call_ref` (frame). Of these, S0 needs `global.set`, S3
+  `throw`, H the host calls; the rest are outside D5. Each needs a lemma
+  that the store update it makes commutes with replacing memory 0's bytes.
 - **E11.** Every clock-1 step is a rule function on a subterm of
   `machine-abs`. The simulation lemma for a step is then: `STEP` of the
   whole configuration equals the rule result put back in place. That is

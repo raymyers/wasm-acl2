@@ -492,7 +492,10 @@ Scripts and commands inside S0 recorded
       E7"): memory in an array, fast paths for about 12 memory rules,
       and a generated frame lemma for every other rule; the frame lemma
       for `local.get` and `local.set` was tried and proves with four
-      record lemmas (2026-11-16)
+      record lemmas (2026-11-16). `engine/fast/frame.lisp`: the frame
+      lemma for 81 of the 98 rules that are neither pure nor memory
+      rules (184 s); the 17 left include `global.set` (S0), `throw` (S3)
+      and the host calls (H)
 - [ ] Refinement: the correspondence obligations of the `defabsstobj`
       primitives. `mbe` fast paths for the spec's numeric functions where
       the profile asks for them
