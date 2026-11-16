@@ -103,8 +103,7 @@
   slides`, [E12-slides](notes/E12-slides.md)). The module uses only S0,
   so E11 for S0 is what puts it inside the proved subset
 - **Next action**: E11 for S0 (it would make L0's slides "rendered by the
-  verified engine"). Then record the full module's decode when it ends (E1
-  item 5, still parsing after 5 CPU hours on 2026-11-16 03:30). E7: the
+  verified engine"). E7: the
   frame lemmas exist (`engine/fast/frame.lisp`); next is a book of memory
   fast-path lemmas (`engine/fast/memory.lisp`: every D5 memory rule but
   `memory.grow` done),
@@ -345,8 +344,12 @@ engine/host/ , engine/view/  MuPDF's 22 imports; pixels to a viewer (E10)
       S1 59, S2 6, S3 3, none outside; `memory.grow` and `nop` do not
       occur (memory grows through the import `emscripten_resize_heap`)
       (2026-11-15)
-- [ ] The module through the generated 3.0 decoder and `Module_ok`:
-      result and time, or the reason it does not finish
+- [x] The module through the generated 3.0 decoder and `Module_ok`:
+      result and time, or the reason it does not finish. The small target
+      passes (parse 73 min, `Module_ok` T in 85 s); the full module's
+      parse was stopped unfinished after 434 CPU minutes. Parse time grows
+      about with the square of the size ([E1-mupdf-target](notes/E1-mupdf-target.md),
+      2026-11-16)
 - [x] Reference renders from node (V8): three PDFs, one of them a slide,
       as raw pixel files with checksums. These are what E9 compares with.
       `test1.pdf`, `slide.pdf` (960 x 540), `text.pdf`; `ref-render.mjs`

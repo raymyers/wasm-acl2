@@ -273,9 +273,9 @@ complete (no bytes left), and `Module_ok` returns `T`.
 The machine was loaded while this ran (up to 8 other ACL2 processes,
 load average up to 128 for a few minutes, swap in use), so the times are
 CPU time under contention, not clean rates. **The full module**
-(`3eae43d`, 10.4 MB) was started at the same time. At this note's commit its parse had run
-for more than 100 CPU minutes and was still running; the result is added
-when it ends.
+(`3eae43d`, 10.4 MB) was started at the same time. Its parse was stopped unfinished after 434
+CPU minutes (2026-11-16, at the user's request, when L0 replaced MuPDF as
+the next demo). The small target's result stands for item 5.
 
 So the generated validator accepts MuPDF (at least the small build): the
 risk "the rebuilt MuPDF does not validate under `Module_ok`" did not
