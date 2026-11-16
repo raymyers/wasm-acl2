@@ -102,8 +102,12 @@
   from a sent-format deck, are pixel-identical to V8's (`make -C engine
   slides`, [E12-slides](notes/E12-slides.md)). The module uses only S0,
   so E11 for S0 is what puts it inside the proved subset
-- **Next action**: E11 for S0 (it would make L0's slides "rendered by the
-  verified engine"). E7: the
+- **Next action (user, 2026-11-16: speed first)**: E7. Phase A runs (fast
+  machine, memory in an array, equal to the list machine at every step;
+  [E7-fast-machine](notes/E7-fast-machine.md)). Next: profile and cut the
+  cost of arithmetic and dispatch, then Phase B (the refinement theorem).
+  Then E11 for S0 (it would make L0's slides "rendered by the verified
+  engine"). E7: the
   frame lemmas exist (`engine/fast/frame.lisp`); next is a book of memory
   fast-path lemmas (`engine/fast/memory.lisp`: every D5 memory rule but
   `memory.grow` done),
@@ -527,6 +531,13 @@ Scripts and commands inside S0 recorded
       function of the bytes in its window (proved interactively); the
       bounds rule needs a single-memory invariant (one memory, every
       module memory index 0)
+- [ ] Phase A done (2026-11-16): `engine/fast/fast.lisp`, a stobj
+      machine with memory in a byte array, equal to the list machine at
+      every step (lockstep, 0 disagreements); the memory loop no longer
+      costs with memory size (64 pages: 257 s on the list machine, 0.23 s
+      fast); the slides 0.7 to 1.4 s each, still identical to V8
+      ([E7-fast-machine](notes/E7-fast-machine.md)). A plain stobj with a
+      refinement theorem replaces `defabsstobj` (simpler; same theorem)
 - [ ] Refinement: the correspondence obligations of the `defabsstobj`
       primitives. `mbe` fast paths for the spec's numeric functions where
       the profile asks for them

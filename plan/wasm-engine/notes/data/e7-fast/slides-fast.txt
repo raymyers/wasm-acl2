@@ -1,0 +1,10 @@
+ENGINE-DECK machine :FAST instantiate :DONE slides 7 framebuffer 2656
+size 320 x 180 ((:DONE :DONE :DONE :DONE))
+ENGINE-SLIDE 0 status :DONE scale 2 ms 901
+ENGINE-SLIDE 1 status :DONE scale 1 ms 675
+ENGINE-SLIDE 2 status :DONE scale 2 ms 1208
+ENGINE-SLIDE 3 status :DONE scale 1 ms 678
+ENGINE-SLIDE 4 status :DONE scale 2 ms 1366
+ENGINE-SLIDE 5 status :DONE scale 3 ms 1417
+ENGINE-SLIDE 6 status :DONE scale 5 ms 1183
+(<fm> <state>)
