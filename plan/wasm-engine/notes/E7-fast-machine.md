@@ -163,9 +163,27 @@ to 0.69).
   for `call_ref` of a host function (2 rules; the engine has no host
   functions) and `return_call_ref` inside a frame (1), whose opcode lies
   deeper in the redex. Book time 104 s.
-- Remaining: 5 places with memory fast paths (load, store, memory.size,
+- **Memory (`engine/fast/refine-mem.lisp`, 49 s): all 16 memory rules.**
+  With one memory (`one-memory-p`), the fast store invariant, and memory 0
+  a record (`mem0-record-p`):
+  - the 12 read rules (load, memory.size, memory.fill, memory.copy): the
+    generated fast version on the fast store and the array **equals** the
+    spec's rule on the full store (`*-FAST-IS-FULL`);
+  - the 4 store rules: `fast-apply-rule` agrees with the rule on the full
+    store, the array being memory 0's bytes afterwards
+    (`*-FAST-REFINES`).
+  Two changes to the machine made this provable without facts about the
+  spec's byte encodings: `mem-window` reads a non-natural address as 0,
+  as `nthcdr` does; and a store is written into the array only when its
+  bytes are a byte list of the length `$with_mem` replaces and fit in
+  memory, otherwise the exact fallback runs (at most 8 bytes are checked
+  per store). Lockstep: still 0 disagreements; slides 7 of 7 identical to
+  V8; memloop still independent of memory size (81 ms at 64 pages).
+- Remaining for the places: the 5 memory places as a whole (from the rule
+  lemmas, as for the other places) (load, store, memory.size,
   memory.fill, memory.copy) and 38 that use the general fallback (tables,
   GC structs and arrays, SIMD, memory.init, memory.grow, return_call).
+  The general fallback below covers the 38.
 
 ## Open questions
 

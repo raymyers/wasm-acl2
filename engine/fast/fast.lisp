@@ -55,11 +55,12 @@
   (declare (xargs :stobjs fm))
   (let ((fm (resize-fm-mem (len-t l) fm))) (list-to-mem-loop l 0 fm)))
 
-(defun mem-window (a n fm)               ; (take n (nthcdr a bytes))
+(defun mem-window (a n fm)               ; (take n (nthcdr a bytes)); NTHCDR reads a non-natural A as 0
   (declare (xargs :stobjs fm :guard (natp n)))
   (if (zp n) nil
-    (cons (if (and (natp a) (< a (fm-mem-length fm))) (fm-memi a fm) nil)
-          (mem-window (1+ (nfix a)) (1- n) fm))))
+    (let ((a (nfix a)))
+      (cons (if (< a (fm-mem-length fm)) (fm-memi a fm) nil)
+            (mem-window (1+ a) (1- n) fm)))))
 
 (defun mem-write (a bytes fm)            ; write BYTES at A (the splice of $WITH_MEM)
   (declare (xargs :stobjs fm :guard t))
@@ -93,9 +94,9 @@
          ((and (eq (car term) 'take) (consp (caddr term)) (eq (car (caddr term)) 'nthcdr)
                (bytes-form-p (caddr (caddr term))))
           `(mem-window ,(subst-memory (cadr (caddr term))) ,(subst-memory (cadr term)) fm))
-         ((eq (car term) 'w3t::$with_mem)    ; ($with_mem z x i j b) -> (:write z i b)
+         ((eq (car term) 'w3t::$with_mem)    ; ($with_mem z x i j b) -> (:write z i j b)
           `(list :write ,(subst-memory (cadr term)) ,(subst-memory (cadddr term))
-                 ,(subst-memory (cadr (cddddr term)))))
+                 ,(subst-memory (car (cddddr term))) ,(subst-memory (cadr (cddddr term)))))
          ((bytes-form-p term) '(:unsupported-bytes-access))
          ((consp (car term))
           (cons (list 'lambda (cadr (car term)) (subst-memory (caddr (car term))))
@@ -189,6 +190,20 @@
         (and (consp redex) (null (cdr redex)) (admin-kind (car redex))
              (head-in-p kw (car-t (drop-n 3 (car redex))))))))
 
+(defun byte-list-p (l)
+  (declare (xargs :guard t))
+  (if (atom l) (null l) (and (natp (car l)) (< (car l) 256) (byte-list-p (cdr l)))))
+
+; the slow fallback: the rule on the full store (bytes copied out of the
+; array), the result's bytes copied back
+(defun fast-apply-fallback (fn z redex fm)
+  (declare (xargs :stobjs fm :guard t))
+  (let* ((zfull (ec-call (put-z-bytes z (mem-to-list fm)))))
+    (mv-let (ok z2 res) (apply-rule fn zfull redex)
+      (if (not ok) (mv nil z nil fm)
+        (let* ((fm (list-to-mem (mem0-of-store (car-t (drop-n 1 z2))) fm)))
+          (mv t (ec-call (put-z-bytes z2 nil)) res fm))))))
+
 ; (mv fired z' instrs' fm): rule FN on REDEX in state Z (whose store has no bytes)
 (defun fast-apply-rule (fn z redex fm)
   (declare (xargs :stobjs fm :guard t))
@@ -202,23 +217,20 @@
             (step-rule
              (let* ((cfg (car r)) (z2 (car-t (drop-n 1 cfg))) (res (car-t (drop-n 2 cfg))))
                (if (and (consp z2) (eq (car z2) :write))
-                   ; ($with_mem z x i j b): the store is z, b is spliced in at i;
-                   ; $with_mem gives no state when b is not a true list
-                   (if (true-listp (car-t (drop-n 3 z2)))
-                       (let ((fm (mem-write (car-t (drop-n 2 z2)) (car-t (drop-n 3 z2)) fm)))
-                         (mv t (car-t (drop-n 1 z2)) res fm))
-                     (mv t nil res fm))
+                   ; ($with_mem z x i j b): the store is z; the J bytes at I
+                   ; become B. Written into the array when B is J bytes that
+                   ; fit; otherwise the exact fallback below.
+                   (let ((i (car-t (drop-n 2 z2))) (j (car-t (drop-n 3 z2))) (b (car-t (drop-n 4 z2))))
+                     (if (and (natp i) (byte-list-p b) (equal (len-t b) j) (<= (+ i j) (fm-mem-length fm)))
+                         (let ((fm (mem-write i b fm)))
+                           (mv t (car-t (drop-n 1 z2)) res fm))
+                       (fast-apply-fallback fn z redex fm)))
                  (mv t z2 res fm))))
             (t (mv t z (car r) fm)))))
    ((frame-safe-p fn)
     (mv-let (ok z2 res) (apply-rule fn z redex) (mv ok z2 res fm)))
    ((not (rule-may-match fn redex)) (mv nil z nil fm))
-   (t ; the slow fallback
-    (let* ((zfull (ec-call (put-z-bytes z (mem-to-list fm)))))
-      (mv-let (ok z2 res) (apply-rule fn zfull redex)
-        (if (not ok) (mv nil z nil fm)
-          (let* ((fm (list-to-mem (mem0-of-store (car-t (drop-n 1 z2))) fm)))
-            (mv t (ec-call (put-z-bytes z2 nil)) res fm))))))))
+   (t (fast-apply-fallback fn z redex fm))))
 
 (defun fast-try-rules (rules z redex fm)
   (declare (xargs :stobjs fm :guard t))

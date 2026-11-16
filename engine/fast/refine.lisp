@@ -195,10 +195,6 @@
 ; machine when the result is a configuration whose memory 0 has a byte list
 ; (FALLBACK-RESULT-OK: a hypothesis per rule, discharged in layer 4).
 
-(defun byte-list-p (l)
-  (declare (xargs :guard t))
-  (if (atom l) (null l) (and (natp (car l)) (< (car l) 256) (byte-list-p (cdr l)))))
-
 (defthm byte-list-p-true-listp (implies (byte-list-p l) (true-listp l)) :rule-classes :forward-chaining)
 
 (defthm take-of-update-nth-at
