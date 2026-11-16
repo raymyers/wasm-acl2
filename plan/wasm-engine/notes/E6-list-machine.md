@@ -362,6 +362,20 @@ non-value. This was not continued here.
   (`*frame-not-yet*`): `ref.cast-succeed` (S1, behind `call_indirect`)
   and the two host-call rules (H). `store-fields-p` becomes part of the
   stobj machine's invariant.
+
+  **First test of part 2** (2026-11-16, interactive, not a book yet):
+  - The load rule is a function of the instruction and the bytes it
+    reads: `STEP_READ/SPLIT/R-LOAD-NUM-VAL` on `(z; l)` equals
+    `load-num-val-of-window` (the rule's own checks with the window as a
+    parameter) applied to `(take n (nthcdr addr bytes))`. Proved in 0.07 s.
+    The stobj side reads those `n` bytes from the array.
+  - "The bounds rule `LOAD-NUM-OOB` depends only on the length of the
+    bytes" fails as stated: the rule finds its memory through the
+    module, `$MEM z x` = the store's memory at index `module.mems[x]`,
+    and `put-z-bytes` replaces memory 0 only. The checkpoint is the case
+    where that index is not 0. So the stobj machine also needs the
+    single-memory invariant: the store has one memory and every module's
+    memory index is 0. MuPDF has one memory (E1 census).
 - **E11.** Every clock-1 step is a rule function on a subterm of
   `machine-abs`. The simulation lemma for a step is then: `STEP` of the
   whole configuration equals the rule result put back in place. That is

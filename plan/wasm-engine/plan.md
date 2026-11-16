@@ -89,11 +89,14 @@
   with `SBCL_USER_ARGS='--control-stack-size 1000'` (64 pages) or `4000`
   (MuPDF's 352 pages) ([E0-baseline](notes/E0-baseline.md))
 - **Next action**: record the full module's decode when it ends (E1
-  item 5); then E7 (the stobj machine: the memory rules need array fast
-  paths, see "What this means for E7" in
-  [E6-list-machine](notes/E6-list-machine.md)), and on the proof track
-  the list library and dispatch lemmas for C2's clock-1 steps (E4 item 4,
-  E11 S0) (the list machine of
+  item 5, still parsing after 5 CPU hours on 2026-11-16 03:30). E7: the
+  frame lemmas exist (`engine/fast/frame.lisp`); next is a book of memory
+  fast-path lemmas (load as a function of its window, done
+  interactively; the bounds and store rules with the single-memory
+  invariant), then the stobj itself. Proof track: the
+  `append`/`take`/`nthcdr` library and dispatch lemmas for C2's clock-1
+  steps (E4 item 4, E11 S0). Both are described in
+  [E6-list-machine](notes/E6-list-machine.md) (the list machine of
   [E5-machine](notes/E5-machine.md), S0 first, written over primitives so
   that E7 can put a stobj under it), then E4 items 1, 3 and 4
 - **Changed by E2, for every later session**: a relation function is now
@@ -497,7 +500,10 @@ Scripts and commands inside S0 recorded
       rules at first; with more record lemmas and the hypothesis that the
       store has all its fields, every D5 rule that is neither pure nor a
       memory rule has its frame lemma (27, 273 s) except `ref.cast-succeed`
-      (S1) and the two host calls (H)
+      (S1) and the two host calls (H). Part 2 started: the load rule is a
+      function of the bytes in its window (proved interactively); the
+      bounds rule needs a single-memory invariant (one memory, every
+      module memory index 0)
 - [ ] Refinement: the correspondence obligations of the `defabsstobj`
       primitives. `mbe` fast paths for the spec's numeric functions where
       the profile asks for them
