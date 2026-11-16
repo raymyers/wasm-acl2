@@ -161,7 +161,7 @@ All runs on 2026-11-15, darwin arm64, `JOBS=8`, in `nix develop`.
 | The new `:program` rule functions | all belong to relations that were `:program` before (`INSTR_OK`, `INSTRS_OK`, `EXPR_OK`, `MODULE_OK/W`, ...) |
 | spec-test-3, per command | 258 scripts: 257 with the same sequence of results as before, 0 different, 1 (`bulk-memory--memory_copy`) stops earlier than before, at command 4,219 (see below). 64,778 commands with the same result in both runs. Total 11 min 46 s (M9: 11 min 18 s) |
 | spec-test-1, per command | 67 scripts: 65 the same, 0 different, 2 (`call`, `call_indirect`) at the time limit in both runs (this run used 900 s per script, the earlier one 3,600 s). 11,992 commands with the same result in both runs |
-| `make -C demo check` | every target passes when run by name (`jscl-hello wabt-hello browser-hello vectors units host conformance-quick smoke lines chains`, exit 0; the rule chains of W8 and the 224 steps of W6 included). `check-extract` also asks for a clean `translate/` tree, so the whole gate was run on the commit: DEMOFULL |
+| `make -C demo check` | every target passes when run by name (`jscl-hello wabt-hello browser-hello vectors units host conformance-quick smoke lines chains`, exit 0; the rule chains of W8 and the 224 steps of W6 included). `check-extract` also asks for a clean `translate/` tree, so the whole gate was run on commit `c35e99c`: pass, 1 min 11 s |
 | `make -C engine check` | pass (new gate) |
 
 `compare-modes.py` and `compare-spec.py` in `data/e2-logic/` made the
