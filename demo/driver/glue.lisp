@@ -88,7 +88,30 @@
         (list :ok (list (wrt::%put-field s :funcs funcs) (second env) (third env)
                         (acons modname inst (fourth env))))))))
 
-;; (invoke env name args fuel) -> (result env): t7's DO-ACTION on
+;;; W5 item 4: Step mode, t7's DO-ACTION split into its parts, so that the
+;;; page runs one STEP per request on the same configurations as Run mode.
+;; (start-invoke env name args) -> (:ok config) or (:error nil): DO-ACTION's
+;; lookup of the export and $INVOKE (current instance, NAME character codes)
+(defun start-invoke (env name args)
+  (let* ((inst (w3t::env-inst env nil))
+         (addr (and inst (w3t::find-export name (wrt::%get-field inst :exports))))
+         (c (and addr (eq (car addr) :func)
+                 (w3t::$invoke (w3t::env-store env) (cadr addr) (w3t::to-vals args)))))
+    (if c (list :ok c) (list :error nil))))
+
+;; (step-config c) -> the next configuration, or NIL at a normal form (one
+;; top-level STEP, as t7's RUN-STEPS takes it)
+(defun step-config (c) (let ((r (w3t::step c))) (and r (car r))))
+
+;; (finish-config c env) -> (result env'), DO-ACTION's classification of a
+;; normal form C (FINAL-CONFIG's fields: store, instructions)
+(defun finish-config (c env)
+  (let* ((z (cadr c)) (s (cadr z)) (instrs (caddr c)))
+    (cond ((equal instrs '((:trap))) (list :trap (cons s (cdr env))))
+          ((w3t::exn-result-p instrs) (list :exception (cons s (cdr env))))
+          (t (list instrs (cons s (cdr env)))))))
+
+;; (invoke env name args fuel) -> (result env'): t7's DO-ACTION on
 ;; (:invoke nil name args), NAME a list of character codes (as in the
 ;; converted spec data), ARGS a list of (:I32 n) / (:I64 n) / (:F32 bits)
 ;; / (:F64 bits) / ... as t7 reads them. RESULT is a list of values,

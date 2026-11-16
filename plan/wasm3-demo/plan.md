@@ -31,7 +31,7 @@
 - **Milestones**: W0 done, **go** ([W0-feasibility](notes/W0-feasibility.md#w0-exit-gono-go-per-risk-2026-11-15));
   W7 done ([W7-rule-tags](notes/W7-rule-tags.md)); W1 done, D5 final
   ([W1-numbers-stack](notes/W1-numbers-stack.md)); W2 done ([W2-extractor](notes/W2-extractor.md)); W3 done ([W3-shim](notes/W3-shim.md));
-  W4 done ([W4-semantics-node](notes/W4-semantics-node.md))
+  W4 done ([W4-semantics-node](notes/W4-semantics-node.md)); W5 done ([W5-browser-page](notes/W5-browser-page.md))
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
@@ -77,9 +77,12 @@
   `W3T::READ-BYTES` (asks the JS host), `HOST-CALL` (attached as
   `%HOSTCALL-HOOK`), `REGISTER-HOST`; `driver/host.js` (default host: no
   result).
-- **Next action**: W5 (browser page), per the headless order. W5 items
-  1–3 exist in the tree, uncommitted (built by a subagent while the W7 spec
-  reruns ran, smoke test passing); item 4 (Step mode) is not started.
+- **Driver (W5), for the user**: `START-INVOKE`, `STEP-CONFIG`,
+  `FINISH-CONFIG` (t7's DO-ACTION split into its parts, for Step mode).
+- **Open from W4 item 2**: a `print` host function for the page (the
+  driver supports host imports; the page does not register any yet).
+- **Next action**: W6 (WAT line), then W8 (rule names; recorder and
+  chain test exist in the tree, uncommitted), then W9.
 - **Translator change (W7, for the user)**: `%RULE` (`rt/prelude.lisp`,
   a macro: `(%RULE name x)` = `x`) and two emitter changes in
   `il2acl2/compile.lisp` (`crule`, `cprod`). Reason: D6/D7, the stepper's
@@ -459,27 +462,43 @@ time recorded. `make -C demo check` adds `host` and `conformance-quick`
 (the subset without `call_indirect`).
 
 ### W5: Browser page
-1. [ ] `demo/web`: Worker that loads `wasm3.js`, page UI per §3 and D4
+1. [x] `demo/web`: Worker that loads `wasm3.js`, page UI per §3 and D4
        (and `plan/wasm3-demo/design/` if it exists), WAT via the bundled
        wabt (D8), examples: factorial (i64), float math,
        memory load/store, a GC struct, an exception, a SIMD lane op
-2. [ ] Fuel and cancel: a step limit per run, and a Stop button that ends
+       **Done 2026-11-15** ([W5-browser-page](notes/W5-browser-page.md)):
+       Worker load 0.6–0.7 s (Chromium), 0.7–1.0 s (Firefox); six examples
+       (the GC one as hex: wabt 1.0.39 does not parse GC instructions)
+2. [x] Fuel and cancel: a step limit per run, and a Stop button that ends
        the Worker
-3. [ ] Smoke test: Playwright (W0 item 1) runs every example in headless
+       **Done 2026-11-15**: fuel 50 on fac(20) ends with fuel after 50 steps;
+       Stop ends the Worker, a fresh one is ready in 0.8–1.4 s
+3. [x] Smoke test: Playwright (W0 item 1) runs every example in headless
        Chromium and headless Firefox, and each result must equal native
        `WebAssembly` in the same browser
+       **Done 2026-11-15**: 8 runs of the 6 examples equal native in headless
+       Chromium and Firefox (`make -C demo smoke`; fac(20) 0.18 s / 0.5 s)
 
-4. [ ] Stepper, level 1 (D6): a Step mode in the Worker protocol
+4. [x] Stepper, level 1 (D6): a Step mode in the Worker protocol
        (`step`, `stepN`, `runToEnd`) and a configuration view. The view
        shows the instruction sequence with the redex highlighted (the
        first non-value instruction in the innermost `LABEL_`/`FRAME_`),
        the operand values, the locals of the current frame, the nesting,
        and the bytes of memory that changed. The step count for a run in
        Step mode equals the count in Run mode (tested)
+       **Done 2026-11-15** ([W5-browser-page](notes/W5-browser-page.md#step-mode-item-4)):
+       glue `START-INVOKE`, `STEP-CONFIG`, `FINISH-CONFIG` (DO-ACTION split);
+       fac(20) 240 steps in both modes, gc f(3, 4) 17 clicks = 17 steps, in
+       both browsers; Step mode 0.57 / 1.02 ms per step (Chromium / Firefox)
 
 **Exit**: the smoke test passes in `make -C demo check` in both
 browsers, and it also steps one example to its end. Screenshots of Run
 and Step mode are in `progress/` (step.md).
+
+**W5 result (2026-11-15): exit met.** `make -C demo check` runs `smoke`
+(both browsers, Run and Step mode, one example stepped to its end).
+Screenshots `progress/02-W5-run-mode.png` (41 KB), `03-W5-step-mode.png`
+(45 KB).
 
 ### W6: Stepper, WAT line
 1. [ ] The page shows the module as wabt prints the binary, one

@@ -10,7 +10,7 @@ GEN     ?= ../translate/gen/wasm-3.0
 SPECDIR ?= ../translate/tests/spec
 LISP    := $(BUILD)/lisp
 
-.PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract js vectors units host conformance-data conformance conformance-quick clean
+.PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract js vectors units host conformance-data conformance conformance-quick web smoke clean
 
 all: $(BUILD)/hello.js js
 
@@ -103,7 +103,22 @@ conformance: js conformance-data
 conformance-quick: js conformance-data
 	$(NODE) test/conformance.js $(BUILD) $(SPECDIR)/data-3.0 $(SPECDIR)/results-3.0 $(CONF_QUICK)
 
-check: jscl-hello wabt-hello browser-hello check-extract vectors units host conformance-quick
+# W5: the page in $(WEB): demo/web, the driver's lisp.js, the built
+# jscl.js and wasm3.js (`make js`) and wabt's JS build
+# (D8: bundled, no CDN).
+WEB := $(BUILD)/web
+web: js
+	@test -n "$(WABT_JS)" || { echo "web: WABT_JS is not set (run inside nix develop)"; exit 1; }
+	@mkdir -p $(WEB)
+	install -m 644 web/index.html web/*.js web/*.css driver/lisp.js $(BUILD)/jscl.js $(BUILD)/wasm3.js $(WEB)/
+	install -m 644 $(WABT_JS)/index.js $(WEB)/wabt.js
+
+# W5 item 3: every example in headless Chromium and Firefox equals native
+# WebAssembly; fuel and Stop. SHOT=<png> writes the Run-mode screenshot.
+smoke: web
+	$(NODE) test/smoke.mjs $(WEB)
+
+check: jscl-hello wabt-hello browser-hello check-extract vectors units host conformance-quick smoke
 
 clean:
 	rm -r -f build
