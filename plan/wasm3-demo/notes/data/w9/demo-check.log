@@ -1,0 +1,521 @@
+warning: Git tree '/Users/Apple/dev/wasm-acl2' has uncommitted changes
+wasm-acl2 dev shell
+  make all      certify top + proofs + tests
+  make top      certify just the library
+  make proofs / make tests
+  (cd tests/oracle && bash check-all.sh)   Node.js oracle
+make: Entering directory '/Users/Apple/dev/wasm-acl2/demo'
+sh extract/run.sh ../translate/gen/wasm-3.0 ../translate/tests/spec build/lisp
+DEMO-EXTRACT report
+        4  book 0_1-aux_vars: output forms
+        3  book 0_2-aux_num: output forms
+       19  book 0_3-aux_seq: output forms
+       77  book 1_1-syntax_values: output forms
+      155  book 1_2-syntax_types: output forms
+       90  book 1_3-syntax_instructions: output forms
+       48  book 1_4-syntax_modules: output forms
+       30  book 2_0-validation_contexts: output forms
+       38  book 2_1-validation_types: output forms
+        9  book 2_2-validation_subtyping: output forms
+       52  book 2_3-validation_instructions: output forms
+       44  book 2_4-validation_modules: output forms
+        4  book 3_0-numerics_relaxed: output forms
+       36  book 3_1-numerics_scalar: output forms
+      193  book 3_2-numerics_vector: output forms
+       88  book 4_0-execution_configurations: output forms
+        9  book 4_1-execution_values: output forms
+        5  book 4_2-execution_types: output forms
+      135  book 4_3-execution_instructions: output forms
+       71  book 4_4-execution_modules: output forms
+       36  book 5_1-binary_values: output forms
+       32  book 5_2-binary_types: output forms
+       18  book 5_3-binary_instructions: output forms
+      103  book 5_4-binary_modules: output forms
+       40  book builtins-3.0: output forms
+      117  book builtins: output forms
+       20  book prelude: output forms
+        0  book wasm3: output forms
+        1  data translate/tests/sem-2.0/numeric-vectors-2.0.lsp -> data/numeric-vectors-2.0.json
+        1  data translate/tests/sem-3.0/simd-vectors-3.0.lsp -> data/simd-vectors-3.0.json
+        1  data translate/tests/sem/numeric-vectors.lsp -> data/numeric-vectors.json
+     1298  dropped: %TRY-GUARDS-T
+        1  dropped: DEFMACRO %RULE
+        1  dropped: DEFMACRO %TRY-GUARDS
+        1  dropped: DEFMACRO %TRY-GUARDS-T
+        1  dropped: DEFMACRO %TRY-LOGIC
+        1  dropped: DEFMACRO %TRY-LOGIC-T
+        4  dropped: DEFTHM
+        1  dropped: ENCAPSULATE %HOSTCALL-HOOK
+        2  dropped: IN-THEORY
+       24  dropped: SET-BOGUS-MUTUAL-RECURSION-OK
+       26  dropped: SET-VERIFY-GUARDS-EAGERNESS
+     1298  event: %TRY-GUARDS-T
+     1298  event: %TRY-LOGIC-T
+        1  event: DEFATTACH
+        5  event: DEFCONST
+        5  event: DEFMACRO
+        4  event: DEFTHM
+     1515  event: DEFUN
+        1  event: ENCAPSULATE
+       28  event: IN-PACKAGE
+        2  event: IN-THEORY
+       27  event: INCLUDE-BOOK
+        1  event: MEMOIZE
+       12  event: MUTUAL-RECURSION
+       24  event: SET-BOGUS-MUTUAL-RECURSION-OK
+       26  event: SET-VERIFY-GUARDS-EAGERNESS
+        3  literal: integer beyond 2^53 -> (ACL2::%BIG ...)
+       37  literal: ratio -> (ACL2::%Q n d)
+        6  rewrite: ... of which keep multiple values
+       30  rewrite: ... of which through a clause chain
+      180  rewrite: ... of which with continuations
+      104  rewrite: clause chain flattened
+     1579  rewrite: clause chain links
+      672  rewrite: self-recursive defun -> loop
+       11  test file numerics.lisp: output forms
+       14  test file simd.lisp: output forms
+      119  test file units.lisp: forms
+functions defined: 1642
+called, not defined here, package ACL2 (the shim provides them): 59
+  %BIG %Q * + - / 1+ 1- < <= = > >= ACL2-COUNT ALISTP APPEND ASH ASSOC-EQUAL CEILING DENOMINATOR EQUAL EVENP EXPT FLOOR HONS-COPY IFF IFIX INTEGER-LENGTH INTEGERP INTERN$ LEN LOGAND LOGBITP LOGCOUNT LOGIOR LOGNOT LOGXOR MAKE-ORD MAX MEMBER-EQ MEMBER-EQUAL MIN MOD MV NATP NFIX NUMERATOR POSP PUT-ASSOC-EQUAL REM REMOVE-DUPLICATES-EQUAL REVERSE RFIX SUBSETP-EQUAL TAKE TRUE-LISTP TRUNCATE UPDATE-NTH ZP
+called, not defined here, package COMMON-LISP (JSCL provides them): 52
+  ACONS AND ATOM BUTLAST CAAR CADDDR CADDR CADR CAR CDAR CDDDDR CDDDR CDDR CDR CHAR CHAR-CODE COERCE CONCATENATE CONS CONSP DECLARE ENDP EQ EQL FIRST FOURTH FUNCALL IF IGNORABLE IGNORE LAST LENGTH LIST LIST* MULTIPLE-VALUE-LIST NOT NTH NTHCDR NULL OR PROGN PSETQ REVAPPEND SEARCH SECOND SETQ STRING-UPCASE STRINGP SUBSEQ SYMBOLP THIRD VALUES-LIST
+called, not defined anywhere else: 3
+  W3T::READ-BYTES WRT::%HOSTCALL-HOOK WRT::%RULE
+self-recursive defuns rewritten into loops: 672
+  $ALLOCDATAS/ITER4 $ALLOCELEMS/ITER4 $ALLOCEXPORTS/ITER0 $ALLOCMEM/ITER2 $ALLOCMODULE/ITER41 $ALLOCMODULE/ITER43 $ALLOCMODULE/ITER44 $ALLOCMODULE/ITER47 $ALLOCMODULE/ITER48 $ALLOCMODULE/ITER51 $ALLOCMODULE/ITER52 $ALLOCMODULE/ITER55 $ALLOCMODULE/ITER56 $ALLOCMODULE/ITER59 $ALLOCMODULE/ITER60 $ALLOCMODULE/ITER63 $ALLOCMODULE/ITER64 $ALLOCMODULE/ITER65 $ALLOCMODULE/ITER69 $ALLOCMODULE/ITER70 $ALLOCMODULE/ITER71 $ALLOCMODULE/MATCH12 $ALLOCMODULE/MATCH15 $ALLOCMODULE/MATCH18 $ALLOCMODULE/MATCH21 $ALLOCMODULE/MATCH24 $ALLOCMODULE/MATCH28 $ALLOCMODULE/MATCH32 $ALLOCTABLE/ITER2 $ALLOCTYPES/ITER3 $CLOS_DEFTYPE/ITER1 $CLOS_DEFTYPES/ITER3 $CLOS_EXTERNTYPE/ITER1 $CLOS_MODULETYPE/ITER1 $CLOS_TAGTYPE/ITER1 $CLOS_VALTYPE/ITER1 $CONCATN_ $CONCATN_/ITER2 $CONCATN_/ITER3 $CONCATN_/ITER4 $CONCATOPT_/ITER2 $CONCAT_ $CONCAT_/ITER2 $DATAIDX_FUNCS/ITER0 $DISJOINT_ $EVALEXPRSS/ITER4 $EVALEXPRSS/ITER7 $FREE_BLOCK/ITER0 $FREE_COMPTYPE/ITER1 $FREE_ELEM/ITER1 $FREE_EXPR/ITER0 $FREE_FUNC/ITER1 $FREE_INSTR/ITER1 $FREE_INSTR/ITER10 $FREE_INSTR/ITER7 $FREE_LIST $FREE_MODULE/ITER11 $FREE_MODULE/ITER12 $FREE_MODULE/ITER13 $FREE_MODULE/ITER14 $FREE_MODULE/ITER15 $FREE_MODULE/ITER16 $FREE_MODULE/ITER17 $FREE_MODULE/ITER18 $FREE_MODULE/ITER19 $FREE_MODULE/ITER20 $FREE_MODULETYPE/ITER2 $FREE_MODULETYPE/ITER3 $FREE_RECTYPE/ITER1 $FREE_RESULTTYPE/ITER0 $FREE_SUBTYPE/ITER2 $FUNCSXA $FUNCSXT $FUNCSXX $FVBINOP_.FADD_/ITER3 $FVBINOP_.FADD_/ITER5 $FVBINOP_.FDIV_/ITER3 $FVBINOP_.FDIV_/ITER5 $FVBINOP_.FMAX_/ITER3 $FVBINOP_.FMAX_/ITER5 $FVBINOP_.FMIN_/ITER3 $FVBINOP_.FMIN_/ITER5 $FVBINOP_.FMUL_/ITER3 $FVBINOP_.FMUL_/ITER5 $FVBINOP_.FPMAX_/ITER3 $FVBINOP_.FPMAX_/ITER5 $FVBINOP_.FPMIN_/ITER3 $FVBINOP_.FPMIN_/ITER5 $FVBINOP_.FRELAXED_MAX_/ITER3 $FVBINOP_.FRELAXED_MAX_/ITER5 $FVBINOP_.FRELAXED_MIN_/ITER3 $FVBINOP_.FRELAXED_MIN_/ITER5 $FVBINOP_.FSUB_/ITER3 $FVBINOP_.FSUB_/ITER5 $FVRELOP_.FEQ_/ITER3 $FVRELOP_.FEQ_/ITER8 $FVRELOP_.FGE_/ITER3 $FVRELOP_.FGE_/ITER8 $FVRELOP_.FGT_/ITER3 $FVRELOP_.FGT_/ITER8 $FVRELOP_.FLE_/ITER3 $FVRELOP_.FLE_/ITER8 $FVRELOP_.FLT_/ITER3 $FVRELOP_.FLT_/ITER8 $FVRELOP_.FNE_/ITER3 $FVRELOP_.FNE_/ITER8 $FVTERNOP_.FRELAXED_MADD_/ITER4 $FVTERNOP_.FRELAXED_MADD_/ITER6 $FVTERNOP_.FRELAXED_NMADD_/ITER4 $FVTERNOP_.FRELAXED_NMADD_/ITER6 $FVUNOP_.FABS_/ITER2 $FVUNOP_.FABS_/ITER4 $FVUNOP_.FCEIL_/ITER2 $FVUNOP_.FCEIL_/ITER4 $FVUNOP_.FFLOOR_/ITER2 $FVUNOP_.FFLOOR_/ITER4 $FVUNOP_.FNEAREST_/ITER2 $FVUNOP_.FNEAREST_/ITER4 $FVUNOP_.FNEG_/ITER2 $FVUNOP_.FNEG_/ITER4 $FVUNOP_.FSQRT_/ITER2 $FVUNOP_.FSQRT_/ITER4 $FVUNOP_.FTRUNC_/ITER2 $FVUNOP_.FTRUNC_/ITER4 $GLOBALSXA $GLOBALSXT $GLOBALSXX $GROWMEM/ITER5 $GROWTABLE/ITER4 $INSTANTIATE/ALL46 $INSTANTIATE/ITER27 $INSTANTIATE/ITER32 $INSTANTIATE/ITER35 $INSTANTIATE/ITER37 $INSTANTIATE/ITER39 $INSTANTIATE/MATCH12 $INSTANTIATE/MATCH15 $INSTANTIATE/MATCH18 $INSTANTIATE/MATCH22 $INVOKE/ALL4 $INVOKE/ITER5 $INV_CONCATN_ $INV_CONCAT_ $INV_UTF8 $IVADD_PAIRWISE_/ITER0 $IVADD_PAIRWISE_/ITER6 $IVADD_PAIRWISE_/ITER7 $IVADD_PAIRWISE_/MATCH4 $IVBINOPSXND_.IRELAXED_Q15MULR_/ITER3 $IVBINOPSXND_.IRELAXED_Q15MULR_/ITER5 $IVBINOPSX_.IADD_SAT_/ITER3 $IVBINOPSX_.IAVGR_/ITER3 $IVBINOPSX_.IMAX_/ITER3 $IVBINOPSX_.IMIN_/ITER3 $IVBINOPSX_.IQ15MULR_SAT_/ITER3 $IVBINOPSX_.ISUB_SAT_/ITER3 $IVBINOP_.IADD_/ITER3 $IVBINOP_.IMUL_/ITER3 $IVBINOP_.ISUB_/ITER3 $IVBITMASKOP_/ITER2 $IVBITMASKOP_/ITER3 $IVDOT_/ITER0 $IVDOT_/ITER6 $IVDOT_/ITER7 $IVDOT_/MATCH4 $IVDOT_SAT_/ITER0 $IVDOT_SAT_/ITER6 $IVDOT_SAT_/ITER7 $IVDOT_SAT_/MATCH4 $IVEXTBINOP__.IVDOT_/ITER4 $IVEXTBINOP__.IVDOT_/ITER6 $IVEXTBINOP__.IVMUL_/ITER4 $IVEXTBINOP__.IVMUL_/ITER6 $IVEXTBINOP__.IVRELAXED_DOT_/ITER4 $IVEXTBINOP__.IVRELAXED_DOT_/ITER6 $IVEXTUNOP__.IVADD_PAIRWISE_/ITER3 $IVMUL_/ITER0 $IVRELOPSX_.IGE_/ITER3 $IVRELOPSX_.IGT_/ITER3 $IVRELOPSX_.ILE_/ITER3 $IVRELOPSX_.ILT_/ITER3 $IVRELOP_.IEQ_/ITER3 $IVRELOP_.INE_/ITER3 $IVSHIFTOPSX_.ISHR_/ITER2 $IVSHIFTOP_.ISHL_/ITER2 $IVSHUFFLOP_/ITER3 $IVSWIZZLOP_.IRELAXED_SWIZZLE_LANE_/ITER3 $IVSWIZZLOP_.ISWIZZLE_LANE_/ITER3 $IVTERNOPND_.IRELAXED_LANESELECT_/ITER4 $IVTERNOPND_.IRELAXED_LANESELECT_/ITER6 $IVUNOP_.IABS_/ITER2 $IVUNOP_.INEG_/ITER2 $IVUNOP_.IPOPCNT_/ITER2 $LIFT_RESULT/ITER1 $MEMSXA $MEMSXT $MEMSXX $PROD $ROLLDT/ITER2 $ROLLDT/ITER3 $ROLLRT/ITER1 $ROLLRT/ITER2 $ROLLRT/ITER3 $SETMINUS1_ $SETMINUS_ $SETPRODUCT1_ $SETPRODUCT1_/ITER1 $SETPRODUCT1_/ITER2 $SETPRODUCT2_ $SETPRODUCT2_/ITER2 $SETPRODUCT_ $SETPRODUCT_/ITER2 $SHIFT_LABELIDXS $SUBST_ALL_DEFTYPE/ITER0 $SUBST_ALL_DEFTYPE/ITER1 $SUBST_ALL_DEFTYPES $SUBST_ALL_EXTERNTYPE/ITER0 $SUBST_ALL_EXTERNTYPE/ITER1 $SUBST_ALL_GLOBALTYPE/ITER0 $SUBST_ALL_GLOBALTYPE/ITER1 $SUBST_ALL_MEMTYPE/ITER0 $SUBST_ALL_MEMTYPE/ITER1 $SUBST_ALL_MODULETYPE/ITER0 $SUBST_ALL_MODULETYPE/ITER1 $SUBST_ALL_REFTYPE/ITER0 $SUBST_ALL_REFTYPE/ITER1 $SUBST_ALL_TABLETYPE/ITER0 $SUBST_ALL_TABLETYPE/ITER1 $SUBST_ALL_TAGTYPE/ITER0 $SUBST_ALL_TAGTYPE/ITER1 $SUBST_ALL_VALTYPE/ITER0 $SUBST_ALL_VALTYPE/ITER1 $SUBST_COMPTYPE/ITER1 $SUBST_COMPTYPE/ITER4 $SUBST_COMPTYPE/ITER5 $SUBST_MODULETYPE/ITER2 $SUBST_MODULETYPE/ITER3 $SUBST_RECTYPE/ITER4 $SUBST_SUBTYPE/ITER2 $SUBST_TYPEVAR $SUM $TABLESXA $TABLESXT $TABLESXX $TAGSXA $TAGSXT $TAGSXX $UNROLLRT/ITER1 $UNROLLRT/ITER2 $UNROLLRT/ITER3 $UTF8 $VCVTOP__/ITER1 $VCVTOP__/ITER12 $VCVTOP__/ITER13 $VCVTOP__/ITER15 $VCVTOP__/ITER3 $VCVTOP__/ITER7 $VCVTOP__/ITER9 $VEXTTERNOP__/ITER4 $VEXTTERNOP__/ITER6 $VEXTTERNOP__/ITER9 $VNARROWOP__/ITER4 $VNARROWOP__/ITER6 $WITH_LOCALS %BITS-INT %BITS-MSB %COMP-FIELDS %CTZ %GZ-DEFUNS %ISQRT-ITER %LANES %LE-BYTES %LE-INT %LOGIC-DEFUNS %MEASURE-ALTS %PROGRAM-DEFUNS %TIMED-ALTS %UNLANES ARRAYINST-P/ITER0 CHARS-OF CHECK-SIMD CHECK-VECTORS CODE-P/ITER0 COMPTYPE_OK/ALL1 COMPTYPE_SUB/ALL5 COMPTYPE_SUB/SEARCH6 CONFIG-P/ITER0 CONTEXT-P/ITER0 CONTEXT-P/ITER1 CONTEXT-P/ITER11 CONTEXT-P/ITER12 CONTEXT-P/ITER2 CONTEXT-P/ITER3 CONTEXT-P/ITER4 CONTEXT-P/ITER5 CONTEXT-P/ITER6 CONTEXT-P/ITER7 CONTEXT-P/ITER8 CONTEXT-P/ITER9 COUNT-RELAXED DATA-P/ITER0 DATAINST-P/ITER0 DEFTYPE_OK/ITER1 DEFTYPE_SUB/ENUM2/SEARCH6 DEFTYPE_SUB/ENUM2/SEARCH7 ELEM-P/ITER0 ELEMINST-P/ITER0 ELEM_OK/ALL1 EVAL_EXPR/MATCH4 EVAL_EXPR/OUT23/MATCH4 EXNINST-P/ITER0 EXPR-P/ITER0 EXPR_CONST/ALL0 FIND-EXPORT FRAME-P/ITER1 FREE-P/ITER0 FREE-P/ITER1 FREE-P/ITER2 FREE-P/ITER3 FREE-P/ITER4 FREE-P/ITER5 FREE-P/ITER6 FREE-P/ITER7 FREE-P/ITER8 FREE-P/ITER9 FUNC-P/ITER0 FUNCCODE-P/ITER0 FUNC_OK/ITER8 FUNC_OK/MAP6 GRAM/BCODESEC/ITER22 GRAM/BCODESEC/REP17 GRAM/BCOMPTYPE/ITER21 GRAM/BCOMPTYPE/REP16 GRAM/BCUSTOM/REP4 GRAM/BDATA/ITER20 GRAM/BDATA/ITER42 GRAM/BDATA/ITER72 GRAM/BDATA/REP15 GRAM/BDATA/REP37 GRAM/BDATA/REP67 GRAM/BDATASEC/ITER22 GRAM/BDATASEC/REP17 GRAM/BELEM/ITER109 GRAM/BELEM/ITER115 GRAM/BELEM/ITER136 GRAM/BELEM/ITER162 GRAM/BELEM/ITER196 GRAM/BELEM/ITER20 GRAM/BELEM/ITER222 GRAM/BELEM/ITER26 GRAM/BELEM/ITER47 GRAM/BELEM/ITER53 GRAM/BELEM/ITER82 GRAM/BELEM/ITER88 GRAM/BELEM/REP104 GRAM/BELEM/REP131 GRAM/BELEM/REP15 GRAM/BELEM/REP157 GRAM/BELEM/REP191 GRAM/BELEM/REP217 GRAM/BELEM/REP42 GRAM/BELEM/REP77 GRAM/BELEMSEC/ITER22 GRAM/BELEMSEC/REP17 GRAM/BEXPORTSEC/ITER22 GRAM/BEXPORTSEC/REP17 GRAM/BEXPR/REP2 GRAM/BFN/REP1 GRAM/BFUNC/ITER12 GRAM/BFUNC/ITER22 GRAM/BFUNC/ITER23 GRAM/BFUNC/REP7 GRAM/BFUNCSEC/ITER22 GRAM/BFUNCSEC/REP17 GRAM/BGLOBALSEC/ITER22 GRAM/BGLOBALSEC/REP17 GRAM/BIMPORTSEC/ITER22 GRAM/BIMPORTSEC/REP17 GRAM/BINSTR/ITER128 GRAM/BINSTR/ITER1486 GRAM/BINSTR/ITER1500 GRAM/BINSTR/ITER18 GRAM/BINSTR/ITER207 GRAM/BINSTR/REP123 GRAM/BINSTR/REP13 GRAM/BINSTR/REP1481 GRAM/BINSTR/REP1495 GRAM/BINSTR/REP202 GRAM/BINSTR/REP214 GRAM/BINSTR/REP32 GRAM/BINSTR/REP47 GRAM/BINSTR/REP62 GRAM/BINSTR/REP77 GRAM/BINSTR/REP85 GRAM/BLOCALS/ITER9 GRAM/BMEMSEC/ITER22 GRAM/BMEMSEC/REP17 GRAM/BMODULE/MAP133 GRAM/BMODULE/MATCH113 GRAM/BMODULE/REP106 GRAM/BMODULE/REP119 GRAM/BMODULE/REP128 GRAM/BMODULE/REP14 GRAM/BMODULE/REP23 GRAM/BMODULE/REP32 GRAM/BMODULE/REP41 GRAM/BMODULE/REP5 GRAM/BMODULE/REP50 GRAM/BMODULE/REP59 GRAM/BMODULE/REP68 GRAM/BMODULE/REP77 GRAM/BMODULE/REP86 GRAM/BMODULE/REP95 GRAM/BNAME/ITER12 GRAM/BNAME/REP7 GRAM/BRECTYPE/ITER14 GRAM/BRECTYPE/REP9 GRAM/BRESULTTYPE/ITER12 GRAM/BRESULTTYPE/REP7 GRAM/BSUBTYPE/ITER14 GRAM/BSUBTYPE/ITER24 GRAM/BSUBTYPE/ITER39 GRAM/BSUBTYPE/ITER49 GRAM/BSUBTYPE/REP34 GRAM/BSUBTYPE/REP9 GRAM/BTABLESEC/ITER22 GRAM/BTABLESEC/REP17 GRAM/BTAGSEC/ITER22 GRAM/BTAGSEC/REP17 GRAM/BTYPESEC/ITER22 GRAM/BTYPESEC/REP17 HEAPTYPE_SUB/ENUM2/SEARCH12 HEAPTYPE_SUB/ENUM2/SEARCH16 HEAPTYPE_SUB/ENUM2/SEARCH35 HEAPTYPE_SUB/SEARCH3 INSTR-P/ITER1 INSTR-P/ITER11 INSTR-P/ITER12 INSTR-P/ITER13 INSTR-P/ITER14 INSTR-P/ITER15 INSTR-P/ITER16 INSTR-P/ITER2 INSTR-P/ITER3 INSTR-P/ITER4 INSTR-P/ITER5 INSTR-P/ITER6 INSTR-P/ITER7 INSTRTYPE-P/ITER0 INSTRTYPE_OK/ALL3 INSTRTYPE_OK/MAP4 INSTRTYPE_SUB/ALL7 INSTRTYPE_SUB/MAP10 INSTR_OK/ALL247 INSTR_OK/ALL339 INSTR_OK/ALL74 INSTR_OK/ALL75 INSTR_OK/ALL878 INSTR_OK/ITER326 INSTR_OK/ITER405 INSTR_OK/MATCH323 INSTR_OK/MATCH336 INSTR_OK/OUT2/ALL211 INSTR_OK/OUT2/ALL56 INSTR_OK/OUT2/ALL72 INSTR_OK/OUT2/ITER64 INSTR_OK/OUT2/ITER98 INSTR_OK/OUT2/MATCH61 INSTR_OK/OUT2/MATCH69 INSTR_OK/SEARCH165 INSTR_OK/SEARCH178 INSTR_OK/SEARCH198 INSTR_OK/SEARCH216 INSTR_OK/SEARCH227 INSTR_OK/SEARCH57 INSTR_OK/SEARCH76 LANES-MATCH LANES-NAT LANES-OK MAP3 MEMINST-P/ITER0 MO-ELEM-TYPES MO-FUNC-TYPES MO-OKS MODULEINST-P/ITER0 MODULEINST-P/ITER1 MODULEINST-P/ITER2 MODULEINST-P/ITER3 MODULEINST-P/ITER4 MODULEINST-P/ITER5 MODULEINST-P/ITER6 MODULEINST-P/ITER7 MODULEINST-P/ITER8 MODULETYPE-P/ITER0 MODULETYPE-P/ITER1 MODULE_OK/W/ALL46 MODULE_OK/W/MAP29 MODULE_OK/W/MAP35 MODULE_OK/W/MAP40 MODULE_OK/W/MAP55 MODULE_OK/W/SEARCH57 NAME-P/ITER0 NAT-LANES NONFUNCS-P/ITER0 NONFUNCS-P/ITER1 NONFUNCS-P/ITER2 NONFUNCS-P/ITER3 NONFUNCS-P/ITER4 NOPT-P/ITER0 RESULT-P/ITER0 RESULTTYPE_OK/ALL0 RESULTTYPE_SUB/ALL0 RUN-STEPS SEARCH-CHAR SEQ-PUT-FIELD SEQ-RUN SEQ-SET-LOCALS SEQ-STACK-OR-BOT STARTOPT-P/ITER0 STEP/ITER101 STEP/ITER109 STEP/ITER20 STEP/ITER235 STEP/ITER263 STEP/ITER61 STEP/ITER62 STEP/ITER77 STEP/ITER78 STEP/ITER95 STEP/ITER96 STEP/MATCH105 STEP/MATCH13 STEP/MATCH224 STEP/MATCH232 STEP/MATCH248 STEP/MATCH254 STEP/MATCH50 STEP/MATCH58 STEP/MATCH71 STEP/MATCH89 STEP/PREFIX7 STEP/SEARCH21 STEPS/%FUEL STEP_PURE/ITER109 STEP_PURE/ITER126 STEP_PURE/ITER140 STEP_PURE/ITER154 STEP_PURE/ITER162 STEP_PURE/ITER214 STEP_PURE/ITER311 STEP_PURE/ITER32 STEP_PURE/ITER340 STEP_PURE/ITER50 STEP_PURE/ITER64 STEP_PURE/ITER78 STEP_PURE/MATCH107 STEP_PURE/MATCH117 STEP_PURE/MATCH121 STEP_PURE/MATCH135 STEP_PURE/MATCH149 STEP_PURE/MATCH160 STEP_PURE/MATCH166 STEP_PURE/MATCH30 STEP_PURE/MATCH41 STEP_PURE/MATCH45 STEP_PURE/MATCH59 STEP_PURE/MATCH73 STEP_PURE/SEARCH127 STEP_PURE/SEARCH141 STEP_PURE/SEARCH155 STEP_PURE/SEARCH171 STEP_PURE/SEARCH51 STEP_PURE/SEARCH65 STEP_PURE/SEARCH79 STEP_READ/ALL808 STEP_READ/ITER11 STEP_READ/ITER140 STEP_READ/ITER266 STEP_READ/ITER30 STEP_READ/ITER514 STEP_READ/ITER539 STEP_READ/ITER81 STEP_READ/ITER840 STEP_READ/ITER863 STEP_READ/ITER900 STEP_READ/ITER901 STEP_READ/ITER98 STEP_READ/MATCH110 STEP_READ/MATCH129 STEP_READ/MATCH133 STEP_READ/MATCH158 STEP_READ/MATCH20 STEP_READ/MATCH201 STEP_READ/MATCH215 STEP_READ/MATCH254 STEP_READ/MATCH3 STEP_READ/MATCH76 STEP_READ/MATCH797 STEP_READ/MATCH805 STEP_READ/MATCH824 STEP_READ/MATCH858 STEP_READ/MATCH897 STEP_READ/MATCH93 STEP_READ/SEARCH101 STEP_READ/SEARCH118 STEP_READ/SEARCH148 STEP_READ/SEARCH149 STEP_READ/SEARCH167 STEP_READ/SEARCH84 STEP_READ/SPLIT/ITER117 STEP_READ/SPLIT/ITER12 STEP_READ/SPLIT/ITER161 STEP_READ/SPLIT/ITER171 STEP_READ/SPLIT/ITER208 STEP_READ/SPLIT/ITER25 STEP_READ/SPLIT/ITER375 STEP_READ/SPLIT/ITER397 STEP_READ/SPLIT/ITER560 STEP_READ/SPLIT/ITER586 STEP_READ/SPLIT/ITER59 STEP_READ/SPLIT/ITER602 STEP_READ/SPLIT/ITER632 STEP_READ/SPLIT/ITER633 STEP_READ/SPLIT/ITER74 STEP_READ/SPLIT/MAP558 STEP_READ/SPLIT/MATCH102 STEP_READ/SPLIT/MATCH106 STEP_READ/SPLIT/MATCH127 STEP_READ/SPLIT/MATCH16 STEP_READ/SPLIT/MATCH198 STEP_READ/SPLIT/MATCH3 STEP_READ/SPLIT/MATCH54 STEP_READ/SPLIT/MATCH554 STEP_READ/SPLIT/MATCH573 STEP_READ/SPLIT/MATCH629 STEP_READ/SPLIT/MATCH69 STEP_READ/SPLIT/MATCH84 STEP_READ/SPLIT/SEARCH118 STEP_READ/SPLIT/SEARCH119 STEP_READ/SPLIT/SEARCH134 STEP_READ/SPLIT/SEARCH60 STEP_READ/SPLIT/SEARCH75 STEP_READ/SPLIT/SEARCH91 STEP_READ/SPLIT/UPTO370 STEP_READ/SPLIT/UPTO625 STEP_READ/UPTO509 STEP_READ/UPTO893 STORE-P/ITER0 STORE-P/ITER1 STORE-P/ITER2 STORE-P/ITER3 STORE-P/ITER4 STORE-P/ITER5 STORE-P/ITER6 STORE-P/ITER7 STORE-P/ITER8 STORE-P/ITER9 STRUCTINST-P/ITER0 SUBTYPE-P/ITER0 SUBTYPE_OK/ALL10 SUBTYPE_OK/ALL4 SUBTYPE_OK/ALL5 SUBTYPE_OK/MAP8 SUBTYPE_OK/MATCH2 SUBTYPE_OK2/ALL1 SUBTYPE_OK2/ALL6 SUBTYPE_OK2/ALL7 SUBTYPE_OK2/MAP4 TABLEINST-P/ITER0 TO-VALS VALS-OK VCS
+self-recursive defuns left recursive: 34
+  $ALLOCDATAS: call in a binding
+  $ALLOCELEMS: call in a binding
+  $ALLOCFUNCS: call in a binding
+  $ALLOCGLOBALS: call in a binding
+  $ALLOCMEMS: call in a binding
+  $ALLOCTABLES: call in a binding
+  $ALLOCTAGS: call in a binding
+  $ALLOCTYPES: call in a binding
+  $CLOS_DEFTYPES: call in a binding
+  $EVALEXPRS: call in a binding
+  $EVALEXPRSS: call in a binding
+  $EVALGLOBALS: call in a binding
+  $MINUS_RECS: call in a binding
+  ALL-VALUES-P: call under OR
+  DEFTYPE_SUB/SOME3: call under OR
+  EITHER-OK: call under OR
+  GLOBALS_OK: call in a binding
+  GRAM/BSN: call in a binding
+  GRAM/BUN: call in a binding
+  HEAPTYPE_SUB/%F: LET rebinds a formal
+  HEAPTYPE_SUB/ENUM2: LET rebinds a formal
+  HEAPTYPE_SUB/SOME31: call under OR
+  INSTR_OK/SOME19: call under OR
+  MO-MAP: CONS head in a function that may return multiple values
+  MODULE_OK/W/MAP43: continuation in a function that may return multiple values
+  MODULE_OK/W/MAP48: continuation in a function that may return multiple values
+  MODULE_OK/W/MAP51: continuation in a function that may return multiple values
+  RECTYPE_OK2/%F: LET rebinds a formal
+  RECTYPE_OK: call in a test
+  REF-P: call under OR
+  REF_OK: call in a test
+  RESOLVE-IMPORTS: call under MV-LET
+  STEP: call in a binding
+  TYPES_OK: call in a binding
+IN="shim/acl2.lisp shim/rule.lisp $(sed 's|^|build/lisp/|' build/lisp/ORDER | tr '\n' ' ') driver/glue.lisp" OUT=build/wasm3-core.js \
+  jscl-xc --non-interactive --load shim/compile.lisp > build/wasm3.log 2>&1 \
+  || { grep -v '^loading' build/wasm3.log | sed -n '/^Backtrace/q;p' | tail -30; exit 1; }
+DEMO-COMPILE 32 files, 3.07 s
+WARNING: The function `%HOSTCALL-HOOK' is undefined.
+cat shim/num.js shim/list.js driver/host.js build/wasm3-core.js > build/wasm3.js
+wasm3.js 4283519 bytes
+install -m 644 web/index.html web/*.js web/*.css driver/lisp.js build/jscl.js build/wasm3.js build/web/
+install -m 644 /nix/store/zxizvg78d2bvfghsnpy7k7ssjhavnfss-wabt-js-1.0.39/lib/node_modules/wabt/index.js build/web/wabt.js
+hello from JSCL: 3
+node test/wabt-hello.mjs
+wabt.js: 41 bytes, add(2,3) = 5
+node test/browser-hello.mjs
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+chromium: PASS "hello from JSCL: 3" 
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+firefox: PASS "hello from JSCL: 3" 
+rm -r -f build/lisp-a build/lisp-b
+sh extract/run.sh ../translate/gen/wasm-3.0 ../translate/tests/spec build/lisp-a > /dev/null
+sh extract/run.sh ../translate/gen/wasm-3.0 ../translate/tests/spec build/lisp-b > /dev/null
+diff -r -x extract.log build/lisp-a build/lisp-b
+check-extract: two runs identical (34 files)
+IN="shim/acl2.lisp shim/rule.lisp $(grep -v '^driver.lisp$' build/lisp/ORDER | sed 's|^|build/lisp/|' | tr '\n' ' ') build/lisp/tests/numerics.lisp test/vectors-glue.lisp" OUT=build/test-numerics-core.js \
+  jscl-xc --non-interactive --load shim/compile.lisp > build/test-numerics.log 2>&1 \
+  || { grep -v '^loading' build/test-numerics.log | sed -n '/^Backtrace/q;p' | tail -30; exit 1; }
+WARNING: The function `CHECK-SIMD' is undefined.
+cat shim/num.js shim/list.js build/test-numerics-core.js > build/test-numerics.js
+IN="shim/acl2.lisp shim/rule.lisp $(grep -v '^driver.lisp$' build/lisp/ORDER | sed 's|^|build/lisp/|' | tr '\n' ' ') build/lisp/tests/simd.lisp test/vectors-glue.lisp" OUT=build/test-simd-core.js \
+  jscl-xc --non-interactive --load shim/compile.lisp > build/test-simd.log 2>&1 \
+  || { grep -v '^loading' build/test-simd.log | sed -n '/^Backtrace/q;p' | tail -30; exit 1; }
+WARNING: The function `CHECK-VECTORS' is undefined.
+cat shim/num.js shim/list.js build/test-simd-core.js > build/test-simd.js
+node test/vectors.js build numerics
+loading boot.lisp!
+loading setf!
+loading utils.lisp!
+loading ffi.lisp!
+loading hash-table.lisp!
+loading defstruct.lisp!
+loading lambda-list.lisp!
+loading numbers.lisp!
+loading char.lisp!
+loading list.lisp!
+loading array.lisp!
+loading string.lisp!
+loading sequence.lisp!
+loading symbol.lisp!
+loading package.lisp!
+loading types.lisp!
+            compile basic types
+loading stream.lisp!
+loading print.lisp!
+loading misc.lisp!
+loading read.lisp!
+loading backquote.lisp!
+loading compiler-codegen.lisp!
+loading compiler.lisp!
+loading std-object
+loading std-generic
+loading std-method
+build standard mop hierarchy
+            elapsed time:0.017 sec.
+compile standard clos methods!
+             elapsed time:0.003 sec.
+loading conditions.lisp!
+loading structures.lisp!
+loading format.lisp!
+loading documentation.lisp!
+loading toplevel.lisp!
+W3-VECTORS numerics: 8724 of 8724 vectors agree (8015 from 1.0, 709 2.0-only), 240 ms
+node test/vectors.js build simd
+loading boot.lisp!
+loading setf!
+loading utils.lisp!
+loading ffi.lisp!
+loading hash-table.lisp!
+loading defstruct.lisp!
+loading lambda-list.lisp!
+loading numbers.lisp!
+loading char.lisp!
+loading list.lisp!
+loading array.lisp!
+loading string.lisp!
+loading sequence.lisp!
+loading symbol.lisp!
+loading package.lisp!
+loading types.lisp!
+            compile basic types
+loading stream.lisp!
+loading print.lisp!
+loading misc.lisp!
+loading read.lisp!
+loading backquote.lisp!
+loading compiler-codegen.lisp!
+loading compiler.lisp!
+loading std-object
+loading std-generic
+loading std-method
+build standard mop hierarchy
+            elapsed time:0.016 sec.
+compile standard clos methods!
+             elapsed time:0.004 sec.
+loading conditions.lisp!
+loading structures.lisp!
+loading format.lisp!
+loading documentation.lisp!
+loading toplevel.lisp!
+W3-VECTORS simd: 1008 of 1008 vectors agree (480 relaxed, deterministic profile); full profile 480 of 480; 350 ms
+IN="shim/acl2.lisp shim/rule.lisp test/units-pkg.lisp build/lisp/tests/units.lisp" OUT=build/test-units-core.js \
+  jscl-xc --non-interactive --load shim/compile.lisp > build/test-units.log 2>&1 \
+  || { grep -v '^loading' build/test-units.log | sed -n '/^Backtrace/q;p' | tail -30; exit 1; }
+cat shim/num.js shim/list.js build/test-units-core.js > build/test-units.js
+node test/units.js build
+loading boot.lisp!
+loading setf!
+loading utils.lisp!
+loading ffi.lisp!
+loading hash-table.lisp!
+loading defstruct.lisp!
+loading lambda-list.lisp!
+loading numbers.lisp!
+loading char.lisp!
+loading list.lisp!
+loading array.lisp!
+loading string.lisp!
+loading sequence.lisp!
+loading symbol.lisp!
+loading package.lisp!
+loading types.lisp!
+            compile basic types
+loading stream.lisp!
+loading print.lisp!
+loading misc.lisp!
+loading read.lisp!
+loading backquote.lisp!
+loading compiler-codegen.lisp!
+loading compiler.lisp!
+loading std-object
+loading std-generic
+loading std-method
+build standard mop hierarchy
+            elapsed time:0.017 sec.
+compile standard clos methods!
+             elapsed time:0.004 sec.
+loading conditions.lisp!
+loading structures.lisp!
+loading format.lisp!
+loading documentation.lisp!
+loading toplevel.lisp!
+W3-UNITS 119 of 119 shim unit tests agree with ACL2
+node test/host.js build
+loading boot.lisp!
+loading setf!
+loading utils.lisp!
+loading ffi.lisp!
+loading hash-table.lisp!
+loading defstruct.lisp!
+loading lambda-list.lisp!
+loading numbers.lisp!
+loading char.lisp!
+loading list.lisp!
+loading array.lisp!
+loading string.lisp!
+loading sequence.lisp!
+loading symbol.lisp!
+loading package.lisp!
+loading types.lisp!
+            compile basic types
+loading stream.lisp!
+loading print.lisp!
+loading misc.lisp!
+loading read.lisp!
+loading backquote.lisp!
+loading compiler-codegen.lisp!
+loading compiler.lisp!
+loading std-object
+loading std-generic
+loading std-method
+build standard mop hierarchy
+            elapsed time:0.018 sec.
+compile standard clos methods!
+             elapsed time:0.004 sec.
+loading conditions.lisp!
+loading structures.lisp!
+loading format.lisp!
+loading documentation.lisp!
+loading toplevel.lisp!
+W4-HOST PASS host module env registered: :OK
+W4-HOST PASS guest instantiated with env.inc imported: :OK
+W4-HOST PASS f(20) = ((:CONST (:I32) 42)) (want (2 * (20 + 1)) = 42), 8 ms
+W4-HOST PASS host saw (distinct calls) env.inc(20)
+W4-HOST PASS default host: f(20) stops at the host call (((:FRAME_%{%}% 1 (:%REC (:LOCALS ((:CONS...)
+node test/conformance.js build ../translate/tests/spec/data-3.0 ../translate/tests/spec/results-3.0 i32 i64 f32 f64 memory br_table simd--simd_i32x4_arith simd--simd_lane gc--struct gc--i31 exceptions--try_table
+loading boot.lisp!
+loading setf!
+loading utils.lisp!
+loading ffi.lisp!
+loading hash-table.lisp!
+loading defstruct.lisp!
+loading lambda-list.lisp!
+loading numbers.lisp!
+loading char.lisp!
+loading list.lisp!
+loading array.lisp!
+loading string.lisp!
+loading sequence.lisp!
+loading symbol.lisp!
+loading package.lisp!
+loading types.lisp!
+            compile basic types
+loading stream.lisp!
+loading print.lisp!
+loading misc.lisp!
+loading read.lisp!
+loading backquote.lisp!
+loading compiler-codegen.lisp!
+loading compiler.lisp!
+loading std-object
+loading std-generic
+loading std-method
+build standard mop hierarchy
+            elapsed time:0.017 sec.
+compile standard clos methods!
+             elapsed time:0.004 sec.
+loading conditions.lisp!
+loading structures.lisp!
+loading format.lisp!
+loading documentation.lisp!
+loading toplevel.lisp!
+W4-CONF i32: AGREE 460/460 commands (node: 460 commands, 458 pass, 0 crash), 1113 ms
+W4-CONF i64: AGREE 416/416 commands (node: 416 commands, 414 pass, 0 crash), 909 ms
+W4-CONF f32: AGREE 2514/2514 commands (node: 2514 commands, 2512 pass, 0 crash), 4522 ms
+W4-CONF f64: AGREE 2514/2514 commands (node: 2514 commands, 2512 pass, 0 crash), 4311 ms
+W4-CONF memory: AGREE 86/86 commands (node: 86 commands, 86 pass, 0 crash), 312 ms
+W4-CONF br_table: AGREE 186/186 commands (node: 186 commands, 186 pass, 0 crash), 7357 ms
+W4-CONF simd--simd_i32x4_arith: AGREE 194/194 commands (node: 194 commands, 194 pass, 0 crash), 570 ms
+W4-CONF simd--simd_lane: AGREE 475/475 commands (node: 475 commands, 369 pass, 0 crash), 843 ms
+W4-CONF gc--struct: AGREE 29/29 commands (node: 29 commands, 29 pass, 0 crash), 129 ms
+W4-CONF gc--i31: AGREE 72/72 commands (node: 72 commands, 72 pass, 0 crash), 200 ms
+W4-CONF exceptions--try_table: AGREE 64/64 commands (node: 64 commands, 64 pass, 0 crash), 529 ms
+W4-CONF total: all agree; 7010/7010 commands in agreeing scripts
+node test/smoke.mjs build/web
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+W5-SMOKE chromium PASS page ready in 858 ms (Worker: wasm3.js + jscl.js 473 ms, ready message after 482 ms)
+W5-SMOKE chromium PASS factorial/fac(20): semantics ok i64:2432902008176640000 [240 steps, 174 ms] native ok i64:2432902008176640000 [0.20 ms]
+W5-SMOKE chromium PASS float/hypot(1.5, 2): semantics ok f64:4612811918334230528 [11 steps, 7 ms] native ok f64:4612811918334230528 [0.00 ms]
+W5-SMOKE chromium PASS memory/squares(10): semantics ok i32:285 [321 steps, 210 ms] native ok i32:285 [0.00 ms]
+W5-SMOKE chromium PASS gc/f(3, 4): semantics ok i32:15 [17 steps, 8 ms] native ok i32:15 [0.00 ms]
+W5-SMOKE chromium PASS exception/safe(-7): semantics ok i32:993 [22 steps, 13 ms] native ok i32:993 [0.20 ms]
+W5-SMOKE chromium PASS print/squares(4): semantics ok  [72 steps, 44 ms] native ok  [0.10 ms]; prints ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"] / native ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"]
+W5-SMOKE chromium PASS simd/dot(5, 6, 7, 8): semantics ok i32:70 [24 steps, 17 ms] native ok i32:70 [0.00 ms]
+W5-SMOKE chromium PASS exception/unsafe(-7): semantics exception [16 steps, 6 ms] native exception [0.00 ms]
+W5-SMOKE chromium PASS float/third(10): semantics ok f32:1077936128 [6 steps, 2 ms] native ok f32:1077936128 [0.00 ms]
+W5-SMOKE chromium PASS fuel: fac(20) with fuel 50 -> fuel after 50 steps
+W5-SMOKE chromium PASS stop: state before running, after stopped; fresh Worker ready in 799 ms; then fac(20) ok i64:2432902008176640000
+W5-SMOKE chromium PASS step mode fac(20): Step x100 -> 100 steps; Run to end -> 240 steps (Run mode 240), ok i64:2432902008176640000 (Run mode ok i64:2432902008176640000, native ok i64:2432902008176640000); worker 0.89 ms/step
+W5-SMOKE chromium PASS W8 rule chains: 17/17 steps of gc f(3, 4) show a non-empty chain (last: Step/pure › Step_pure/frame-vals)
+W5-SMOKE chromium PASS step mode gc f(3, 4): 17 Step clicks to the normal form, 17 steps (Run mode 17), ok i32:15 (native ok i32:15); 33 ms per click (UI round trip)
+W5-SMOKE chromium PASS step mode memory squares(3): first changed bytes after step 28: [{"addr":4,"new":"1"}]
+W5-SMOKE chromium PASS W6 lines fac(3): 37/37 highlighted lines as written by hand (printed by wabt from the bytes; label "highlight: a display aid, not part of the semantics"); 33 ms per click
+W5-SMOKE chromium PASS W6 breakpoint on line 21: Run to end stops after step 14 on line 21 (want 14, 21); Next line -> step 15, line 8 (want 15, 8)
+W5-SMOKE chromium PASS print host, Step mode (15 Step x5 requests, 72 steps): semantics ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"], native ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"]
+W5-SMOKE chromium PASS page errors: none
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+W5-SMOKE firefox PASS page ready in 1077 ms (Worker: wasm3.js + jscl.js 526 ms, ready message after 589 ms)
+W5-SMOKE firefox PASS factorial/fac(20): semantics ok i64:2432902008176640000 [240 steps, 340 ms] native ok i64:2432902008176640000 [0.00 ms]
+W5-SMOKE firefox PASS float/hypot(1.5, 2): semantics ok f64:4612811918334230528 [11 steps, 14 ms] native ok f64:4612811918334230528 [0.00 ms]
+W5-SMOKE firefox PASS memory/squares(10): semantics ok i32:285 [321 steps, 392 ms] native ok i32:285 [0.00 ms]
+W5-SMOKE firefox PASS gc/f(3, 4): semantics ok i32:15 [17 steps, 16 ms] native ok i32:15 [0.00 ms]
+W5-SMOKE firefox PASS exception/safe(-7): semantics ok i32:993 [22 steps, 24 ms] native ok i32:993 [0.00 ms]
+W5-SMOKE firefox PASS print/squares(4): semantics ok  [72 steps, 83 ms] native ok  [0.00 ms]; prints ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"] / native ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"]
+W5-SMOKE firefox PASS simd/dot(5, 6, 7, 8): semantics ok i32:70 [24 steps, 30 ms] native ok i32:70 [0.00 ms]
+W5-SMOKE firefox PASS exception/unsafe(-7): semantics exception [16 steps, 11 ms] native exception [0.00 ms]
+W5-SMOKE firefox PASS float/third(10): semantics ok f32:1077936128 [6 steps, 4 ms] native ok f32:1077936128 [0.00 ms]
+W5-SMOKE firefox PASS fuel: fac(20) with fuel 50 -> fuel after 50 steps
+W5-SMOKE firefox PASS stop: state before running, after stopped; fresh Worker ready in 824 ms; then fac(20) ok i64:2432902008176640000
+W5-SMOKE firefox PASS step mode fac(20): Step x100 -> 100 steps; Run to end -> 240 steps (Run mode 240), ok i64:2432902008176640000 (Run mode ok i64:2432902008176640000, native ok i64:2432902008176640000); worker 1.50 ms/step
+W5-SMOKE firefox PASS W8 rule chains: 17/17 steps of gc f(3, 4) show a non-empty chain (last: Step/pure › Step_pure/frame-vals)
+W5-SMOKE firefox PASS step mode gc f(3, 4): 17 Step clicks to the normal form, 17 steps (Run mode 17), ok i32:15 (native ok i32:15); 33 ms per click (UI round trip)
+W5-SMOKE firefox PASS step mode memory squares(3): first changed bytes after step 28: [{"addr":4,"new":"1"}]
+W5-SMOKE firefox PASS W6 lines fac(3): 37/37 highlighted lines as written by hand (printed by wabt from the bytes; label "highlight: a display aid, not part of the semantics"); 35 ms per click
+W5-SMOKE firefox PASS W6 breakpoint on line 21: Run to end stops after step 14 on line 21 (want 14, 21); Next line -> step 15, line 8 (want 15, 8)
+W5-SMOKE firefox PASS print host, Step mode (15 Step x5 requests, 72 steps): semantics ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"], native ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"]
+W5-SMOKE firefox PASS page errors: none
+W5-SMOKE all passed
+node test/lines.js build
+loading boot.lisp!
+loading setf!
+loading utils.lisp!
+loading ffi.lisp!
+loading hash-table.lisp!
+loading defstruct.lisp!
+loading lambda-list.lisp!
+loading numbers.lisp!
+loading char.lisp!
+loading list.lisp!
+loading array.lisp!
+loading string.lisp!
+loading sequence.lisp!
+loading symbol.lisp!
+loading package.lisp!
+loading types.lisp!
+            compile basic types
+loading stream.lisp!
+loading print.lisp!
+loading misc.lisp!
+loading read.lisp!
+loading backquote.lisp!
+loading compiler-codegen.lisp!
+loading compiler.lisp!
+loading std-object
+loading std-generic
+loading std-method
+build standard mop hierarchy
+            elapsed time:0.018 sec.
+compile standard clos methods!
+             elapsed time:0.004 sec.
+loading conditions.lisp!
+loading structures.lisp!
+loading format.lisp!
+loading documentation.lisp!
+loading toplevel.lisp!
+W6-LINES PASS factorial/fac(3) [wabt]: 37/37 lines as expected, 36 steps (Run mode 36), ok 6, 1.69 ms/step with mapping
+W6-LINES PASS factorial/fac: rule chains on 36/36 steps (6.7 rules per chain)
+W6-LINES PASS factorial/fac: covers lines 6 7 8 9 11 12 13 14 15 16 17 19 20 21 24
+W6-LINES PASS factorial/fac_rec(2) [wabt]: 22/22 lines as expected, 21 steps (Run mode 21), ok 2, 1.43 ms/step with mapping
+W6-LINES PASS factorial/fac_rec: rule chains on 21/21 steps (5.6 rules per chain)
+W6-LINES PASS factorial/fac_rec: covers lines 26 28 29 32 33 35 36 37 38
+W6-LINES PASS float/hypot(1.5, 2) [wabt]: 12/12 lines as expected, 11 steps (Run mode 11), ok 2.5 (0x4004000000000000), 1.27 ms/step with mapping
+W6-LINES PASS float/hypot: rule chains on 11/11 steps (4.1 rules per chain)
+W6-LINES PASS float/third(10) [wabt]: 7/7 lines as expected, 6 steps (Run mode 6), ok 3 (0x40400000), 1.33 ms/step with mapping
+W6-LINES PASS float/third: rule chains on 6/6 steps (3.3 rules per chain)
+W6-LINES PASS memory/squares(1) [wabt]: 52/52 lines as expected, 51 steps (Run mode 51), ok 0, 1.86 ms/step with mapping
+W6-LINES PASS memory/squares: rule chains on 51/51 steps (6.9 rules per chain)
+W6-LINES PASS gc/f(3, 4) [fallback]: 18/18 lines as expected, 17 steps (Run mode 17), ok 15, 1.06 ms/step with mapping
+W6-LINES PASS gc/f: rule chains on 17/17 steps (4.2 rules per chain)
+W6-LINES PASS exception/safe(-7) [wabt]: 23/23 lines as expected, 22 steps (Run mode 22), ok 993, 1.36 ms/step with mapping
+W6-LINES PASS exception/safe: rule chains on 22/22 steps (8.5 rules per chain)
+W6-LINES PASS exception/safe(5) [wabt]: 21/21 lines as expected, 20 steps (Run mode 20), ok 10, 1.30 ms/step with mapping
+W6-LINES PASS exception/safe: rule chains on 20/20 steps (8.4 rules per chain)
+W6-LINES PASS exception/unsafe(-7) [wabt]: 17/17 lines as expected, 16 steps (Run mode 16), exception, 1.00 ms/step with mapping
+W6-LINES PASS exception/unsafe: rule chains on 16/16 steps (5.3 rules per chain)
+W6-LINES PASS simd/dot(5, 6, 7, 8) [wabt]: 25/25 lines as expected, 24 steps (Run mode 24), ok 70, 1.38 ms/step with mapping
+W6-LINES PASS simd/dot: rule chains on 24/24 steps (4.5 rules per chain)
+W6-LINES PASS every step of every example has a non-empty chain: 224/224 steps
+W6-LINES PASS print Run mode: ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"] (72 steps)
+W6-LINES PASS print Step mode: ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"], printed at steps 12 26 40 54 70 of 72
+W6-LINES PASS print: rule chains on 72/72 steps
+W6-LINES PASS next line x6 from the start of fac(3): 1:6 2:7 3:8 4:9 5:11 6:12 (want 1:6 2:7 3:8 4:9 5:11 6:12)
+W6-LINES PASS next line from step 29 (line 11): stops at step 30, line 12 (want 30, 12)
+W6-LINES PASS next line from step 30 (line 12; 31 is 12 again): stops at step 32, line 8 (want 32, 8)
+W6-LINES PASS breakpoint at line 21, run to end x3: 14:21 26:21 end@36 (want 14:21 26:21 end@36)
+W6-LINES all passed
+node test/chains.js build
+loading boot.lisp!
+loading setf!
+loading utils.lisp!
+loading ffi.lisp!
+loading hash-table.lisp!
+loading defstruct.lisp!
+loading lambda-list.lisp!
+loading numbers.lisp!
+loading char.lisp!
+loading list.lisp!
+loading array.lisp!
+loading string.lisp!
+loading sequence.lisp!
+loading symbol.lisp!
+loading package.lisp!
+loading types.lisp!
+            compile basic types
+loading stream.lisp!
+loading print.lisp!
+loading misc.lisp!
+loading read.lisp!
+loading backquote.lisp!
+loading compiler-codegen.lisp!
+loading compiler.lisp!
+loading std-object
+loading std-generic
+loading std-method
+build standard mop hierarchy
+            elapsed time:0.018 sec.
+compile standard clos methods!
+             elapsed time:0.004 sec.
+loading conditions.lisp!
+loading structures.lisp!
+loading format.lisp!
+loading documentation.lisp!
+loading toplevel.lisp!
+W8-CHAINS PASS nop: 4 steps, result NIL
+W8-CHAINS PASS i32.add: 4 steps, result ((:CONST (:I32) 3))
+W8-CHAINS PASS block/br: 5 steps, result ((:CONST (:I32) 7))
+W8-CHAINS PASS call/return: 7 steps, result ((:CONST (:I32) 5))
+W8-CHAINS PASS trap: 4 steps, result :TRAP
+W8-CHAINS PASS throw/catch: 9 steps, result ((:CONST (:I32) 3))
+W8-CHAINS all 6 programs match the hand-written chains (33 steps)
+make: Leaving directory '/Users/Apple/dev/wasm-acl2/demo'
+W9-DEMO make -C demo all check: exit 0 65s
+W9-DEMO translate porcelain lines after demo check: 0

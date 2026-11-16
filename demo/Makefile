@@ -12,7 +12,7 @@ LISP    := $(BUILD)/lisp
 
 .PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract js vectors units host chains conformance-data conformance conformance-quick web smoke lines clean
 
-all: $(BUILD)/hello.js js
+all: $(BUILD)/hello.js js web
 
 $(BUILD)/jscl.js: $(JSCL_HOME)/dist/jscl.js
 	@mkdir -p $(BUILD)

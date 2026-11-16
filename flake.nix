@@ -184,6 +184,57 @@
               tar xzf $src -C $out/lib/node_modules/wabt --strip-components=1
             '';
 
+        # The WASM 3.0 demo page as a static directory (plan/wasm3-demo W9):
+        # regenerates translate/gen/wasm-3.0 from the checked-in IL (`make gen`,
+        # nothing certified but the translator), extracts it, compiles it with
+        # JSCL and assembles demo/build/web (`make -C demo web`). $out is the
+        # site root (index.html, the Worker, jscl.js, wasm3.js, wabt.js).
+        wasm3-demo = pkgs.stdenv.mkDerivation {
+          pname = "wasm3-demo";
+          version = "0.1";
+          src = builtins.path {
+            path = ./.;
+            name = "wasm3-demo-source";
+            filter =
+              path: type:
+              !(builtins.elem (baseNameOf path) [
+                ".git"
+                "result"
+                "plan"
+                "build"
+              ]);
+          };
+          nativeBuildInputs = [
+            acl2
+            jscl
+            pkgs.gnumake
+            pkgs.nodejs
+            pkgs.perl
+            pkgs.which
+            pkgs.hostname
+          ];
+          # cert.pl wants a real HOME and a nonempty USER.
+          buildPhase = ''
+            export HOME=$TMPDIR/home USER=nobody
+            mkdir -p $HOME
+            export ACL2=${acl2}/bin/acl2
+            export ACL2_SYSTEM_BOOKS=${acl2}/share/acl2/books
+            export CERT=$ACL2_SYSTEM_BOOKS/build/cert.pl
+            export JSCL_HOME=${jscl}/share/jscl
+            export WABT_JS=${wabt-js}/lib/node_modules/wabt
+            make -C translate gen SPEC=3.0 ACL2=$ACL2 CERT=$CERT JOBS=''${NIX_BUILD_CORES:-4}
+            make -C demo web
+          '';
+          installPhase = ''
+            mkdir -p $out
+            cp -R demo/build/web/. $out/
+          '';
+          meta = {
+            description = "WASM 3.0 run by its SpecTec semantics (ACL2, compiled to JavaScript by JSCL) in the browser";
+            platforms = systems;
+          };
+        };
+
         # The reference interpreter (see wasmRefInterp above), wasm3 M0b.
         wasm-ref-interp = wasmRefInterp;
 

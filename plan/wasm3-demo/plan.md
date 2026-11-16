@@ -32,10 +32,11 @@
   W7 done ([W7-rule-tags](notes/W7-rule-tags.md)); W1 done, D5 final
   ([W1-numbers-stack](notes/W1-numbers-stack.md)); W2 done ([W2-extractor](notes/W2-extractor.md)); W3 done ([W3-shim](notes/W3-shim.md));
   W4 done ([W4-semantics-node](notes/W4-semantics-node.md)); W5 done ([W5-browser-page](notes/W5-browser-page.md));
-  W6 done ([W6-wat-line](notes/W6-wat-line.md)); W8 done ([W8-rule-names](notes/W8-rule-names.md))
-- **Waiting for the user**: nothing. The plan is meant to run headless
-  from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
-  contradicts the conditional W1 decision (D5).
+  W6 done ([W6-wat-line](notes/W6-wat-line.md)); W8 done ([W8-rule-names](notes/W8-rule-names.md));
+  W9 done ([W9-build](notes/W9-build.md)). **The headless plan is complete.**
+- **Waiting for the user**: W9 item 4, publishing the static site (GitHub
+  Pages or other): where, and whether. The site is `nix build
+  .#wasm3-demo` (a static directory; no server beyond static files).
 - **Decided by the user (2026-11-15)**: D5, conditionally: numbers by
   option A (shim tower), stack by option (b) (mechanical rewrite in the
   extractor), with node `--stack-size` and the Worker as a fallback.
@@ -87,9 +88,8 @@
 - **Page host imports (W4 item 2, closed in W8)**: module `env` with
   `print`, `print_i32`, ... registered through `REGISTER-HOST`, the same
   imports on the native side.
-- **Next action**: W9 (build integration, non-interference, README).
-  `flake.nix` `packages.wasm3-demo` and `demo/README.md` exist in the tree,
-  uncommitted.
+- **Next action**: none headless. W9 item 4 waits for the user; the
+  Deferred list (§4) holds the follow-ups (step back, ...).
 - **Translator change (W7, for the user)**: `%RULE` (`rt/prelude.lisp`,
   a macro: `(%RULE name x)` = `x`) and two emitter changes in
   `il2acl2/compile.lisp` (`crule`, `cprod`). Reason: D6/D7, the stepper's
@@ -639,21 +639,35 @@ both browsers. Screenshot `progress/05-W8-rule-names.png` (50 KB). The page
 also gained the `print` host (W4 item 2, open until now).
 
 ### W9: Build integration and non-interference
-1. [ ] `make -C demo` (all), `make -C demo check` (W2 determinism, W3, W4
+1. [x] `make -C demo` (all), `make -C demo check` (W2 determinism, W3, W4
        subset, W5 smoke, W6 line checks, W8 chains), and the flake output
        `packages.wasm3-demo` (a static directory)
-2. [ ] Non-interference check: after `make -C demo check`, `git status
+       **Done 2026-11-15** ([W9-build](notes/W9-build.md#build-item-1)):
+       `make -C demo all check` exit 0 in 65 s (every demo test); `nix build
+       .#wasm3-demo` exit 0, a 7.3 MB static directory, built from the
+       tracked sources alone (it regenerates `gen/wasm-3.0`), on which the
+       smoke test passes in both browsers
+2. [x] Non-interference check: after `make -C demo check`, `git status
        --porcelain translate/` is empty (the demo build writes nothing
        there; only W7 changed it, through the translator), and
        `make -C translate check`, `check-2.0` and `check-3.0` are green
-3. [ ] `demo/README.md`: how to build, what is derived from which file,
+       **Done 2026-11-15** ([W9-build](notes/W9-build.md#non-interference-item-2)):
+       0 porcelain lines in `translate/` after `make -C demo all check`;
+       `check` 7 s, `check-2.0` 144 s, `check-3.0` 293 s, all exit 0
+3. [x] `demo/README.md`: how to build, what is derived from which file,
        where the shims are and why
+       **Done 2026-11-15**: `demo/README.md`
 4. [ ] Publishing the static site (GitHub Pages or other): the user
        decides. **Not part of a headless run**: leave it open, and list it
        in "Current state"
+       **Open, for the user** (the directory: `nix build .#wasm3-demo`)
 
 **Exit**: items 1 to 3. One command builds the demo from a clean
 checkout, and the ACL2 gates are unchanged.
+
+**W9 result (2026-11-15): exit met.** `nix build .#wasm3-demo` builds the
+demo from a clean checkout; the three ACL2 gates are green and `translate/`
+is untouched by the demo build. Item 4 is left to the user.
 
 ### Order and dependencies
 
