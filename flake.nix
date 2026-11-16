@@ -154,12 +154,18 @@
                   rel=''${f#$suite/}
                   b=$(echo "''${rel%.wast}" | sed 's|/|--|g')
                   mkdir -p work/$b
-                  if ! (cd work/$b && wast2json ${flags} $f -o $b.json > /dev/null 2>&1); then
-                    rm -rf work/$b
-                    if [ -n "${lib.optionalString withRefInterp "y"}" ] \
-                      && mkdir -p work/$b && wasm -d $f -o work/$b/$b.bin.wast > /dev/null 2>&1; then
-                      echo $b >> $out/REFINTERP
-                    else
+                  # With the reference interpreter (3.0): it converts every
+                  # script, and wast2json only what it cannot (wabt's output
+                  # has wrong expectations in 9 scripts: `either` results
+                  # written as (), a misrounded subnormal; wasm3 M0b). The
+                  # exception is inline-module, bare module fields that the
+                  # interpreter's rewrite leaves without an instantiation.
+                  if [ -n "${lib.optionalString withRefInterp "y"}" ] && [ "$b" != inline-module ] \
+                    && wasm -d $f -o work/$b/$b.bin.wast > /dev/null 2>&1; then
+                    echo $b >> $out/REFINTERP
+                  else
+                    rm -rf work/$b && mkdir -p work/$b
+                    if ! (cd work/$b && wast2json ${flags} $f -o $b.json > /dev/null 2>&1); then
                       echo $b >> $out/SKIPPED
                       rm -rf work/$b
                     fi

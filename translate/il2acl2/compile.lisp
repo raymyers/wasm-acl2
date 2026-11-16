@@ -503,15 +503,27 @@
                                                     (cdr-terms lsyms) fvsyms)))
                         (step (build-steps (bind-steps binds) (list 'cons b rec-call)))
                         (formals (append (if counted (list kv nv) nil) lsyms fvsyms))
-                        (def (if counted
+                        (def (cond
+                              ;; config :constant-iter: e^n with e the same for every
+                              ;; element (no index, no domain) is n copies of e. The
+                              ;; recursive helper built them on the Lisp stack, which a
+                              ;; memory of some 20 pages exhausts ($growmem, $allocmem).
+                              ((and counted (not idx) (endp doms) (cx-get :constant-iter cx))
+                               (mk-defun aux formals
+                                         (list 'if (list 'and (list 'natp kv) (list 'natp nv) (list '< kv nv))
+                                               (list 'prog2$ (list (gsym "%LIST-SIZE-OK") (list '- nv kv))
+                                                     (list 'make-list (list '- nv kv) :initial-element b))
+                                               nil)))
+                              (counted
                                  (mk-defun-measure
                                   aux formals (list 'nfix (list '- nv kv))
                                   (list 'if (cons 'and (append (list (list 'natp kv) (list 'natp nv)
                                                                      (list '< kv nv))
                                                                (consp-tests lsyms)))
-                                        step nil))
+                                        step nil)))
+                              (t
                                (mk-defun aux formals
-                                         (list 'if (cons 'or (atom-tests lsyms)) nil step)))))
+                                         (list 'if (cons 'or (atom-tests lsyms)) nil step))))))
                    (mv (cons aux (append (if counted (list 0 nterm) nil) ds fvsyms))
                        (cx-add-aux def cx))))))))))
     (t (mv nil (cx-err "iter" (list body it) cx)))))
@@ -732,6 +744,37 @@
 (defun static-len (p)
   (and (is p "LIST") (true-listp p) (len (cdr p))))
 
+; Config (:search-start ...): where a split search can begin. In a pattern
+; A ++ B whose split point k is searched, the tag of A's last element (it is
+; element k-1 of the scrutinee) or of B's first (element k) is often fixed
+; by the pattern: val* (BR l) ++ instr*, val* ++ TRAP instr*. No k before
+; the first element with that tag can match, so the search starts there
+; (%TAG-LO in rt/builtins-3.0.lisp; past the end when no element has the
+; tag). Only the start value at the call changes; the search function is
+; the same. Without this, a rule such as Step_pure/br-label-zero built
+; every prefix of a label's body at every step (quadratic in its length).
+(defun pat-fixed-tag (e)
+  ;; the constructor tag of a one-instruction pattern, or nil
+  (and (nodep e "CASE" 2) (stringp (second e)) (not (atom-free-p (second e)))
+       (tag-kw (second e))))
+
+(defun pat-last-tag (p)
+  (cond ((and (is p "LIST") (true-listp p) (consp (cdr p))) (pat-fixed-tag (car (last p))))
+        ((nodep p "CAT" 2) (pat-last-tag (third p)))
+        (t nil)))
+
+(defun pat-first-tag (p)
+  (cond ((and (is p "LIST") (true-listp p) (consp (cdr p))) (pat-fixed-tag (second p)))
+        ((nodep p "CAT" 2) (pat-first-tag (second p)))
+        (t nil)))
+
+(defun search-start (a b s cx)
+  (let ((la (and (cx-get :search-start cx) (pat-last-tag a)))
+        (fb (and (cx-get :search-start cx) (pat-first-tag b))))
+    (cond (la (list (gsym "%TAG-LO") la 1 s))
+          (fb (list (gsym "%TAG-LO") fb 0 s))
+          (t 0))))
+
 (mutual-recursion
 
  ;; (mv steps env cx)
@@ -834,7 +877,7 @@
                  (mv-let (s1 env cx) (cpat (second p) (list 'take kv s) env cx)
                    (mv-let (s2 env cx) (cpat (third p) (list 'nthcdr kv s) env cx)
                      (mv (append pre (list (list :test (list 'true-listp s))
-                                           (list :choose kv 0 (list 'len s) nil))
+                                           (list :choose kv (search-start (second p) (third p) s cx) (list 'len s) nil))
                                  s1 s2)
                          env cx)))))))))))
     ((nodep p "LIFT" 1)
@@ -2039,13 +2082,42 @@
          (more (nthcdr (len as) rest)))
     (mv as (car more) (cdr more))))
 
+; Config (:tests-first ... :defs): in the clauses of a listed def, a binding
+; is made as late as possible: it moves behind the following steps that do
+; not mention its variable (not across a search point). The value is the
+; same, since every step is a total, pure term; but a test that fails no
+; longer pays for a binding it does not use. $growmem bound the grown byte
+; list (0x00^(n*64Ki)) before testing the size limit, so a memory.grow that
+; must fail with -1 first built gigabytes.
+(defun tree-mentions (v x)             ; a generated symbol is not an atom here
+  (cond ((equal x v) t)
+        ((atom x) nil)
+        (t (or (tree-mentions v (car x)) (tree-mentions v (cdr x))))))
+
+(defun sink-bind (b rest)
+  (cond ((endp rest) (list b))
+        ((or (member-eq (car (car rest)) '(:choose :stop)) (tree-mentions (cadr b) (car rest))) (cons b rest))
+        (t (cons (car rest) (sink-bind b (cdr rest))))))
+
+(defun sink-binds (steps)
+  (if (endp steps) nil
+    (let ((rest (sink-binds (cdr steps))))
+      (if (eq (car (car steps)) :bind) (sink-bind (car steps) rest) (cons (car steps) rest)))))
+
 (defun cclause (cl formals cx)
   ;; (mv term cx): (list result) if the clause applies, nil otherwise
   (mv-let (as e prs) (clause-parts cl)
     (mv-let (s1 env cx) (cpat-args (exp-args as) formals nil cx)
       (mv-let (s2 env cx) (cprems prs env cx)
         (mv-let (r cx) (cexp e env cx)
-          (build-steps-cx (append s1 s2) (list 'list r) cx))))))
+          (build-steps-cx (if (cx-get :sink-binds cx)
+                              ;; the result term is the last use of a binding: a
+                              ;; binding stops before it, or at the end
+                              (remove-equal (list :stop)
+                                            (remove-equal (list :test r)
+                                                          (sink-binds (append s1 s2 (list (list :test r) (list :stop))))))
+                            (append s1 s2))
+                          (list 'list r) cx))))))
 
 (defun cclauses (cls formals cx)
   (if (endp cls) (mv nil cx)
@@ -2084,8 +2156,10 @@
                  nil
                  (cx-put :stubs (cons (cdr name) (cx-get :stubs cx)) cx)))
             ((endp cls) (mv nil (cons (cdr name) arity) cx))
-            (t (mv-let (body cx) (cclauses cls formals cx)
-                 (mv (mk-defun name formals body) nil cx)))))))
+            (t (mv-let (body cx)
+                 (cclauses cls formals
+                           (cx-put :sink-binds (and (member-equal (second x) (cx-get :tests-first-defs cx)) t) cx))
+                 (mv (mk-defun name formals body) nil (cx-put :sink-binds nil cx))))))))
 
 ; --- Relations (plan §2.5) ----------------------------------------------
 ;

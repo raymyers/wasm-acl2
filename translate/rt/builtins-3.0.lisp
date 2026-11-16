@@ -153,6 +153,35 @@
   (or ($trunc__ m n sx f) ($trunc_sat__ m n sx f)))
 
 ; ---------------------------------------------------------------------
+; Start of a split search (config :search-start; il2acl2 search-start).
+; (%tag-lo tag off s): i + off for the first element i of s that is a cons
+; with car TAG, and (len s) + 1 when there is none, which is above the
+; search's upper bound (len s), so the search tries nothing. A split
+; A ++ B at k whose pattern fixes the tag of element k-1 (off 1) or k
+; (off 0) cannot match for a smaller k.
+(defun %tag-lo1 (tag off s i)
+  (declare (xargs :guard (and (natp off) (natp i))))
+  (cond ((atom s) (+ 1 i))
+        ((and (consp (car s)) (eq (car (car s)) tag)) (+ i off))
+        (t (%tag-lo1 tag off (cdr s) (+ 1 i)))))
+(defun %tag-lo (tag off s)
+  (declare (xargs :guard (natp off)))
+  (%tag-lo1 tag off s 0))
+
+; ---------------------------------------------------------------------
+; Config :constant-iter: n copies by make-list. A count that no machine can
+; hold (the 2^32 locals of spec-test binary's "too many locals" modules, a
+; memory.grow by 2^48 pages that the limits allow) stops the evaluation
+; with an error here instead of exhausting the heap, which ends the Lisp
+; session. Logically this is T: the value of the caller is unchanged.
+(defun %list-size-ok (n)
+  (declare (xargs :guard t))
+  (if (and (integerp n) (< n 1073741824)) t
+    (prog2$ (er hard? '%list-size-ok "A list of ~x0 elements is more than this executable semantics builds." n)
+            t)))
+(verify-guards %list-size-ok)
+
+; ---------------------------------------------------------------------
 ; Logic mode with time limits (wasm3 M9; config (:logic ... :seconds n)).
 ; As %TRY-LOGIC / %TRY-GUARDS (prelude.lisp), but every attempt also runs
 ; under a prover time limit of SECONDS: the step limits alone do not bound

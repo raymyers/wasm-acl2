@@ -175,7 +175,24 @@
 
 ; Opaque size (= acl2-count): the size check and the measure mention the same
 ; %SIZE terms, which stay syntactically identical in the measure conjecture.
-(defun %size (x) (declare (xargs :guard t)) (acl2-count x))
+; Executed by a loop along the cdr (%SIZE-ACC): ACL2-COUNT itself recurses
+; once per element of a list, and a store that holds a memory of some
+; hundred pages exhausted the Lisp stack (Ref_ok's check under ref.cast,
+; so every call_indirect; spec-test memory_grow). The logical definition
+; is still (acl2-count x).
+(defun %size-acc (x acc)
+  (declare (xargs :guard (acl2-numberp acc)))
+  (if (consp x)
+      (%size-acc (cdr x) (+ 1 acc (%size-acc (car x) 0)))
+    (+ acc (acl2-count x))))
+
+(defthm %size-acc-is-acl2-count
+  (implies (acl2-numberp acc)
+           (equal (%size-acc x acc) (+ acc (acl2-count x)))))
+
+(defun %size (x)
+  (declare (xargs :guard t))
+  (mbe :logic (acl2-count x) :exec (%size-acc x 0)))
 
 (in-theory (disable %om %size))
 

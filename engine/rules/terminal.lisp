@@ -208,15 +208,13 @@
                            (:free (k lo hi a b zz c) (w3t::step/search21 k lo hi a b zz c))))))
 
 ; C3, part 3: an exception reference and THROW_REF do not step (the
-; machine's :throw). The two rules whose redex is "anything around TRAP or
-; THROW_REF" search a list that is not a value list, and the generated
-; lemma does not cover them; they are proved with their search expanded.
+; machine's :throw). The rule whose redex is "anything around THROW_REF"
+; searches a list that is not a value list, and the generated lemma does
+; not cover it; it is proved with its search expanded. (The same held for
+; "anything around TRAP" until the translator's config :search-start: its
+; search now starts at the first TRAP, there is none in this list, and the
+; generated lemma STEP_PURE/R-TRAP-INSTRS-OF-EXN proves by itself.)
 (make-event `(progn ,@(all-rule-lemmas t '(list (list :ref.exn_addr a) '(:throw_ref)) "-OF-EXN" (w state))))
-
-(defthm step_pure/r-trap-instrs-of-exn
-  (not (w3t::step_pure/r-trap-instrs (list (list :ref.exn_addr a) '(:throw_ref))))
-  :hints (("Goal" :in-theory (enable w3t::step_pure/r-trap-instrs)
-                  :expand ((:free (k lo hi x) (w3t::step_pure/search171 k lo hi x))))))
 
 (defthm step_read/split/r-throw_ref-instrs-of-exn
   (not (w3t::step_read/split/r-throw_ref-instrs

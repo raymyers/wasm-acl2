@@ -135,8 +135,9 @@ SPEC_JOBS ?= 8
 SPEC_TIMEOUT ?= 3600
 # SPEC=3.0 (wasm3 M4): the 3.0 driver t7-lib-3.0 (instantiation through the
 # test-only $instantiate_unchecked), results in tests/spec/results-3.0/; a
-# shorter default limit per script (SPEC_TIMEOUT_3, 600 s).
-SPEC_TIMEOUT_3 ?= 600
+# limit per script SPEC_TIMEOUT_3 (3,600 s; an action has its own budget of
+# steps and CPU seconds in t7-lib-3.0, so a slow command fails alone).
+SPEC_TIMEOUT_3 ?= 3600
 spec:
 ifeq ($(SPEC),3.0)
 	$(CERT) --acl2 $(ACL2) tests/spec/t7-lib-3.0

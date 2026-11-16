@@ -153,8 +153,11 @@
           (mv ok (cons addr rest)))))))
 
 ; Step budget per action or instantiation (a step costs about 0.01-0.03 ms
-; since wasm3 M3); an action that needs more is :FUEL.
-(defconst *spec-fuel* 200000)
+; since wasm3 M3, and up to 1 ms when it stores into a page of memory); an
+; action that needs more is :FUEL. 200,000 until 2026-11-16: too few for the
+; `test` action of memory_copy (747,881 steps) and the return_call loops
+; of 1,000,000 iterations.
+(defconst *spec-fuel* 20000000)
 (defun run-steps (c n)
   (if (zp n) nil
     (let ((r (step c))) (if r (run-steps (car r) (1- n)) (list c)))))
@@ -165,6 +168,37 @@
     (if (null r) (mv nil :fuel nil)
       (let* ((cf (car r)) (z (cadr cf)))
         (mv (cadr z) (caddr cf) (caddr z))))))
+
+; An action also has a time budget (CPU seconds, read between chunks of
+; steps): one that runs out is :TIME, a failure of that command only. Before,
+; a slow command ended the whole session at the script's time limit, and
+; the commands after it were never tried (call and call_indirect: the
+; recursion of depth 100,000 and up, where a step costs the square of the
+; depth).
+(defconst *spec-seconds* 900)
+(defconst *spec-chunk* 200)
+(defun run-chunk (c n)
+  ;; (mv c done): at most n steps; done when c does not step
+  (declare (xargs :mode :program))
+  (if (zp n) (mv c nil)
+    (let ((r (step c))) (if r (run-chunk (car r) (1- n)) (mv c t)))))
+(defun run-timed (c fuel deadline state)
+  ;; (mv status c state): :done with the normal form, :fuel or :time
+  (declare (xargs :mode :program :stobjs state))
+  (if (zp fuel) (mv :fuel nil state)
+    (mv-let (c done) (run-chunk c (min fuel *spec-chunk*))
+      (if done (mv :done c state)
+        (mv-let (now state) (read-run-time state)
+          (if (> now deadline) (mv :time nil state)
+            (run-timed c (- fuel *spec-chunk*) deadline state)))))))
+(defun final-config-timed (c state)
+  ;; as final-config: (mv store instrs frame state), instrs :fuel or :time
+  (declare (xargs :mode :program :stobjs state))
+  (if (null c) (mv nil :fuel nil state)
+    (mv-let (now state) (read-run-time state)
+      (mv-let (st cf state) (run-timed c *spec-fuel* (+ now *spec-seconds*) state)
+        (if (not (eq st :done)) (mv nil st nil state)
+          (let ((z (cadr cf))) (mv (cadr z) (caddr cf) (caddr z) state)))))))
 
 (defun exn-result-p (instrs)                   ; (REF.EXN_ADDR a) THROW_REF: an uncaught exception
   (and (consp instrs) (consp (car instrs)) (eq (caar instrs) :ref.exn_addr)
@@ -184,6 +218,8 @@
 
 (defun do-action (a e)
   ;; (mv result e): list of result vals, :trap, :exception, :fuel or :error
+  ;; (no time budget: the demo's extractor and the engine's differential
+  ;; tests use this one; the suite runner uses DO-ACTION-TIMED)
   (let* ((inst (env-inst e (cadr a)))
          (addr (and inst (find-export (caddr a) (%get-field inst :exports)))))
     (cond ((null addr) (mv :error e))
@@ -200,6 +236,26 @@
                          ((equal instrs '((:trap))) (mv :trap (cons s (cdr e))))
                          ((exn-result-p instrs) (mv :exception (cons s (cdr e))))
                          (t (mv instrs (cons s (cdr e))))))))))))
+
+(defun do-action-timed (a e state)
+  ;; DO-ACTION with the time budget; (mv result e state): list of result vals, :trap, :exception, :fuel, :time or :error
+  (declare (xargs :mode :program :stobjs state))
+  (let* ((inst (env-inst e (cadr a)))
+         (addr (and inst (find-export (caddr a) (%get-field inst :exports)))))
+    (cond ((null addr) (mv :error e state))
+          ((eq (car a) :get)
+           (if (eq (car addr) :global)
+               (mv (list (%get-field (nth (cadr addr) (%get-field (env-store e) :globals)) :value)) e state)
+             (mv :error e state)))
+          ((not (eq (car addr) :func)) (mv :error e state))
+          (t (let ((c ($invoke (env-store e) (cadr addr) (to-vals (cadddr a)))))
+               (if (null c) (mv :error e state)      ; $invoke rejects the arguments
+                 (mv-let (s instrs f state) (final-config-timed c state)
+                   (declare (ignore f))
+                   (cond ((member-eq instrs '(:fuel :time)) (mv instrs e state))
+                         ((equal instrs '((:trap))) (mv :trap (cons s (cdr e)) state))
+                         ((exn-result-p instrs) (mv :exception (cons s (cdr e)) state))
+                         (t (mv instrs (cons s (cdr e)) state))))))))))
 
 ; --- one command ---------------------------------------------------------
 ; (mv kind ok detail e): KIND for the tally, DETAIL for failures
@@ -245,6 +301,21 @@
              (mv k (and ok t) st e state)))))
       (otherwise (mv :unknown nil k e state)))))
 
+; RUN-CMD with the time budget for the commands that run an action (the
+; suite runner's; RUN-CMD itself is also extracted for the demo, which has
+; no state, so it stays as it is)
+(defun run-cmd-timed (c e state)
+  (let ((k (car c)))
+    (if (member-eq k '(:action :assert_return :assert_trap :assert_exception))
+        (mv-let (r e state) (do-action-timed (cadr c) e state)
+          (let ((ok (case k
+                      (:action (not (member-eq r '(:error :fuel :time))))
+                      (:assert_return (and (true-listp r) (vals-ok (caddr c) r)))
+                      (:assert_trap (eq r :trap))
+                      (t (eq r :exception)))))
+            (mv k ok r e state)))
+      (run-cmd c e state))))
+
 ; a one-word class of a failure, for the summary: the keyword of a
 ; status (:FUEL :ERROR :TRAP :EXCEPTION :UNLINKABLE :INVALID :PARSED ...),
 ; :WRONG-RESULT for values that do not match, :STUCK for a configuration
@@ -262,7 +333,7 @@
 ; T7-CMD KIND OK (and T7-FAIL with the command on failure)
 (defun t7-cmd (c state)
   (prog2$ (cw "T7-TRY ~x0~%" (car c))
-          (mv-let (kind ok detail e state) (run-cmd c (@ t7-env) state)
+          (mv-let (kind ok detail e state) (run-cmd-timed c (@ t7-env) state)
             (let ((state (f-put-global 't7-env e state)))
               (prog2$ (and kind (cw "T7-CMD ~x0 ~x1~%" kind (and ok t)))
                       (prog2$ (and kind (not ok) (not (member-eq kind '(:assert_exhaustion-skipped :assert_invalid-skipped :assert_malformed-text-skipped)))

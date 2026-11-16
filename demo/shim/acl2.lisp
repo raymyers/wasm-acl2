@@ -140,6 +140,16 @@
 (defun acl2::member-eq (x l) (#j:ACL2L:memberEq x l))
 (defun acl2::assoc-equal (x l) (#j:ACL2L:assocEqual x l))
 (defun acl2::acl2-count (x) (#j:ACL2L:count x))
+;;; Forms of rt/ that the books gained on 2026-11-16 (wasm3 evidence §6):
+;;;  (prog2$ a b)            b, after a
+;;;  (mbe :logic l :exec e)  the logical form (%SIZE: ACL2-COUNT above, which
+;;;                          is already a loop here)
+;;;  (er hard? ctx str ...)  an error (%LIST-SIZE-OK: a list too large to build)
+(defmacro acl2::prog2$ (a b) `(progn ,a ,b))
+(defmacro acl2::mbe (&key logic exec) (declare (ignore exec)) logic)
+(defmacro acl2::er (kind ctx str &rest args)
+  (declare (ignore kind args))
+  `(error "ACL2 hard error in ~a: ~a" ,ctx ,str))
 
 ;;; ------------------------------------------------ other list functions
 ;; (put-assoc-equal name val alist): replace the first binding, else add at the end

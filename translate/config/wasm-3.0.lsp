@@ -52,6 +52,16 @@
   :lemmas ((defthm $concatn_/iter3-len (equal (len ($concatn_/iter3 l n)) (len l))))
   :reason "Engine plan E2: $concatn_ recurses on (w'^n)*, which the translation rebuilds from the matched list with the iteration helper $CONCATN_/ITER3, so the argument of the recursive call is not syntactically a part of the input and no default measure works. The lemma says the helper keeps the length; the measure is the length of the list. The body is unchanged. STEP_READ calls $concatn_ (array.new_data), so without this the step group stays in program mode. If the helper is renumbered the lemma fails and certification stops.")
 
+ (:search-start "fixed tag at the split"
+  :reason "A rule whose pattern is A ++ B with a searched split point tried every split of the list and built every prefix (TAKE k). On a label's body of n instructions that is n^2 conses for each such rule at every step: Step_pure/br-label-zero, br-label-succ, return-label and the like cost 33 ms and 57 MB a step on the 'test' function of spec-test memory_copy (module 96), which then never finished. Where the pattern fixes the constructor of the element next to the split (val* (BR l) ++ instr*: element k-1 is a BR), the search now starts at the first element with that tag (%TAG-LO in rt/builtins-3.0.lisp), or is empty when there is none. Only the start value passed to the search function changes; the function itself and the result are the same, since no smaller k can match. 1.0 and 2.0 do not have the entry and their output is unchanged.")
+
+ (:constant-iter "copies by make-list"
+  :reason "e^n with the same e for every element (no index variable, no domain: 0x00^(n*64Ki) in $growmem and $allocmem, ref^n in $growtable and $alloctable, val^n in array.new) was a helper that conses one element and recurses, not in tail position, so the Lisp control stack held one frame per element. Growing or allocating more than about 20 pages of memory exhausted it: 19 of the 21 commands of spec-test-3 that aborted. The helper keeps its name and arguments and is now (make-list (- n k) :initial-element e), the same list.")
+
+ (:tests-first "bind late"
+  :defs ("growmem" "growtable")
+  :reason "$growmem and $growtable bound the grown contents (b* ++ 0x00^(n*64Ki)) before testing the limit (i' <= j, i' <= 2^(N-16)), because the equation that builds them comes before those premises. A memory.grow that must fail (by 65,536 pages: result -1) then built gigabytes first and aborted. In the clauses of the listed defs each binding is moved behind the steps that do not mention its variable (il2acl2 sink-binds). Every step is a pure, total term, so the result is the same; only the order of evaluation changes.")
+
  (:logic "time-limited attempts" :seconds 20
   :reason "wasm3 M9 (replaces the :program entry of M0): every generated event goes through %TRY-LOGIC-T / %TRY-GUARDS-T (rt/builtins-3.0.lisp): logic mode and guard verification are tried as for 1.0 (%TRY-LOGIC: step limits and the same alternatives), and each attempt also has a prover time limit of :seconds, because the step limits do not bound wall time (one 3.0 guard proof ran more than 15 minutes, prep P5). An attempt that hits a limit falls back (program mode, or guards not verified). The time limit makes the result depend on the machine; tests/sem-3.0/modes-3.0.lsp records it.")
 
