@@ -1,5 +1,26 @@
 {
   "nodes": {
+    "acl2-mcp": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794806018,
+        "narHash": "sha256-hQ1oXv0E/Gigb39hsBbnT8prJIRywH5RnxkocExvqrk=",
+        "owner": "raymyers",
+        "repo": "acl2-mcp",
+        "rev": "4e3ea526d983070aaf36fb5975310518a6fcb2d2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "raymyers",
+        "ref": "nix-flake",
+        "repo": "acl2-mcp",
+        "type": "github"
+      }
+    },
     "jscl-src": {
       "flake": false,
       "locked": {
@@ -35,6 +56,7 @@
     },
     "root": {
       "inputs": {
+        "acl2-mcp": "acl2-mcp",
         "jscl-src": "jscl-src",
         "nixpkgs": "nixpkgs",
         "wasm-spec": "wasm-spec"

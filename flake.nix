@@ -16,6 +16,13 @@
       url = "github:jscl-project/jscl/54c88494e9f8f22e4c24c666e84aab7053f18cee";
       flake = false;
     };
+
+    # The ACL2 MCP server, run against this flake's ACL2 (packages.acl2-mcp,
+    # .mcp.json). For local work on it: --override-input acl2-mcp path:../acl2-mcp
+    acl2-mcp = {
+      url = "github:raymyers/acl2-mcp/nix-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -24,6 +31,7 @@
       nixpkgs,
       wasm-spec,
       jscl-src,
+      acl2-mcp,
     }:
     let
       systems = [
@@ -33,6 +41,7 @@
         "aarch64-darwin"
       ];
       lib = nixpkgs.lib;
+      acl2-mcp-input = acl2-mcp; # packages.acl2-mcp shadows it in the rec set
 
       forAllSystems = f: lib.genAttrs systems (system: f (pkgsFor system));
 
@@ -163,6 +172,10 @@
         in
         rec {
         default = wasm-acl2;
+
+        # The ACL2 MCP server with this flake's ACL2 and cert.pl on its PATH
+        # (`nix run .#acl2-mcp`; registered for Claude Code in .mcp.json).
+        acl2-mcp = acl2-mcp-input.lib.withAcl2 pkgs acl2;
 
         # Demo toolchain (plan/wasm3-demo D2, D8).
         jscl = import ./nix/jscl.nix {
@@ -519,6 +532,7 @@
         default = pkgs.mkShell {
           packages = [
             self.packages.${pkgs.stdenv.hostPlatform.system}.acl2
+            self.packages.${pkgs.stdenv.hostPlatform.system}.acl2-mcp
             pkgs.gnumake
             pkgs.perl
             pkgs.which
