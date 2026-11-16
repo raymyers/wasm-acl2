@@ -43,6 +43,15 @@
   :rels ("Heaptype_ok")
   :reason "The rec group of Heaptype_ok (19 relations: type validation and subtyping) terminates by a depth bound, (%TFUEL) in rt/prelude.lisp, instead of the generated check that every recursive premise has smaller inputs. That check cut valid derivations: a rule that passes its arguments unchanged to another relation of the group (Valtype_sub/ref to Reftype_sub), one that replaces a type index by the defined type (Heaptype_sub/typeidx-l), one that recurses under a larger context (Deftype_ok). Measured: 9 of 22 type cases right with the size check (wasm3 notes, review-checker-blind-spots). A derivation deeper than the bound is not found; a failing search through a cyclic context ends at the bound.")
 
+ (:size-rank "type substitution"
+  :defs ("subst_typeuse")
+  :reason "Engine plan E2 (approved by the user 2026-11-15): the 15 functions of the $subst_typeuse group recurse structurally on their first argument, but four of them hand it unchanged to another function of the group ($subst_typeuse and $subst_heaptype to $subst_deftype, $subst_valtype to $subst_reftype, $subst_storagetype to $subst_valtype), so ACL2's default measure fails and the group was in program mode. With it went $unrolldt, $expand, $blocktype_ and so STEP_READ and STEP. The measure is (%OM (ACL2-COUNT first formal) rank), rank 0 for a function that forwards to no one, else 1 + the largest rank it forwards to (il2acl2 size-rank-measures). Only the measure declaration is added; the bodies are unchanged.")
+
+ (:termination "concatn_"
+  :measure (len %a0)
+  :lemmas ((defthm $concatn_/iter3-len (equal (len ($concatn_/iter3 l n)) (len l))))
+  :reason "Engine plan E2: $concatn_ recurses on (w'^n)*, which the translation rebuilds from the matched list with the iteration helper $CONCATN_/ITER3, so the argument of the recursive call is not syntactically a part of the input and no default measure works. The lemma says the helper keeps the length; the measure is the length of the list. The body is unchanged. STEP_READ calls $concatn_ (array.new_data), so without this the step group stays in program mode. If the helper is renumbered the lemma fails and certification stops.")
+
  (:logic "time-limited attempts" :seconds 20
   :reason "wasm3 M9 (replaces the :program entry of M0): every generated event goes through %TRY-LOGIC-T / %TRY-GUARDS-T (rt/builtins-3.0.lisp): logic mode and guard verification are tried as for 1.0 (%TRY-LOGIC: step limits and the same alternatives), and each attempt also has a prover time limit of :seconds, because the step limits do not bound wall time (one 3.0 guard proof ran more than 15 minutes, prep P5). An attempt that hits a limit falls back (program mode, or guards not verified). The time limit makes the result depend on the machine; tests/sem-3.0/modes-3.0.lsp records it.")
 

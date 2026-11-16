@@ -34,19 +34,32 @@
 > Generated code is never edited by hand. Everything that certified or
 > passed before must still certify and pass.
 >
-> **Status: ready for headless execution; E1 in progress** (written 2026-11-15, at
-> `d845f70`; revised the same day for 3.0 and MuPDF). Per-session
-> procedure: [step.md](step.md). Prompts behind this plan: [seed.md](seed.md).
+> **Status: in execution. E2 (go), E5 and E4 item 2 complete; E1 and E3 in
+> progress** (written 2026-11-15, at `d845f70`; revised the same day for
+> 3.0 and MuPDF). Per-session procedure: [step.md](step.md). Prompts behind
+> this plan: [seed.md](seed.md).
 
 ---
 
 ## Current state
 
 - **Last updated**: 2026-11-15
-- **Milestones**: none complete. E1 items 1 to 3 done (fork
-  `raymyers/mupdf`, branch `wasm3-exceptions` at `3eae43d`, rebuilt module
-  with no legacy exception opcode, same pixels as the published one in
-  V8); see [E1-mupdf-target](notes/E1-mupdf-target.md)
+- **Milestones complete**: E2 (**go**: `STEP`, `STEP_READ`, `STEPS/%FUEL`
+  are `:logic`; [E2-step-logic](notes/E2-step-logic.md)) and E5 (machine
+  design; [E5-machine](notes/E5-machine.md))
+- **In progress**: E1 items 1 to 3 done (fork `raymyers/mupdf`, branch
+  `wasm3-exceptions` at `3eae43d`, rebuilt module with no legacy exception
+  opcode, same pixels as the published one in V8;
+  [E1-mupdf-target](notes/E1-mupdf-target.md)). E3 items 1 and 3 done: the
+  theorem is stated for any machine and its run level is proved, with no
+  `skip-proofs` ([E3-theorem](notes/E3-theorem.md)). E4 item 2 done (one
+  function per rule, with E2)
+- **`engine/` exists**: `make -C engine check` is a gate from now on. It
+  needs `translate/gen/wasm-3.0` certified (`make -C translate check-3.0`)
+- **Who did what (user's instruction, 2026-11-15)**: the session of
+  2026-11-15 did the items where a wrong early choice costs most (E2, the
+  E5 design, the E3 statement, D4 (a)). The remaining items follow written
+  designs and are for later sessions
 - **Litmus test set by the user (2026-11-15)**: view a PDF with the engine,
   and the engine certifies against the semantics (top of this file, and
   §4 "Litmus milestones")
@@ -58,15 +71,23 @@
   session may change `translate/` to admit the 3.0 step group in
   `:logic`); E5 runs headless and the user reviews the note later; the
   fork lives at `raymyers/mupdf`
-- **Waiting for the user**: nothing
+- **Waiting for the user**: nothing. Two points of the E5 design touch
+  what is trusted and are listed for review in the note ("For the user to
+  review"): the fast host layer enters under a trust tag in the view
+  driver, and the first theorem is one direction (a machine that is stuck
+  claims nothing). Neither blocks a session
 - **Next action**: the rest of E1 (items 4 to 9; item 5, the module
   through the generated decoder and `Module_ok`, is the one with an
-  unknown outcome), then E0, then E2. E2 comes early on purpose: its go/no-go decides
-  whether the certify half of the litmus test is reachable for 3.0
-- **Known before starting** (sources in §2): in the 3.0 books `STEP`,
-  `STEPS` and `STEP_READ` are in `:program` mode, so no theorem can
-  mention them yet (E2). The `mupdf` 1.28.6 binary uses the legacy
-  exception encoding, which the 3.0 parser does not accept (E1)
+  unknown outcome), then E0, then E6 (the list machine of
+  [E5-machine](notes/E5-machine.md), S0 first, written over primitives so
+  that E7 can put a stobj under it), then E4 items 1, 3 and 4
+- **Changed by E2, for every later session**: a relation function is now
+  a chain of calls of rule functions `FN/R-<RULE-ID>`
+  (`STEP_PURE/R-IF-TRUE`, `STEP/R-CTXT-LABEL`), in all three spec
+  versions. `gen/wasm-1.0` and both mode manifests were regenerated
+- **Theorem hypotheses so far** (step.md asks for them here):
+  `(m-ok s)`, `(m-result-p (m-run n s))`, `(natp fuel)`,
+  `(< (m-clocks n s) fuel)`; reasons in [E3-theorem](notes/E3-theorem.md)
 
 ---
 
@@ -87,7 +108,10 @@ is added here marked *(for the user)* and listed in "Current state".
   that hypothesis cannot be stated today. Unchecked is deferred.
 - **D3: two layers.** A machine over lists is proved against the spec. A
   stobj machine is proved against the list machine. The hard proof never
-  sees a stobj, and the fast code never sees the spec.
+  sees a stobj, and the fast code never sees the spec. *E5 (2026-11-15)*:
+  the two layers are one step function over an abstract stobj
+  (`defabsstobj`); the list state is its logical side and the proof
+  against it is the correspondence of the primitives.
 - **D4 (decided by the user, 2026-11-15): option (a), the translator
   emits one function per rule.**
   Today each rule is one clause inside a large `DEFUN` (`STEP_PURE` is a
@@ -143,10 +167,12 @@ is added here marked *(for the user)* and listed in "Current state".
 |---|---|---|
 | Cost of one 3.0 step, counting loop | 0.011 ms, with or without memory | [M3-execution](../wasm3-translation/notes/M3-execution.md) |
 | The same with `i32.store` + `i32.load` per iteration | 0.029 ms at 1 page, 0.059 ms at 4 pages | same |
-| 3.0 defun-modes | `:guards` 429, `:logic` 692, `:program` 288 | [M9-logic-mode](../wasm3-translation/notes/M9-logic-mode.md) |
-| 3.0 step group | `STEP_PURE` `:logic`; `STEP_READ`, `STEP`, `STEPS` `:program` | `translate/tests/sem-3.0/modes-3.0.lsp` |
-| Why `:program` | 132 relations (`*_OK`, `*_SUB`, `STEP`, ...) are `:program`; "needs measures for the type group" | [M9-logic-mode](../wasm3-translation/notes/M9-logic-mode.md) |
-| 3.0 typing | `INSTR_OK`, `MODULE_OK` `:program` | manifest |
+| 3.0 defun-modes, before E2 | `:guards` 429, `:logic` 692, `:program` 288 | [M9-logic-mode](../wasm3-translation/notes/M9-logic-mode.md) |
+| 3.0 defun-modes, after E2 | `:guards` 607, `:logic` 1,402, `:program` 132 (2,141 functions; 732 are the new rule functions) | [E2-step-logic](notes/E2-step-logic.md) |
+| 3.0 step group, before E2 | `STEP_PURE` `:logic`; `STEP_READ`, `STEP`, `STEPS` `:program` | manifest at `78d1584` |
+| 3.0 step group, after E2 | `STEP_PURE`, `STEP_READ`, `STEP`, `STEPS/%FUEL`, `STEPS`, `EVAL_EXPR` `:logic` | `translate/tests/sem-3.0/modes-3.0.lsp` |
+| Why it was `:program` | no measure for the type substitution group, no common measure for the fuel group, `$concatn_`; then the size of the `REF_OK` termination proof with the rules inline (55.88 s, 37,894,051 prover steps) | [E2-step-logic](notes/E2-step-logic.md) |
+| 3.0 typing | `INSTR_OK`, `MODULE_OK` `:program` (unchanged by E2) | manifest |
 | 1.0 step group | all four step functions `:logic` | `translate/gen/wasm-1.0/modes.lsp` |
 | 3.0 reduction rules | 218 | [M3-execution](../wasm3-translation/notes/M3-execution.md) |
 | 3.0 exceptions in the spec tests | `assert_exception` 18 of 18 | [M4-conformance](../wasm3-translation/notes/M4-conformance.md) |
@@ -180,10 +206,12 @@ translate/gen/wasm-3.0/      the specification (generated, certified)
 engine/rules/                one small function + one theorem per rule
         |   simulation (E11): each machine step is one or more spec steps
         v
-engine/machine/              list machine (D3): stacks and a program counter
-        |   refinement (E7): same results, state in a stobj
+engine/theorem/              the theorem for any machine (E3), proved at run level
+engine/machine/              list machine (D3): operand stack, control stack,
+        |                    continuations as pointers into the instruction tree (E5)
+        |   refinement (E7): the same step function over an abstract stobj
         v
-engine/fast/                 stobj machine, guards verified: what runs
+engine/fast/                 the concrete stobj and its correspondence: what runs
         |   host functions (E9), outside the theorem
         v
 engine/host/ , engine/view/  MuPDF's 22 imports; pixels to a viewer (E10)
@@ -193,17 +221,23 @@ engine/host/ , engine/view/  MuPDF's 22 imports; pixels to a viewer (E10)
   rebuilds the nested `LABEL_`/`FRAME_`/`HANDLER_` term from the control
   stack and turns the memory array back into a byte list. It is only
   reasoned about. It never runs on the fast path.
-- **Theorem shape** (E3 fixes the exact statement): for a machine state
-  `s` with `(machine-ok s)`, `(abs (machine-step s))` equals the spec's
-  `STEP` applied `(clock s)` times to `(abs s)`, with `(clock s) >= 1`.
-  The run-level theorem follows by induction on the engine's fuel.
+- **Theorem shape** (fixed by E3, `engine/theorem/simulation.lisp`): for
+  a machine state `s` with `(m-ok s)` that is running,
+  `(stepn (m-clock s) (m-abs s))` equals `(list (m-abs (m-step s)))`:
+  one machine step is exactly `(m-clock s)` spec steps. The clock can be
+  0 (the machine moved a value to its operand stack and `abs` is
+  unchanged). The run-level theorem `ENGINE-RESULT-IS-SPEC-RESULT` is
+  proved from this for any machine; E11 instantiates it.
 - **Host functions**: the spec side already calls a constrained function
   (`%hostcall-hook`). The engine calls the same one, so the theorem holds
   for every host. What MuPDF's imports actually do is engine/host code
   under an attachment, tested and not proved.
 - **Stuck and trap**: with D2 checked, the machine reports `:stuck` when
-  no spec rule applies and `:trap` when the spec steps to `TRAP`.
-- **Package** `WE`. It imports the generated 3.0 package and `WRT`.
+  no spec rule applies and `:trap` when the spec steps to `TRAP`. The
+  theorem covers `:done` and `:trap`. `:stuck` and `:unsupported` carry no
+  claim in the first version (E3).
+- **Package** `WE` (`engine/package.lsp`). Spec functions are written
+  with their package prefix (`w3t::step`).
 - **Gate**: `make -C engine check` certifies every engine book and runs
   the differential tests. It joins the existing gates.
 
@@ -261,15 +295,27 @@ render the same pixels as the published one in V8, with its census.
 
 ### E2: The 3.0 step group in logic mode (go/no-go)
 
-- [ ] From the M9 logs: for `STEP`, `STEP_READ`, `STEPS` and each function
-      they call that is `:program`, the attempt that failed and why
-- [ ] The call graph from `STEP` down to `:program` functions, restricted
-      to the rules of D5. Which of them D5 reaches (the subtype check of
-      `call_indirect` reaches the type group)
-- [ ] Admit them in `:logic`: measures through the translator config. The
-      type group already terminates by fuel, so the fuel is a candidate
-      measure
-- [ ] Gates, mode manifest updated, spec results identical per command
+- [x] From the M9 logs: for `STEP`, `STEP_READ`, `STEPS` and each function
+      they call that is `:program`, the attempt that failed and why. The
+      logs do not keep failed attempts, so the causes were found by probes
+      on the certified books: three roots (type substitution, the fuel
+      group, `$concatn_`) (2026-11-15)
+- [x] The call graph from `STEP` down to `:program` functions: 76
+      functions; D5 reaches the first two roots (`block` and
+      `call_indirect`), and `STEP_READ` as one function needs the third
+      (2026-11-15)
+- [x] Admit them in `:logic`: a ranked size measure for type substitution
+      (config `:size-rank`), one lexicographic measure for every fuel
+      group, a lemma and a measure for `$concatn_` (config
+      `:termination`). `REF_OK` then still failed by proof size, which
+      one function per rule (D4 (a)) removed (2026-11-15)
+- [x] Gates, mode manifest updated, spec results identical per command:
+      the three translate gates pass; no function's mode got worse in
+      the 1.0 or 3.0 manifest; spec-test-3 and spec-test-1 give the same
+      result for every command that ran in both runs (64,778 and
+      11,992) (2026-11-15)
+
+Result and evidence: [E2-step-logic](notes/E2-step-logic.md).
 
 **Exit (go)**: `STEP`, `STEP_READ` and `STEPS/%FUEL` are `:logic` in the
 manifest. **No-go**: recorded with the evidence; then the proof milestones
@@ -282,23 +328,37 @@ mode manifest changes and is committed with the reason.
 
 ### E3: Theorem statement and spec-side lemmas
 
-- [ ] Write the top-level theorem as an ACL2 form over `STEP` and
-      `STEPS/%FUEL`, with `skip-proofs`, and certify the book that states
-      it. This proves the statement is expressible
+- [x] Write the top-level theorem as an ACL2 form over `STEP` and
+      `STEPS/%FUEL` and certify the book that states it:
+      `engine/theorem/simulation.lisp`. The machine is six constrained
+      functions with four constraints (C1 to C4), and the run-level
+      theorem is proved from them, so no `skip-proofs` is used
+      (certified in 2.2 s, 2026-11-15)
 - [ ] Prove the facts about the spec that the simulation needs and that
-      do not depend on the machine: `STEP` returns at most one result on
-      D5 configurations; a value sequence does not step
-- [ ] Decide and record the fuel relation (machine fuel against spec fuel)
+      do not depend on the machine: a value sequence does not step, and
+      `TRAP` alone does not step (constraint C3). "At most one result" is
+      no longer needed. These are dispatch lemmas, so do them with E4
+      item 4
+- [x] Decide and record the fuel relation: `(< (m-clocks n s) fuel)`,
+      where `m-clocks` sums the clock over the run (2026-11-15)
 
-**Exit**: the statement certifies with `skip-proofs` confined to one named
-event. `notes/E3-theorem.md` holds the statement and the reason for each
-hypothesis.
+**Exit**: the statement certifies (met, with no `skip-proofs` at all) and
+item 2 is proved. [E3-theorem](notes/E3-theorem.md) holds the statement
+and the reason for each hypothesis.
 
 ### E4: Rule lemmas (needs D4)
 
-- [ ] Move the `if-true` proof into `engine/rules/` as the first test
-- [ ] D4 (a): translator emits one function per rule; gates as in D4.
-      D4 (b): the extraction tool, with a determinism check
+- [ ] Move the `if-true` proof into `engine/rules/` as the first test.
+      Started: `engine/rules/first-lemmas.lisp` has the clean form and the
+      dispatch lemma of `if-true`, written against the rule function
+      `STEP_PURE/R-IF-TRUE`, and a whole `STEP` under a label for any
+      state ([E4-first-lemmas](notes/E4-first-lemmas.md), 2026-11-15).
+      The hand-written `case-match` form of the talk snippet is not moved
+      yet
+- [x] D4 (a): translator emits one function per rule
+      (`FN/R-<RULE-ID>`), for every relation and spec version; gates as in
+      D4. Done with E2, which needed it
+      ([E2-step-logic](notes/E2-step-logic.md), 2026-11-15)
 - [ ] Generator for the clean form of a rule: a `case-match` function and
       the theorem that it equals the rule function. S0 rules first, then
       S1, S2, S3
@@ -313,14 +373,15 @@ recorded.
 
 ### E5: Machine design
 
-- [ ] Read the prior art (§2) and record what carries over
-- [ ] Design note: machine state, pre-decoding of a function body (branch
-      targets resolved, block arities stored, handler tables for
-      `try_table`), the `abs` function, the `machine-ok` invariant, the
-      clock function, how an exception unwinds the control stack
-- [ ] Hand simulation of four programs in the note: a loop with `br_if`,
-      a call that returns, a trap inside two nested blocks, a `throw`
-      caught two frames up
+- [x] Read the prior art (§2) and record what carries over. Recorded
+      from memory of the two papers, without a fetch; the note says so
+      (2026-11-15)
+- [x] Design note: a context-stack machine that keeps the spec's data and
+      mirrors its intermediate forms, so that a machine step is 0 or 1
+      spec steps (bulk memory excepted). No flat bytecode: a continuation
+      is a pointer into the instruction tree (2026-11-15)
+- [x] Hand simulation of four programs in the note (2026-11-15). They
+      were not run; E6's differential test 1 checks them
 
 **Exit**: `notes/E5-machine.md` written, with the chosen design, the
 alternatives rejected and why. Headless (decided by the user,
@@ -332,7 +393,12 @@ new item.
 
 - [ ] `engine/machine/`: state as lists, `machine-step`, `machine-run`
       with fuel, loader from a decoded module, in `:logic` with guards
-      verified. S0 first
+      verified. S0 first. Follow the step table of
+      [E5-machine](notes/E5-machine.md). Write the step function over a
+      small set of primitives (push, pop, local, memory, control entry),
+      not over the state's list structure, so that E7 changes only the
+      primitives
+- [ ] Constraint C1 of E3 for this machine: a step keeps `machine-ok`
 - [ ] `abs` as an executable function
 - [ ] Differential test 1: at every step of every E0 benchmark,
       `(abs (machine-step s))` equals the spec stepped `(clock s)` times
@@ -345,9 +411,12 @@ Scripts and commands inside S0 recorded.
 
 ### E7: Stobj machine
 
-- [ ] `engine/fast/`: the same machine with its state in a stobj, memory
-      as a byte array, fixnum declarations where the guards allow
-- [ ] Refinement theorem: same result as the list machine
+- [ ] `engine/fast/`: a concrete stobj (operand stack and locals in one
+      array, control stack, memory as a byte array) and a `defabsstobj`
+      whose logical side is the E6 state. The step function is E6's
+- [ ] Refinement: the correspondence obligations of the `defabsstobj`
+      primitives. `mbe` fast paths for the spec's numeric functions where
+      the profile asks for them
 - [ ] Rate on the E0 benchmarks at 1, 16, 64 and 352 pages
 
 **Exit**: the refinement theorem certifies for S0. Rates recorded next to
@@ -391,16 +460,18 @@ the folder.
 ### E11: Simulation proofs
 
 - [ ] S0: one simulation lemma per instruction from the E4 clean forms;
-      the context lemma (a step inside the innermost label or frame of
-      `(abs s)` is a `STEP` of the whole configuration), by induction on
-      the control stack; the step theorem; the run theorem, replacing the
-      `skip-proofs` event of E3
+      the operand-prefix and `ctxt-instrs` lemmas; the context lemma (a
+      step inside the innermost label or frame of `(abs s)` is a `STEP`
+      of the whole configuration), by induction on the control stack;
+      then constraint C2 of E3 for the machine, and the theorem by
+      functional instantiation of `ENGINE-RESULT-IS-SPEC-RESULT`
 - [ ] S1, S2, S3 and H in turn. S3 adds the handler form to the context
       lemma
 
-**Exit**: per group, the E3 statement certifies with no `skip-proofs` and
-no `defaxiom` for that subset, checked by a test over the certified
-books. When all groups are done, MuPDF is inside the proved subset.
+**Exit**: per group, the instantiated theorem certifies with no
+`skip-proofs` and no `defaxiom`, with that group's instructions outside
+the machine's `:unsupported` case (E3: this is how a subset is
+expressed). When all groups are done, MuPDF is inside the proved subset.
 
 ### Litmus milestones
 
@@ -425,7 +496,8 @@ E2 -> E3 -> E4 -> E11 (needs E6, E7 for each group)
 
 The run track (E0, E1, E5 to E10) does not wait for the proof track (E2,
 E3, E4, E11). Every item runs headless. Suggested order of sessions: E1,
-E0, E2, E5, E6, E3, E4, E7, E11 for S0, E8, E9, E10, E11 for the rest.
+E0, E2, E5, E6, E3, E4, E7, E11 for S0, E8, E9, E10, E11 for the rest
+(E2, E5, the E3 statement and E4 item 2 were done first, on 2026-11-15).
 E11 for S0 comes before E8 on purpose: if the simulation proof forces a
 change of the machine, it is cheaper before the machine is widened.
 
@@ -462,7 +534,8 @@ and spec runs take minutes to tens of minutes and run in the background.
 | The 3.0 step group cannot be admitted in `:logic` | E2 | Proofs rehearse on 1.0; the 3.0 engine is tested, not proved; the user decides |
 | The engine is too slow to render a page | E7 exit, from measured rate and instruction counts | Smaller MuPDF build; pre-render overnight; a faster machine design |
 | The rebuilt MuPDF does not validate under `Module_ok`, or the decoder cannot handle 10 MB | E1 item 5 | The engine's own loader takes the binary; the disagreement is a finding about the generated validator and is reported |
-| Proofs about the generated bodies are too slow for ACL2 | E4: certification time per rule lemma | D4 (a) if (b) was chosen |
-| The `ctxt-*` recursion makes the context lemma hard | E11, tried on two instructions first | Prove flat configurations first, then one nesting form at a time |
+| Proofs about the generated bodies are too slow for ACL2 | E4: certification time per rule lemma | D4 (a) is in place (E2); a rule lemma is about one small function |
+| The spec's numeric functions are too slow for the fast machine (D6) | E7 rate | `mbe` fast paths, checked by guard verification (E5) |
+| The `ctxt-*` recursion makes the context lemma hard | E11, tried on two instructions first. First evidence: a step under one label with a fixed instruction is proved in 10,141 prover steps ([E4-first-lemmas](notes/E4-first-lemmas.md)); symbolic lists are untested | Prove flat configurations first, then one nesting form at a time |
 | Exceptions make `abs` and the invariant much larger | E5 design, E11 S3 | S3 stays tested and unproved; MuPDF is then outside the proved subset and every run says so (D8) |
 | The host functions hide behaviour the comparison misses | E9 pixel comparison on three PDFs | More PDFs; the host layer is named as trusted in every claim |

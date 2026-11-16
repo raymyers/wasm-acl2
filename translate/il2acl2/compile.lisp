@@ -271,7 +271,10 @@
                       (def (mk-defun-measure aux (list* k l h fvs)
                                              (if (and rf (subsetp-equal rf fvs))
                                                  (list (gsym "%OM3") (dec-size (cx-get :cur-rel cx) rf cx)
-                                                       (list (gsym "%SIZE") (cons (quote list) rf)) fin)
+                                                       (list (gsym "%SIZE") (cons (quote list) rf))
+                                                       ;; 1+: a relation called from here has the
+                                                       ;; last component 1 (D4 (a) rule functions)
+                                                       (list (quote 1+) fin))
                                                fin)
                                              body)))
                  (mv (list* aux (if desc hi lo) lo hi fvs) (cx-add-aux def cx)))))))
@@ -2161,6 +2164,7 @@
                                   cx))))))))))
 
 (defun crules (rs mode formals rel cx)
+  ;; (mv ((rule-id . term) ...) cx)
   ;; in :split mode a rule whose output cannot be computed (e.g. unreachable:
   ;; t_1* -> t_2*) is dropped and recorded in :incomplete; the :check variant
   ;; keeps it
@@ -2183,7 +2187,7 @@
                                        (cx-put :aux aux0 (cx-put :errs errs0 cx))))
                      cx)))
           (mv-let (rest cx) (crules (cdr rs) mode formals rel cx)
-            (mv (if (or skip dropped) rest (cons c rest)) cx)))))))
+            (mv (if (or skip dropped) rest (cons (cons (second (car rs)) c) rest)) cx)))))))
 
 (defun chain-results (cs)
   ;; first non-nil of the rule results, still wrapped: (list output) or nil,
@@ -2194,6 +2198,51 @@
       (let ((r (gsym "%R")))
         (list 'let (list (list r (car cs))) (ignorable-decl (list r))
               (list 'if r r (chain-results (cdr cs))))))))
+
+; One function per rule (engine plan D4 (a), decided by the user 2026-11-15).
+; The term of each rule becomes the body of a function FN/R-<RULE-ID> with
+; the relation's formals, and the relation calls the rule functions in the
+; order of the rules. A lemma about one rule is then about a small function,
+; and the measure conjecture of a recursive rule no longer has the failure
+; of every earlier rule as a hypothesis (engine notes E2: REF_OK needed
+; 37.9 million prover steps with the rules inline). A rule id that is empty
+; occurs twice in the relation gets its position, FN/R<pos>-<RULE-ID>; an
+; empty id (a relation with one unnamed rule) gives FN/R<pos>.
+(defun rule-id-count (id prs)
+  (cond ((endp prs) 0)
+        ((equal (car (car prs)) id) (1+ (rule-id-count id (cdr prs))))
+        (t (rule-id-count id (cdr prs)))))
+
+(defun rule-fn-names (prs all fn pos)
+  (if (endp prs) nil
+    (let ((id (if (stringp (car (car prs))) (car (car prs)) "")))
+      (cons (gsym (cond ((equal id "") (concatenate 'string fn "/R" (nat-str pos)))
+                        ((< 1 (rule-id-count id all))
+                         (concatenate 'string fn "/R" (nat-str pos) "-" (string-upcase id)))
+                        (t (concatenate 'string fn "/R-" (string-upcase id)))))
+            (rule-fn-names (cdr prs) all fn (1+ pos))))))
+
+(defun rule-defuns (prs names formals measure)
+  (if (endp prs) nil
+    (cons (if measure
+              (mk-defun-measure (car names) formals measure (cdr (car prs)))
+            (mk-defun (car names) formals (cdr (car prs))))
+          (rule-defuns (cdr prs) (cdr names) formals measure))))
+
+(defun rule-calls (names formals)
+  (if (endp names) nil (cons (cons (car names) formals) (rule-calls (cdr names) formals))))
+
+(defun unconditional-rule-p (c)
+  (and (consp c) (eq (car c) 'list) (= (len c) 2)))
+
+(defun chain-rule-calls (prs calls)
+  ;; chain-results over the calls; an unconditional rule ends the chain
+  (if (endp prs) nil
+    (if (unconditional-rule-p (cdr (car prs)))
+        (car calls)
+      (let ((r (gsym "%R")))
+        (list 'let (list (list r (car calls))) (ignorable-decl (list r))
+              (list 'if r r (chain-rule-calls (cdr prs) (cdr calls))))))))
 
 (defun rules-split-p (rules)
   ;; the output variant splits c(a, b) iff the (first) rule's last component does
@@ -2245,11 +2294,21 @@
                                                  (1- n) n))))))
                (cx (cx-put :rel-formals (and (member-equal (second x) (cx-get :rec-rels cx)) formals) cx))
                (cx (cx-put :cur-rel (second x) cx)))
-          (mv-let (cs cx) (crules rules mode formals (second x) cx)
-            (let ((body (cond (all (cons (quote append) cs))
-                              ((or (out-mode-p mode) (given-mode-p mode) (member-eq mode '(:fun :fun2 :split))) (chain-results cs))
-                              (t (list 'if (chain-results cs) t nil)))))
+          (mv-let (prs cx) (crules rules mode formals (second x) cx)
+            (let* ((rnames (rule-fn-names prs prs (cdr name) 0))
+                   (cs (rule-calls rnames formals))
+                   ;; member of a recursive group (not a fuel group): a rule
+                   ;; function is below its relation and above the searches
+                   (rdefs (rule-defuns prs rnames formals
+                                       (and (cx-get :rel-formals cx) (not (cx-get :fuel-group cx))
+                                            (list (gsym "%OM3") (dec-size (second x) formals cx)
+                                                  (list (quote 1+) (list (gsym "%SIZE") (cons (quote list) formals)))
+                                                  0))))
+                   (body (cond (all (cons (quote append) cs))
+                              ((or (out-mode-p mode) (given-mode-p mode) (member-eq mode '(:fun :fun2 :split))) (chain-rule-calls prs cs))
+                              (t (list 'if (chain-rule-calls prs cs) t nil)))))
               (mv (append (reverse (cx-get :aux cx))
+                          rdefs
                           (list (cond
                                  ((and (cx-get :rel-formals cx) (cx-get :fuel-group cx))
                                   ;; fuel group (fuel-wrap adds the formal %FUEL):
@@ -2261,11 +2320,12 @@
                                                                   (ignorable-decl (list fuel))
                                                                   body)))))
                                  ((cx-get :rel-formals cx)
-                                    ;; member of a recursive group: omega*(1+size(inputs))
+                                    ;; member of a recursive group: omega*(1+size(inputs)) + 1,
+                                    ;; one above its rule functions (same inputs, last component 0)
                                     (mk-defun-measure name formals
                                                       (list (gsym "%OM3") (dec-size (second x) formals cx)
                                                             (list (quote 1+) (list (gsym "%SIZE") (cons (quote list) formals)))
-                                                            0)
+                                                            1)
                                                       body))
                                  (t (mk-defun name formals body)))))
                   cx)))))))))
@@ -3273,10 +3333,10 @@
   (if (endp ids) nil (cons (tbl-name :rel (car ids) cx) (rel-mangled-memo (cdr ids) cx))))
 
 (defun memo-measure (d)
-  ;; d's (declare (xargs :measure (%OM3 a b 0))) with the last component 1
+  ;; d's (declare (xargs :measure (%OM3 a b k))) with the last component k + 1
   (let ((m (and (consp (fifth d)) (consp (cdr (fifth d))) (consp (cadr (fifth d)))
                 (cadr (member :measure (cdr (cadr (fifth d))))))))
-    (and (consp m) (append (butlast m 1) (list 1)))))
+    (and (consp m) (append (butlast m 1) (list (1+ (nfix (car (last m)))))))))
 
 (defun hons-copy-args (fs)
   (if (endp fs) nil (cons (list (quote acl2::hons-copy) (car fs)) (hons-copy-args (cdr fs)))))
@@ -3303,6 +3363,180 @@
   (if (endp keys) nil
     (cons (cdr (all-variant-name (car (car keys)) (cdr (car keys)) cx)) (enum-names (cdr keys) cx))))
 
+(defun override-events (ds)
+  (if (endp ds) nil (cons (cons :%w1t-override (car ds)) (override-events (cdr ds)))))
+
+; --- Measures for cliques (engine plan E2) ------------------------------
+; A generated defun is (defun name formals (declare (ignorable ...))
+; [(declare (xargs :measure m))] body).
+(defun defun-measure (d)
+  (and (consp (fifth d)) (eq (car (fifth d)) 'declare) (consp (cdr (fifth d)))
+       (consp (cadr (fifth d))) (eq (car (cadr (fifth d))) 'xargs)
+       (cadr (member :measure (cdr (cadr (fifth d)))))))
+
+(defun defun-body (d) (car (last d)))
+
+(defun set-defun-measure (d m)
+  (mk-defun-measure (second d) (third d) m (defun-body d)))
+
+(defun max-rank (names ranks)
+  ;; the largest rank in RANKS (alist name . nat) of NAMES, or -1
+  (cond ((endp names) -1)
+        (t (let ((p (assoc-equal (car names) ranks)) (r (max-rank (cdr names) ranks)))
+             (if (and p (> (cdr p) r)) (cdr p) r)))))
+
+(defun rank-step (edges ranks base)
+  ;; EDGES: (name . called names); rank = BASE if no called name is ranked,
+  ;; else 1 + the largest rank called
+  (if (endp edges) nil
+    (cons (cons (car (car edges))
+                (let ((r (max-rank (remove1-equal (car (car edges)) (cdr (car edges))) ranks)))
+                  (if (< r 0) base (1+ r))))
+          (rank-step (cdr edges) ranks base))))
+
+(defun rank-fix (edges ranks base n)
+  (if (zp n) ranks (rank-fix edges (rank-step edges ranks base) base (1- n))))
+
+; Fuel groups. As generated, the relation functions R/%F have the measure
+; (NFIX %FUEL), the helpers in the clique (R/ALL<i>, R/SEARCH<i>, ...) a
+; measure of their own or none, and the entries R none: ACL2 cannot combine
+; these, so the whole group, and everything that calls it, was in program
+; mode. One lexicographic measure for the clique:
+;   R/%F     (%OM3 fuel 0 0)       it calls the others with fuel - 1
+;   helper   (%OM3 fuel rank m)    it calls R/%F with the same fuel (0 < rank),
+;                                  a helper of smaller rank, or itself with a
+;                                  smaller m (its own measure, or the size of
+;                                  its first formal: the list it walks)
+;   entry R  (%OM3 (1+ (%TFUEL)) 0 0)   it calls R/%F with (%TFUEL)
+(defun fuel-kind (d)
+  (cond ((not (member-equal (gsym "%FUEL") (third d))) :entry)
+        ((equal (defun-measure d) (list 'nfix (gsym "%FUEL"))) :rel)
+        (t :helper)))
+
+(defun fuel-helper-edges (ds)
+  ;; (helper . helpers it calls)
+  (cond ((endp ds) nil)
+        ((eq (fuel-kind (car ds)) :helper)
+         (cons (cons (defun-name (car ds)) (defun-calls (car ds))) (fuel-helper-edges (cdr ds))))
+        (t (fuel-helper-edges (cdr ds)))))
+
+(defun fuel-helper-names (ds)
+  (cond ((endp ds) nil)
+        ((eq (fuel-kind (car ds)) :helper) (cons (defun-name (car ds)) (fuel-helper-names (cdr ds))))
+        (t (fuel-helper-names (cdr ds)))))
+
+(defun restrict-edges (edges names)
+  (if (endp edges) nil
+    (cons (cons (car (car edges)) (intersection-equal (cdr (car edges)) names))
+          (restrict-edges (cdr edges) names))))
+
+(defun fuel-measures (ds ranks)
+  (if (endp ds) nil
+    (let* ((d (car ds)) (fuel (list 'nfix (gsym "%FUEL"))))
+      (cons (case (fuel-kind d)
+              (:entry (set-defun-measure d (list (gsym "%OM3") (list '1+ (list (gsym "%TFUEL"))) 0 0)))
+              (:rel (set-defun-measure d (list (gsym "%OM3") fuel 0 0)))
+              (otherwise
+               (set-defun-measure d (list (gsym "%OM3") fuel
+                                          (cdr (assoc-equal (defun-name d) ranks))
+                                          (or (defun-measure d)
+                                              (list (quote acl2::acl2-count) (car (third d))))))))
+            (fuel-measures (cdr ds) ranks)))))
+
+(defun any-fuel-formal (ds)
+  (cond ((endp ds) nil)
+        ((member-equal (gsym "%FUEL") (third (car ds))) t)
+        (t (any-fuel-formal (cdr ds)))))
+
+(defun fuel-clique-measures (ds)
+  (let* ((names (fuel-helper-names ds))
+         (edges (restrict-edges (fuel-helper-edges ds) names)))
+    (fuel-measures ds (rank-fix edges nil 1 (1+ (len names))))))
+
+; Def groups named in the config (:size-rank ... :defs): structural
+; recursion on the first argument, where some functions hand their first
+; argument unchanged to another function of the group ($subst_typeuse to
+; $subst_deftype). The measure is (%OM (ACL2-COUNT first formal) rank): the
+; rank of a function is 0 if it forwards to no one, else 1 + the largest
+; rank it forwards to.
+(defun alias-vars (x a acc)
+  ;; variables bound to A by a binding (v A)
+  (cond ((atom x) acc)
+        ((gsym-p x) acc)
+        ((and (gsym-p (car x)) (consp (cdr x)) (equal (cadr x) a) (null (cddr x)))
+         (if (member-equal (car x) acc) acc (cons (car x) acc)))
+        (t (alias-vars (cdr x) a (alias-vars (car x) a acc)))))
+
+(defun forward-calls (x vars names acc)
+  ;; names in NAMES called with a first argument in VARS
+  (cond ((atom x) acc)
+        ((gsym-p x) acc)
+        (t (let ((acc (if (and (gsym-p (car x)) (member-equal (cdr (car x)) names)
+                               (consp (cdr x)) (member-equal (cadr x) vars)
+                               (not (member-equal (cdr (car x)) acc)))
+                          (cons (cdr (car x)) acc)
+                        acc)))
+             (forward-calls (cdr x) vars names (forward-calls (car x) vars names acc))))))
+
+(defun forward-edges (ds names)
+  (if (endp ds) nil
+    (let* ((d (car ds)) (a (car (third d))))
+      (cons (cons (defun-name d)
+                  (forward-calls (defun-body d) (cons a (alias-vars (defun-body d) a nil)) names nil))
+            (forward-edges (cdr ds) names)))))
+
+(defun size-rank-set (ds ranks)
+  (cond ((endp ds) nil)
+        ((or (defun-measure (car ds)) (atom (third (car ds))))
+         (cons (car ds) (size-rank-set (cdr ds) ranks)))
+        (t (cons (set-defun-measure (car ds)
+                                    (list (gsym "%OM")
+                                          (list (quote acl2::acl2-count) (car (third (car ds))))
+                                          (cdr (assoc-equal (defun-name (car ds)) ranks))))
+                 (size-rank-set (cdr ds) ranks)))))
+
+(defun size-rank-measures (ds)
+  (let ((names (strip-defun-names ds)))
+    (size-rank-set ds (rank-fix (forward-edges ds names) nil 0 (1+ (len names))))))
+
+(defun clique-measures (x inside cx)
+  (cond ((atom (cdr inside)) inside)
+        ((any-fuel-formal inside) (fuel-clique-measures inside))
+        ((intersection-equal (strip-seconds (cdr x)) (cx-get :size-rank-defs cx))
+         (size-rank-measures inside))
+        (t inside)))
+
+; Config (:termination "def" :measure m :lemmas (ev ...)): the defun of the
+; def gets the measure M, and the lemma events go out just before it. M and
+; the lemmas are written with translator-package symbols, like override code.
+(defun termination-apply (ds name tm)
+  (cond ((endp ds) nil)
+        ((and (consp (car ds)) (eq (car (car ds)) 'defun) (equal (defun-name (car ds)) name))
+         (append (override-events (cadr (member :lemmas tm)))
+                 (cons (set-defun-measure (car ds) (cons :%w1t-override (cadr (member :measure tm))))
+                       (cdr ds))))
+        (t (cons (car ds) (termination-apply (cdr ds) name tm)))))
+
+(defun termination-events (x ds cx)
+  (let ((tm (and (is x "DEF") (assoc-equal (second x) (cx-get :terminations cx)))))
+    (if tm (termination-apply ds (tbl-name :def (second x) cx) (cdr tm)) ds)))
+
+(defun termination-events-list (xs ds cx)
+  ;; for the members XS of a rec group (a def alone in its group is a plain defun)
+  (if (endp xs) ds
+    (termination-events-list (cdr xs) (termination-events (car xs) ds cx) cx)))
+
+; A rule function of a relation in a rec group is generated with a measure
+; (crel-1-body). One that does not reach the group stays outside the clique
+; and is not recursive; ACL2 rejects a measure there, so it is removed.
+(defun strip-bogus-measures (ds)
+  (cond ((endp ds) nil)
+        ((and (consp (car ds)) (eq (car (car ds)) 'defun) (defun-measure (car ds))
+              (not (member-equal (defun-name (car ds)) (defun-calls (car ds)))))
+         (cons (mk-defun (second (car ds)) (third (car ds)) (defun-body (car ds)))
+               (strip-bogus-measures (cdr ds))))
+        (t (cons (car ds) (strip-bogus-measures (cdr ds))))))
+
 (defun clique-events (x ds cx)
   (if (not (is x "REC")) ds
     (let* ((mains0 (member-main-names (cdr x) cx))
@@ -3317,12 +3551,10 @@
            (memo (append memo0 (suffix-all memo0 "/SPLIT"))))
       (mv-let (outside inside) (split-clique ds in)
         (mv-let (inside mems) (memo-wrap inside memo (cx-get :memo-no-inline cx))
-          (append outside
-                  (if (consp (cdr inside)) (list (cons 'mutual-recursion inside)) inside)
+          (append (strip-bogus-measures outside)
+                  (if (consp (cdr inside)) (list (cons 'mutual-recursion (clique-measures x inside cx))) inside)
                   mems))))))
 
-(defun override-events (ds)
-  (if (endp ds) nil (cons (cons :%w1t-override (car ds)) (override-events (cdr ds)))))
 
 (defun cform-1 (x cx)
   (cond ((or (is x "GRAM") (and (is x "REC") (is (cadr x) "GRAM")))
@@ -3353,8 +3585,8 @@
            (mv (clique-events x ds cx) nil nil cx)))
         ((is x "REC")
          (mv-let (ds bs cx) (cmembers (cdr x) cx)
-           (mv (clique-events x ds cx) bs nil cx)))
-        (t (mv-let (ds bs cx) (cmember x cx) (mv ds bs nil cx)))))
+           (mv (termination-events-list (cdr x) (clique-events x ds cx) cx) bs nil cx)))
+        (t (mv-let (ds bs cx) (cmember x cx) (mv (termination-events x ds cx) bs nil cx)))))
 
 ; Output variants on demand (see crule-premise-demand). :variants is a list
 ; of ((rel . outs) . defuns-or-:failed) in the order they were made, so a

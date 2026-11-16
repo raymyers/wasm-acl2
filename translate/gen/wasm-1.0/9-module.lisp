@@ -9,18 +9,11 @@
 (set-bogus-mutual-recursion-ok t) ; stubbed members of a rec group
 
 (%TRY-LOGIC
- (MUTUAL-RECURSION
-  (DEFUN EXTERNADDR_OK (%A0 %A1 %A2)
-   (DECLARE (IGNORABLE %A0 %A1 %A2))
-   (DECLARE (XARGS :MEASURE (%OM3 0 (1+ (%SIZE (LIST %A0 %A1 %A2)))
-                                  0)))
-   (IF
-    (LET
-     ((%R
-       (LET* ((S %A0))
-        (DECLARE (IGNORABLE S))
-        (AND
-           (CONSP %A1)
+  (DEFUN EXTERNADDR_OK/R-GLOBAL (%A0 %A1 %A2)
+    (DECLARE (IGNORABLE %A0 %A1 %A2))
+    (LET* ((S %A0))
+      (DECLARE (IGNORABLE S))
+      (AND (CONSP %A1)
            (EQ (CAR %A1) :GLOBAL)
            (TRUE-LISTP (CDR %A1))
            (EQUAL (ACL2::LEN (CDR %A1)) 1)
@@ -32,32 +25,37 @@
                     (AND (EQUAL %A2
                                 (LIST :GLOBAL (%GET-FIELD GLOBALINST :TYPE)))
                          (LIST (%RULE "Externaddr_ok/global" T))))))))))
-     (DECLARE (IGNORABLE %R))
-     (IF %R %R
-      (LET
-       ((%R
-          (LET* ((S %A0))
-            (DECLARE (IGNORABLE S))
-            (AND (CONSP %A1)
-                 (EQ (CAR %A1) :MEM)
-                 (TRUE-LISTP (CDR %A1))
-                 (EQUAL (ACL2::LEN (CDR %A1)) 1)
-                 (LET* ((A (CAR (CDR %A1))))
-                   (DECLARE (IGNORABLE A))
-                   (AND (< A (ACL2::LEN (%GET-FIELD S :MEMS)))
-                        (LET* ((MEMINST (NTH A (%GET-FIELD S :MEMS))))
-                          (DECLARE (IGNORABLE MEMINST))
-                          (AND (EQUAL %A2
-                                      (LIST :MEM (%GET-FIELD MEMINST :TYPE)))
-                               (LIST (%RULE "Externaddr_ok/mem" T))))))))))
-       (DECLARE (IGNORABLE %R))
-       (IF %R %R
-        (LET
-         ((%R
-           (LET* ((S %A0))
-            (DECLARE (IGNORABLE S))
-            (AND
-             (CONSP %A1)
+
+
+(%TRY-GUARDS EXTERNADDR_OK/R-GLOBAL)
+
+(%TRY-LOGIC
+     (DEFUN EXTERNADDR_OK/R-MEM (%A0 %A1 %A2)
+       (DECLARE (IGNORABLE %A0 %A1 %A2))
+       (LET* ((S %A0))
+         (DECLARE (IGNORABLE S))
+         (AND (CONSP %A1)
+              (EQ (CAR %A1) :MEM)
+              (TRUE-LISTP (CDR %A1))
+              (EQUAL (ACL2::LEN (CDR %A1)) 1)
+              (LET* ((A (CAR (CDR %A1))))
+                (DECLARE (IGNORABLE A))
+                (AND (< A (ACL2::LEN (%GET-FIELD S :MEMS)))
+                     (LET* ((MEMINST (NTH A (%GET-FIELD S :MEMS))))
+                       (DECLARE (IGNORABLE MEMINST))
+                       (AND (EQUAL %A2
+                                   (LIST :MEM (%GET-FIELD MEMINST :TYPE)))
+                            (LIST (%RULE "Externaddr_ok/mem" T))))))))))
+
+
+(%TRY-GUARDS EXTERNADDR_OK/R-MEM)
+
+(%TRY-LOGIC
+    (DEFUN EXTERNADDR_OK/R-TABLE (%A0 %A1 %A2)
+      (DECLARE (IGNORABLE %A0 %A1 %A2))
+      (LET* ((S %A0))
+        (DECLARE (IGNORABLE S))
+        (AND (CONSP %A1)
              (EQ (CAR %A1) :TABLE)
              (TRUE-LISTP (CDR %A1))
              (EQUAL (ACL2::LEN (CDR %A1)) 1)
@@ -69,132 +67,174 @@
                       (AND (EQUAL %A2
                                   (LIST :TABLE (%GET-FIELD TABLEINST :TYPE)))
                            (LIST (%RULE "Externaddr_ok/table" T))))))))))
-         (DECLARE (IGNORABLE %R))
-         (IF %R %R
-          (LET
-           ((%R
-             (LET* ((S %A0))
-              (DECLARE (IGNORABLE S))
-              (AND
-               (CONSP %A1)
-               (EQ (CAR %A1) :FUNC)
-               (TRUE-LISTP (CDR %A1))
-               (EQUAL (ACL2::LEN (CDR %A1)) 1)
-               (LET* ((A (CAR (CDR %A1))))
-                 (DECLARE (IGNORABLE A))
-                 (AND (< A (ACL2::LEN (%GET-FIELD S :FUNCS)))
-                      (LET* ((FUNCINST (NTH A (%GET-FIELD S :FUNCS))))
-                        (DECLARE (IGNORABLE FUNCINST))
-                        (AND (EQUAL %A2
-                                    (LIST :FUNC (%GET-FIELD FUNCINST :TYPE)))
-                             (LIST (%RULE "Externaddr_ok/func" T))))))))))
-           (DECLARE (IGNORABLE %R))
-           (IF %R %R
-            (LET
-             ((%R
-               (LET* ((S %A0) (EXTERNADDR %A1) (XT %A2))
-                (DECLARE (IGNORABLE S EXTERNADDR XT))
-                (AND
-                   (OR (< 0 0)
-                       (AND (EQUAL 0 0)
-                            (< (%SIZE (LIST S EXTERNADDR))
-                               (%SIZE (LIST %A0 %A1 %A2)))))
-                   (LET* ((%T0 (EXTERNADDR_OK/SPLIT S EXTERNADDR)))
-                     (DECLARE (IGNORABLE %T0))
-                     (AND %T0
-                          (LET* ((XT-PRIME (CAR %T0)))
-                            (DECLARE (IGNORABLE XT-PRIME))
-                            (AND (EXTERNTYPE_OK XT)
-                                 (EXTERNTYPE_SUB XT-PRIME XT)
-                                 (LIST (%RULE "Externaddr_ok/sub" T))))))))))
-             (DECLARE (IGNORABLE %R))
-             (IF %R %R NIL))))))))))
-    T
-    NIL))
-  (DEFUN EXTERNADDR_OK/SPLIT (%A0 %A1)
-   (DECLARE (IGNORABLE %A0 %A1))
-   (DECLARE (XARGS :MEASURE (%OM3 0 (1+ (%SIZE (LIST %A0 %A1))) 0)))
-   (LET
-    ((%R
-      (LET* ((S %A0))
-       (DECLARE (IGNORABLE S))
-       (AND
-        (CONSP %A1)
-        (EQ (CAR %A1) :GLOBAL)
-        (TRUE-LISTP (CDR %A1))
-        (EQUAL (ACL2::LEN (CDR %A1)) 1)
-        (LET* ((A (CAR (CDR %A1))))
-         (DECLARE (IGNORABLE A))
-         (AND
-          (< A (ACL2::LEN (%GET-FIELD S :GLOBALS)))
-          (LET* ((GLOBALINST (NTH A (%GET-FIELD S :GLOBALS))))
-           (DECLARE (IGNORABLE GLOBALINST))
-           (LIST (%RULE "Externaddr_ok/global"
-                        (LIST :GLOBAL (%GET-FIELD GLOBALINST :TYPE)))))))))))
-    (DECLARE (IGNORABLE %R))
-    (IF %R %R
-     (LET
-      ((%R
-        (LET* ((S %A0))
+
+
+(%TRY-GUARDS EXTERNADDR_OK/R-TABLE)
+
+(%TRY-LOGIC
+     (DEFUN EXTERNADDR_OK/R-FUNC (%A0 %A1 %A2)
+       (DECLARE (IGNORABLE %A0 %A1 %A2))
+       (LET* ((S %A0))
          (DECLARE (IGNORABLE S))
-         (AND
-          (CONSP %A1)
-          (EQ (CAR %A1) :MEM)
-          (TRUE-LISTP (CDR %A1))
-          (EQUAL (ACL2::LEN (CDR %A1)) 1)
-          (LET* ((A (CAR (CDR %A1))))
-           (DECLARE (IGNORABLE A))
-           (AND
-               (< A (ACL2::LEN (%GET-FIELD S :MEMS)))
-               (LET* ((MEMINST (NTH A (%GET-FIELD S :MEMS))))
-                 (DECLARE (IGNORABLE MEMINST))
-                 (LIST (%RULE "Externaddr_ok/mem"
-                              (LIST :MEM (%GET-FIELD MEMINST :TYPE)))))))))))
-      (DECLARE (IGNORABLE %R))
-      (IF %R %R
-       (LET
-        ((%R
-          (LET* ((S %A0))
-           (DECLARE (IGNORABLE S))
-           (AND
-            (CONSP %A1)
-            (EQ (CAR %A1) :TABLE)
-            (TRUE-LISTP (CDR %A1))
-            (EQUAL (ACL2::LEN (CDR %A1)) 1)
-            (LET* ((A (CAR (CDR %A1))))
-             (DECLARE (IGNORABLE A))
-             (AND
-              (< A (ACL2::LEN (%GET-FIELD S :TABLES)))
-              (LET* ((TABLEINST (NTH A (%GET-FIELD S :TABLES))))
-               (DECLARE (IGNORABLE TABLEINST))
-               (LIST
-                   (%RULE "Externaddr_ok/table"
-                          (LIST :TABLE (%GET-FIELD TABLEINST :TYPE)))))))))))
-        (DECLARE (IGNORABLE %R))
-        (IF %R %R
-         (LET
-          ((%R
-            (LET* ((S %A0))
-             (DECLARE (IGNORABLE S))
-             (AND
-              (CONSP %A1)
+         (AND (CONSP %A1)
               (EQ (CAR %A1) :FUNC)
               (TRUE-LISTP (CDR %A1))
               (EQUAL (ACL2::LEN (CDR %A1)) 1)
               (LET* ((A (CAR (CDR %A1))))
-               (DECLARE (IGNORABLE A))
-               (AND
-                (< A (ACL2::LEN (%GET-FIELD S :FUNCS)))
-                (LET* ((FUNCINST (NTH A (%GET-FIELD S :FUNCS))))
-                 (DECLARE (IGNORABLE FUNCINST))
-                 (LIST
-                     (%RULE "Externaddr_ok/func"
+                (DECLARE (IGNORABLE A))
+                (AND (< A (ACL2::LEN (%GET-FIELD S :FUNCS)))
+                     (LET* ((FUNCINST (NTH A (%GET-FIELD S :FUNCS))))
+                       (DECLARE (IGNORABLE FUNCINST))
+                       (AND (EQUAL %A2
+                                   (LIST :FUNC (%GET-FIELD FUNCINST :TYPE)))
+                            (LIST (%RULE "Externaddr_ok/func" T))))))))))
+
+
+(%TRY-GUARDS EXTERNADDR_OK/R-FUNC)
+
+(%TRY-LOGIC
+ (DEFUN EXTERNADDR_OK/SPLIT/R-GLOBAL (%A0 %A1)
+  (DECLARE (IGNORABLE %A0 %A1))
+  (LET* ((S %A0))
+   (DECLARE (IGNORABLE S))
+   (AND
+    (CONSP %A1)
+    (EQ (CAR %A1) :GLOBAL)
+    (TRUE-LISTP (CDR %A1))
+    (EQUAL (ACL2::LEN (CDR %A1)) 1)
+    (LET* ((A (CAR (CDR %A1))))
+     (DECLARE (IGNORABLE A))
+     (AND
+         (< A (ACL2::LEN (%GET-FIELD S :GLOBALS)))
+         (LET* ((GLOBALINST (NTH A (%GET-FIELD S :GLOBALS))))
+           (DECLARE (IGNORABLE GLOBALINST))
+           (LIST (%RULE "Externaddr_ok/global"
+                        (LIST :GLOBAL (%GET-FIELD GLOBALINST :TYPE)))))))))))
+
+
+(%TRY-GUARDS EXTERNADDR_OK/SPLIT/R-GLOBAL)
+
+(%TRY-LOGIC
+ (DEFUN EXTERNADDR_OK/SPLIT/R-MEM (%A0 %A1)
+  (DECLARE (IGNORABLE %A0 %A1))
+  (LET* ((S %A0))
+   (DECLARE (IGNORABLE S))
+   (AND (CONSP %A1)
+        (EQ (CAR %A1) :MEM)
+        (TRUE-LISTP (CDR %A1))
+        (EQUAL (ACL2::LEN (CDR %A1)) 1)
+        (LET* ((A (CAR (CDR %A1))))
+          (DECLARE (IGNORABLE A))
+          (AND (< A (ACL2::LEN (%GET-FIELD S :MEMS)))
+               (LET* ((MEMINST (NTH A (%GET-FIELD S :MEMS))))
+                 (DECLARE (IGNORABLE MEMINST))
+                 (LIST (%RULE "Externaddr_ok/mem"
+                              (LIST :MEM (%GET-FIELD MEMINST :TYPE)))))))))))
+
+
+(%TRY-GUARDS EXTERNADDR_OK/SPLIT/R-MEM)
+
+(%TRY-LOGIC
+ (DEFUN EXTERNADDR_OK/SPLIT/R-TABLE (%A0 %A1)
+  (DECLARE (IGNORABLE %A0 %A1))
+  (LET* ((S %A0))
+   (DECLARE (IGNORABLE S))
+   (AND
+    (CONSP %A1)
+    (EQ (CAR %A1) :TABLE)
+    (TRUE-LISTP (CDR %A1))
+    (EQUAL (ACL2::LEN (CDR %A1)) 1)
+    (LET* ((A (CAR (CDR %A1))))
+      (DECLARE (IGNORABLE A))
+      (AND (< A (ACL2::LEN (%GET-FIELD S :TABLES)))
+           (LET* ((TABLEINST (NTH A (%GET-FIELD S :TABLES))))
+             (DECLARE (IGNORABLE TABLEINST))
+             (LIST (%RULE "Externaddr_ok/table"
+                          (LIST :TABLE (%GET-FIELD TABLEINST :TYPE)))))))))))
+
+
+(%TRY-GUARDS EXTERNADDR_OK/SPLIT/R-TABLE)
+
+(%TRY-LOGIC
+ (DEFUN EXTERNADDR_OK/SPLIT/R-FUNC (%A0 %A1)
+  (DECLARE (IGNORABLE %A0 %A1))
+  (LET* ((S %A0))
+   (DECLARE (IGNORABLE S))
+   (AND
+      (CONSP %A1)
+      (EQ (CAR %A1) :FUNC)
+      (TRUE-LISTP (CDR %A1))
+      (EQUAL (ACL2::LEN (CDR %A1)) 1)
+      (LET* ((A (CAR (CDR %A1))))
+        (DECLARE (IGNORABLE A))
+        (AND (< A (ACL2::LEN (%GET-FIELD S :FUNCS)))
+             (LET* ((FUNCINST (NTH A (%GET-FIELD S :FUNCS))))
+               (DECLARE (IGNORABLE FUNCINST))
+               (LIST (%RULE "Externaddr_ok/func"
                             (LIST :FUNC (%GET-FIELD FUNCINST :TYPE)))))))))))
-          (DECLARE (IGNORABLE %R))
-          (IF %R %R NIL)))))))))))
 
 
-(%TRY-GUARDS EXTERNADDR_OK)
+(%TRY-GUARDS EXTERNADDR_OK/SPLIT/R-FUNC)
+
+(%TRY-LOGIC
+     (MUTUAL-RECURSION
+       (DEFUN EXTERNADDR_OK/R-SUB (%A0 %A1 %A2)
+         (DECLARE (IGNORABLE %A0 %A1 %A2))
+         (DECLARE (XARGS :MEASURE (%OM3 0 (1+ (%SIZE (LIST %A0 %A1 %A2)))
+                                        0)))
+         (LET* ((S %A0) (EXTERNADDR %A1) (XT %A2))
+           (DECLARE (IGNORABLE S EXTERNADDR XT))
+           (AND (OR (< 0 0)
+                    (AND (EQUAL 0 0)
+                         (< (%SIZE (LIST S EXTERNADDR))
+                            (%SIZE (LIST %A0 %A1 %A2)))))
+                (LET* ((%T0 (EXTERNADDR_OK/SPLIT S EXTERNADDR)))
+                  (DECLARE (IGNORABLE %T0))
+                  (AND %T0
+                       (LET* ((XT-PRIME (CAR %T0)))
+                         (DECLARE (IGNORABLE XT-PRIME))
+                         (AND (EXTERNTYPE_OK XT)
+                              (EXTERNTYPE_SUB XT-PRIME XT)
+                              (LIST (%RULE "Externaddr_ok/sub" T)))))))))
+       (DEFUN EXTERNADDR_OK (%A0 %A1 %A2)
+         (DECLARE (IGNORABLE %A0 %A1 %A2))
+         (DECLARE (XARGS :MEASURE (%OM3 0 (1+ (%SIZE (LIST %A0 %A1 %A2)))
+                                        1)))
+         (IF (LET ((%R (EXTERNADDR_OK/R-GLOBAL %A0 %A1 %A2)))
+               (DECLARE (IGNORABLE %R))
+               (IF %R %R
+                 (LET ((%R (EXTERNADDR_OK/R-MEM %A0 %A1 %A2)))
+                   (DECLARE (IGNORABLE %R))
+                   (IF %R %R
+                     (LET ((%R (EXTERNADDR_OK/R-TABLE %A0 %A1 %A2)))
+                       (DECLARE (IGNORABLE %R))
+                       (IF %R %R
+                         (LET ((%R (EXTERNADDR_OK/R-FUNC %A0 %A1 %A2)))
+                           (DECLARE (IGNORABLE %R))
+                           (IF %R %R
+                             (LET ((%R (EXTERNADDR_OK/R-SUB %A0 %A1 %A2)))
+                               (DECLARE (IGNORABLE %R))
+                               (IF %R %R NIL))))))))))
+             T
+           NIL))
+       (DEFUN EXTERNADDR_OK/SPLIT (%A0 %A1)
+         (DECLARE (IGNORABLE %A0 %A1))
+         (DECLARE (XARGS :MEASURE (%OM3 0 (1+ (%SIZE (LIST %A0 %A1))) 1)))
+         (LET ((%R (EXTERNADDR_OK/SPLIT/R-GLOBAL %A0 %A1)))
+           (DECLARE (IGNORABLE %R))
+           (IF %R %R
+             (LET ((%R (EXTERNADDR_OK/SPLIT/R-MEM %A0 %A1)))
+               (DECLARE (IGNORABLE %R))
+               (IF %R %R
+                 (LET ((%R (EXTERNADDR_OK/SPLIT/R-TABLE %A0 %A1)))
+                   (DECLARE (IGNORABLE %R))
+                   (IF %R %R
+                     (LET ((%R (EXTERNADDR_OK/SPLIT/R-FUNC %A0 %A1)))
+                       (DECLARE (IGNORABLE %R))
+                       (IF %R %R NIL)))))))))))
+
+
+(%TRY-GUARDS EXTERNADDR_OK/R-SUB)
 
 (%TRY-LOGIC
  (DEFUN $FUNCS (%A0)

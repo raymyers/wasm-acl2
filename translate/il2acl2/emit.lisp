@@ -56,6 +56,9 @@
         ;; config :memoize events go out as they are
         ((and (consp (car evs)) (eq (car (car evs)) (quote acl2::memoize)))
          (cons (car evs) (wrap-try-logic (cdr evs) pkg program)))
+        ;; config :termination lemmas go out as they are
+        ((and (consp (car evs)) (eq (car (car evs)) (quote acl2::defthm)))
+         (cons (car evs) (wrap-try-logic (cdr evs) pkg program)))
         ((natp program)
          (list* (list (intern$ "%TRY-LOGIC-T" pkg) program (car evs))
                 (list (intern$ "%TRY-GUARDS-T" pkg) program (event-first-name (car evs)))
@@ -303,6 +306,15 @@
         ((and (member :recursive (car es)) (null (cadr (member :recursive (car es))))) t)
         (t (memo-no-inline (cdr es)))))
 
+(defun size-rank-defs (es)
+  ;; (:size-rank "label" :defs ("id" ...))
+  (if (endp es) nil (append (cadr (member :defs (car es))) (size-rank-defs (cdr es)))))
+
+(defun termination-alist (es)
+  ;; (:termination "def" :measure m :lemmas (...)) -> ("def" :measure m :lemmas (...))
+  (if (endp es) nil
+    (cons (cons (second (car es)) (cddr (car es))) (termination-alist (cdr es)))))
+
 (defun rel-override-alist (es)
   ;; (:rel-override "Rel" :defuns (...) ...) -> ("Rel" . defuns)
   (if (endp es) nil
@@ -517,6 +529,9 @@
     (:memoize (check-names e :rel (cadr (member :rels e)) tbl "relation"))
     (:witness (check-names e :rel (cadr (member :rels e)) tbl "relation"))
     (:fuel (check-names e :rel (cadr (member :rels e)) tbl "relation"))
+    (:size-rank (check-names e :def (cadr (member :defs e)) tbl "def"))
+    (:termination (append (check-names e :def (list (second e)) tbl "def")
+                          (if (member :measure e) nil (list (cfg-err e ":measure missing")))))
     (:program (if (stringp (second e)) nil (list (cfg-err e "label missing"))))
     (:logic (if (natp (cadr (member :seconds e))) nil (list (cfg-err e ":seconds missing"))))
     (:split (if (member-equal (cons (second e) (third e)) (rule-pairs forms)) nil
@@ -674,6 +689,8 @@
                                                           (override-mode-pairs (config-entries config :rel-override))))
                              (cons :witness-ok (memo-rels (config-entries config :witness)))
                              (cons :fuel-rels (memo-rels (config-entries config :fuel)))
+                             (cons :size-rank-defs (size-rank-defs (config-entries config :size-rank)))
+                             (cons :terminations (termination-alist (config-entries config :termination)))
                              (cons :rt-names rt-names)
                              (cons :keep-variants (keep-variant-pairs (config-entries config :keep-variant)))
                              (cons :given-entries (given-entry-alist (config-entries config :given-entry)))
