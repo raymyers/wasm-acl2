@@ -1,6 +1,6 @@
 # The fast machine: memory in an array, equal to the list machine at every step
 
-- Milestone: E7 (Phase A done; Phase B started: logic mode, guards verified; the refinement theorem is next)
+- Milestone: E7 (Phase A done; speed for the slides done; Phase B in progress: per-rule, per-place, memory and fast-path lemmas proved; the step theorem is next)
 - Date: 2026-11-16
 - Repo commit: 9b37c94 plus this note's commit
 - Status: draft
@@ -12,22 +12,25 @@
 - `engine/fast/fast.lisp`: the fast machine. Its state is a stobj whose
   fields are the list machine's, except that memory 0's bytes are in a byte
   array and the store holds an empty byte list. `fm->ms` puts the bytes
-  back.
-- **It equals the list machine at every step**: lockstep comparison of
-  `fm->ms` with `machine-step`, 0 disagreements in 8 runs (9,481 steps,
-  with a trap and an uncaught exception), and equal final states on every
-  timed run.
-- **Memory no longer costs with its size**: the memory loop (10,000
-  iterations) takes 133 to 226 ms at 1, 16 and 64 pages, against 4,108,
-  65,615 and 257,322 ms on the list machine (30 to 1,140 times faster).
-  Flat code is as fast as on the list machine (count 156 ms, nested 132 ms,
-  throw 186 ms).
-- **The slides: 0.7 to 1.4 s each on the fast machine** (3.3 to 4.3 s on
-  the list machine), 7 of 7 still identical to V8. What is left is
-  arithmetic and dispatch.
-- Phase A is in program mode. The refinement theorem (`fm->ms` of a fast
-  step is the list machine's step) is Phase B, from the lemmas of
-  `frame.lisp` and `memory.lisp`.
+  back. Logic mode, guards verified.
+- **It equals the list machine**: lockstep comparison at every step on the
+  benchmarks (0 disagreements), and **differential test 3 over the whole
+  spec-test-3 suite: 32,649 commands with equal final states, 0
+  different** (24,726 more stop `:unsupported` on both, in equal states).
+  Differential test 3 found one bug, now fixed: the memory fast paths
+  assumed the store has one memory.
+- **Memory no longer costs with its size**: the memory loop takes 58 to
+  60 ms at 1, 16 and 64 pages (4,115 to 255,171 ms on the list machine).
+- **Arithmetic and dispatch**: fast paths for the hottest instructions
+  (binop step 0.55 to 0.16 us, local.get 0.37 to 0.08 us); counting loop
+  51 ms (158 on the list machine).
+- **The slides: 0.20 to 0.36 s each** (3.3 to 4.3 s on the list machine),
+  7 of 7 identical to V8.
+- **Proofs** (Phase B, no skip-proofs): `refine.lisp` (frame-safe rules per
+  rule and per place, 60 of 103 places; the general fallback),
+  `refine-mem.lisp` (all 19 memory rules), `refine-hot.lisp` (the six fast
+  paths equal the general path). Left: the step parts and the theorem for
+  `fast-step`.
 
 ## Findings
 
@@ -185,17 +188,92 @@ to 0.69).
   GC structs and arrays, SIMD, memory.init, memory.grow, return_call).
   The general fallback below covers the 38.
 
+### Speed: memory.init and fast paths for the hottest instructions
+
+Profile and counts of the slide deck on the fast machine
+(`data/e7-fast/slides-profile.txt`, `slides-histogram.txt`):
+
+- **memory.init took the slow fallback**, which copies the whole memory
+  out of the array and back: 1,621 times each for memory.init-oob, -zero
+  and -succ during instantiation (the deck and the font are copied into
+  memory a byte at a time), 7.7 GB allocated, about 5 of the 9.8 s of the
+  deck. Like memory.fill they read only the memory's length, so they now
+  have generated fast versions (19 memory rules in all). The deck: 9.8 s to
+  4.4 s.
+- **Instruction counts** (13,332,316 steps for the deck): value pushes
+  45.2%, local.get 14.5, binop 11.7, local.set 5.6, br_if 4.2, relop 3.9,
+  label exits 3.8, local.tee 3.1.
+- **Fast paths** (`fast-hot-step`): for local.get, local.set, local.tee,
+  binop, relop and br_if, the step is computed directly from the stack and
+  the frame with the same spec functions (`$local`, `$with_local`,
+  `$binop_`, `$relop_`, `val-p`) when the operands have the rule's shape,
+  and gives the state the general path gives; otherwise the general path
+  runs. Value pushes test the common case `(:const (:i32) c)` first
+  (`i32-const-p`, proved to imply `val-p`).
+
+Per step (`micro-fast`, 10^6 calls each), before and after:
+
+| Step | General path | Fast path |
+|---|---|---|
+| binop (i32.sub) | 0.554 us | 0.161 us |
+| local.get | 0.367 | 0.083 |
+| local.set | 0.504 | 0.145 |
+| relop | 0.407 | 0.142 |
+| br_if | 0.256 | 0.067 |
+| value push | 0.129 | 0.062 |
+
+Runs (`data/e7-fast/fasttest-hot.out`, after the fix below): count 51 ms
+(88), memloop 58 to 60 ms at 1 to 64 pages (81), nested 78 ms (87), throw
+132 ms (147). **Slides: 0.20 to 0.36 s each** (`slides-fast-hot.txt`;
+0.39 to 0.81 before; 3.3 to 4.3 s on the list machine), 7 of 7 identical
+to V8. Lockstep: 0 disagreements.
+
+**Proved** (`engine/fast/refine-hot.lisp`, 5.6 s): for each of the six,
+when the fast path handles the instruction, its state is the state
+`fast-op-step` gives (`HOT-LOCAL.GET` ... `HOT-BR_IF`, hypotheses: `fmp`,
+status `:run`, the instruction at the head of the instruction list); and
+`fast-val-p` is `value-instr-p`.
+
+### A bug found by differential test 3: several memories
+
+`engine/fast/difftest3-one.lsp` runs every action command of a spec-test-3
+script on both machines from the same configuration and compares the final
+states, memory included. On `local_tee` it found 4 differences: stores in
+a module whose memory is the store's second memory (the script's earlier
+module left one). The memory fast paths read and write the array, which
+holds the store's memory 0, without checking that the instruction's memory
+is memory 0. The refinement lemmas had this as a hypothesis
+(`one-memory-p`); the machine now checks it (`fast-one-memory-p`, proved
+equal to `one-memory-p`) and otherwise runs the exact fallback, which is
+right for any number of memories. The bug dates from Phase A; the slides
+and the benchmarks have one module and never met it.
+
+### Differential test 3 over the spec suite (`data/e7-fast/difftest3/`)
+
+`engine/fast/difftest3-all.sh` (8 jobs, 900 s per script) over the 258
+spec-test-3 scripts, after the fix: 32,649 commands with equal final
+states, 24,726 that stop `:unsupported` on both machines in equal states
+(instructions the list machine does not have: floats, SIMD, GC), 13 out
+of fuel on both in equal states, 11 not invocations, **0 different**.
+251 scripts finished; 7 were stopped at 900 s (memory.fill, memory.copy,
+memory.grow and call_indirect scripts, where the list machine is slow on
+large memories), every command they ran agreeing. Per script:
+`per-script.txt`; every result line: `D3-LINES.txt.gz`.
+
 ## Open questions
 
-- Where the time of flat code goes (rule dispatch over 212 symbols, a new
-  state each step, the redex list, the spec's numeric functions). Profile
-  next.
-- Phase B: the refinement theorem, and guards verified, so that the fast
-  machine runs as raw Lisp in logic mode.
-- The fallback's match test is an execution shortcut; Phase B needs it as a
-  lemma (a rule fails when its opcode heads no top-level instruction).
+- The step theorem needs the fallback's result to keep memory 0 a byte
+  list (`fallback-result-ok`). Plan: the machine checks it and refuses
+  (`:unsupported`) otherwise, so that the theorem reads "when the fast
+  machine does not refuse, its step is the list machine's step".
+- The per-rule opcode facts for 3 rarely used rules (`call_ref` of a host
+  function, `return_call_ref` in a frame).
 
 ## Data
 
-`engine/fast/fast.lisp`, `fasttest.lsp`, `fasttest-run.lsp`;
-`data/e7-fast/`: `fasttest.out`, `slides-fast.txt`, `slides-check.out`.
+`engine/fast/fast.lisp`, `refine.lisp`, `refine-mem.lisp`,
+`refine-hot.lisp`, `fasttest.lsp`, `fasttest-run.lsp`, `micro-fast.lsp`,
+`difftest3-one.lsp`, `difftest3-all.sh`; `data/e7-fast/`: `fasttest.out`,
+`fasttest-logic.out`, `fasttest-hot.out`, `micro-fast.out`,
+`slides-fast.txt`, `slides-fast-logic.txt`, `slides-fast-hot.txt`,
+`slides-histogram.txt` (and `.lsp`), `slides-profile.lsp`, `difftest3/`.

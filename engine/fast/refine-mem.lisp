@@ -73,6 +73,14 @@
                   (list :|%;%| (put-mem0-bytes s (append (take i a) b (nthcdr (+ i j) a))) f)))
   :hints (("Goal" :do-not-induct t)))
 
+(defthm get-field-of-put-mem0-bytes-other
+  (implies (not (equal k :mems))
+           (equal (wrt::%get-field (put-mem0-bytes s b) k) (wrt::%get-field s k))))
+
+(defthm put-mem0-bytes-keeps-record
+  (implies (and (consp s) (alistp (cdr s)))
+           (and (consp (put-mem0-bytes s b)) (alistp (cdr (put-mem0-bytes s b))))))
+
 ; --- the read rules: the fast version is the rule on the full store ---------
 
 (defun memory-read-lemma (fn)

@@ -104,8 +104,10 @@
   so E11 for S0 is what puts it inside the proved subset
 - **Next action (user, 2026-11-16: speed first)**: E7. Phase A runs (fast
   machine, memory in an array, equal to the list machine at every step;
-  [E7-fast-machine](notes/E7-fast-machine.md)). Next: profile and cut the
-  cost of arithmetic and dispatch, then Phase B (the refinement theorem).
+  [E7-fast-machine](notes/E7-fast-machine.md)); speed done for the slides
+  (0.19 to 0.35 s each, fast paths for the hot instructions). Next: Phase B,
+  the refinement theorem for `fast-step` (layers 1 to 3 and the memory
+  rules are proved; the step parts are left).
   Then E11 for S0 (it would make L0's slides "rendered by the verified
   engine"). E7: the
   frame lemmas exist (`engine/fast/frame.lisp`); next is a book of memory
@@ -541,9 +543,19 @@ Scripts and commands inside S0 recorded
       Direct dispatch per opcode (generated): flat code twice as fast
       (counting loop 81 ms, about 2 million spec steps per second), slides
       0.33 to 0.69 s each
-- [ ] Refinement: the correspondence obligations of the `defabsstobj`
-      primitives. `mbe` fast paths for the spec's numeric functions where
-      the profile asks for them
+- [x] Speed (2026-11-16): logic mode with guards verified; memory.init
+      given fast versions (the deck's instantiation 9.8 s to 4.4 s); fast
+      paths for local.get/set/tee, binop, relop, br_if and i32 value
+      pushes (binop step 0.55 to 0.16 us); **slides 0.19 to 0.35 s each**.
+      Differential test 3 (fast against list machine over the spec suite)
+      found that the memory fast paths assumed one memory; now checked at
+      run time, exact fallback otherwise
+- [ ] Refinement (Phase B, in progress): `engine/fast/refine.lisp`
+      (frame-safe rules per rule and per place, 60 of 103 places; the
+      general fallback; per-rule facts for 87 of 90 fallback rules) and
+      `refine-mem.lisp` (all 19 memory rules). Left: the fast paths, the
+      memory places, the step parts, and the theorem for `fast-step`
+      (hypotheses: the fast store invariant, memory 0 a record)
 - [ ] Rate on the E0 benchmarks at 1, 16, 64 and 352 pages
 
 **Exit**: the refinement theorem certifies for S0. Rates recorded next to

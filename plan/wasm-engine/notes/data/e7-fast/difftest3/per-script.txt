@@ -1,0 +1,258 @@
+address  255 :SAME  D3-EXIT 0
+align  48 :SAME  D3-EXIT 0
+annotations  D3-EXIT 0
+binary-leb128  D3-EXIT 0
+binary  D3-EXIT 0
+block  52 :SAME  D3-EXIT 0
+br_if  88 :SAME  D3-EXIT 0
+br_on_non_null  8 :SAME  D3-EXIT 0
+br_on_null  6 :SAME  D3-EXIT 0
+br_table  161 :SAME  D3-EXIT 0
+br  76 :SAME  D3-EXIT 0
+bulk-memory--bulk  104 :SAME  D3-EXIT 0
+bulk-memory--memory_copy  2 :RUN 4110 :SAME  D3-EXIT 137
+bulk-memory--memory_fill  2 :RUN 7 :SAME  D3-EXIT 137
+bulk-memory--memory_init  154 :SAME  D3-EXIT 0
+bulk-memory--table_copy 1675 :SAME  D3-EXIT 0
+bulk-memory--table_fill  35 :SAME  D3-EXIT 0
+bulk-memory--table_init  683 :SAME  D3-EXIT 0
+bulk-memory--table-sub  D3-EXIT 0
+call_indirect  81 :SAME  D3-EXIT 137
+call_ref  27 :SAME  D3-EXIT 0
+call  70 :SAME  D3-EXIT 0
+comments  3 :SAME  D3-EXIT 0
+const  300 :SAME  D3-EXIT 0
+conversions  593 :SAME  D3-EXIT 0
+custom  D3-EXIT 0
+data  2 :SAME  D3-EXIT 0
+elem  36 :SAME  D3-EXIT 0
+endianness  68 :SAME  D3-EXIT 0
+exceptions--cast  3 :SAME 1 :UNSUPPORTED  D3-EXIT 0
+exceptions--tag  D3-EXIT 0
+exceptions--throw_ref  12 :SAME  D3-EXIT 0
+exceptions--throw  9 :SAME  D3-EXIT 0
+exceptions--try_table  47 :SAME 2 :UNSUPPORTED  D3-EXIT 0
+exports  3 :NOT-INVOKE 6 :SAME  D3-EXIT 0
+f32_bitwise  360 :SAME  D3-EXIT 0
+f32_cmp 2400 :SAME  D3-EXIT 0
+f32 2500 :SAME  D3-EXIT 0
+f64_bitwise  360 :SAME  D3-EXIT 0
+f64_cmp 2400 :SAME  D3-EXIT 0
+f64 2500 :SAME  D3-EXIT 0
+fac  6 :SAME  D3-EXIT 0
+float_exprs  829 :SAME  D3-EXIT 0
+float_literals  99 :SAME  D3-EXIT 0
+float_memory  84 :SAME  D3-EXIT 0
+float_misc  470 :SAME  D3-EXIT 0
+forward  4 :SAME  D3-EXIT 0
+func_ptrs  26 :SAME  D3-EXIT 0
+func  96 :SAME  D3-EXIT 0
+gc--array_copy  38 :UNSUPPORTED  D3-EXIT 0
+gc--array_fill  26 :UNSUPPORTED  D3-EXIT 0
+gc--array_init_data  1 :SAME 42 :UNSUPPORTED  D3-EXIT 0
+gc--array_init_elem  1 :SAME 29 :UNSUPPORTED  D3-EXIT 0
+gc--array_new_data  24 :UNSUPPORTED  D3-EXIT 0
+gc--array_new_elem  19 :UNSUPPORTED  D3-EXIT 0
+gc--array  2 :SAME 39 :UNSUPPORTED  D3-EXIT 0
+gc--binary-gc  D3-EXIT 0
+gc--br_on_cast_fail  5 :SAME 23 :UNSUPPORTED  D3-EXIT 0
+gc--br_on_cast  5 :SAME 23 :UNSUPPORTED  D3-EXIT 0
+gc--extern  17 :UNSUPPORTED  D3-EXIT 0
+gc--i31  16 :SAME 49 :UNSUPPORTED  D3-EXIT 0
+gc--ref_cast  40 :SAME 3 :UNSUPPORTED  D3-EXIT 0
+gc--ref_eq  81 :SAME 1 :UNSUPPORTED  D3-EXIT 0
+gc--ref_test  69 :UNSUPPORTED  D3-EXIT 0
+gc--struct  19 :UNSUPPORTED  D3-EXIT 0
+gc--type-subtyping  20 :SAME 9 :UNSUPPORTED  D3-EXIT 0
+global  67 :SAME  D3-EXIT 0
+i32  374 :SAME  D3-EXIT 0
+i64  384 :SAME  D3-EXIT 0
+id  D3-EXIT 0
+if  124 :SAME  D3-EXIT 0
+imports  34 :SAME  D3-EXIT 0
+inline-module  D3-EXIT 0
+instance  12 :SAME  D3-EXIT 0
+int_exprs  89 :SAME  D3-EXIT 0
+int_literals  30 :SAME  D3-EXIT 0
+labels  25 :SAME  D3-EXIT 0
+left-to-right  95 :SAME  D3-EXIT 0
+linking  8 :NOT-INVOKE 75 :SAME  D3-EXIT 0
+load  37 :SAME  D3-EXIT 0
+local_get  19 :SAME  D3-EXIT 0
+local_init  4 :SAME  D3-EXIT 0
+local_set  19 :SAME  D3-EXIT 0
+local_tee  55 :SAME  D3-EXIT 0
+loop  78 :SAME  D3-EXIT 0
+memory_grow  3 :RUN 15 :SAME  D3-EXIT 137
+memory_redundancy  7 :SAME  D3-EXIT 0
+memory_size  36 :SAME  D3-EXIT 0
+memory_trap  179 :SAME  D3-EXIT 0
+memory  53 :SAME  D3-EXIT 0
+memory64--address64  238 :SAME  D3-EXIT 0
+memory64--align64  48 :SAME  D3-EXIT 0
+memory64--binary_leb128_64  D3-EXIT 0
+memory64--bulk64  65 :SAME  D3-EXIT 0
+memory64--call_indirect64  1 :SAME  D3-EXIT 0
+memory64--endianness64  68 :SAME  D3-EXIT 0
+memory64--float_memory64  84 :SAME  D3-EXIT 0
+memory64--load64  37 :SAME  D3-EXIT 0
+memory64--memory_copy64  2 :RUN 4110 :SAME  D3-EXIT 137
+memory64--memory_fill64  2 :RUN 7 :SAME  D3-EXIT 137
+memory64--memory_grow64  2 :RUN 34 :SAME  D3-EXIT 137
+memory64--memory_init64  154 :SAME  D3-EXIT 0
+memory64--memory_redundancy64  7 :SAME  D3-EXIT 0
+memory64--memory_trap64  170 :SAME  D3-EXIT 0
+memory64--memory64-imports  D3-EXIT 0
+memory64--memory64  45 :SAME  D3-EXIT 0
+memory64--table_copy_mixed  D3-EXIT 0
+memory64--table_copy64 1675 :SAME  D3-EXIT 0
+memory64--table_fill64  70 :SAME  D3-EXIT 0
+memory64--table_get64  10 :SAME  D3-EXIT 0
+memory64--table_grow64  18 :SAME 5 :UNSUPPORTED  D3-EXIT 0
+memory64--table_init64  776 :SAME  D3-EXIT 0
+memory64--table_set64  18 :SAME  D3-EXIT 0
+memory64--table_size64  16 :SAME 20 :UNSUPPORTED  D3-EXIT 0
+memory64--table64  D3-EXIT 0
+multi-memory--address0  91 :SAME  D3-EXIT 0
+multi-memory--address1  126 :SAME  D3-EXIT 0
+multi-memory--align0  4 :SAME  D3-EXIT 0
+multi-memory--binary0  D3-EXIT 0
+multi-memory--data_drop0  10 :SAME  D3-EXIT 0
+multi-memory--data0  D3-EXIT 0
+multi-memory--data1  D3-EXIT 0
+multi-memory--exports0  D3-EXIT 0
+multi-memory--float_exprs0  13 :SAME  D3-EXIT 0
+multi-memory--float_exprs1  2 :SAME  D3-EXIT 0
+multi-memory--float_memory0  28 :SAME  D3-EXIT 0
+multi-memory--imports0  D3-EXIT 0
+multi-memory--imports1  4 :SAME  D3-EXIT 0
+multi-memory--imports2  8 :SAME  D3-EXIT 0
+multi-memory--imports3  D3-EXIT 0
+multi-memory--imports4  8 :SAME  D3-EXIT 0
+multi-memory--linking0  2 :SAME  D3-EXIT 0
+multi-memory--linking1  7 :SAME  D3-EXIT 0
+multi-memory--linking2  8 :SAME  D3-EXIT 0
+multi-memory--linking3  6 :SAME  D3-EXIT 0
+multi-memory--load0  2 :SAME  D3-EXIT 0
+multi-memory--load1  15 :SAME  D3-EXIT 0
+multi-memory--load2  37 :SAME  D3-EXIT 0
+multi-memory--memory_copy0  28 :SAME  D3-EXIT 0
+multi-memory--memory_copy1  13 :SAME  D3-EXIT 0
+multi-memory--memory_fill0  15 :SAME  D3-EXIT 0
+multi-memory--memory_grow  46 :SAME  D3-EXIT 0
+multi-memory--memory_init0  12 :SAME  D3-EXIT 0
+multi-memory--memory_size_import  4 :SAME  D3-EXIT 0
+multi-memory--memory_size0  7 :SAME  D3-EXIT 0
+multi-memory--memory_size1  14 :SAME  D3-EXIT 0
+multi-memory--memory_size2  20 :SAME  D3-EXIT 0
+multi-memory--memory_size3  D3-EXIT 0
+multi-memory--memory_trap0  12 :SAME  D3-EXIT 0
+multi-memory--memory_trap1  167 :SAME  D3-EXIT 0
+multi-memory--memory-multi  4 :SAME  D3-EXIT 0
+multi-memory--start0  8 :SAME  D3-EXIT 0
+multi-memory--store0  4 :SAME  D3-EXIT 0
+multi-memory--store1  8 :SAME  D3-EXIT 0
+multi-memory--store2  22 :SAME  D3-EXIT 0
+multi-memory--traps0  14 :SAME  D3-EXIT 0
+names  482 :SAME  D3-EXIT 0
+nop  83 :SAME  D3-EXIT 0
+obsolete-keywords  D3-EXIT 0
+ref_as_non_null  4 :SAME  D3-EXIT 0
+ref_func  10 :SAME  D3-EXIT 0
+ref_is_null  18 :SAME  D3-EXIT 0
+ref_null  32 :SAME  D3-EXIT 0
+ref  D3-EXIT 0
+relaxed-simd--i16x8_relaxed_q15mulr_s  2 :UNSUPPORTED  D3-EXIT 0
+relaxed-simd--i32x4_relaxed_trunc  D3-EXIT 0
+relaxed-simd--i8x16_relaxed_swizzle  5 :UNSUPPORTED  D3-EXIT 0
+relaxed-simd--relaxed_dot_product  11 :UNSUPPORTED  D3-EXIT 0
+relaxed-simd--relaxed_laneselect  11 :UNSUPPORTED  D3-EXIT 0
+relaxed-simd--relaxed_madd_nmadd  18 :UNSUPPORTED  D3-EXIT 0
+relaxed-simd--relaxed_min_max  24 :UNSUPPORTED  D3-EXIT 0
+return_call_indirect  2 :SAME 48 :UNSUPPORTED  D3-EXIT 0
+return_call_ref  7 :SAME 28 :UNSUPPORTED  D3-EXIT 0
+return_call  4 :SAME 30 :UNSUPPORTED  D3-EXIT 0
+return  63 :SAME  D3-EXIT 0
+select  124 :SAME  D3-EXIT 0
+simd--simd_address  42 :UNSUPPORTED  D3-EXIT 0
+simd--simd_align  8 :UNSUPPORTED  D3-EXIT 0
+simd--simd_bit_shift  211 :UNSUPPORTED  D3-EXIT 0
+simd--simd_bitwise  139 :UNSUPPORTED  D3-EXIT 0
+simd--simd_boolean  259 :UNSUPPORTED  D3-EXIT 0
+simd--simd_const  263 :SAME 2 :UNSUPPORTED  D3-EXIT 0
+simd--simd_conversions  232 :UNSUPPORTED  D3-EXIT 0
+simd--simd_f32x4_arith 1803 :UNSUPPORTED  D3-EXIT 0
+simd--simd_f32x4_cmp 2581 :UNSUPPORTED  D3-EXIT 0
+simd--simd_f32x4_pmin_pmax 3872 :UNSUPPORTED  D3-EXIT 0
+simd--simd_f32x4_rounding  176 :UNSUPPORTED  D3-EXIT 0
+simd--simd_f32x4  772 :UNSUPPORTED  D3-EXIT 0
+simd--simd_f64x2_arith 1806 :UNSUPPORTED  D3-EXIT 0
+simd--simd_f64x2_cmp 2659 :UNSUPPORTED  D3-EXIT 0
+simd--simd_f64x2_pmin_pmax 3872 :UNSUPPORTED  D3-EXIT 0
+simd--simd_f64x2_rounding  176 :UNSUPPORTED  D3-EXIT 0
+simd--simd_f64x2  793 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i16x8_arith  181 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i16x8_arith2  151 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i16x8_cmp  433 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i16x8_extadd_pairwise_i8x16  16 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i16x8_extmul_i8x16  104 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i16x8_q15mulr_sat_s  26 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i16x8_sat_arith  204 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i32x4_arith  181 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i32x4_arith2  121 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i32x4_cmp  433 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i32x4_dot_i16x8  28 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i32x4_extadd_pairwise_i16x8  16 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i32x4_extmul_i16x8  104 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i32x4_trunc_sat_f32x4  102 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i32x4_trunc_sat_f64x2  102 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i64x2_arith  187 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i64x2_arith2  21 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i64x2_cmp  102 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i64x2_extmul_i32x4  104 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i8x16_arith  121 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i8x16_arith2  184 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i8x16_cmp  413 :UNSUPPORTED  D3-EXIT 0
+simd--simd_i8x16_sat_arith  188 :UNSUPPORTED  D3-EXIT 0
+simd--simd_int_to_int_extend  228 :UNSUPPORTED  D3-EXIT 0
+simd--simd_lane  274 :UNSUPPORTED  D3-EXIT 0
+simd--simd_linking  D3-EXIT 0
+simd--simd_load_extend  84 :UNSUPPORTED  D3-EXIT 0
+simd--simd_load_splat  112 :UNSUPPORTED  D3-EXIT 0
+simd--simd_load_zero  27 :UNSUPPORTED  D3-EXIT 0
+simd--simd_load  17 :UNSUPPORTED  D3-EXIT 0
+simd--simd_load16_lane  32 :UNSUPPORTED  D3-EXIT 0
+simd--simd_load32_lane  20 :UNSUPPORTED  D3-EXIT 0
+simd--simd_load64_lane  12 :UNSUPPORTED  D3-EXIT 0
+simd--simd_load8_lane  48 :UNSUPPORTED  D3-EXIT 0
+simd--simd_memory-multi  D3-EXIT 0
+simd--simd_select  6 :SAME  D3-EXIT 0
+simd--simd_splat  158 :UNSUPPORTED  D3-EXIT 0
+simd--simd_store  17 :UNSUPPORTED  D3-EXIT 0
+simd--simd_store16_lane  32 :UNSUPPORTED  D3-EXIT 0
+simd--simd_store32_lane  20 :UNSUPPORTED  D3-EXIT 0
+simd--simd_store64_lane  12 :UNSUPPORTED  D3-EXIT 0
+simd--simd_store8_lane  48 :UNSUPPORTED  D3-EXIT 0
+stack  5 :SAME  D3-EXIT 0
+start  10 :SAME  D3-EXIT 0
+store  9 :SAME  D3-EXIT 0
+switch  26 :SAME  D3-EXIT 0
+table_get  10 :SAME  D3-EXIT 0
+table_grow  36 :SAME 5 :UNSUPPORTED  D3-EXIT 0
+table_set  18 :SAME  D3-EXIT 0
+table_size  16 :SAME 20 :UNSUPPORTED  D3-EXIT 0
+table  5 :SAME  D3-EXIT 0
+token  D3-EXIT 0
+traps  32 :SAME  D3-EXIT 0
+type-canon  D3-EXIT 0
+type-equivalence  4 :SAME  D3-EXIT 0
+type-rec  3 :SAME  D3-EXIT 0
+type  D3-EXIT 0
+unreachable  63 :SAME  D3-EXIT 0
+unreached-invalid  D3-EXIT 0
+unreached-valid  10 :SAME  D3-EXIT 0
+unwind  49 :SAME  D3-EXIT 0
+utf8-custom-section-id  D3-EXIT 0
+utf8-import-field  D3-EXIT 0
+utf8-import-module  D3-EXIT 0
+utf8-invalid-encoding  D3-EXIT 0

@@ -1,0 +1,7 @@
+* MICRO setup only: 0.014 us per call
+* MICRO fast-step binop: 0.160 us per call
+* MICRO fast-step value push: 0.061 us per call
+* MICRO fast-step local.get: 0.083 us per call
+* MICRO fast-step local.set: 0.144 us per call
+* MICRO fast-step relop: 0.141 us per call
+* MICRO fast-step br_if: 0.067 us per call

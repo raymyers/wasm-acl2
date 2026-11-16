@@ -115,7 +115,9 @@
     w3t::step_read/split/r-memory.fill-oob w3t::step_read/split/r-memory.fill-zero
     w3t::step_read/split/r-memory.fill-succ
     w3t::step_read/split/r-memory.copy-oob w3t::step_read/split/r-memory.copy-zero
-    w3t::step_read/split/r-memory.copy-le w3t::step_read/split/r-memory.copy-gt))
+    w3t::step_read/split/r-memory.copy-le w3t::step_read/split/r-memory.copy-gt
+    w3t::step_read/split/r-memory.init-oob w3t::step_read/split/r-memory.init-zero
+    w3t::step_read/split/r-memory.init-succ))
 
 (defconst *fast-memory-step-rules*
   '(w3t::step/r-store-num-oob w3t::step/r-store-num-val w3t::step/r-store-pack-oob w3t::step/r-store-pack-val))
@@ -190,6 +192,18 @@
         (and (consp redex) (null (cdr redex)) (admin-kind (car redex))
              (head-in-p kw (car-t (drop-n 3 (car redex))))))))
 
+(verify-guards all-zero-p)
+
+(defun fast-one-memory-p (z)             ; ONE-MEMORY-P, with its guard verified
+  (declare (xargs :guard t))
+  (let ((mems (wrt::%get-field (car-t (cdr-t z)) :mems)))
+    (and (consp mems) (atom (cdr mems))
+         (all-zero-p (wrt::%get-field (wrt::%get-field (car-t (cdr-t (cdr-t z))) :module) :mems)))))
+
+(defthm fast-one-memory-p-is-one-memory-p
+  (equal (fast-one-memory-p z) (one-memory-p z))
+  :hints (("Goal" :in-theory (enable car-t cdr-t))))
+
 (defun byte-list-p (l)
   (declare (xargs :guard t))
   (if (atom l) (null l) (and (natp (car l)) (< (car l) 256) (byte-list-p (cdr l)))))
@@ -208,7 +222,11 @@
 (defun fast-apply-rule (fn z redex fm)
   (declare (xargs :stobjs fm :guard t))
   (cond
-   ((sym-member fn *fast-memory-rules*)
+   ((and (sym-member fn *fast-memory-rules*)
+         ; the fast versions read the array as the instruction's memory: one
+         ; memory in the store, and the module's memory index maps to it.
+         ; Otherwise (several modules' memories) the exact fallback below.
+         (fast-one-memory-p z))
     ; every memory rule is a STEP_READ/SPLIT rule (configuration in,
     ; instructions out) or a STEP rule (configuration in, configuration out)
     (let* ((step-rule (sym-member fn *fast-memory-step-rules*))
@@ -227,6 +245,8 @@
                        (fast-apply-fallback fn z redex fm)))
                  (mv t z2 res fm))))
             (t (mv t z (car r) fm)))))
+   ((sym-member fn *fast-memory-rules*)
+    (if (rule-may-match fn redex) (fast-apply-fallback fn z redex fm) (mv nil z nil fm)))
    ((frame-safe-p fn)
     (mv-let (ok z2 res) (apply-rule fn z redex) (mv ok z2 res fm)))
    ((not (rule-may-match fn redex)) (mv nil z nil fm))
@@ -365,6 +385,85 @@
                            (app res (cdr-t (fm-is fm))) (fm-ctrl fm) :run fm)
                  (update-fm-status :stuck fm)))))))
 
+; --- fast paths for the hottest instructions (performance) ---------------------
+; Each computes the state the general path (FAST-OP-STEP: redex, place
+; function, rule) computes, with the same spec functions, when the operands
+; have the rule's shape; otherwise it declines and the general path runs.
+; Measured on the slides: value pushes 45% of the steps, local.get 14.5,
+; binop 11.7, local.set 5.6, br_if 4.2, relop 3.9, local.tee 3.1.
+
+(defun i32-const-p (v)                   ; (:const (:i32) c), c an unsigned 32-bit integer
+  (declare (xargs :guard t))
+  (and (consp v) (eq (car v) :const) (consp (cdr v)) (equal (cadr v) '(:i32))
+       (consp (cddr v)) (null (cdddr v)) (natp (caddr v)) (< (caddr v) 4294967296)))
+
+(defthm i32-const-p-is-val-p
+  (implies (i32-const-p v) (w3t::val-p v))
+  :hints (("Goal" :in-theory (enable w3t::val-p))))
+
+(defun fast-val-p (v)                    ; = VALUE-INSTR-P, the common case first
+  (declare (xargs :guard t))
+  (or (i32-const-p v) (value-instr-p v)))
+
+(defun const-shape-p (v)                 ; (:const nt c)
+  (declare (xargs :guard t))
+  (and (consp v) (eq (car v) :const) (consp (cdr v)) (consp (cddr v)) (null (cdddr v))))
+
+; (mv handled fm)
+(defun fast-hot-step (i fm)
+  (declare (xargs :stobjs fm :guard (consp i)))
+  (let ((kw (car i)) (is (fm-is fm)) (vals (fm-vals fm)))
+    (case kw
+      (:local.get
+       (if (and (consp (cdr i)) (null (cddr i)))
+           (let ((cell (ec-call (w3t::$local (fm-z fm) (cadr i)))))
+             (if (consp cell)
+                 (let ((fm (update-fm-is (cons (car cell) (cdr-t is)) fm))) (mv t fm))
+               (mv nil fm)))
+         (mv nil fm)))
+      (:local.set
+       (if (and (consp (cdr i)) (null (cddr i)) (consp vals) (fast-val-p (car vals)))
+           (let* ((z2 (ec-call (w3t::$with_local (fm-z fm) (cadr i) (car vals))))
+                  (fm (update-fm-store (car-t (drop-n 1 z2)) fm))
+                  (fm (update-fm-frame (car-t (drop-n 2 z2)) fm))
+                  (fm (update-fm-vals (cdr vals) fm)))
+             (let ((fm (update-fm-is (cdr-t is) fm))) (mv t fm)))
+         (mv nil fm)))
+      (:local.tee
+       (if (and (consp (cdr i)) (null (cddr i)) (consp vals) (fast-val-p (car vals)))
+           (let* ((v (car vals))
+                  (fm (update-fm-vals (cdr vals) fm)))
+             (let ((fm (update-fm-is (list* v v (list :local.set (cadr i)) (cdr-t is)) fm))) (mv t fm)))
+         (mv nil fm)))
+      ((:binop :relop)
+       (if (and (consp (cdr i)) (consp (cddr i)) (null (cdddr i))
+                (consp vals) (consp (cdr vals))
+                (const-shape-p (car vals)) (const-shape-p (cadr vals))
+                (equal (cadr (cadr vals)) (cadr i)) (equal (cadr (car vals)) (cadr i)))
+           (let ((nt (cadr i)) (op (caddr i)) (c1 (caddr (cadr vals))) (c2 (caddr (car vals))))
+             (if (eq kw :binop)
+                 (let ((r (ec-call (w3t::$binop_ nt op c1 c2))))
+                   (cond ((consp r)
+                          (let ((fm (update-fm-vals (cddr vals) fm)))
+                            (let ((fm (update-fm-is (cons (list :const nt (car r)) (cdr-t is)) fm))) (mv t fm))))
+                         ((null r)
+                          (let ((fm (update-fm-vals (cddr vals) fm)))
+                            (let ((fm (update-fm-is (cons (list :trap) (cdr-t is)) fm))) (mv t fm))))
+                         (t (mv nil fm))))
+               (let* ((c (ec-call (w3t::$relop_ nt op c1 c2)))
+                      (fm (update-fm-vals (cddr vals) fm)))
+                 (let ((fm (update-fm-is (cons (list :const (list :i32) c) (cdr-t is)) fm))) (mv t fm)))))
+         (mv nil fm)))
+      (:br_if
+       (if (and (consp (cdr i)) (null (cddr i)) (consp vals)
+                (const-shape-p (car vals)) (equal (cadr (car vals)) '(:i32)))
+           (let ((fm (update-fm-vals (cdr vals) fm)))
+             (if (equal (caddr (car vals)) 0)
+                 (let ((fm (update-fm-is (cdr-t is) fm))) (mv t fm))
+               (let ((fm (update-fm-is (cons (list :br (cadr i)) (cdr-t is)) fm))) (mv t fm))))
+         (mv nil fm)))
+      (otherwise (mv nil fm)))))
+
 (defun fast-step (fm)
   (declare (xargs :stobjs fm))
   (if (not (eq (fm-status fm) :run)) fm
@@ -372,7 +471,11 @@
       (if (atom is)
           (if (atom ctrl) (update-fm-status :done fm) (fast-exit-step fm))
         (let ((i (car is)))
-          (cond ((value-instr-p i)
+          (cond ((and (consp i) (sym-member (car i) '(:local.get :local.set :local.tee :binop :relop :br_if)))
+                 ; none of the tests below holds for these: the general path is FAST-OP-STEP
+                 (mv-let (handled fm) (fast-hot-step i fm)
+                   (if handled fm (fast-op-step fm))))
+                ((fast-val-p i)
                  (let* ((fm (update-fm-vals (cons i vals) fm))) (update-fm-is (cdr is) fm)))
                 ((admin-kind i) (fast-enter-step fm))
                 ((and (eq (entry-kind i) :throw_ref) (eq (entry-kind (car-t vals)) :ref.null))
