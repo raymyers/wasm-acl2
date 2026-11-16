@@ -227,14 +227,6 @@
   (implies (not (equal k *fm-memi*))
            (equal (nth k (list-to-mem l fm)) (nth k fm))))
 
-(defun mem0-shape-ok (s)
-  (declare (xargs :guard t))
-  (let ((mems (wrt::%get-field s :mems)))
-    (and (consp s) (alistp (cdr s)) (assoc-equal :mems (cdr s))
-         (consp mems) (consp (car mems)) (alistp (cdr (car mems)))
-         (assoc-equal :bytes (cdr (car mems)))
-         (byte-list-p (wrt::%get-field (car mems) :bytes)))))
-
 (defthm put-assoc-same-value
   (implies (and (alistp a) (assoc-equal k a))
            (equal (put-assoc-equal k (cdr (assoc-equal k a)) a) a)))
@@ -249,15 +241,11 @@
 (defthm byte-list-p-of-mem0-when-shape-ok
   (implies (mem0-shape-ok s) (byte-list-p (mem0-of-store s))))
 
-(defun config-shape-ok (z)
-  (declare (xargs :guard t))
-  (and (true-listp z) (equal (len z) 3) (equal (car z) :|%;%|) (mem0-shape-ok (cadr z))))
-
 (defun fallback-result-ok (fn z redex)
   (declare (xargs :guard t))
   (mv-let (ok z2 res) (apply-rule fn z redex)
     (declare (ignore res))
-    (or (not ok) (config-shape-ok z2))))
+    (or (not ok) (fallback-shape-ok z2))))
 
 (defthm car-t-drop-n-of-config
   (implies (and (true-listp z) (equal (len z) 3))

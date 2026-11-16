@@ -147,7 +147,7 @@
               (defthm ,name
                 (implies (and (one-memory-p (list :|%;%| s f)) (fast-store-ok s) (mem0-record-p s)
                               (byte-list-p (nth *fm-memi* fm))
-                              (fallback-result-ok ',fn (list :|%;%| (put-mem0-bytes s (nth *fm-memi* fm)) f) redex))
+                              (not (equal (mv-nth 0 (fast-apply-rule ',fn (list :|%;%| s f) redex fm)) :refuse)))
                          (let ((full (apply-rule ',fn (list :|%;%| (put-mem0-bytes s (nth *fm-memi* fm)) f) redex))
                                (fast (fast-apply-rule ',fn (list :|%;%| s f) redex fm)))
                            (and (equal (mv-nth 0 full) (mv-nth 0 fast))

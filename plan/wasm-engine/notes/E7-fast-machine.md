@@ -234,6 +234,28 @@ when the fast path handles the instruction, its state is the state
 status `:run`, the instruction at the head of the instruction list); and
 `fast-val-p` is `value-instr-p`.
 
+### Layer 4 started: one statement per rule (`engine/fast/refine-step.lisp`, 11 s)
+
+For the step theorem the fast machine now **refuses** what it cannot hold:
+a fallback result whose memory 0 is not a byte list or whose store lacks a
+field, and a store whose bytes are not the $with_mem length (the rules
+write `$nbytes_`, which always has it). A refusal is `:refuse` in place of
+`t`; the step then stops with status `:unsupported`. The theorem can then
+be stated without facts about the spec's results: when the fast machine
+does not refuse, it agrees with the list machine.
+
+**(U), per rule, for 209 of the 212 rules on STEP's path**
+(`<rule>-U`): with the fast store invariant (`fast-inv-store`: no bytes in
+the store, a memory, every store field, memory 0 a record) and the array a
+byte list, unless `fast-apply-rule` refuses, the rule fires on the fast
+machine exactly when it fires on the list machine (on the full store), with
+the same instructions, and the list machine's resulting configuration is
+the fast one with the array put back as memory 0's bytes. It is assembled
+from the lemmas above in four ways: frame-safe rules (frame lemmas), memory
+read rules (equal fast versions, or the fallback when there are several
+memories), memory store rules (the store lemma, or the fallback), and the
+rest (the fallback). The 3 missing are the 3 rules without opcode facts.
+
 ### A bug found by differential test 3: several memories
 
 `engine/fast/difftest3-one.lsp` runs every action command of a spec-test-3

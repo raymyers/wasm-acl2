@@ -208,15 +208,34 @@
   (declare (xargs :guard t))
   (if (atom l) (null l) (and (natp (car l)) (< (car l) 256) (byte-list-p (cdr l)))))
 
+(defun mem0-shape-ok (s)                 ; memory 0 a record with a byte list
+  (declare (xargs :guard t))
+  (let ((mems (wrt::%get-field s :mems)))
+    (and (consp s) (alistp (cdr s)) (assoc-equal :mems (cdr s))
+         (consp mems) (consp (car mems)) (alistp (cdr (car mems)))
+         (assoc-equal :bytes (cdr (car mems)))
+         (byte-list-p (wrt::%get-field (car mems) :bytes)))))
+
+(defun config-shape-ok (z)
+  (declare (xargs :guard t))
+  (and (true-listp z) (equal (len z) 3) (equal (car z) :|%;%|) (mem0-shape-ok (cadr z))))
+
+(defun fallback-shape-ok (z)             ; what the fast machine can hold
+  (declare (xargs :guard t))
+  (and (config-shape-ok z) (ec-call (store-fields-p (cadr z)))))
+
 ; the slow fallback: the rule on the full store (bytes copied out of the
-; array), the result's bytes copied back
+; array), the result's bytes copied back. A result the fast machine cannot
+; hold (memory 0 not a byte list, a store field missing) is refused: the
+; step then stops with status :unsupported.
 (defun fast-apply-fallback (fn z redex fm)
   (declare (xargs :stobjs fm :guard t))
   (let* ((zfull (ec-call (put-z-bytes z (mem-to-list fm)))))
     (mv-let (ok z2 res) (apply-rule fn zfull redex)
-      (if (not ok) (mv nil z nil fm)
-        (let* ((fm (list-to-mem (mem0-of-store (car-t (drop-n 1 z2))) fm)))
-          (mv t (ec-call (put-z-bytes z2 nil)) res fm))))))
+      (cond ((not ok) (mv nil z nil fm))
+            ((not (fallback-shape-ok z2)) (mv :refuse z nil fm))
+            (t (let* ((fm (list-to-mem (mem0-of-store (car-t (drop-n 1 z2))) fm)))
+                 (mv t (ec-call (put-z-bytes z2 nil)) res fm)))))))
 
 ; (mv fired z' instrs' fm): rule FN on REDEX in state Z (whose store has no bytes)
 (defun fast-apply-rule (fn z redex fm)
@@ -237,12 +256,13 @@
                (if (and (consp z2) (eq (car z2) :write))
                    ; ($with_mem z x i j b): the store is z; the J bytes at I
                    ; become B. Written into the array when B is J bytes that
-                   ; fit; otherwise the exact fallback below.
+                   ; fit; otherwise refused (the store rules check the bounds
+                   ; and write $nbytes_, which is J bytes: not met in practice)
                    (let ((i (car-t (drop-n 2 z2))) (j (car-t (drop-n 3 z2))) (b (car-t (drop-n 4 z2))))
                      (if (and (natp i) (byte-list-p b) (equal (len-t b) j) (<= (+ i j) (fm-mem-length fm)))
                          (let ((fm (mem-write i b fm)))
                            (mv t (car-t (drop-n 1 z2)) res fm))
-                       (fast-apply-fallback fn z redex fm)))
+                       (mv :refuse z nil fm)))
                  (mv t z2 res fm))))
             (t (mv t z (car r) fm)))))
    ((sym-member fn *fast-memory-rules*)
@@ -256,7 +276,7 @@
   (declare (xargs :stobjs fm :guard t))
   (if (atom rules) (mv nil z nil fm)
     (mv-let (ok z2 res fm) (fast-apply-rule (car rules) z redex fm)
-      (if ok (mv t z2 res fm) (fast-try-rules (cdr rules) z redex fm)))))
+      (if ok (mv ok z2 res fm) (fast-try-rules (cdr rules) z redex fm)))))
 
 ; --- direct dispatch (performance) -------------------------------------------
 ; FAST-TRY-RULES looks the rule list up by an EQUAL key (RULES-FOR) and
@@ -284,7 +304,7 @@
   (declare (xargs :mode :program))
   (if (endp rules) '(mv nil z nil fm)
     `(mv-let (ok z2 res fm) ,(rule-call-form (car rules))
-       (if ok (mv t z2 res fm) ,(chain-form (cdr rules))))))
+       (if ok (mv ok z2 res fm) ,(chain-form (cdr rules))))))
 
 (defun place-fn-name (place)
   (declare (xargs :mode :program))
@@ -359,18 +379,19 @@
          (outer-frame (if (eq k :f) (entry-x e) (fm-frame fm))))
     (mv-let (ok z2 res fm)
       (fast-try-entry k (list :|%;%| (fm-store fm) outer-frame) (list term) fm)
-      (if ok
-          (fm-set (car-t (drop-n 1 z2)) (car-t (drop-n 2 z2)) (entry-v e) (app res (entry-r e))
-                  (cdr-t (fm-ctrl fm)) :run fm)
-        (update-fm-status :stuck fm)))))
+      (cond ((eq ok :refuse) (update-fm-status :unsupported fm))
+            (ok (fm-set (car-t (drop-n 1 z2)) (car-t (drop-n 2 z2)) (entry-v e) (app res (entry-r e))
+                        (cdr-t (fm-ctrl fm)) :run fm))
+            (t (update-fm-status :stuck fm))))))
 
 (defun fast-anyprefix-step (fm)
   (declare (xargs :stobjs fm))
   (mv-let (ok z2 res fm)
     (fast-try-anyprefix (fm-z fm) (rev-onto (fm-vals fm) (fm-is fm)) fm)
-    (if (and ok (true-listp res))
-        (fm-set (car-t (drop-n 1 z2)) (car-t (drop-n 2 z2)) nil res (fm-ctrl fm) :run fm)
-      (update-fm-status :stuck fm))))
+    (cond ((eq ok :refuse) (update-fm-status :unsupported fm))
+          ((and ok (true-listp res))
+           (fm-set (car-t (drop-n 1 z2)) (car-t (drop-n 2 z2)) nil res (fm-ctrl fm) :run fm))
+          (t (update-fm-status :stuck fm)))))
 
 (defun fast-op-step (fm)
   (declare (xargs :stobjs fm))
@@ -380,10 +401,10 @@
           ((< (len-t vals) k) (update-fm-status :stuck fm))
           (t (mv-let (ok z2 res fm)
                (fast-try-op kw (fm-z fm) (rev-onto (take-n k vals) (list i)) fm)
-               (if ok
-                   (fm-set (car-t (drop-n 1 z2)) (car-t (drop-n 2 z2)) (drop-n k vals)
-                           (app res (cdr-t (fm-is fm))) (fm-ctrl fm) :run fm)
-                 (update-fm-status :stuck fm)))))))
+               (cond ((eq ok :refuse) (update-fm-status :unsupported fm))
+                     (ok (fm-set (car-t (drop-n 1 z2)) (car-t (drop-n 2 z2)) (drop-n k vals)
+                                 (app res (cdr-t (fm-is fm))) (fm-ctrl fm) :run fm))
+                     (t (update-fm-status :stuck fm))))))))
 
 ; --- fast paths for the hottest instructions (performance) ---------------------
 ; Each computes the state the general path (FAST-OP-STEP: redex, place
