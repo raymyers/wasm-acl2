@@ -3,7 +3,8 @@
 ; in the generated dispatch agrees with APPLY-RULE on the full store; (3)
 ; per place; (4) per step part. Done: (1); (2) and (3) for the rules that
 ; ignore the bytes (pure rules and the frame lemmas of frame.lisp): 60 of
-; the 103 places of the generated dispatch.
+; the 103 places of the generated dispatch; (2') the general fallback, with
+; its two per-rule facts for 87 of the 90 rules that use it.
 (in-package "WE")
 (include-book "fast")
 
@@ -187,3 +188,166 @@
         (t (place-lemmas (cdr alist)))))
 
 (make-event `(progn ,@(place-lemmas *rule-places*)))
+
+; --- (2') per rule: the general fallback ---------------------------------------
+; A rule with no fast path runs on the full store (the bytes copied from the
+; array), and the array becomes the result's bytes. It agrees with the list
+; machine when the result is a configuration whose memory 0 has a byte list
+; (FALLBACK-RESULT-OK: a hypothesis per rule, discharged in layer 4).
+
+(defun byte-list-p (l)
+  (declare (xargs :guard t))
+  (if (atom l) (null l) (and (natp (car l)) (< (car l) 256) (byte-list-p (cdr l)))))
+
+(defthm byte-list-p-true-listp (implies (byte-list-p l) (true-listp l)) :rule-classes :forward-chaining)
+
+(defthm take-of-update-nth-at
+  (implies (natp i) (equal (take i (update-nth i v l)) (take i l))))
+
+(defthm take-1+-of-update-nth
+  (implies (and (natp i) (< i (len l)))
+           (equal (append (take i l) (cons v rest))
+                  (append (take (+ 1 i) (update-nth i v l)) rest))))
+
+(defthm list-to-mem-loop-array
+  (implies (and (natp i) (byte-list-p l) (true-listp (nth *fm-memi* fm))
+                (equal (len (nth *fm-memi* fm)) (+ i (len l))))
+           (equal (nth *fm-memi* (list-to-mem-loop l i fm))
+                  (append (take i (nth *fm-memi* fm)) l)))
+  :hints (("Goal" :induct (list-to-mem-loop l i fm) :in-theory (disable take))))
+
+(defthm len-resize-list (equal (len (resize-list l n d)) (nfix n)))
+(defthm true-listp-resize-list (true-listp (resize-list l n d)))
+(defthm len-t-is-len (equal (len-t l) (len l)) :hints (("Goal" :in-theory (enable len-t))))
+
+(defthm list-to-mem-array
+  (implies (byte-list-p l) (equal (nth *fm-memi* (list-to-mem l fm)) l)))
+
+(defthm list-to-mem-loop-other
+  (implies (not (equal k *fm-memi*))
+           (equal (nth k (list-to-mem-loop l i fm)) (nth k fm))))
+
+(defthm list-to-mem-other
+  (implies (not (equal k *fm-memi*))
+           (equal (nth k (list-to-mem l fm)) (nth k fm))))
+
+(defun mem0-shape-ok (s)
+  (declare (xargs :guard t))
+  (let ((mems (wrt::%get-field s :mems)))
+    (and (consp s) (alistp (cdr s)) (assoc-equal :mems (cdr s))
+         (consp mems) (consp (car mems)) (alistp (cdr (car mems)))
+         (assoc-equal :bytes (cdr (car mems)))
+         (byte-list-p (wrt::%get-field (car mems) :bytes)))))
+
+(defthm put-assoc-same-value
+  (implies (and (alistp a) (assoc-equal k a))
+           (equal (put-assoc-equal k (cdr (assoc-equal k a)) a) a)))
+
+(defthm put-assoc-twice
+  (equal (put-assoc-equal k v2 (put-assoc-equal k v1 a)) (put-assoc-equal k v2 a)))
+
+(defthm put-mem0-bytes-roundtrip
+  (implies (mem0-shape-ok s)
+           (equal (put-mem0-bytes (put-mem0-bytes s nil) (mem0-of-store s)) s)))
+
+(defthm byte-list-p-of-mem0-when-shape-ok
+  (implies (mem0-shape-ok s) (byte-list-p (mem0-of-store s))))
+
+(defun config-shape-ok (z)
+  (declare (xargs :guard t))
+  (and (true-listp z) (equal (len z) 3) (equal (car z) :|%;%|) (mem0-shape-ok (cadr z))))
+
+(defun fallback-result-ok (fn z redex)
+  (declare (xargs :guard t))
+  (mv-let (ok z2 res) (apply-rule fn z redex)
+    (declare (ignore res))
+    (or (not ok) (config-shape-ok z2))))
+
+(defthm car-t-drop-n-of-config
+  (implies (and (true-listp z) (equal (len z) 3))
+           (and (equal (car-t (drop-n 1 z)) (cadr z))
+                (equal (car-t (drop-n 2 z)) (caddr z))))
+  :hints (("Goal" :in-theory (enable car-t drop-n) :expand ((drop-n 1 z) (drop-n 2 z) (drop-n 1 (cdr z))))))
+
+;; Two facts per rule, proved per rule below: it fails with the state
+;; unchanged and no instructions, and it fires only on its opcode.
+(defun rule-fails-plainly (fn z redex)
+  (declare (xargs :guard t))
+  (mv-let (ok z2 res) (apply-rule fn z redex)
+    (if ok (equal ok t) (and (equal z2 z) (equal res nil)))))
+
+(defun rule-needs-opcode (fn z redex)
+  (declare (xargs :guard t))
+  (mv-let (ok z2 res) (apply-rule fn z redex)
+    (declare (ignore z2 res))
+    (or (rule-may-match fn redex) (not ok))))
+
+(defthm config-rebuild
+  (implies (and (true-listp z) (equal (len z) 3) (equal (car z) :|%;%|))
+           (equal (list :|%;%| (cadr z) (caddr z)) z)))
+
+; The fallback, for any rule FN with no fast path.
+(defthm fast-apply-rule-fallback
+  (implies (and (not (sym-member fn *fast-memory-rules*)) (not (frame-safe-p fn))
+                (fast-store-ok s) (byte-list-p (nth *fm-memi* fm))
+                (fallback-result-ok fn (list :|%;%| (put-mem0-bytes s (nth *fm-memi* fm)) f) redex)
+                (rule-fails-plainly fn (list :|%;%| (put-mem0-bytes s (nth *fm-memi* fm)) f) redex)
+                (rule-needs-opcode fn (list :|%;%| (put-mem0-bytes s (nth *fm-memi* fm)) f) redex))
+           (let ((full (apply-rule fn (list :|%;%| (put-mem0-bytes s (nth *fm-memi* fm)) f) redex))
+                 (fast (fast-apply-rule fn (list :|%;%| s f) redex fm)))
+             (and (equal (mv-nth 0 full) (mv-nth 0 fast))
+                  (equal (mv-nth 1 full) (put-z-bytes (mv-nth 1 fast) (nth *fm-memi* (mv-nth 3 fast))))
+                  (equal (mv-nth 2 full) (mv-nth 2 fast)))))
+  :hints (("Goal" :in-theory (disable apply-rule put-mem0-bytes mem0-of-store mem0-shape-ok
+                                      fast-store-ok frame-safe-p rule-may-match list-to-mem)
+                  :do-not-induct t)))
+
+(defthm head-in-p-of-nthcdr
+  (implies (and (equal (car (car (nthcdr n l))) kw) (consp (car (nthcdr n l))))
+           (head-in-p kw l))
+  :hints (("Goal" :induct (nthcdr n l))))
+
+(defthm head-in-p-of-nthcdr-cdr
+  (implies (and (equal (car (car (nthcdr n l))) kw) (consp (car (nthcdr n l))) (not (zp n)))
+           (head-in-p kw (cdr l)))
+  :hints (("Goal" :use ((:instance head-in-p-of-nthcdr (n (1- n)) (l (cdr l)))))))
+
+(defthm head-in-p-of-last-cdr
+  (implies (and (consp (cdr l))
+                (consp (car (nthcdr (len (cdr l)) l)))
+                (equal (car (car (nthcdr (len (cdr l)) l))) kw))
+           (head-in-p kw (cdr l)))
+  :hints (("Goal" :use ((:instance head-in-p-of-nthcdr-cdr (n (len (cdr l)))))
+                  :in-theory (disable head-in-p-of-nthcdr-cdr head-in-p-of-nthcdr)
+                  :expand ((len (cdr l))))))
+
+(defthm nthcdr-len-cdr-of-single
+  (implies (not (consp (cdr l))) (equal (nthcdr (len (cdr l)) l) l)))
+
+(defun rule-arg (fn)
+  (declare (xargs :mode :program))
+  (if (eq (rule-kind fn) :pure) 'redex '(list :|%;%| z redex)))
+
+(defun fallback-lemma (fn)
+  (declare (xargs :mode :program))
+  (let ((plain (intern-in-package-of-symbol (concatenate 'string (symbol-name fn) "-FAILS-PLAINLY") 'we::here))
+        (mm (intern-in-package-of-symbol (concatenate 'string (symbol-name fn) "-NEEDS-ITS-OPCODE") 'we::here)))
+    `(make-event
+      '(:or (progn
+              (defthm ,mm
+                (implies (not (rule-may-match ',fn redex)) (not (consp (,fn ,(rule-arg fn)))))
+                :hints (("Goal" :in-theory (enable ,fn) :do-not-induct t
+                                :cases ((consp (cdr redex))))))
+              (defthm ,plain
+                (and (rule-fails-plainly ',fn z redex) (rule-needs-opcode ',fn z redex))
+                :hints (("Goal" :in-theory (disable ,fn rule-may-match)))))
+            (value-triple (cw "REFINE-FAILED ~x0~%" ',fn))))))
+
+(defun fallback-lemmas (rules)
+  (declare (xargs :mode :program))
+  (cond ((endp rules) nil)
+        ((or (member-eq (car rules) *fast-memory-rules*) (member-eq (car rules) *frame-safe-rules*))
+         (fallback-lemmas (cdr rules)))
+        (t (cons (fallback-lemma (car rules)) (fallback-lemmas (cdr rules))))))
+
+(make-event `(progn ,@(fallback-lemmas *step-rules*)))

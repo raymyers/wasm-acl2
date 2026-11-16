@@ -151,6 +151,18 @@ to 0.69).
   generated `FAST-TRY-*` function on the fast store with the bytes put back,
   and the place function leaves the array unchanged
   (`FAST-TRY-*-REFINES`, `*-KEEPS-ARRAY`).
+- (2') The general fallback (`fast-apply-rule-fallback`, one theorem for
+  every rule with no fast path): the rule on the full store agrees with the
+  fast machine's fallback (bytes copied out of the array, the result's bytes
+  copied back), under three hypotheses about the rule: its result is a
+  configuration whose memory 0 has a byte list (`fallback-result-ok`, to be
+  discharged in layer 4), it fails with the state unchanged
+  (`rule-fails-plainly`), and it fires only when its opcode is in the redex
+  (`rule-needs-opcode`, which makes the fast machine's precheck sound). The
+  last two are proved per rule for **87 of the 90** fallback rules; not yet
+  for `call_ref` of a host function (2 rules; the engine has no host
+  functions) and `return_call_ref` inside a frame (1), whose opcode lies
+  deeper in the redex. Book time 104 s.
 - Remaining: 5 places with memory fast paths (load, store, memory.size,
   memory.fill, memory.copy) and 38 that use the general fallback (tables,
   GC structs and arrays, SIMD, memory.init, memory.grow, return_call).
