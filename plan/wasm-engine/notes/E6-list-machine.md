@@ -376,6 +376,13 @@ non-value. This was not continued here.
     where that index is not 0. So the stobj machine also needs the
     single-memory invariant: the store has one memory and every module's
     memory index is 0. MuPDF has one memory (E1 census).
+  - Both are now in `engine/fast/memory.lisp` (2.6 s):
+    `load-num-val-is-window`, and `load-num-oob-depends-on-length` with the
+    hypothesis `single-memory-p` (one memory in the store, and the
+    instruction's memory index maps to it). Left for part 2: the packed
+    loads, the stores (the window written back), `memory.size`,
+    `memory.grow` (a host function in MuPDF, E1), `memory.fill` and
+    `memory.copy`.
 - **E11.** Every clock-1 step is a rule function on a subterm of
   `machine-abs`. The simulation lemma for a step is then: `STEP` of the
   whole configuration equals the rule result put back in place. That is
