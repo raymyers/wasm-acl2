@@ -10,7 +10,7 @@ GEN     ?= ../translate/gen/wasm-3.0
 SPECDIR ?= ../translate/tests/spec
 LISP    := $(BUILD)/lisp
 
-.PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract js vectors units host conformance-data conformance conformance-quick web smoke clean
+.PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract js vectors units host conformance-data conformance conformance-quick web smoke lines clean
 
 all: $(BUILD)/hello.js js
 
@@ -118,7 +118,12 @@ web: js
 smoke: web
 	$(NODE) test/smoke.mjs $(WEB)
 
-check: jscl-hello wabt-hello browser-hello check-extract vectors units host conformance-quick smoke
+# W6 exit: the WAT line of every configuration of a step-through of every
+# W5 example, against lines written by hand (test/lines-expected.js)
+lines: js
+	$(NODE) test/lines.js $(BUILD)
+
+check: jscl-hello wabt-hello browser-hello check-extract vectors units host conformance-quick smoke lines
 
 clean:
 	rm -r -f build

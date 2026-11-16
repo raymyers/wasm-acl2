@@ -92,7 +92,7 @@ function makeSemantics(jscl, makeLisp) {
   const finishConfig = L.fn('DEMO', 'FINISH-CONFIG');
   let sess = null;
 
-  function start(bytes, exportName, args, fuel) {
+  function start(bytes, exportName, args, fuel, printed) {
     sess = null;
     const lispArgs = L.list(args.map(({ type, value }) => toLispArg(type, parseArg(type, value))));
     const t0 = now();
@@ -102,6 +102,8 @@ function makeSemantics(jscl, makeLisp) {
     const [ok, c] = L.toArray(startInvoke(env, L.list(utf8(exportName)), lispArgs));
     if (kwName(ok) !== 'OK') return { status: 'error', done: true, loadMs: now() - t0 };
     sess = { env, c, shown: c, next: undefined, steps: 0, calls: 0, fuel: fuel > 0 ? fuel : 200000, done: false, status: 'running' };
+    sess.map = printed ? { tree: LinesLib().parse(printed), levels: [], prev: null, conds: new Map() } : null;
+    sess.where = mapStep(c);
     lookahead();
     const r = reply(0, 0);
     r.loadMs = now() - t0;
@@ -114,19 +116,30 @@ function makeSemantics(jscl, makeLisp) {
     const n = stepConfig(sess.c);
     if (n === L.NIL) { sess.done = true; sess.status = 'ok'; } else sess.next = n;
   }
-  // n steps (Infinity: to the normal form), then the view
-  function advance(n) {
+  // n steps (Infinity: to the normal form), then the view. OPTS (W6):
+  // breakpoints, a list of printed lines: stop after a step that reaches
+  // one; nextLine: stop after the first step that reaches a printed line
+  // other than the current one (a step with no line does not stop).
+  function advance(n, opts = {}) {
     if (!sess) return { status: 'error', done: true, message: 'no session' };
     const t0 = now();
-    let k = 0;
+    const bps = new Set(opts.breakpoints || []), from = sess.where ? sess.where.line : null;
+    let k = 0, stopped = null;
     while (k < n && !sess.done) {
       sess.c = sess.next; sess.next = undefined; sess.steps++; k++;
+      sess.where = mapStep(sess.c);
+      const ln = sess.where ? sess.where.line : null;
       lookahead();
+      if (ln !== null && bps.has(ln)) { stopped = 'breakpoint'; break; }
+      if (opts.nextLine && ln !== null && ln !== from) { stopped = 'line'; break; }
     }
-    return reply(k, now() - t0);
+    const r = reply(k, now() - t0);
+    if (stopped && !sess.done) r.stopped = stopped;
+    return r;
   }
   function reply(k, ms) {
-    const out = { status: sess.status, done: sess.done, steps: sess.steps, advanced: k, ms, view: view(sess.c, sess.shown) };
+    const out = { status: sess.status, done: sess.done, steps: sess.steps, advanced: k, ms, view: view(sess.c, sess.shown),
+      line: sess.where ? sess.where.line : null, fn: sess.where ? sess.where.fn : null };
     sess.shown = sess.c;
     if (sess.done && sess.status === 'ok') {
       const [r] = L.toArray(finishConfig(sess.c, sess.env));
@@ -143,6 +156,8 @@ function makeSemantics(jscl, makeLisp) {
   const isValue = x => VALUE_HEADS.has(headOf(x));
   const isLabel = h => h && h.startsWith('LABEL_');
   const isFrame = h => h && h.startsWith('FRAME_');
+  const isHandler = h => h && h.startsWith('HANDLER_');
+  const ctxKind = h => isLabel(h) ? 'label' : isFrame(h) ? 'frame' : isHandler(h) ? 'handler' : null;
   const field = (rec, k) => { for (const f of L.toArray(rec)) if (L.isCons(f) && kwName(f.$$jscl_car) === k) return f.$$jscl_cdr; return L.NIL; };
   const valText = v => { const r = fromVal(v); return r.type === 'ref' ? r.text : `${r.type} ${r.text}`; };
   const MAXI = 14;                                         // instructions shown after the redex
@@ -156,13 +171,13 @@ function makeSemantics(jscl, makeLisp) {
     for (;;) {
       idx = level.findIndex(x => !isValue(x));
       const h = idx >= 0 ? headOf(level[idx]) : null;
-      if (!isLabel(h) && !isFrame(h)) break;
+      if (!ctxKind(h)) break;
       const a = L.toArray(level[idx]);
-      const e = { kind: isFrame(h) ? 'frame' : 'label', arity: Number(a[1]), below: idx, after: level.length - idx - 1 };
+      const e = { kind: ctxKind(h), arity: Number(a[1]), below: idx, after: level.length - idx - 1 };
       if (e.kind === 'frame') frame = a[2];
-      else e.cont = L.toArray(a[2]).length ? summary(L.toArray(a[2])) : '';
+      else if (e.kind === 'label') e.cont = L.toArray(a[2]).length ? summary(L.toArray(a[2])) : '';
       nesting.push(e);
-      level = L.toArray(a[3]);
+      level = L.toArray(a[a.length - 1]);
     }
     const stack = level.slice(0, idx < 0 ? level.length : idx).map(valText);
     const rest = idx < 0 ? [] : level.slice(idx + 1);
@@ -175,6 +190,96 @@ function makeSemantics(jscl, makeLisp) {
     };
   }
   const summary = is => is.length === 1 ? instrText(is[0]) : `${instrText(is[0])} … (${is.length} instrs)`;
+
+  // --- WAT line (W6, D6 level 2; display only, not part of the semantics)
+  // The printed module (lines.js) gives, per function, the instructions
+  // with their lines and the bodies of block/loop/if/try_table. A JS stack
+  // of levels runs alongside the configuration's contexts (LABEL_, FRAME_,
+  // HANDLER_, outermost first):
+  // - When contexts appear, the redex of the step before made them: a call
+  //   (CALL x, or CALL_REF / RETURN_CALL_REF with the function's address
+  //   below it) makes FRAME_ and the LABEL_ of the body: the function's
+  //   lines; BLOCK/LOOP make a LABEL_ over the body of their printed node
+  //   (an IF first becomes a BLOCK of the branch taken, from the condition
+  //   seen when IF was the redex); TRY_TABLE makes HANDLER_ and LABEL_.
+  //   The innermost new context gets the body; the others only know
+  //   their owner (function, try_table).
+  // - When contexts disappear, the levels are dropped.
+  // - Inside the innermost level the redex is the instruction at
+  //   len(body) - len(remaining) - 1, remaining being what follows the
+  //   redex: reduction consumes the body from the front, and what follows
+  //   the redex is still the original tail (the redex itself may already
+  //   be rewritten, e.g. CALL into CALL_REF, BR_IF into BR).
+  // - Only values left in a level (it is about to be exited), or an
+  //   exception on its way out (THROW_REF, which may first drop the rest
+  //   of the level, so the tail rule would not hold): the line of the
+  //   level's end (the block's `end`, the function's last line).
+  const LinesLib = () => (typeof Lines !== 'undefined' ? Lines : require('./lines.js'));
+  function contextPath(c) {
+    let level = L.toArray(L.toArray(c)[2]), idx;
+    const ctx = [];
+    for (;;) {
+      idx = level.findIndex(x => !isValue(x));
+      const h = idx >= 0 ? headOf(level[idx]) : null;
+      if (!ctxKind(h)) break;
+      const a = L.toArray(level[idx]);
+      ctx.push(ctxKind(h));
+      level = L.toArray(a[a.length - 1]);
+    }
+    return { ctx, level, idx };
+  }
+  // the module function index of function address A (its instance's FUNCS)
+  function funcIndex(c, a) {
+    const store = L.toArray(L.toArray(c)[1])[1];
+    const fi = L.toArray(field(store, 'FUNCS'))[Number(a)];
+    if (!fi) return null;
+    const k = L.toArray(field(field(fi, 'MODULE'), 'FUNCS')).findIndex(x => Number(x) === Number(a));
+    return k < 0 ? null : k;
+  }
+  function mapStep(c) {
+    const m = sess && sess.map;
+    if (!m) return null;
+    const { ctx, level, idx } = contextPath(c);
+    if (ctx.length < m.levels.length) m.levels.length = ctx.length;
+    else if (ctx.length > m.levels.length) m.levels.push(...created(m, ctx.slice(m.levels.length)));
+    m.levels.forEach((lv, k) => { if (lv.kind !== ctx[k]) m.levels[k] = { kind: ctx[k] }; });
+    const lv = m.levels[m.levels.length - 1];
+    let line = null, node = null;
+    const op = idx >= 0 ? headOf(level[idx]) : null;
+    if (lv) {
+      if (idx < 0 || op === 'THROW_REF') line = lv.endLine ?? null;
+      else if (lv.nodes) { node = lv.nodes[lv.nodes.length - (level.length - idx - 1) - 1] || null; line = node ? node.line : null; }
+      else line = lv.ownerLine ?? null;
+    }
+    const below = idx > 0 ? level[idx - 1] : null;
+    let fnTarget = null;
+    if (op === 'CALL') fnTarget = Number(L.toArray(level[idx])[1]);
+    else if ((op === 'CALL_REF' || op === 'RETURN_CALL_REF') && headOf(below) === 'REF.FUNC_ADDR') fnTarget = funcIndex(c, L.toArray(below)[1]);
+    if ((op === 'IF' || op === 'IFELSE') && node && headOf(below) === 'CONST') m.conds.set(node, Number(L.toArray(below)[2]) !== 0);
+    m.prev = { op, node, fnTarget };
+    let fn = null;
+    for (let k = m.levels.length - 1; k >= 0 && fn === null; k--) if (m.levels[k].fn !== undefined) fn = m.levels[k].fn;
+    return { line, fn };
+  }
+  function created(m, kinds) {
+    const out = kinds.map(kind => ({ kind }));
+    const p = m.prev;
+    let owner = null;
+    if (p && p.fnTarget !== null && m.tree.funcs[p.fnTarget]) {
+      const F = m.tree.funcs[p.fnTarget];
+      owner = { nodes: F.body, endLine: F.endLine, ownerLine: F.endLine, fn: p.fnTarget };
+    } else if (p && p.node && /^(BLOCK|LOOP|TRY_TABLE)$/.test(p.op)) {
+      const N = p.node;
+      const body = N.kind === 'if' ? (m.conds.get(N) ? N.body : (N.else || [])) : N.body;
+      owner = { nodes: body, endLine: N.endLine, ownerLine: N.line };
+    }
+    if (owner) out.forEach((o, k) => {
+      if (k === out.length - 1) { o.nodes = owner.nodes; o.endLine = owner.endLine; }
+      else { o.ownerLine = owner.ownerLine; o.endLine = owner.endLine; }
+      if (owner.fn !== undefined) o.fn = owner.fn;
+    });
+    return out;
+  }
 
   // WAT-like text of an instruction (display only)
   function instrText(x) {
@@ -195,7 +300,7 @@ function makeSemantics(jscl, makeLisp) {
       return `${typeOf(a[1])}.${o}${a[2] !== L.NIL ? ' ' + simple(a[2]) : ''}${off ? ' offset=' + off : ''}`;
     }
     if (op === 'BLOCK' || op === 'LOOP') return `${o} … end (${L.toArray(a[2]).length} instrs)`;
-    if (op === 'IF') return `if … (then ${L.toArray(a[2]).length}, else ${L.toArray(a[3]).length} instrs)`;
+    if (op === 'IF' || op === 'IFELSE') return `if … (then ${L.toArray(a[2]).length}, else ${L.toArray(a[3]).length} instrs)`;
     if (isLabel(op) || isFrame(op)) return `${isLabel(op) ? 'label' : 'frame'}{${Number(a[1])}} …`;
     return [o, ...a.slice(1).map(simple)].filter(s => s !== '').join(' ');
   }

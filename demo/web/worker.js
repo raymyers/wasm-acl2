@@ -6,21 +6,26 @@
 //               -> {type: 'result', id, status, values, steps, loadMs, runMs}
 //   Step mode   {type: 'start', id, bytes, name, args, fuel}  (load, $invoke)
 //               {type: 'step', id}  {type: 'stepN', id, n}  {type: 'runToEnd', id}
-//               -> {type: 'state', id, status, done, steps, advanced, ms, view, values?}
+//               {type: 'nextLine', id} (W6); stepN, runToEnd and nextLine take
+//               breakpoints: [printed line] and stop after reaching one
+//               -> {type: 'state', id, status, done, steps, advanced, ms, view,
+//                   line, fn, stopped?, values?}
+//   start also takes printed: the module text of lines.js (for the lines)
 //   once at start: {type: 'ready', loadMs} or {type: 'failed', message}
 'use strict';
 const t0 = performance.now();
 try {
   importScripts('wasm3.js');            // its prologue imports jscl.js
-  importScripts('lisp.js', 'semantics.js');
+  importScripts('lisp.js', 'lines.js', 'semantics.js');
   const S = makeSemantics(self.jscl, makeLisp);
   postMessage({ type: 'ready', loadMs: performance.now() - t0 });
   const handlers = {
     run: m => ({ type: 'result', ...S.run(m.bytes, m.name, m.args, m.fuel) }),
-    start: m => ({ type: 'state', ...S.start(m.bytes, m.name, m.args, m.fuel) }),
+    start: m => ({ type: 'state', ...S.start(m.bytes, m.name, m.args, m.fuel, m.printed) }),
     step: () => ({ type: 'state', ...S.advance(1) }),
-    stepN: m => ({ type: 'state', ...S.advance(Math.max(1, m.n | 0)) }),
-    runToEnd: () => ({ type: 'state', ...S.advance(Infinity) }),
+    stepN: m => ({ type: 'state', ...S.advance(Math.max(1, m.n | 0), { breakpoints: m.breakpoints }) }),
+    runToEnd: m => ({ type: 'state', ...S.advance(Infinity, { breakpoints: m.breakpoints }) }),
+    nextLine: m => ({ type: 'state', ...S.advance(Infinity, { nextLine: true, breakpoints: m.breakpoints }) }),
   };
   onmessage = e => {
     const m = e.data, h = handlers[m.type || 'run'];

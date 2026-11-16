@@ -25,7 +25,14 @@
       </label>
       <span id="format" class="muted"></span>
     </div>
-    <textarea id="src" spellcheck="false" autocomplete="off" aria-label="WAT or hex bytes"></textarea>
+    <textarea id="src" class="run-only" spellcheck="false" autocomplete="off" aria-label="WAT or hex bytes"></textarea>
+    <div id="printed-wrap" class="printed-wrap step-only">
+      <div class="pv-head">
+        <span id="pv-printer" class="muted"></span>
+        <span class="pv-aid" title="The page works the line out from the configuration's LABEL_/FRAME_ nesting and the printed module (W6). The semantics has no notion of source lines.">highlight: a display aid, not part of the semantics</span>
+      </div>
+      <ol id="printed" class="printed" data-line="" aria-label="the module as printed from its bytes; click a line number for a breakpoint"></ol>
+    </div>
     <div id="src-msg" class="msg" role="status"></div>
   </section>
 
@@ -45,7 +52,8 @@
       <button id="run" type="button" class="primary run-only" disabled>Run</button>
       <button id="step" type="button" class="primary step-only" disabled>Step</button>
       <span class="stepn step-only"><button id="stepn" type="button" disabled>Step ×</button><input id="n" type="number" min="1" step="1" value="10" aria-label="steps per click"></span>
-      <button id="toend" type="button" class="step-only" disabled>Run to end</button>
+      <button id="nextline" type="button" class="step-only" disabled title="steps until the highlighted line changes">Next line</button>
+      <button id="toend" type="button" class="step-only" disabled title="stops at a breakpoint">Run to end</button>
       <button id="restart" type="button" class="step-only" disabled>Restart</button>
       <button id="stop" type="button" disabled>Stop</button>
     </div>
@@ -104,6 +112,7 @@
 <script src="wabt.js"></script>
 <script src="examples.js"></script>
 <script src="modinfo.js"></script>
+<script src="lines.js"></script>
 <script src="semantics.js"></script>
 <script src="native.js"></script>
 <script src="app.js"></script>

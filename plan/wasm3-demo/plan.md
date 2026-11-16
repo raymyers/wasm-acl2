@@ -31,7 +31,8 @@
 - **Milestones**: W0 done, **go** ([W0-feasibility](notes/W0-feasibility.md#w0-exit-gono-go-per-risk-2026-11-15));
   W7 done ([W7-rule-tags](notes/W7-rule-tags.md)); W1 done, D5 final
   ([W1-numbers-stack](notes/W1-numbers-stack.md)); W2 done ([W2-extractor](notes/W2-extractor.md)); W3 done ([W3-shim](notes/W3-shim.md));
-  W4 done ([W4-semantics-node](notes/W4-semantics-node.md)); W5 done ([W5-browser-page](notes/W5-browser-page.md))
+  W4 done ([W4-semantics-node](notes/W4-semantics-node.md)); W5 done ([W5-browser-page](notes/W5-browser-page.md));
+  W6 done ([W6-wat-line](notes/W6-wat-line.md))
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
@@ -81,8 +82,8 @@
   `FINISH-CONFIG` (t7's DO-ACTION split into its parts, for Step mode).
 - **Open from W4 item 2**: a `print` host function for the page (the
   driver supports host imports; the page does not register any yet).
-- **Next action**: W6 (WAT line), then W8 (rule names; recorder and
-  chain test exist in the tree, uncommitted), then W9.
+- **Next action**: W8 (rule names; recorder and chain test exist in the
+  tree, uncommitted; the page part, item 2, to do), then W9.
 - **Translator change (W7, for the user)**: `%RULE` (`rt/prelude.lisp`,
   a macro: `(%RULE name x)` = `x`) and two emitter changes in
   `il2acl2/compile.lisp` (`crule`, `cprod`). Reason: D6/D7, the stepper's
@@ -501,20 +502,36 @@ Screenshots `progress/02-W5-run-mode.png` (41 KB), `03-W5-step-mode.png`
 (45 KB).
 
 ### W6: Stepper, WAT line
-1. [ ] The page shows the module as wabt prints the binary, one
+1. [x] The page shows the module as wabt prints the binary, one
        instruction per line, with its own offsets. User formatting is kept
        only for flat WAT (recorded as a limit)
-2. [ ] Line mapping in the glue. The function comes from the step where a
+       **Done 2026-11-15** ([W6-wat-line](notes/W6-wat-line.md)): wabt's flat
+       print with line numbers; the GC example by a fallback printer (wabt
+       1.0.39 cannot read it). Limit: the page always shows the printed
+       text, so the user's names, comments and folding are not kept
+2. [x] Line mapping in the glue. The function comes from the step where a
        `call` turns into a `FRAME_` (kept per frame on a stack). The
        position is `len(body) − len(remaining)` inside the innermost
        `LABEL_`/`FRAME_`, since reduction consumes from the front. Blocks
        and loops map through the `LABEL_` that they turn into
-3. [ ] "Run to next line" and line breakpoints
+       **Done 2026-11-15** ([W6-wat-line](notes/W6-wat-line.md#the-mapping-display-only)):
+       in `demo/web/semantics.js`; `if` through the branch taken,
+       `try_table` through `HANDLER_`/`LABEL_`; a level holding only values,
+       or an exception leaving it, shows the level's end line
+3. [x] "Run to next line" and line breakpoints
+       **Done 2026-11-15**: Next line, breakpoints by clicking a line number
+       (fac(3), breakpoint on line 21: stops at steps 14 and 26)
 
 **Exit**: on every W5 example, a step-through with the mapping checked at
 each step against a hand-written list of expected lines (fac: every
 line, plus the branch and `call` lines). The page labels the
 highlighting as a display aid, not part of the semantics.
+
+**W6 result (2026-11-15): exit met.** 234/234 configurations of 10
+step-throughs (every W5 example) on the hand-written line (`make -C demo
+lines`, and in the smoke test in both browsers); `fac` every non-constant
+line, `fac_rec` the branch and call lines. Labeled "highlight: a display
+aid, not part of the semantics". Screenshot `progress/04-W6-wat-line.png`.
 
 ### W7: Rule tags in the translator (D7)
 1. [x] Design note `W7-rule-tags`: where the translator emits the tag for

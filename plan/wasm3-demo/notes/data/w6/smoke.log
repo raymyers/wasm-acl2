@@ -1,0 +1,36 @@
+W5-SMOKE chromium PASS page ready in 857 ms (Worker: wasm3.js + jscl.js 478 ms, ready message after 493 ms)
+W5-SMOKE chromium PASS factorial/fac(20): semantics ok i64:2432902008176640000 [240 steps, 184 ms] native ok i64:2432902008176640000 [0.10 ms]
+W5-SMOKE chromium PASS float/hypot(1.5, 2): semantics ok f64:4612811918334230528 [11 steps, 7 ms] native ok f64:4612811918334230528 [0.10 ms]
+W5-SMOKE chromium PASS memory/squares(10): semantics ok i32:285 [321 steps, 218 ms] native ok i32:285 [0.10 ms]
+W5-SMOKE chromium PASS gc/f(3, 4): semantics ok i32:15 [17 steps, 9 ms] native ok i32:15 [0.00 ms]
+W5-SMOKE chromium PASS exception/safe(-7): semantics ok i32:993 [22 steps, 14 ms] native ok i32:993 [0.20 ms]
+W5-SMOKE chromium PASS simd/dot(5, 6, 7, 8): semantics ok i32:70 [24 steps, 16 ms] native ok i32:70 [0.00 ms]
+W5-SMOKE chromium PASS exception/unsafe(-7): semantics exception [16 steps, 6 ms] native exception [0.10 ms]
+W5-SMOKE chromium PASS float/third(10): semantics ok f32:1077936128 [6 steps, 2 ms] native ok f32:1077936128 [0.00 ms]
+W5-SMOKE chromium PASS fuel: fac(20) with fuel 50 -> fuel after 50 steps
+W5-SMOKE chromium PASS stop: state before running, after stopped; fresh Worker ready in 797 ms; then fac(20) ok i64:2432902008176640000
+W5-SMOKE chromium PASS step mode fac(20): Step x100 -> 100 steps; Run to end -> 240 steps (Run mode 240), ok i64:2432902008176640000 (Run mode ok i64:2432902008176640000, native ok i64:2432902008176640000); worker 0.59 ms/step
+W5-SMOKE chromium PASS step mode gc f(3, 4): 17 Step clicks to the normal form, 17 steps (Run mode 17), ok i32:15 (native ok i32:15); 33 ms per click (UI round trip)
+W5-SMOKE chromium PASS step mode memory squares(3): first changed bytes after step 28: [{"addr":4,"new":"1"}]
+W5-SMOKE chromium PASS W6 lines fac(3): 37/37 highlighted lines as written by hand (printed by wabt from the bytes; label "highlight: a display aid, not part of the semantics"); 31 ms per click
+W5-SMOKE chromium PASS W6 breakpoint on line 21: Run to end stops after step 14 on line 21 (want 14, 21); Next line -> step 15, line 8 (want 15, 8)
+W5-SMOKE screenshot /Users/Apple/dev/wasm-acl2/demo/../plan/wasm3-demo/progress/04-W6-wat-line.png: 42 KB
+W5-SMOKE chromium PASS page errors: none
+W5-SMOKE firefox PASS page ready in 1033 ms (Worker: wasm3.js + jscl.js 499 ms, ready message after 561 ms)
+W5-SMOKE firefox PASS factorial/fac(20): semantics ok i64:2432902008176640000 [240 steps, 301 ms] native ok i64:2432902008176640000 [0.00 ms]
+W5-SMOKE firefox PASS float/hypot(1.5, 2): semantics ok f64:4612811918334230528 [11 steps, 14 ms] native ok f64:4612811918334230528 [0.00 ms]
+W5-SMOKE firefox PASS memory/squares(10): semantics ok i32:285 [321 steps, 352 ms] native ok i32:285 [0.00 ms]
+W5-SMOKE firefox PASS gc/f(3, 4): semantics ok i32:15 [17 steps, 18 ms] native ok i32:15 [0.00 ms]
+W5-SMOKE firefox PASS exception/safe(-7): semantics ok i32:993 [22 steps, 23 ms] native ok i32:993 [0.00 ms]
+W5-SMOKE firefox PASS simd/dot(5, 6, 7, 8): semantics ok i32:70 [24 steps, 31 ms] native ok i32:70 [0.00 ms]
+W5-SMOKE firefox PASS exception/unsafe(-7): semantics exception [16 steps, 11 ms] native exception [0.00 ms]
+W5-SMOKE firefox PASS float/third(10): semantics ok f32:1077936128 [6 steps, 3 ms] native ok f32:1077936128 [0.00 ms]
+W5-SMOKE firefox PASS fuel: fac(20) with fuel 50 -> fuel after 50 steps
+W5-SMOKE firefox PASS stop: state before running, after stopped; fresh Worker ready in 836 ms; then fac(20) ok i64:2432902008176640000
+W5-SMOKE firefox PASS step mode fac(20): Step x100 -> 100 steps; Run to end -> 240 steps (Run mode 240), ok i64:2432902008176640000 (Run mode ok i64:2432902008176640000, native ok i64:2432902008176640000); worker 0.96 ms/step
+W5-SMOKE firefox PASS step mode gc f(3, 4): 17 Step clicks to the normal form, 17 steps (Run mode 17), ok i32:15 (native ok i32:15); 34 ms per click (UI round trip)
+W5-SMOKE firefox PASS step mode memory squares(3): first changed bytes after step 28: [{"addr":4,"new":"1"}]
+W5-SMOKE firefox PASS W6 lines fac(3): 37/37 highlighted lines as written by hand (printed by wabt from the bytes; label "highlight: a display aid, not part of the semantics"); 34 ms per click
+W5-SMOKE firefox PASS W6 breakpoint on line 21: Run to end stops after step 14 on line 21 (want 14, 21); Next line -> step 15, line 8 (want 15, 8)
+W5-SMOKE firefox PASS page errors: none
+W5-SMOKE all passed

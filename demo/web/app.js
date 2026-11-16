@@ -9,7 +9,9 @@
   const $ = id => document.getElementById(id);
   const ui = { example: $('example'), src: $('src'), msg: $('src-msg'), format: $('format'), exp: $('export'),
     args: $('args'), fuel: $('fuel'), run: $('run'), stop: $('stop'), engine: $('engine'),
-    step: $('step'), stepn: $('stepn'), n: $('n'), toend: $('toend'), restart: $('restart') };
+    step: $('step'), stepn: $('stepn'), n: $('n'), toend: $('toend'), restart: $('restart'), nextline: $('nextline'),
+    printed: $('printed') };
+  const breakpoints = new Set();       // printed line numbers (W6)
   let wabt = null, worker = null, ready = false, reqId = 0, running = null, info = null;
   let mode = 'run', sess = null;      // sess: the Step-mode session {startId, loadMs, totalMs, done}
 
@@ -64,7 +66,7 @@
   function setButtons() {
     const idle = ready && !running && !!info;
     ui.run.disabled = !idle;
-    ui.step.disabled = ui.stepn.disabled = ui.toend.disabled = !idle || !!(sess && sess.done);
+    ui.step.disabled = ui.stepn.disabled = ui.toend.disabled = ui.nextline.disabled = !idle || !!(sess && sess.done);
     ui.restart.disabled = !idle;
     ui.stop.disabled = !running;
   }
@@ -211,19 +213,21 @@
     if (!ready || running || !info) return false;
     const q = request();
     if (!q) return false;
-    const startId = post('start', { bytes: info.bytes, name: q.fn.name, args: q.args, fuel: q.fuel });
+    const printed = Lines.print(wabt, info.bytes);
+    renderPrinted(printed);
+    const startId = post('start', { bytes: info.bytes, name: q.fn.name, args: q.args, fuel: q.fuel, printed: printed.text });
     sess = { startId, totalMs: 0, done: false, lastId: startId };
     showSem({ status: 'stepping', steps: 0 });
     showNative(q.fn, q.args);
     return true;
   }
-  function endSession() { if (sess) { sess = null; clearStepView(); setButtons(); } }
+  function endSession() { if (sess) { sess = null; clearStepView(); highlight(null); setButtons(); } }
   function stepAction(type) {
     if (type !== 'restart' && ui.step.disabled) return;
     if (type === 'restart' || !sess) { if (!beginSession()) return; if (type === 'restart') return; }
     const id = ++reqId;                  // queued behind a start, if one was just posted
     running = { id, t0: running ? running.t0 : performance.now() };
-    worker.postMessage({ type, id, n: Math.max(1, Math.floor(Number(ui.n.value)) || 1) });
+    worker.postMessage({ type, id, n: Math.max(1, Math.floor(Number(ui.n.value)) || 1), breakpoints: [...breakpoints] });
     setButtons();
   }
   function onState(m) {
@@ -233,6 +237,7 @@
     sess.totalMs += m.ms || 0;
     sess.done = !!m.done;
     renderView(m);
+    highlight(m.line);
     if (m.done) {
       const perStep = m.steps ? sess.totalMs / m.steps : undefined;
       showSem({ ...m, runMs: sess.totalMs, loadMs: sess.loadMs, perStep });
@@ -240,6 +245,33 @@
       showSem({ status: 'stepping', steps: m.steps, runMs: sess.totalMs, loadMs: sess.loadMs });
     }
     setButtons();
+  }
+
+  // the printed module (W6): line numbers toggle breakpoints
+  function renderPrinted(p) {
+    $('pv-printer').textContent = p.printer === 'wabt' ? 'printed by wabt from the bytes'
+      : `printed by the page's fallback printer (wabt: ${p.wabtError})`;
+    ui.printed.innerHTML = p.text.split('\n').map((t, k) =>
+      `<li data-line="${k + 1}"${breakpoints.has(k + 1) ? ' class="bp"' : ''}><span class="ln">${k + 1}</span><span class="code">${esc(t)}</span></li>`).join('');
+    ui.printed.dataset.line = '';
+  }
+  ui.printed.addEventListener('click', e => {
+    const ln = e.target.closest('.ln');
+    if (!ln) return;
+    const li = ln.parentElement, k = Number(li.dataset.line);
+    if (breakpoints.has(k)) breakpoints.delete(k); else breakpoints.add(k);
+    li.classList.toggle('bp', breakpoints.has(k));
+  });
+  function highlight(line) {
+    ui.printed.dataset.line = line ?? '';
+    const old = ui.printed.querySelector('li.cur');
+    if (old) old.classList.remove('cur');
+    if (line == null) return;
+    const li = ui.printed.querySelector(`li[data-line="${line}"]`);
+    if (!li) return;
+    li.classList.add('cur');
+    const box = ui.printed, top = li.offsetTop - box.offsetTop;
+    if (top < box.scrollTop + 20 || top > box.scrollTop + box.clientHeight - 40) box.scrollTop = Math.max(0, top - box.clientHeight / 3);
   }
 
   // the configuration view
@@ -285,6 +317,7 @@
   ui.step.onclick = () => stepAction('step');
   ui.stepn.onclick = () => stepAction('stepN');
   ui.toend.onclick = () => stepAction('runToEnd');
+  ui.nextline.onclick = () => stepAction('nextLine');
   ui.restart.onclick = () => { clearResults(); endSession(); stepAction('restart'); };
   $('mode-run').onclick = () => setMode('run');
   $('mode-step').onclick = () => setMode('step');

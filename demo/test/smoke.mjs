@@ -10,7 +10,8 @@
 // One line per check per browser; exits non-zero on a mismatch, a failed
 // check or a page error.
 // Usage: node smoke.mjs BUILD_WEB_DIR. SHOT=<png>: Run-mode screenshot,
-// SHOT_STEP=<png>: Step-mode screenshot mid-run (both Chromium).
+// SHOT_STEP=<png>: Step-mode screenshot mid-run, SHOT_LINE=<png>: Step mode
+// with the line highlight (W6) (all Chromium).
 // SMOKE_JSON=<file>: the measurements as JSON.
 import path from 'node:path';
 import fs from 'node:fs';
@@ -122,6 +123,52 @@ async function stepChecks(b, page, rep) {
   }
 }
 
+// --- W6: printed module and line highlight ---------------------------------
+// fac(3) stepped through the UI, one click per step: the highlighted line
+// of every configuration must be the hand-written one (test/lines-expected.js).
+// Then a breakpoint on `br 0` (line 21): Run to end stops after step 14,
+// Next line goes on to step 15 (line 8, the loop).
+const LINE_CASES = require('./lines-expected.js');
+const curLine = page => page.$eval('#printed', e => {
+  const cur = e.querySelector('li.cur');
+  return { line: e.dataset.line === '' ? null : Number(e.dataset.line), cur: cur ? Number(cur.dataset.line) : null };
+});
+async function lineChecks(b, page, rep) {
+  const c = LINE_CASES[0];
+  await session(page, { id: c.example, export: c.export, args: c.args });
+  const printer = await page.$eval('#pv-printer', e => e.textContent);
+  const aid = await page.$eval('.pv-aid', e => e.offsetParent !== null && e.textContent);
+  const got = [];
+  let st = await sv(page), h = await curLine(page), consistent = true;
+  got.push(h.line); consistent = consistent && h.line === h.cur;
+  const t0 = Date.now();
+  while (!st.done && got.length < 200) {
+    await page.click('#step'); await idle(page);
+    st = await sv(page); h = await curLine(page);
+    got.push(h.line); consistent = consistent && h.line === h.cur;
+  }
+  const perClick = (Date.now() - t0) / (got.length - 1);
+  const diffs = got.map((l, k) => l === c.lines[k] ? null : `#${k}: ${l} want ${c.lines[k]}`).filter(Boolean);
+  const ok = diffs.length === 0 && got.length === c.lines.length && consistent && !!aid && /wabt/.test(printer);
+  rep.lines = { got, perClick, printer, aid };
+  line(b, ok, `W6 lines fac(3): ${got.length - diffs.length}/${c.lines.length} highlighted lines as written by hand (${printer}; label "${aid}"); ${perClick.toFixed(0)} ms per click${diffs.length ? '; ' + diffs.slice(0, 5).join(', ') : ''}`);
+
+  await session(page, { id: c.example, export: c.export, args: c.args });
+  await page.click('#printed li[data-line="21"] .ln');
+  await page.click('#toend'); await idle(page);
+  const atBp = { steps: (await sv(page)).steps, line: (await curLine(page)).line };
+  await page.click('#nextline'); await idle(page);
+  const next = { steps: (await sv(page)).steps, line: (await curLine(page)).line };
+  const bpOk = atBp.steps === 14 && atBp.line === 21 && next.steps === 15 && next.line === 8;
+  rep.breakpoint = { atBp, next };
+  line(b, bpOk, `W6 breakpoint on line 21: Run to end stops after step ${atBp.steps} on line ${atBp.line} (want 14, 21); Next line -> step ${next.steps}, line ${next.line} (want 15, 8)`);
+  if (b === 'chromium' && process.env.SHOT_LINE) {
+    const kb = await screenshot(page, process.env.SHOT_LINE);
+    console.log(`W5-SMOKE screenshot ${process.env.SHOT_LINE}: ${kb.toFixed(0)} KB`);
+  }
+  await page.click('#printed li[data-line="21"] .ln');       // breakpoint off again
+}
+
 try {
   for (const b of BROWSERS) {
     await withPage(b, async (page, errors) => {
@@ -170,6 +217,7 @@ try {
         console.log(`W5-SMOKE screenshot ${process.env.SHOT}: ${kb.toFixed(0)} KB`);
       }
       await stepChecks(b, page, rep);
+      await lineChecks(b, page, rep);
       line(b, errors.length === 0, `page errors: ${errors.length ? errors.join('; ') : 'none'}`);
     });
   }
