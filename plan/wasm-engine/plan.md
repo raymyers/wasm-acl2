@@ -91,9 +91,8 @@
 - **Next action**: record the full module's decode when it ends (E1
   item 5, still parsing after 5 CPU hours on 2026-11-16 03:30). E7: the
   frame lemmas exist (`engine/fast/frame.lisp`); next is a book of memory
-  fast-path lemmas (`engine/fast/memory.lisp`: load, store, every
-  bounds rule and `memory.size` done; next the packed loads and stores,
-  fill and copy),
+  fast-path lemmas (`engine/fast/memory.lisp`: every D5 memory rule but
+  `memory.grow` done),
   then the stobj itself. Proof track: the
   `append`/`take`/`nthcdr` library and dispatch lemmas for C2's clock-1
   steps (E4 item 4, E11 S0). Both are described in

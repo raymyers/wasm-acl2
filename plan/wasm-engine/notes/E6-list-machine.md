@@ -390,8 +390,15 @@ non-value. This was not continued here.
     `MEMORY.SIZE` depend only on the memory's length (for the two step
     rules: the result with bytes `b1` is the result with `b2`, with `b1`
     put back; the first statement, without putting back, failed for them,
-    as it should). Book time 229 s. Left for part 2: the packed loads and
-    stores,
+    as it should). Book time 229 s. Then the packed load reads only its
+    window (`load-pack-val-reads-its-window`), the packed store writes a
+    splice (`store-pack-val-is-splice`), and the seven `memory.fill` and
+    `memory.copy` rules depend only on the length (they expand into
+    loads, stores and a smaller fill or copy). **Every D5 memory rule now
+    has its fast-path lemma** (`engine/fast/memory.lisp`, 390 s), except
+    `memory.grow`, which MuPDF does not execute (E1: memory grows through
+    the host). Not needed: the vector loads and stores and `memory.init`
+    (not in D5). What part 2 had listed as left:
     `memory.grow` (a host function in MuPDF, E1), `memory.fill` and
     `memory.copy`.
 - **E11.** Every clock-1 step is a rule function on a subterm of

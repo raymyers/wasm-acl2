@@ -104,7 +104,13 @@
 
 (make-event
  `(progn ,@(length-lemmas '(w3t::step_read/split/r-load-pack-oob w3t::step/r-store-num-oob
-                            w3t::step/r-store-pack-oob w3t::step_read/split/r-memory.size))))
+                            w3t::step/r-store-pack-oob w3t::step_read/split/r-memory.size
+                            ; memory.fill and memory.copy expand into loads, stores and a
+                            ; smaller fill or copy: they read only the length
+                            w3t::step_read/split/r-memory.fill-oob w3t::step_read/split/r-memory.fill-zero
+                            w3t::step_read/split/r-memory.fill-succ
+                            w3t::step_read/split/r-memory.copy-oob w3t::step_read/split/r-memory.copy-zero
+                            w3t::step_read/split/r-memory.copy-le w3t::step_read/split/r-memory.copy-gt))))
 
 ; The packed load reads only its window: two byte lists that agree on it
 ; give the same result. l = (const at i) (load inn ((:_ n sx)) x ao).
