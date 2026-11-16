@@ -1,0 +1,58 @@
+%PDF-1.7
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R /F4 8 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 663  >>
+stream
+
+BT /F1 28 Tf 72 720 Td (Times-Roman, 28 pt) Tj ET
+BT /F2 18 Tf 72 680 Td (Courier: fixed width 0123456789) Tj ET
+BT /F3 14 Tf 72 650 Td 18 TL
+(Helvetica-Oblique: the quick brown fox jumps over the lazy dog.) Tj T*
+(Second line, with kerning-free text and punctuation: ;:,.!?) Tj ET
+BT /F4 12 Tf 0.866 0.5 -0.5 0.866 300 400 Tm (Rotated 30 degrees, Helvetica-Bold) Tj ET
+BT /F1 10 Tf 2 0 0 1 72 300 Tm (Horizontally scaled Times) Tj ET
+q 1 0 0 0 k 72 100 200 120 re f Q
+q 0.5 g 320 100 200 120 re f Q
+q 3 w [12 6] 0 d 0.8 0 0 RG 72 260 m 540 260 l S Q
+q 400 500 m 500 600 l 560 480 l h W n 0 0 1 rg 380 460 200 160 re f Q
+q 1 w 0 0.5 0 RG 420 560 60 0 360 re S Q
+
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Times-Roman /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>
+endobj
+8 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000121 00000 n 
+0000000277 00000 n 
+0000000992 00000 n 
+0000001091 00000 n 
+0000001186 00000 n 
+0000001291 00000 n 
+trailer
+<< /Size 9 /Root 1 0 R >>
+startxref
+1393
+%%EOF

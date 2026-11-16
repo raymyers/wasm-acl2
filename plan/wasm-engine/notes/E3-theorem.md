@@ -1,9 +1,9 @@
 # The theorem: stated for any machine and proved at run level
 
-- Milestone: E3 (item 1 and item 3 done; item 2 open)
+- Milestone: E3 (all three items; item 2 in the second session, 2026-11-15)
 - Date: 2026-11-15
 - Repo commit: this note's commit
-- Status: draft (item 2 is open)
+- Status: final
 - Feeds engine plan: E3, E11, §3 (theorem shape), "Litmus milestones", "Current state"
 - Incorporated in engine plan: yes (E3, §3, E11, "Current state")
 
@@ -104,6 +104,72 @@ proofs use only that it is a function. Certification: 2.2 s.
   function per rule (E2) each of these is a small lemma; they are the
   same lemmas as the dispatch lemmas of E4, so they belong with E4.
 
+## Item 2: the facts C3 needs, proved (second session, 2026-11-15)
+
+`engine/rules/terminal.lisp` (certifies in 130 s) proves, for any state
+`z`, with no `skip-proofs`:
+
+| Theorem | Says | The machine's status |
+|---|---|---|
+| `step-of-vals` | `(vals-p l)` implies `STEP` of `(z; l)` is `nil` | `:done` |
+| `step-of-trap-alone` | `STEP` of `(z; TRAP)` is `nil` | `:trap` |
+| `step-of-uncaught-exception` | `(val-p (ref.exn_addr a))` implies `STEP` of `(z; (ref.exn_addr a) THROW_REF)` is `nil` | `:throw` |
+
+`engine/machine/terminal-ok.lisp` (2.5 s) puts them together for the list
+machine of E6: `machine-result-is-terminal`, which is **constraint C3**:
+
+```
+(implies (and (machine-ok s) (machine-result-p s))
+         (not (w3t::step (machine-abs s))))
+```
+
+For this, `machine-ok` now ties each result status to its shape
+(`status-ok`: `:done` with no instruction and no control entry; `:trap`
+with the block `TRAP` alone; `:throw` with one exception reference and
+`THROW_REF`), and the machine reports `:trap` and `:throw` only for exactly
+`(:TRAP)` and `(:THROW_REF)`. C1 (`machine-step-preserves-ok`) was proved
+again with the stronger invariant. **The hypothesis of
+`step-of-uncaught-exception`** (the reference is a `VAL-P`) is discharged
+by `machine-ok`, whose operand stack holds values only. It is not a
+hypothesis of the machine theorem.
+
+How it was proved, and what failed first (raw checkpoints in
+`data/e3-c3/attempt1-two-values.txt`):
+
+1. `STEP` on two symbolic values, all rule definitions enabled: failed on
+   `STEP_PURE/SEARCH171` (the search of `trap-instrs` for a `TRAP` after a
+   prefix of values), which needs an induction.
+2. `STEP` on any value list, all rule definitions enabled: stopped after
+   359 s, all of it preprocessing (57 prover steps). Expanding `STEP` with
+   212 rule definitions enabled builds a term too large to work on.
+3. What works: one lemma per function, made by `make-event`. For each of
+   the 14 search functions on `STEP`'s path, "returns `nil` on a list
+   whose elements are values or `nil`" (what `take` and `nthcdr` of a
+   value list give), by the search's own induction: 11 prove; the three
+   that do not are `STEP/SEARCH21` (`ctxt-instrs`, which a value list
+   never reaches: `STEP/PREFIX7`, the index of the first non-value, is its
+   length) and `STEP_READ/SPLIT/SEARCH118`/`119`, which no rule lemma
+   needed. Then for each of the 212 rule functions, "returns `nil` on a
+   value list", with the rule's definition enabled: all prove except
+   `STEP/R-CTXT-INSTRS`, which is in `STEP`'s clique and is opened by an
+   explicit `:expand`. The three relations then follow in 0.01 s each with
+   every rule function closed.
+
+   The key rewrite rule: an element of such a list never has the head
+   keyword of an instruction that is not a value. It must be stated both
+   ways round, `(equal (car (car x)) kw)` and `(equal kw (car (car x)))`,
+   because ACL2 puts the constant first. The first version had only one
+   orientation, and every search lemma failed.
+4. The exception case used the same generator on the list
+   `(ref.exn_addr a) THROW_REF`. Two rules (`TRAP-INSTRS`,
+   `THROW_REF-INSTRS`) search a list that is not all values; they and
+   `ctxt-instrs` are proved with their searches expanded. `ctxt-instrs`
+   reaches `STEP` of `THROW_REF` alone, proved like `TRAP` alone.
+
+This is the dispatch-lemma machinery that E4 item 4 asks for, in its
+first form: per rule function, "fails on inputs of this shape". E11 needs
+the same per rule for "the head is opcode k".
+
 ## Open questions
 
 - Should `:stuck` carry a claim (the spec is stuck too)? It needs the
@@ -116,4 +182,6 @@ proofs use only that it is a function. Certification: 2.2 s.
 ## Data
 
 `engine/theorem/simulation.lisp`; `make -C engine check` certifies it and
-fails if an engine book contains `skip-proofs` or `defaxiom`.
+fails if an engine book contains `skip-proofs` or `defaxiom`. Item 2:
+`engine/rules/terminal.lisp`, `engine/machine/terminal-ok.lisp`,
+`data/e3-c3/attempt1-two-values.txt`.

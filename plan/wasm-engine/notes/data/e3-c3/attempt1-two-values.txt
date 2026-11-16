@@ -1,0 +1,76 @@
+Normally we would attempt to prove Subgoal 191.36.1'5' by induction.
+However, we prefer in this instance to focus on the original input
+conjecture rather than this simplified special case.  We therefore
+abandon our previous work on this conjecture and reassign the name
+*1 to the original conjecture.  (See :DOC otf-flg.)
+
+])
+
+No induction schemes are suggested by *1.  Consequently, the proof
+attempt has failed.
+
+Summary
+Form:  ( DEFTHM STEP-OF-TWO-VALUES ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:ELIM CAR-CDR-ELIM)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING LEN-CDR-CONSP)
+        (:FORWARD-CHAINING TRUE-LISTP-LEN-0)
+Splitter rules (see :DOC splitter):
+  if-intro: ((:DEFINITION W3T::$SIZE)
+Time:  3.23 seconds (prove: 3.22, print: 0.00, other: 0.01)
+Prover steps counted:  1949209
+
+---
+The key checkpoint goal, below, may help you to debug this failure.
+See :DOC failure and see :DOC set-checkpoint-summary-limit.
+---
+
+*** Key checkpoint before reverting to proof by induction: ***
+
+Subgoal 191.36'
+(IMPLIES
+     (AND (CONSP V1)
+          (EQUAL (CAR V1) :REF.NULL_ADDR)
+          (TRUE-LISTP (CDR V1))
+          (EQUAL (LEN (CDR V1)) 0)
+          (CONSP V2)
+          (EQUAL (CAR V2) :CONST)
+          (TRUE-LISTP (CDDR V2))
+          (CONSP (CDR V2))
+          (EQUAL (+ 1 (LEN (CDDR V2))) 2)
+          (CONSP (CADR V2))
+          (EQUAL (CAR (CADR V2)) :I32)
+          (TRUE-LISTP (CDR (CADR V2)))
+          (EQUAL (LEN (CDR (CADR V2))) 0)
+          (INTEGERP (CADDR V2))
+          (<= 0 (CADDR V2))
+          (<= (CADDR V2) 4294967295)
+          (W3T::STEP_PURE/SEARCH171 2 0 2 (LIST V1 V2))
+          (TRUE-LISTP (CAR (W3T::STEP_PURE/SEARCH171 2 0 2 (LIST V1 V2)))))
+     (NOT (LIST (LIST :|%;%| Z
+                      (CAR (W3T::STEP_PURE/SEARCH171 2 0 2 (LIST V1 V2)))))))
+
+ACL2 Error [Failure] in ( DEFTHM STEP-OF-TWO-VALUES ...):  See :DOC
+failure.
+
+******** FAILED ********
+
+== Attempt 2 (2026-11-15): the general value list in one theorem ==
+(defthm step-of-vals
+  (implies (vals-p l) (not (w3t::step (list :|%;%| z l))))
+  :hints (("Goal" :in-theory (enable step-rule-defs)
+                  :expand ((:free (x) (w3t::step x))))))
+Interrupted after 359.44 s: "Time: 359.44 seconds (prove: 0.00, print: 0.00,
+other: 359.44)  Prover steps counted: 57". No checkpoint: the time is
+preprocessing, the expansion of STEP with all 212 rule definitions enabled.
+
+== TRAP alone and the uncaught exception (2026-11-15) ==
+(equal (w3t::step (list :|%;%| z '((:trap)))) nil): fails with only STEP
+expanded (checkpoint "(NOT (W3T::STEP/R-CTXT-INSTRS (LIST* :|%;%| Z
+'(((:TRAP))))))"); proves in 0.04 s with STEP/R-CTXT-INSTRS and
+STEP/SEARCH21 expanded too.
+(equal (w3t::step (list :|%;%| z (list (list :ref.exn_addr a) '(:throw_ref)))) nil),
+same hints: first attempt failed at STEP/R-CTXT-INSTRS; with the expands it
+ran 11 minutes without a result and was stopped.

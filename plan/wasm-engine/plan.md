@@ -34,8 +34,8 @@
 > Generated code is never edited by hand. Everything that certified or
 > passed before must still certify and pass.
 >
-> **Status: in execution. E0, E2 (go), E5 and E4 item 2 complete; E1 and
-> E3 in progress** (written 2026-11-15, at `d845f70`; revised the same day for
+> **Status: in execution. E0, E2 (go), E3, E5 and E4 item 2 complete; E1
+> (item 5) and E6 (item 5) in progress** (written 2026-11-15, at `d845f70`; revised the same day for
 > 3.0 and MuPDF). Per-session procedure: [step.md](step.md). Prompts behind
 > this plan: [seed.md](seed.md).
 
@@ -48,12 +48,16 @@
   are `:logic`; [E2-step-logic](notes/E2-step-logic.md)), E5 (machine
   design; [E5-machine](notes/E5-machine.md)) and E0 (baseline: 23,000 to
   40,000 spec steps/s on flat code; [E0-baseline](notes/E0-baseline.md))
-- **In progress**: E1 items 1 to 3 done (fork `raymyers/mupdf`, branch
-  `wasm3-exceptions` at `3eae43d`, rebuilt module with no legacy exception
-  opcode, same pixels as the published one in V8;
-  [E1-mupdf-target](notes/E1-mupdf-target.md)). E3 items 1 and 3 done: the
-  theorem is stated for any machine and its run level is proved, with no
-  `skip-proofs` ([E3-theorem](notes/E3-theorem.md)). E4 item 2 done (one
+- **Also complete**: E3 (the theorem for any machine, its run level, and
+  the spec facts behind C3; [E3-theorem](notes/E3-theorem.md)). For the
+  list machine, C1 and C3 are proved; C2 is E11
+- **In progress**: E1, every item but 5 done (census, reference renders,
+  imports, build script that reproduces the module bit for bit, small
+  target; [E1-mupdf-target](notes/E1-mupdf-target.md)). Item 5: the small
+  target passes the generated decoder and `Module_ok` (73 min and 85 s);
+  the full module's parse was still running after more than 100 CPU
+  minutes. E6: items 1 to 4 done, item 5 has two differing commands
+  ([E6-list-machine](notes/E6-list-machine.md)). E4 item 2 done (one
   function per rule, with E2)
 - **`engine/` exists**: `make -C engine check` is a gate from now on. It
   needs `translate/gen/wasm-3.0` certified (`make -C translate check-3.0`)
@@ -81,9 +85,11 @@
   recurses once per byte; SBCL's default stack ends near 32 pages. Run
   with `SBCL_USER_ARGS='--control-stack-size 1000'` (64 pages) or `4000`
   (MuPDF's 352 pages) ([E0-baseline](notes/E0-baseline.md))
-- **Next action**: the rest of E1 (items 4 to 9; item 5, the module
-  through the generated decoder and `Module_ok`, is the one with an
-  unknown outcome), then E6 (the list machine of
+- **Next action**: settle the two `fib-i32` differences of E6
+  differential test 2 (`call_indirect.wast`) and close E6; record the full
+  module's decode (E1 item 5); then E4 (items 1, 3, 4: the per-rule lemma
+  generator of `rules/terminal.lisp` is the start of the dispatch lemmas),
+  then E7 (the list machine of
   [E5-machine](notes/E5-machine.md), S0 first, written over primitives so
   that E7 can put a stobj under it), then E4 items 1, 3 and 4
 - **Changed by E2, for every later session**: a relation function is now
@@ -92,7 +98,15 @@
   versions. `gen/wasm-1.0` and both mode manifests were regenerated
 - **Theorem hypotheses so far** (step.md asks for them here):
   `(m-ok s)`, `(m-result-p (m-run n s))`, `(natp fuel)`,
-  `(< (m-clocks n s) fuel)`; reasons in [E3-theorem](notes/E3-theorem.md)
+  `(< (m-clocks n s) fuel)`; reasons in [E3-theorem](notes/E3-theorem.md).
+  The spec lemma `step-of-uncaught-exception` has the hypothesis that the
+  exception reference is a `VAL-P`; for the machine `machine-ok` gives it,
+  so the machine theorem C3 has no extra hypothesis
+- **Machine design refinement (E6, 2026-11-15)**: the machine applies the
+  spec's rule functions to the redex instead of restating each row of the
+  E5 table. Same states, same clock, same `abs`; E7 makes the rules that
+  touch memory fast with `mbe`. Recorded in
+  [E6-list-machine](notes/E6-list-machine.md)
 
 ---
 
@@ -297,21 +311,35 @@ engine/host/ , engine/view/  MuPDF's 22 imports; pixels to a viewer (E10)
       the same 1,454,112 RGB samples (sha256 equal) as the published
       `mupdf` 1.28.6, and two MuPDF errors are caught the same way
       (2026-11-15; one PDF only, item 6 adds more)
-- [ ] Census of the rebuilt module: every opcode with its count (done,
-      `notes/data/e1-mupdf/fork-3eae43d-opcodes.txt`), the imports with
-      their signatures, memory and table sizes (open). This fixes D5
+- [x] Census of the rebuilt module: every opcode with its count
+      (`notes/data/e1-mupdf/fork-3eae43d-opcodes.txt`), the imports with
+      their signatures, memory and table sizes
+      (`fork-3eae43d-census.txt`). This fixes D5: 165 instructions, S0 97,
+      S1 59, S2 6, S3 3, none outside; `memory.grow` and `nop` do not
+      occur (memory grows through the import `emscripten_resize_heap`)
+      (2026-11-15)
 - [ ] The module through the generated 3.0 decoder and `Module_ok`:
       result and time, or the reason it does not finish
-- [ ] Reference renders from node (V8): three PDFs, one of them a slide,
-      as raw pixel files with checksums. These are what E9 compares with
-- [ ] What each of the 22 imports must do for "open a PDF from memory,
-      render page n to a pixmap", read from the Emscripten glue
-- [ ] The build as a script in `engine/mupdf/` that takes the fork commit
+- [x] Reference renders from node (V8): three PDFs, one of them a slide,
+      as raw pixel files with checksums. These are what E9 compares with.
+      `test1.pdf`, `slide.pdf` (960 x 540), `text.pdf`; `ref-render.mjs`
+      writes the PPM files and prints the sha256 of the samples
+      (`ref-render.out`); the files themselves are regenerated, not
+      checked in (2026-11-15)
+- [x] What each of the 22 imports must do for "open a PDF from memory,
+      render page n to a pixmap", read from the Emscripten glue and traced
+      in node: six are called (environment, time zone, `date_now`,
+      `gmtime`, and the font loader through `asm_const_ptr`, which returns
+      0); the export call sequence is in `exports-called.txt` (2026-11-15)
+- [x] The build as a script in `engine/mupdf/` that takes the fork commit
       and produces the module with a recorded checksum, run from Nix
-      (Emscripten 4.0.8, the version MuPDF tests with). The first build
-      was made by hand in a scratch directory; see the note
-- [ ] A smaller build if the census allows it (features off, fonts out),
-      recorded as a second target
+      (Emscripten 4.0.8, the version MuPDF tests with):
+      `engine/mupdf/build.sh` reproduces the hand build bit for bit
+      (sha256 `e3c67c2e...af14`) (2026-11-15)
+- [x] A smaller build if the census allows it (features off, fonts out),
+      recorded as a second target: `engine/mupdf/build-small.sh`, 4.5 MB,
+      4,470 functions, 288 pages, sha256 `97239ccb...1f97`; same pixels as
+      the full build except CMYK (no ICC) (2026-11-15)
 
 **Exit**: a 3.0 module of MuPDF with no legacy exception opcode, proved to
 render the same pixels as the published one in V8, with its census.
@@ -357,16 +385,19 @@ mode manifest changes and is committed with the reason.
       functions with four constraints (C1 to C4), and the run-level
       theorem is proved from them, so no `skip-proofs` is used
       (certified in 2.2 s, 2026-11-15)
-- [ ] Prove the facts about the spec that the simulation needs and that
+- [x] Prove the facts about the spec that the simulation needs and that
       do not depend on the machine: a value sequence does not step, and
       `TRAP` alone does not step (constraint C3). "At most one result" is
-      no longer needed. These are dispatch lemmas, so do them with E4
-      item 4
+      no longer needed. Done, with the uncaught exception as the third
+      case: `engine/rules/terminal.lisp` (130 s, one generated lemma per
+      rule function and per search function), and C3 for the list machine,
+      `machine-result-is-terminal` in `engine/machine/terminal-ok.lisp`
+      (2.5 s) ([E3-theorem](notes/E3-theorem.md), 2026-11-15)
 - [x] Decide and record the fuel relation: `(< (m-clocks n s) fuel)`,
       where `m-clocks` sums the clock over the run (2026-11-15)
 
 **Exit**: the statement certifies (met, with no `skip-proofs` at all) and
-item 2 is proved. [E3-theorem](notes/E3-theorem.md) holds the statement
+item 2 is proved (met, 2026-11-15). [E3-theorem](notes/E3-theorem.md) holds the statement
 and the reason for each hypothesis.
 
 ### E4: Rule lemmas (needs D4)
@@ -414,23 +445,37 @@ new item.
 
 ### E6: List machine
 
-- [ ] `engine/machine/`: state as lists, `machine-step`, `machine-run`
+- [x] `engine/machine/`: state as lists, `machine-step`, `machine-run`
       with fuel, loader from a decoded module, in `:logic` with guards
       verified. S0 first. Follow the step table of
       [E5-machine](notes/E5-machine.md). Write the step function over a
       small set of primitives (push, pop, local, memory, control entry),
       not over the state's list structure, so that E7 changes only the
-      primitives
-- [ ] Constraint C1 of E3 for this machine: a step keeps `machine-ok`
-- [ ] `abs` as an executable function
-- [ ] Differential test 1: at every step of every E0 benchmark,
-      `(abs (machine-step s))` equals the spec stepped `(clock s)` times
+      primitives. Done as `machine.lisp` (3.7 s): the machine picks the
+      redex by the head instruction and applies the spec's own rule
+      functions to it, in `STEP`'s order (a table of 212 rules made by
+      `make-event` from the relation bodies); spec functions through
+      `ec-call`. The loader takes the configuration of the spec's
+      `$instantiate`/`$invoke` (2026-11-15)
+- [x] Constraint C1 of E3 for this machine: a step keeps `machine-ok`
+      (`ok.lisp`, `machine-step-preserves-ok`, 19 s) (2026-11-15)
+- [x] `abs` as an executable function (`machine-abs`, guard-verified)
+- [x] Differential test 1: at every step of every E0 benchmark,
+      `(abs (machine-step s))` equals the spec stepped `(clock s)` times:
+      0 disagreements in 10 runs (10,050 machine steps), including a trap
+      and an uncaught exception (2026-11-15)
 - [ ] Differential test 2: the spec test scripts whose modules are inside
       the machine's subset, per-command results compared with the
-      generated semantics
+      generated semantics. Run on all 258 scripts: 33,113 commands agree
+      (14,303 in S0, 17,991 in S1, 176 in S2, 66 in S3), 24,773 stop at
+      instructions outside D5, **2 differ** (`call_indirect.wast`,
+      `fib-i32` 2 and 5: spec 2 and 8, machine stuck). Run alone, or after
+      the earlier commands on the machine, the same commands agree; being
+      checked
 
 **Exit**: both differential tests pass with zero disagreements for S0.
-Scripts and commands inside S0 recorded.
+Scripts and commands inside S0 recorded
+([E6-list-machine](notes/E6-list-machine.md)).
 
 ### E7: Stobj machine
 
