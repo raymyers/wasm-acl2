@@ -486,7 +486,13 @@ Scripts and commands inside S0 recorded
 
 - [ ] `engine/fast/`: a concrete stobj (operand stack and locals in one
       array, control stack, memory as a byte array) and a `defabsstobj`
-      whose logical side is the E6 state. The step function is E6's
+      whose logical side is the E6 state. The step function is E6's.
+      Design consequence of E6 recorded in
+      [E6-list-machine](notes/E6-list-machine.md) ("What this means for
+      E7"): memory in an array, fast paths for about 12 memory rules,
+      and a generated frame lemma for every other rule; the frame lemma
+      for `local.get` and `local.set` was tried and proves with four
+      record lemmas (2026-11-16)
 - [ ] Refinement: the correspondence obligations of the `defabsstobj`
       primitives. `mbe` fast paths for the spec's numeric functions where
       the profile asks for them

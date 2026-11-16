@@ -318,6 +318,21 @@ non-value. This was not continued here.
   machine already removes the other two costs (search and depth). So E7
   part 1 and part 2 for `load`/`store` are what the go/no-go rate needs
   first.
+
+  **First test of part 3** (2026-11-16, interactive session, not a book
+  yet). With `put-z-bytes z b` = the state `z` with memory 0's byte list
+  replaced by `b`:
+  - `(R (z_b; l)) = (R (z_nil; l))` for `R` = `STEP_READ/SPLIT/R-LOCAL.GET`
+    proves at once (0.02 s): a read rule that never looks at memory.
+  - For `R` = `STEP/R-LOCAL.SET`, the result with bytes `b` equals the
+    result with no bytes, with `b` put back, under the hypotheses that the
+    store has a memory and `z` is a three-element list. The first attempt
+    was stopped after 2 minutes (637 checkpoints, all about
+    `put-assoc-equal` of `put-assoc-equal`). With four lemmas,
+    `assoc-equal` of `put-assoc-equal`, `put-assoc-equal` twice with the
+    same key, `alistp` of `put-assoc-equal`, and `put-assoc-equal` of the
+    value already there, it proves in 1.15 s.
+  So part 3 needs a small record library first, then the generator.
 - **E11.** Every clock-1 step is a rule function on a subterm of
   `machine-abs`. The simulation lemma for a step is then: `STEP` of the
   whole configuration equals the rule result put back in place. That is
