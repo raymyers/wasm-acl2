@@ -62,18 +62,66 @@ function makeSemantics(jscl, makeLisp) {
     return { type: '?', bits: L.show(v), text: L.show(v) };
   }
 
+  // --- print host (plan W4 item 2, "a print for the page") ----------------
+  // Every module is instantiated against an environment where "env" (not
+  // "spectest": t7 looks that name up under a string key) is registered as a host module (DEMO::REGISTER-HOST): the signature
+  // module below declares the functions, each export becomes a host
+  // function, and globalThis.DEMOHOST answers the calls. The semantics asks
+  // the host several times per step (length check, binding, the candidate
+  // argument splits of both call_ref-hostfunc rules), so the host answers as
+  // a pure function of (function, values): NONE for a call whose values do
+  // not fit the signature, the empty result list for a print. The print is
+  // recorded once per step and argument list (keyed by the step).
+  //   (module (func (export "print")) (func (export "print_i32") (param i32))
+  //     (func (export "print_i64") (param i64)) (func (export "print_f32") (param f32))
+  //     (func (export "print_f64") (param f64)) (func (export "print_i32_f32") (param i32 f32))
+  //     (func (export "print_f64_f64") (param f64 f64)))      (wabt 1.0.39, 165 bytes)
+  const SPECTEST_SIG = '0061736d01000000011e0760000060017f0060017e0060017d0060017c0060027f7d0060027c7c0003080700010203040506075907057072696e740000097072696e745f6933320001097072696e745f6936340002097072696e745f6633320003097072696e745f66363400040d7072696e745f6933325f66333200050d7072696e745f6636345f66363400060a160702000b02000b02000b02000b02000b02000b02000b';
+  const registerHost = L.fn('DEMO', 'REGISTER-HOST');
+  let printSink = null;                       // {key() -> string, seen: Set, out: [line]}
+  const chars = l => String.fromCharCode(...L.toArray(l));
+  globalThis.DEMOHOST = {
+    call(hf, vals, none) {
+      const [mod, field] = L.toArray(hf).map(chars);
+      const want = mod === 'env' ? PRINT_TYPES[field] : undefined;
+      if (!want) return none;
+      const vs = L.toArray(vals).map(fromVal);
+      if (vs.length !== want.length || vs.some((v, k) => v.type !== want[k])) return none;
+      if (printSink) {
+        const key = `${printSink.key()}|${field}|${vs.map(v => v.bits).join(',')}`;
+        if (!printSink.seen.has(key)) { printSink.seen.add(key); printSink.out.push(printLine(field, vs)); }
+      }
+      return L.NIL;                              // no results
+    },
+  };
+  let env0 = null;
+  function baseEnv() {
+    if (!env0) {
+      const bytes = L.list(SPECTEST_SIG.match(/../g).map(h => parseInt(h, 16)));
+      const [st, e] = L.toArray(registerHost(emptyEnv(), L.list(utf8('env')), bytes));
+      env0 = kwName(st) === 'OK' ? e : emptyEnv();
+    }
+    return env0;
+  }
+
   function run(bytes, exportName, args, fuel) {
     const lispArgs = L.list(args.map(({ type, value }) => toLispArg(type, parseArg(type, value))));
+    const prints = [];
+    printSink = { key: () => String(steps), seen: new Set(), out: prints };
+    try { return run1(bytes, exportName, lispArgs, fuel, prints); } finally { printSink = null; }
+  }
+  function run1(bytes, exportName, lispArgs, fuel, prints) {
     const t0 = now();
     steps = 0;
-    const [st, env] = L.toArray(loadModule(L.list([...bytes]), emptyEnv()));
+    const [st, env] = L.toArray(loadModule(L.list([...bytes]), baseEnv()));
     const loadSteps = steps, t1 = now();
     const status = kwName(st).toLowerCase();
-    if (status !== 'ok') return { status, loadMs: t1 - t0, loadSteps };
+    if (status !== 'ok') return { status, loadMs: t1 - t0, loadSteps, prints };
     steps = 0;
+    printSink.key = () => 'run' + steps;
     const [r] = L.toArray(invoke(env, L.list(utf8(exportName)), lispArgs, fuel > 0 ? fuel : L.NIL));
     const t2 = now();
-    const out = { status: 'ok', loadMs: t1 - t0, loadSteps, runMs: t2 - t1, steps };
+    const out = { status: 'ok', loadMs: t1 - t0, loadSteps, runMs: t2 - t1, steps, prints };
     if (L.isCons(r) || r === L.NIL) out.values = L.toArray(r).map(fromVal);
     else out.status = kwName(r).toLowerCase();                 // trap, exception, fuel, error
     return out;
@@ -88,7 +136,9 @@ function makeSemantics(jscl, makeLisp) {
   // RUN-STEPS makes too. FUEL bounds the STEP calls of the session as
   // *spec-fuel* bounds RUN-STEPS: n steps need n + 1 calls.
   const startInvoke = L.fn('DEMO', 'START-INVOKE');
-  const stepConfig = L.fn('DEMO', 'STEP-CONFIG');
+  // W8: Step mode steps with STEP-RULES (STEP-CONFIG with the %RULE
+  // recorder on), so every step taken has its rule chain, outermost first
+  const stepRules = L.fn('DEMO', 'STEP-RULES');
   const finishConfig = L.fn('DEMO', 'FINISH-CONFIG');
   let sess = null;
 
@@ -96,12 +146,16 @@ function makeSemantics(jscl, makeLisp) {
     sess = null;
     const lispArgs = L.list(args.map(({ type, value }) => toLispArg(type, parseArg(type, value))));
     const t0 = now();
-    const [st, env] = L.toArray(loadModule(L.list([...bytes]), emptyEnv()));
+    const loadPrints = [];
+    printSink = { key: () => 'load' + steps, seen: new Set(), out: loadPrints };
+    let st, env;
+    try { [st, env] = L.toArray(loadModule(L.list([...bytes]), baseEnv())); } finally { printSink = null; }
     const status = kwName(st).toLowerCase();
-    if (status !== 'ok') return { status, done: true, loadMs: now() - t0 };
+    if (status !== 'ok') return { status, done: true, loadMs: now() - t0, prints: loadPrints };
     const [ok, c] = L.toArray(startInvoke(env, L.list(utf8(exportName)), lispArgs));
     if (kwName(ok) !== 'OK') return { status: 'error', done: true, loadMs: now() - t0 };
-    sess = { env, c, shown: c, next: undefined, steps: 0, calls: 0, fuel: fuel > 0 ? fuel : 200000, done: false, status: 'running' };
+    sess = { env, c, shown: c, next: undefined, steps: 0, calls: 0, fuel: fuel > 0 ? fuel : 200000, done: false, status: 'running',
+      chain: null, nextChain: null, nextPrints: [], prints: loadPrints };
     sess.map = printed ? { tree: LinesLib().parse(printed), levels: [], prev: null, conds: new Map() } : null;
     sess.where = mapStep(c);
     lookahead();
@@ -113,8 +167,12 @@ function makeSemantics(jscl, makeLisp) {
     if (sess.next !== undefined || sess.done) return;
     if (sess.calls >= sess.fuel) { sess.done = true; sess.status = 'fuel'; return; }
     sess.calls++;
-    const n = stepConfig(sess.c);
-    if (n === L.NIL) { sess.done = true; sess.status = 'ok'; } else sess.next = n;
+    sess.nextPrints = [];
+    printSink = { key: () => 'step' + sess.calls, seen: new Set(), out: sess.nextPrints };
+    let n, ch;
+    try { [n, ch] = L.toArray(stepRules(sess.c)); } finally { printSink = null; }
+    if (n === L.NIL) { sess.done = true; sess.status = 'ok'; sess.nextPrints = []; }
+    else { sess.next = n; sess.nextChain = L.toArray(ch).map(x => L.show(x).replace(/^"|"$/g, '')); }
   }
   // n steps (Infinity: to the normal form), then the view. OPTS (W6):
   // breakpoints, a list of printed lines: stop after a step that reaches
@@ -127,6 +185,7 @@ function makeSemantics(jscl, makeLisp) {
     let k = 0, stopped = null;
     while (k < n && !sess.done) {
       sess.c = sess.next; sess.next = undefined; sess.steps++; k++;
+      sess.chain = sess.nextChain; sess.prints.push(...sess.nextPrints);
       sess.where = mapStep(sess.c);
       const ln = sess.where ? sess.where.line : null;
       lookahead();
@@ -139,8 +198,10 @@ function makeSemantics(jscl, makeLisp) {
   }
   function reply(k, ms) {
     const out = { status: sess.status, done: sess.done, steps: sess.steps, advanced: k, ms, view: view(sess.c, sess.shown),
-      line: sess.where ? sess.where.line : null, fn: sess.where ? sess.where.fn : null };
+      line: sess.where ? sess.where.line : null, fn: sess.where ? sess.where.fn : null,
+      chain: sess.chain, prints: sess.prints };
     sess.shown = sess.c;
+    sess.prints = [];
     if (sess.done && sess.status === 'ok') {
       const [r] = L.toArray(finishConfig(sess.c, sess.env));
       if (L.isCons(r) || r === L.NIL) out.values = L.toArray(r).map(fromVal);
@@ -338,6 +399,12 @@ function makeSemantics(jscl, makeLisp) {
   return { run, start, advance, parseArg, L };
 }
 
+// the env print functions (spectest-style) and the line a print shows (the same for the
+// semantics and the native engine, native.js)
+const PRINT_TYPES = { print: [], print_i32: ['i32'], print_i64: ['i64'], print_f32: ['f32'], print_f64: ['f64'],
+  print_i32_f32: ['i32', 'f32'], print_f64_f64: ['f64', 'f64'] };
+const printLine = (field, vs) => `${field}(${vs.map(v => v.text).join(', ')})`;
+
 // display of a bit pattern of a scalar type (signed for integers)
 function showBits(type, bits) {
   bits = BigInt(bits);
@@ -385,4 +452,4 @@ function parseArg(type, text) {
   dv.setFloat64(0, f, true); return dv.getBigUint64(0, true);
 }
 
-if (typeof module !== 'undefined') module.exports = { makeSemantics, showBits, parseArg };
+if (typeof module !== 'undefined') module.exports = { makeSemantics, showBits, parseArg, PRINT_TYPES, printLine };

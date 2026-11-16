@@ -2,13 +2,32 @@
 // engine (D4: the oracle shown next to the semantics; the page does not
 // judge). Results are given as the semantics' are: {type, bits, text}.
 'use strict';
-function runNative(bytes, fn, args, parseArg, showBits) {
+// PRINTING ({PRINT_TYPES, printLine}, semantics.js): the same env
+// print functions as the semantics' host, as JS imports; their lines are
+// returned in `prints`.
+function runNative(bytes, fn, args, parseArg, showBits, printing) {
+  const prints = [];
+  const imports = {};
+  if (printing) {
+    const dv8 = new DataView(new ArrayBuffer(8));
+    const val = (type, x) => {
+      let bits;
+      if (type === 'i32') bits = BigInt.asUintN(32, BigInt(x));
+      else if (type === 'i64') bits = BigInt.asUintN(64, x);
+      else if (type === 'f32') { dv8.setFloat32(0, x, true); bits = BigInt(dv8.getUint32(0, true)); }
+      else { dv8.setFloat64(0, x, true); bits = dv8.getBigUint64(0, true); }
+      return { type, bits: bits.toString(), text: showBits(type, bits) };
+    };
+    imports.env = {};
+    for (const [field, types] of Object.entries(printing.PRINT_TYPES))
+      imports.env[field] = (...xs) => { prints.push(printing.printLine(field, types.map((t, k) => val(t, xs[k])))); };
+  }
   const now = () => (typeof performance !== 'undefined' ? performance : Date).now();
   const t0 = now();
   let t1 = null;                                   // after compile + instantiate
-  const done = r => { const t = now(); return t1 === null ? { ...r, loadMs: t - t0 } : { ...r, loadMs: t1 - t0, runMs: t - t1 }; };
+  const done = r => { const t = now(); return t1 === null ? { ...r, prints, loadMs: t - t0 } : { ...r, prints, loadMs: t1 - t0, runMs: t - t1 }; };
   let inst;
-  try { inst = new WebAssembly.Instance(new WebAssembly.Module(bytes), {}); }
+  try { inst = new WebAssembly.Instance(new WebAssembly.Module(bytes), imports); }
   catch (e) {
     const status = e instanceof WebAssembly.CompileError ? 'invalid' : e instanceof WebAssembly.LinkError ? 'unlinkable'
       : e instanceof WebAssembly.RuntimeError ? 'trap' : 'error';

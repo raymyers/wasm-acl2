@@ -156,6 +156,14 @@
     if (steps !== undefined) $(side + '-steps').textContent = steps;
     $(side + '-time').textContent = time;
     $(side + '-load').textContent = load ?? '—';
+    showPrints(side, r.prints || []);
+  }
+  // lines printed by env.print_* (the print host); data-prints for the smoke test
+  function showPrints(side, lines) {
+    const ol = $(side + '-prints');
+    ol.dataset.prints = JSON.stringify(lines);
+    ol.innerHTML = lines.slice(-12).map(t => `<li>${esc(t)}</li>`).join('')
+      + (lines.length > 12 ? `<li class="more">… ${lines.length - 12} earlier lines</li>` : '');
   }
   function showSem(r) {
     const steps = r.steps !== undefined ? r.steps.toLocaleString('en-US') : '—';
@@ -167,7 +175,7 @@
     showCard('sem', r, steps, time, load);
   }
   function showNative(fn, args) {
-    const n = runNative(info.bytes, fn, args, parseArg, showBits);
+    const n = runNative(info.bytes, fn, args, parseArg, showBits, { PRINT_TYPES, printLine });
     showCard('nat', n, undefined, n.runMs !== undefined ? fmtMs(n.runMs) : '—', fmtMs(n.loadMs));
     $('nat').dataset.ms = n.runMs ?? '';
   }
@@ -175,6 +183,7 @@
     for (const s of ['sem', 'nat']) {
       const c = $(s); c.dataset.state = 'idle'; c.dataset.status = ''; c.dataset.key = '';
       $(s + '-value').textContent = '—'; $(s + '-status').textContent = '—'; $(s + '-time').textContent = '—'; $(s + '-load').textContent = '—';
+      showPrints(s, []);
     }
     $('sem-steps').textContent = '—';
   }
@@ -216,12 +225,12 @@
     const printed = Lines.print(wabt, info.bytes);
     renderPrinted(printed);
     const startId = post('start', { bytes: info.bytes, name: q.fn.name, args: q.args, fuel: q.fuel, printed: printed.text });
-    sess = { startId, totalMs: 0, done: false, lastId: startId };
+    sess = { startId, totalMs: 0, done: false, lastId: startId, prints: [] };
     showSem({ status: 'stepping', steps: 0 });
     showNative(q.fn, q.args);
     return true;
   }
-  function endSession() { if (sess) { sess = null; clearStepView(); highlight(null); setButtons(); } }
+  function endSession() { if (sess) { sess = null; clearStepView(); highlight(null); renderChain(null); setButtons(); } }
   function stepAction(type) {
     if (type !== 'restart' && ui.step.disabled) return;
     if (type === 'restart' || !sess) { if (!beginSession()) return; if (type === 'restart') return; }
@@ -236,15 +245,30 @@
     if (m.loadMs !== undefined) sess.loadMs = m.loadMs;
     sess.totalMs += m.ms || 0;
     sess.done = !!m.done;
+    sess.prints.push(...(m.prints || []));
     renderView(m);
     highlight(m.line);
+    renderChain(m.chain);
     if (m.done) {
       const perStep = m.steps ? sess.totalMs / m.steps : undefined;
-      showSem({ ...m, runMs: sess.totalMs, loadMs: sess.loadMs, perStep });
+      showSem({ ...m, runMs: sess.totalMs, loadMs: sess.loadMs, perStep, prints: sess.prints });
     } else {
-      showSem({ status: 'stepping', steps: m.steps, runMs: sess.totalMs, loadMs: sess.loadMs });
+      showSem({ status: 'stepping', steps: m.steps, runMs: sess.totalMs, loadMs: sess.loadMs, prints: sess.prints });
     }
     setButtons();
+  }
+
+  // W8: the rule chain of the step just taken, outermost first; each name
+  // searches the SpecTec source (GitHub code search: the default branch,
+  // so the pinned rev is shown next to it)
+  const ruleUrl = name => 'https://github.com/search?type=code&q='
+    + encodeURIComponent(`repo:WebAssembly/spec path:specification/wasm-3.0 "${name}"`);
+  function renderChain(chain) {
+    const el = $('sv-chain');
+    el.dataset.chain = chain ? JSON.stringify(chain) : '';
+    el.innerHTML = chain && chain.length
+      ? chain.map(n => `<a href="${ruleUrl(n)}" target="_blank" rel="noopener" title="search for rule ${esc(n)} in specification/wasm-3.0">${esc(n)}</a>`).join(' <span class="sep">›</span> ')
+      : '<span class="muted">— (no step taken yet)</span>';
   }
 
   // the printed module (W6): line numbers toggle breakpoints

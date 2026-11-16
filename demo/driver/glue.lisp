@@ -111,6 +111,40 @@
           ((w3t::exn-result-p instrs) (list :exception (cons s (cdr env))))
           (t (list instrs (cons s (cdr env)))))))
 
+;;; W8: the rule chain of one step. The recorder (shim/rule.lisp) is on for
+;;; this one STEP call only. Tags fire after premises, and a rule may
+;;; succeed in a premise and then fail later (its tags stay in the trace),
+;;; so the chain is read from the end: the last Step/Step_pure/Step_read
+;;; name is the outermost rule; while that rule has a Step-family premise,
+;;; the Step-family name recorded last before it is the rule of that
+;;; premise (in such a rule the premise is the last Step-family call
+;;; before the conclusion). Names of other relations (typing, ...) are
+;;; skipped.
+(defun step-family-p (name)
+  (let ((k (position #\/ name)))
+    (and k (member (subseq name 0 k) '("Step" "Step_pure" "Step_read") :test #'string=))))
+;; The rules of Step, Step_pure and Step_read with a premise of that family,
+;; read from the IL (plan/wasm3-demo/notes/data/w8/step-premises.mjs: these
+;; six, and no rule of Step_pure or Step_read). Only through them does the
+;; chain go one rule further in.
+(defparameter +step-descends+
+  '("Step/pure" "Step/read" "Step/ctxt-instrs" "Step/ctxt-label" "Step/ctxt-handler" "Step/ctxt-frame"))
+(defun rule-chain (trace)
+  ;; TRACE: names, most recent first -> the chain, outermost first
+  (let ((xs (remove-if-not #'step-family-p trace)) (chain nil))
+    (when xs
+      (push (car xs) chain)
+      (loop while (and (member (car chain) +step-descends+ :test #'string=) (cdr xs))
+            do (setq xs (cdr xs)) (push (car xs) chain)))
+    (nreverse chain)))
+
+;; (step-rules c) -> (next-config chain): STEP-CONFIG with the recorder on;
+;; CHAIN a list of rule names (strings), outermost first, NIL at a normal form
+(defun step-rules (c)
+  (let ((acl2-shim::*rule-on* t) (acl2-shim::*rule-trace* nil))
+    (let ((r (w3t::step c)))
+      (list (and r (car r)) (and r (rule-chain acl2-shim::*rule-trace*))))))
+
 ;; (invoke env name args fuel) -> (result env'): t7's DO-ACTION on
 ;; (:invoke nil name args), NAME a list of character codes (as in the
 ;; converted spec data), ARGS a list of (:I32 n) / (:I64 n) / (:F32 bits)

@@ -1,0 +1,7 @@
+W8-PREMISE Step/pure -> Step_pure
+W8-PREMISE Step/read -> Step_read
+W8-PREMISE Step/ctxt-instrs -> Step
+W8-PREMISE Step/ctxt-label -> Step
+W8-PREMISE Step/ctxt-handler -> Step
+W8-PREMISE Step/ctxt-frame -> Step
+W8-PREMISE 6 rules of Step, Step_pure, Step_read with a Step-family premise

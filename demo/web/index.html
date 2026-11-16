@@ -62,21 +62,23 @@
       <article class="card" id="sem" data-state="idle">
         <h2>ACL2 semantics <span class="muted">JSCL · Worker</span></h2>
         <div class="value" id="sem-value">—</div>
+        <ol class="prints" id="sem-prints" data-prints="[]" aria-label="printed by env.print_*"></ol>
         <dl class="meta">
           <dt>status</dt><dd id="sem-status">—</dd>
           <dt>steps</dt><dd id="sem-steps">—</dd>
           <dt>run</dt><dd id="sem-time">—</dd>
-          <dt title="decode, validate, instantiate">load</dt><dd id="sem-load">—</dd>
+          <dt class="load-row" title="decode, validate, instantiate">load</dt><dd class="load-row" id="sem-load">—</dd>
         </dl>
       </article>
       <article class="card" id="nat" data-state="idle">
         <h2>Native WebAssembly <span class="muted" id="nat-engine">this browser</span></h2>
         <div class="value" id="nat-value">—</div>
+        <ol class="prints" id="nat-prints" data-prints="[]" aria-label="printed by env.print_*"></ol>
         <dl class="meta">
           <dt>status</dt><dd id="nat-status">—</dd>
           <dt>steps</dt><dd class="muted">not observable</dd>
           <dt>run</dt><dd id="nat-time">—</dd>
-          <dt title="compile, instantiate">load</dt><dd id="nat-load">—</dd>
+          <dt class="load-row" title="compile, instantiate">load</dt><dd class="load-row" id="nat-load">—</dd>
         </dl>
       </article>
     </div>
@@ -93,6 +95,11 @@
       <div class="sv-head">
         <span>Configuration after <b id="sv-steps">0</b> steps</span>
         <span id="sv-nest" class="nest" title="LABEL_ / FRAME_ contexts, outermost first"></span>
+      </div>
+      <div class="sv-chain">
+        <div class="sv-chain-head"><span class="muted" title="each name searches for the rule id in the SpecTec source (specification/wasm-3.0)">Rules of the last step, outermost first</span>
+        <a class="rev" href="https://github.com/WebAssembly/spec/tree/943c5df07e84f11d2b83078964df5812530afbd2/specification/wasm-3.0" target="_blank" rel="noopener" title="the SpecTec source the semantics was translated from; the rule links search GitHub's default branch, restricted to specification/wasm-3.0">WebAssembly/spec@943c5df</a></div>
+        <div id="sv-chain" class="chain" data-chain=""></div>
       </div>
       <div class="sv-grid">
         <div class="sv-col">

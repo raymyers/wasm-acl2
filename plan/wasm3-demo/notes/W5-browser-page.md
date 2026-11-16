@@ -199,6 +199,38 @@ Ranges over the three smoke runs of this session (same loaded machine).
   An earlier smoke run in this session gave 0.56 / 1.03 ms per step and
   33 / 32 ms per click, with the same counts.
 
+### Print host (W4 item 2's "print for the page")
+- Every module on the page is instantiated against a base environment.
+  In it, a host module **`env`** is registered with `DEMO::REGISTER-HOST`:
+  `print`, `print_i32`, `print_i64`, `print_f32`, `print_f64`,
+  `print_i32_f32`, `print_f64_f64` (the signature module is 165
+  bytes of hex in `semantics.js`, with its WAT next to it). The name
+  is `env`, not `spectest`: t7's `REGISTERED`, which the import
+  resolution uses, looks `spectest` up under a string key of its own,
+  so a host registered as `spectest` (char codes) is not found
+  (`:UNLINKABLE`, tried).
+- `globalThis.DEMOHOST.call(hf, vals, none)` answers as a pure
+  function of (function, values). It returns `none` when the values
+  do not fit the signature (the semantics also asks with the other
+  argument splits of both `call_ref-hostfunc` rules), and the empty
+  result list for a print. It records a print once per step and argument
+  list: the key is the step counter (Run mode) or the session's STEP call
+  (Step mode). In Step mode a print belongs to the step computed ahead,
+  so it is shown when that step is taken.
+- The native side gets the same `env` functions as JS imports.
+  `native.js` prints the same text (`print_i32(9)`,
+  `print_f64(1 (0x3ff0000000000000))`: the value and, for floats, the
+  bits). Both result cards list the printed lines.
+- Example "Print (host import)": `squares(4)` prints `i*i` for
+  `i < 4`, then `4 / 4` as f64. Checks:
+  - node (`make -C demo lines`): Run mode and Step mode both print
+    exactly the five hand-written lines (Step mode at steps 12, 26, 40,
+    54 and 70 of 72);
+  - smoke, Chromium and Firefox: in Run mode the two sides print the same
+    five lines; in Step mode (15 requests of Step ×5) the semantics
+    prints the same five lines as native, each once
+    (`notes/data/w8/page-smoke.log`).
+
 ## Open
 - `make -C demo check` runs `smoke` (both browsers, Run and Step mode)
   since the W5 commit.

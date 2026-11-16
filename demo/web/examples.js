@@ -106,6 +106,23 @@ const EXAMPLES = [
     (call $double (local.get $x))))`,
   },
   {
+    id: 'print', title: 'Print (host import)', export: 'squares', args: ['4'],
+    source: `(module
+  ;; host functions: the page provides env.print_* to both engines
+  (import "env" "print_i32" (func $print_i32 (param i32)))
+  (import "env" "print_f64" (func $print_f64 (param f64)))
+  ;; prints i*i for i < n, then n / 4
+  (func (export "squares") (param $n i32)
+    (local $i i32)
+    (block $done
+      (loop $next
+        (br_if $done (i32.ge_u (local.get $i) (local.get $n)))
+        (call $print_i32 (i32.mul (local.get $i) (local.get $i)))
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))
+        (br $next)))
+    (call $print_f64 (f64.div (f64.convert_i32_u (local.get $n)) (f64.const 4)))))`,
+  },
+  {
     id: 'simd', title: 'SIMD lane op (i32x4)', export: 'dot', args: ['5', '6', '7', '8'],
     source: `(module
   ;; [a b c d] * [1 2 3 4] lane by lane, then the four lanes added up

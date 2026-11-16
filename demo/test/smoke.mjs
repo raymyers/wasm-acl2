@@ -11,7 +11,11 @@
 // check or a page error.
 // Usage: node smoke.mjs BUILD_WEB_DIR. SHOT=<png>: Run-mode screenshot,
 // SHOT_STEP=<png>: Step-mode screenshot mid-run, SHOT_LINE=<png>: Step mode
-// with the line highlight (W6) (all Chromium).
+// with the line highlight (W6), SHOT_RULES=<png>: Step mode with the rule
+// chain (W8) (all Chromium).
+// W8 item 2: the GC example's Step clicks each show a non-empty rule chain;
+// print host: the print example prints the same lines on both sides, in
+// Run mode and in Step mode (Step x5 requests), each line once.
 // SMOKE_JSON=<file>: the measurements as JSON.
 import path from 'node:path';
 import fs from 'node:fs';
@@ -49,7 +53,8 @@ async function runOne(page, r, fuel = 200000) {
   return page.evaluate(() => {
     const s = document.querySelector('#sem'), n = document.querySelector('#nat');
     return { sem: s.dataset.key, nat: n.dataset.key, steps: s.dataset.steps, ms: Number(s.dataset.ms),
-      natMs: Number(n.dataset.ms), semText: document.querySelector('#sem-value').textContent };
+      natMs: Number(n.dataset.ms), semText: document.querySelector('#sem-value').textContent,
+      semPrints: document.querySelector('#sem-prints').dataset.prints, natPrints: document.querySelector('#nat-prints').dataset.prints };
   });
 }
 
@@ -96,7 +101,7 @@ async function stepChecks(b, page, rep) {
   // GC example stepped to its end, one click per step
   const gc = runs['gc/f'];
   await session(page, { id: 'gc', export: 'f', args: ['3', '4'] });
-  const redexes = [];
+  const redexes = [], chains = [];
   let st = await sv(page), clicks = 0;
   const tc = Date.now();
   while (!st.done && clicks < 100) {
@@ -104,10 +109,14 @@ async function stepChecks(b, page, rep) {
     await page.click('#step'); clicks++;
     await idle(page);
     st = await sv(page);
+    chains.push(JSON.parse((await page.$eval('#sv-chain', e => e.dataset.chain)) || '[]'));
   }
   const perClick = (Date.now() - tc) / clicks;
   const gcOk = st.done && st.steps === Number(gc.steps) && clicks === st.steps && st.sem === gc.sem && st.sem === st.nat;
   rep.step.gc = { clicks, steps: st.steps, runSteps: Number(gc.steps), sem: st.sem, nat: st.nat, msPerClick: perClick, redexes };
+  const chained = chains.filter(c => c.length).length;
+  rep.step.gcChains = chains;
+  line(b, chained === clicks && clicks > 0, `W8 rule chains: ${chained}/${clicks} steps of gc f(3, 4) show a non-empty chain (last: ${(chains[chains.length - 1] || []).join(' › ')})`);
   line(b, gcOk, `step mode gc f(3, 4): ${clicks} Step clicks to the normal form, ${st.steps} steps (Run mode ${gc.steps}), ${st.sem} (native ${st.nat}); ${perClick.toFixed(0)} ms per click (UI round trip)`);
 
   // memory example: step until the first memory diff
@@ -169,6 +178,28 @@ async function lineChecks(b, page, rep) {
   await page.click('#printed li[data-line="21"] .ln');       // breakpoint off again
 }
 
+// --- print host and W8 screenshot -------------------------------------------
+async function printChecks(b, page, rep) {
+  const prints = page => page.evaluate(() => ({ sem: document.querySelector('#sem-prints').dataset.prints,
+    nat: document.querySelector('#nat-prints').dataset.prints }));
+  const want = JSON.stringify(['print_i32(0)', 'print_i32(1)', 'print_i32(4)', 'print_i32(9)', 'print_f64(1 (0x3ff0000000000000))']);
+  await session(page, { id: 'print', export: 'squares', args: ['4'] });
+  await page.fill('#n', '5');
+  let st = await sv(page), reqs = 0;
+  while (!st.done && reqs < 100) { await page.click('#stepn'); await idle(page); st = await sv(page); reqs++; }
+  const p = await prints(page);
+  const ok = st.done && p.sem === want && p.nat === want;
+  rep.prints = { step: p, requests: reqs, steps: st.steps };
+  line(b, ok, `print host, Step mode (${reqs} Step x5 requests, ${st.steps} steps): semantics ${p.sem}, native ${p.nat}`);
+  if (b === 'chromium' && process.env.SHOT_RULES) {
+    await session(page, { id: 'print', export: 'squares', args: ['4'] });
+    await page.fill('#n', '26');
+    await page.click('#stepn'); await idle(page);           // step 26: the second print_i32
+    const kb = await screenshot(page, process.env.SHOT_RULES);
+    console.log(`W5-SMOKE screenshot ${process.env.SHOT_RULES}: ${kb.toFixed(0)} KB`);
+  }
+}
+
 try {
   for (const b of BROWSERS) {
     await withPage(b, async (page, errors) => {
@@ -183,9 +214,9 @@ try {
 
       for (const r of RUNS) {
         const g = await runOne(page, r);
-        const ok = g.sem === g.nat && g.sem !== '' && errors.length === 0;
+        const ok = g.sem === g.nat && g.sem !== '' && g.semPrints === g.natPrints && errors.length === 0;
         rep.runs.push({ ...r, ...g, ok });
-        line(b, ok, `${r.id}/${r.export}(${r.args.join(', ')}): semantics ${g.sem} [${g.steps} steps, ${g.ms.toFixed(0)} ms] native ${g.nat} [${g.natMs.toFixed(2)} ms]`);
+        line(b, ok, `${r.id}/${r.export}(${r.args.join(', ')}): semantics ${g.sem} [${g.steps} steps, ${g.ms.toFixed(0)} ms] native ${g.nat} [${g.natMs.toFixed(2)} ms]${g.semPrints !== '[]' ? `; prints ${g.semPrints} / native ${g.natPrints}` : ''}`);
       }
 
       // fuel: factorial(20) needs 240 steps
@@ -218,6 +249,7 @@ try {
       }
       await stepChecks(b, page, rep);
       await lineChecks(b, page, rep);
+      await printChecks(b, page, rep);
       line(b, errors.length === 0, `page errors: ${errors.length ? errors.join('; ') : 'none'}`);
     });
   }

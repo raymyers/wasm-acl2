@@ -4,6 +4,9 @@
 // step count equals Run mode's, the result equals Run mode's, the coverage
 // lists (fac: every non-constant line; branch and call lines), and "Run to
 // next line" and breakpoints on factorial.
+// W8 exit (page part): every step of every W5 example has a non-empty rule
+// chain (Step mode steps with DEMO::STEP-RULES). Print host: the print
+// example prints the same lines in Run and in Step mode, once each.
 // Usage: node lines.js BUILD_DIR (needs WABT_JS, from `nix develop`).
 'use strict';
 const path = require('path');
@@ -20,7 +23,7 @@ const CASES = require('./lines-expected.js');
 
 (async () => {
   const wabt = await require(process.env.WABT_JS)();
-  let fail = 0;
+  let fail = 0, totalSteps = 0, totalChainless = 0;
   const say = (ok, what) => { console.log(`W6-LINES ${ok ? 'PASS' : 'FAIL'} ${what}`); if (!ok) fail++; };
   const setup = c => {
     const bytes = ModInfo.toBytes(wabt, EXAMPLES.find(e => e.id === c.example).source);
@@ -33,7 +36,9 @@ const CASES = require('./lines-expected.js');
     const t0 = Date.now();
     let r = S.start(bytes, c.export, args, 0, printed.text);
     const got = [r.line];
-    while (!r.done) { r = S.advance(1); got.push(r.line); }
+    let chainless = 0, links = 0;
+    while (!r.done) { r = S.advance(1); got.push(r.line); if (!r.chain || !r.chain.length) chainless++; else links += r.chain.length; }
+    totalSteps += r.steps; totalChainless += chainless;
     const ms = Date.now() - t0;
     const diffs = [];
     for (let k = 0; k < Math.max(got.length, c.lines.length); k++)
@@ -41,10 +46,28 @@ const CASES = require('./lines-expected.js');
     const sameRun = r.steps === run.steps && JSON.stringify(r.values) === JSON.stringify(run.values) && r.status === run.status;
     say(diffs.length === 0 && sameRun, `${c.example}/${c.export}(${c.args.join(', ')}) [${printed.printer}]: ${got.length - diffs.length}/${c.lines.length} lines as expected, ${r.steps} steps (Run mode ${run.steps}), ${r.status}${r.values ? ' ' + r.values.map(v => v.text).join(' ') : ''}, ${(ms / r.steps).toFixed(2)} ms/step with mapping`);
     for (const d of diffs.slice(0, 8)) console.log('  ' + d);
+    say(chainless === 0, `${c.example}/${c.export}: rule chains on ${r.steps - chainless}/${r.steps} steps (${(links / Math.max(1, r.steps - chainless)).toFixed(1)} rules per chain)`);
     if (c.covers) {
       const missing = c.covers.filter(l => !got.includes(l));
       say(missing.length === 0, `${c.example}/${c.export}: covers lines ${c.covers.join(' ')}${missing.length ? '; missing ' + missing.join(' ') : ''}`);
     }
+  }
+
+  say(totalChainless === 0, `every step of every example has a non-empty chain: ${totalSteps - totalChainless}/${totalSteps} steps`);
+
+  // print host: the print example, Run mode and Step mode; the lines are
+  // written by hand from the program (i*i for i < 4, then 4 / 4)
+  {
+    const want = ['print_i32(0)', 'print_i32(1)', 'print_i32(4)', 'print_i32(9)', 'print_f64(1 (0x3ff0000000000000))'];
+    const { bytes, args } = setup({ example: 'print', export: 'squares', args: ['4'] });
+    const run = S.run(bytes, 'squares', args, 0);
+    let r = S.start(bytes, 'squares', args, 0);
+    const stepped = [...r.prints], at = [];
+    let pc = 0;
+    while (!r.done) { r = S.advance(1); if (r.prints.length) at.push(r.steps); stepped.push(...r.prints); if (!r.chain || !r.chain.length) pc++; }
+    say(run.status === 'ok' && JSON.stringify(run.prints) === JSON.stringify(want), `print Run mode: ${JSON.stringify(run.prints)} (${run.steps} steps)`);
+    say(r.status === 'ok' && r.steps === run.steps && JSON.stringify(stepped) === JSON.stringify(want), `print Step mode: ${JSON.stringify(stepped)}, printed at steps ${at.join(' ')} of ${r.steps}`);
+    say(pc === 0, `print: rule chains on ${r.steps - pc}/${r.steps} steps`);
   }
 
   // Run to next line and breakpoints, fac(3)

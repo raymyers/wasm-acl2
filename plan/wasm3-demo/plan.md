@@ -32,7 +32,7 @@
   W7 done ([W7-rule-tags](notes/W7-rule-tags.md)); W1 done, D5 final
   ([W1-numbers-stack](notes/W1-numbers-stack.md)); W2 done ([W2-extractor](notes/W2-extractor.md)); W3 done ([W3-shim](notes/W3-shim.md));
   W4 done ([W4-semantics-node](notes/W4-semantics-node.md)); W5 done ([W5-browser-page](notes/W5-browser-page.md));
-  W6 done ([W6-wat-line](notes/W6-wat-line.md))
+  W6 done ([W6-wat-line](notes/W6-wat-line.md)); W8 done ([W8-rule-names](notes/W8-rule-names.md))
 - **Waiting for the user**: nothing. The plan is meant to run headless
   from W0 to W9 (except W9 item 4). It stops only at a W0 no-go, or if W0
   contradicts the conditional W1 decision (D5).
@@ -80,10 +80,16 @@
   result).
 - **Driver (W5), for the user**: `START-INVOKE`, `STEP-CONFIG`,
   `FINISH-CONFIG` (t7's DO-ACTION split into its parts, for Step mode).
-- **Open from W4 item 2**: a `print` host function for the page (the
-  driver supports host imports; the page does not register any yet).
-- **Next action**: W8 (rule names; recorder and chain test exist in the
-  tree, uncommitted; the page part, item 2, to do), then W9.
+- **Shim and driver (W8), for the user**: `shim/rule.lisp` `%RULE` is now a
+  recorder (on only inside `STEP-RULES`); glue `STEP-RULES`, `RULE-CHAIN`
+  and the table `+STEP-DESCENDS+` (the six Step rules with a Step-family
+  premise, read from the IL by `notes/data/w8/step-premises.mjs`).
+- **Page host imports (W4 item 2, closed in W8)**: module `env` with
+  `print`, `print_i32`, ... registered through `REGISTER-HOST`, the same
+  imports on the native side.
+- **Next action**: W9 (build integration, non-interference, README).
+  `flake.nix` `packages.wasm3-demo` and `demo/README.md` exist in the tree,
+  uncommitted.
 - **Translator change (W7, for the user)**: `%RULE` (`rt/prelude.lisp`,
   a macro: `(%RULE name x)` = `x`) and two emitter changes in
   `il2acl2/compile.lisp` (`crule`, `cprod`). Reason: D6/D7, the stepper's
@@ -597,21 +603,40 @@ per-command spec results; item 5 at 218 of 218 (or every missing one has
 a reason).
 
 ### W8: Stepper, rule names
-1. [ ] Shim `%RULE` recorder. `step` returns the rule chain of that one
+1. [x] Shim `%RULE` recorder. `step` returns the rule chain of that one
        reduction (the outermost rule first). Run mode turns the recorder off
        (cost measured: the per-step time with and without it)
-2. [ ] Page: the chain is shown at each step. Each name links to a
+       **Done 2026-11-15** ([W8-rule-names](notes/W8-rule-names.md#recorder-item-1)):
+       `shim/rule.lisp` records while the glue's `STEP-RULES` runs one STEP;
+       the chain is read from the end of the trace, descending only through
+       the six Step rules with a Step-family premise (read from the IL).
+       Run mode, recorder off: 316.0 against 318.3 ms (`fac-iter(25)`),
+       275.9 against 266.4 ms (`fac-i64(10)`); Step mode with chains 0.86 /
+       1.32 ms per step (Chromium / Firefox) against 0.59 / 0.96 without
+2. [x] Page: the chain is shown at each step. Each name links to a
        search for the rule id in the SpecTec source at the pinned rev
        (`WebAssembly/spec@943c5df`, `specification/wasm-3.0/`). A direct
        file-and-line link is optional, only if the IL keeps source
        positions
-3. [ ] Test: for a fixed set of small programs, the expected chain at
+       **Done 2026-11-15** ([W8-rule-names](notes/W8-rule-names.md#page-item-2)):
+       links to a GitHub code search in `specification/wasm-3.0`, the pinned
+       rev shown next to it (code search covers only the default branch);
+       no file-and-line link: the IL has no source positions
+3. [x] Test: for a fixed set of small programs, the expected chain at
        every step is written by hand from the spec (`nop`, `i32.add`,
        `block`/`br`, `call`/`return`, a trap, a `throw`/`catch`), and the
        node stepper must give exactly those chains
+       **Done 2026-11-15** ([W8-rule-names](notes/W8-rule-names.md#test-item-3)):
+       nop, `i32.add`, block/br, call/return, trap, throw/catch: 33/33 steps
+       (`make -C demo chains`)
 
 **Exit**: item 3 passes in `make -C demo check`. Every step of every W5
 example has a non-empty chain.
+
+**W8 result (2026-11-15): exit met.** `chains` in `make -C demo check`
+(33/33); 224/224 steps of the W5 examples have a chain (node), 17/17 in
+both browsers. Screenshot `progress/05-W8-rule-names.png` (50 KB). The page
+also gained the `print` host (W4 item 2, open until now).
 
 ### W9: Build integration and non-interference
 1. [ ] `make -C demo` (all), `make -C demo check` (W2 determinism, W3, W4

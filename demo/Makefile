@@ -10,7 +10,7 @@ GEN     ?= ../translate/gen/wasm-3.0
 SPECDIR ?= ../translate/tests/spec
 LISP    := $(BUILD)/lisp
 
-.PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract js vectors units host conformance-data conformance conformance-quick web smoke lines clean
+.PHONY: all check jscl-hello wabt-hello browser-hello extract check-extract js vectors units host chains conformance-data conformance conformance-quick web smoke lines clean
 
 all: $(BUILD)/hello.js js
 
@@ -88,6 +88,11 @@ vectors: $(BUILD)/test-numerics.js $(BUILD)/test-simd.js
 host: js
 	$(NODE) test/host.js $(BUILD)
 
+# W8 item 3: the rule chain of every step of six small programs, against
+# chains written by hand from the spec (test/chains.js)
+chains: js
+	$(NODE) test/chains.js $(BUILD)
+
 # W4 item 3: the spec-test-3 subset, command by command against ACL2's
 # results-3.0/ (gitignored: `make -C translate spec-data SPEC=3.0` and
 # `make -C translate spec SPEC=3.0`, about 11 min). `conformance` is the whole
@@ -123,7 +128,7 @@ smoke: web
 lines: js
 	$(NODE) test/lines.js $(BUILD)
 
-check: jscl-hello wabt-hello browser-hello check-extract vectors units host conformance-quick smoke lines
+check: jscl-hello wabt-hello browser-hello check-extract vectors units host conformance-quick smoke lines chains
 
 clean:
 	rm -r -f build
