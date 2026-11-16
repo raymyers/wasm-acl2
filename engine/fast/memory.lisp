@@ -62,3 +62,46 @@
                   (put-result-bytes (w3t::step/r-store-num-val (list :|%;%| (put-z-bytes z nil) l))
                                     (store-splice l b))))
   :hints (("Goal" :in-theory (enable w3t::step/r-store-num-val) :do-not-induct t)))
+
+; One memory, for the whole state: the store has one memory and every
+; memory index of the current module is 0.
+(defun all-zero-p (l)
+  (if (atom l) t (and (equal (car l) 0) (all-zero-p (cdr l)))))
+
+(defun one-memory-p (z)
+  (and (consp (wrt::%get-field (cadr z) :mems))
+       (atom (cdr (wrt::%get-field (cadr z) :mems)))
+       (all-zero-p (wrt::%get-field (wrt::%get-field (caddr z) :module) :mems))))
+
+(defthm nth-of-all-zero
+  (implies (all-zero-p l) (equal (nth k l) (if (< (nfix k) (len l)) 0 nil))))
+
+(defthm nth-of-one-element
+  (equal (nth k (list x)) (if (zp k) x nil)))
+
+; The bounds rules and memory.size read only the memory's length.
+(defun length-lemma (fn)
+  (declare (xargs :mode :program))
+  (let ((name (intern-in-package-of-symbol
+               (concatenate 'string (symbol-name fn) "-DEPENDS-ON-LENGTH") 'we::here)))
+    `(make-event
+      '(:or (defthm ,name
+              ,(if (eq (rule-kind fn) :step)
+                   ; a step rule's result holds the store: its bytes are the input's
+                   `(implies (and (equal (len b1) (len b2)) (one-memory-p z) (true-listp z) (equal (len z) 3)
+                                  (store-fields-p (cadr z)))
+                             (equal (,fn (list :|%;%| (put-z-bytes z b1) l))
+                                    (put-result-bytes (,fn (list :|%;%| (put-z-bytes z b2) l)) b1)))
+                 `(implies (and (equal (len b1) (len b2)) (one-memory-p z) (true-listp z) (equal (len z) 3))
+                           (equal (,fn (list :|%;%| (put-z-bytes z b1) l))
+                                  (,fn (list :|%;%| (put-z-bytes z b2) l)))))
+              :hints (("Goal" :in-theory (enable ,fn) :do-not-induct t)))
+            (value-triple (cw "LENGTH-FAILED ~x0~%" ',fn))))))
+
+(defun length-lemmas (fns)
+  (declare (xargs :mode :program))
+  (if (endp fns) nil (cons (length-lemma (car fns)) (length-lemmas (cdr fns)))))
+
+(make-event
+ `(progn ,@(length-lemmas '(w3t::step_read/split/r-load-pack-oob w3t::step/r-store-num-oob
+                            w3t::step/r-store-pack-oob w3t::step_read/split/r-memory.size))))

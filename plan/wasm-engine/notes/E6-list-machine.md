@@ -384,8 +384,14 @@ non-value. This was not continued here.
     equals the rule on a state with no bytes, with
     `(append (take addr b) new (nthcdr (+ addr n) b))` put back, where
     `new` is `$NBYTES_` of the value: the stobj side writes `n` bytes into
-    the array. Book time 201 s, mostly this lemma. Left for part 2: the
-    packed loads and stores, the store bounds rule, `memory.size`,
+    the array. Book time 201 s, mostly this lemma. Then, with `one-memory-p`
+    (the store has one memory and every memory index of the module is 0),
+    the bounds rules `LOAD-PACK-OOB`, `STORE-NUM-OOB`, `STORE-PACK-OOB` and
+    `MEMORY.SIZE` depend only on the memory's length (for the two step
+    rules: the result with bytes `b1` is the result with `b2`, with `b1`
+    put back; the first statement, without putting back, failed for them,
+    as it should). Book time 229 s. Left for part 2: the packed loads and
+    stores,
     `memory.grow` (a host function in MuPDF, E1), `memory.fill` and
     `memory.copy`.
 - **E11.** Every clock-1 step is a rule function on a subterm of
