@@ -379,8 +379,13 @@ non-value. This was not continued here.
   - Both are now in `engine/fast/memory.lisp` (2.6 s):
     `load-num-val-is-window`, and `load-num-oob-depends-on-length` with the
     hypothesis `single-memory-p` (one memory in the store, and the
-    instruction's memory index maps to it). Left for part 2: the packed
-    loads, the stores (the window written back), `memory.size`,
+    instruction's memory index maps to it). Then
+    `store-num-val-is-splice`: the store rule on a state with bytes `b`
+    equals the rule on a state with no bytes, with
+    `(append (take addr b) new (nthcdr (+ addr n) b))` put back, where
+    `new` is `$NBYTES_` of the value: the stobj side writes `n` bytes into
+    the array. Book time 201 s, mostly this lemma. Left for part 2: the
+    packed loads and stores, the store bounds rule, `memory.size`,
     `memory.grow` (a host function in MuPDF, E1), `memory.fill` and
     `memory.copy`.
 - **E11.** Every clock-1 step is a rule function on a subterm of

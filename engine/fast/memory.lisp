@@ -42,3 +42,23 @@
            (equal (w3t::step_read/split/r-load-num-oob (list :|%;%| (put-z-bytes z b1) l))
                   (w3t::step_read/split/r-load-num-oob (list :|%;%| (put-z-bytes z b2) l))))
   :hints (("Goal" :in-theory (enable w3t::step_read/split/r-load-num-oob) :do-not-induct t)))
+
+; The store rule writes a splice of the byte list: the same as the rule on
+; a store with no bytes, with the splice of the real bytes put back. The
+; stobj machine writes the N new bytes into the array at ADDR.
+(defun store-splice (l b)                ; l = (const at i) (const nt c) (store nt nil x ao)
+  (let* ((i (caddr (car l))) (st (caddr l)) (nt (cadr st)) (c (caddr (cadr l)))
+         (addr (+ i (wrt::%get-field (car (cddddr st)) :offset))))
+    (append (take addr b) (w3t::$nbytes_ nt c) (nthcdr (+ addr (/ (w3t::$size nt) 8)) b))))
+
+(defun single-memory-store-p (z l)       ; as SINGLE-MEMORY-P, for the store's position
+  (and (consp (wrt::%get-field (cadr z) :mems))
+       (atom (cdr (wrt::%get-field (cadr z) :mems)))
+       (equal (nth (cadddr (caddr l)) (wrt::%get-field (wrt::%get-field (caddr z) :module) :mems)) 0)))
+
+(defthm store-num-val-is-splice
+  (implies (and (single-memory-store-p z l) (true-listp z) (equal (len z) 3) (store-fields-p (cadr z)))
+           (equal (w3t::step/r-store-num-val (list :|%;%| (put-z-bytes z b) l))
+                  (put-result-bytes (w3t::step/r-store-num-val (list :|%;%| (put-z-bytes z nil) l))
+                                    (store-splice l b))))
+  :hints (("Goal" :in-theory (enable w3t::step/r-store-num-val) :do-not-induct t)))
