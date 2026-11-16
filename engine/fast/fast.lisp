@@ -205,7 +205,73 @@
     (mv-let (ok z2 res fm) (fast-apply-rule (car rules) z redex fm)
       (if ok (mv t z2 res fm) (fast-try-rules (cdr rules) z redex fm)))))
 
-; --- one step: MACHINE-STEP over FM -------------------------------------------
+; --- direct dispatch (performance) -------------------------------------------
+; FAST-TRY-RULES looks the rule list up by an EQUAL key (RULES-FOR) and
+; FAST-APPLY-RULE then finds each rule's path and calls it through a CASE over
+; 212 rule names. Measured on one i32.sub step (0.86 us): the arithmetic
+; ($BINOP_) is 0.05 us, the rule's pattern match 0.08 us, the dispatch 0.36
+; us. Here, for every place (an opcode, an entry kind, :anyprefix), one
+; generated function calls that place's rules in STEP's order, each through
+; its fixed path. It computes what FAST-TRY-RULES computes.
+
+(defun rule-call-form (fn)
+  ; (mv fired z' instrs' fm) for rule FN, with Z, REDEX, FM bound
+  (cond ((member-eq fn *fast-memory-rules*) `(fast-apply-rule ',fn z redex fm))
+        ((not (frame-safe-p fn)) `(fast-apply-rule ',fn z redex fm))
+        ((eq (rule-kind fn) :pure)
+         `(let ((r (,fn redex))) (if (consp r) (mv t z (car r) fm) (mv nil z nil fm))))
+        ((eq (rule-kind fn) :read)
+         `(let ((r (,fn (list :|%;%| z redex)))) (if (consp r) (mv t z (car r) fm) (mv nil z nil fm))))
+        (t `(let ((r (,fn (list :|%;%| z redex))))
+              (if (consp r) (mv t (car-t (drop-n 1 (car r))) (car-t (drop-n 2 (car r))) fm)
+                (mv nil z nil fm))))))
+
+(defun chain-form (rules)
+  (if (endp rules) '(mv nil z nil fm)
+    `(mv-let (ok z2 res fm) ,(rule-call-form (car rules))
+       (if ok (mv t z2 res fm) ,(chain-form (cdr rules))))))
+
+(defun place-fn-name (place)
+  (intern-in-package-of-symbol
+   (if (consp place)
+       (concatenate 'string "FAST-TRY-" (symbol-name (car place)) "-" (symbol-name (cadr place)))
+     (concatenate 'string "FAST-TRY-" (symbol-name place)))
+   'we::here))
+
+(defun place-defuns (alist)
+  (if (endp alist) nil
+    (cons `(defun ,(place-fn-name (caar alist)) (z redex fm)
+             (declare (xargs :stobjs fm))
+             ,(chain-form (cdar alist)))
+          (place-defuns (cdr alist)))))
+
+(defun op-dispatch-cases (alist)
+  (cond ((endp alist) nil)
+        ((and (consp (caar alist)) (eq (car (caar alist)) :op))
+         (cons `(,(cadr (caar alist)) (,(place-fn-name (caar alist)) z redex fm))
+               (op-dispatch-cases (cdr alist))))
+        (t (op-dispatch-cases (cdr alist)))))
+
+(defun op-keys (places)
+  (cond ((endp places) nil)
+        ((and (consp (car places)) (eq (car (car places)) :op))
+         (cons (cadr (car places)) (op-keys (cdr places))))
+        (t (op-keys (cdr places)))))
+
+(make-event
+ `(progn ,@(place-defuns *rule-places*)
+         (defun fast-try-op (kw z redex fm)
+           (declare (xargs :stobjs fm))
+           (case kw ,@(op-dispatch-cases *rule-places*) (otherwise (mv nil z nil fm))))
+         (defun op-has-rules (kw)
+           (case kw (,(op-keys (strip-cars *rule-places*)) t)
+             (otherwise nil)))
+         (defun fast-try-entry (k z redex fm)
+           (declare (xargs :stobjs fm))
+           (case k (:l (fast-try-entry-l z redex fm)) (:h (fast-try-entry-h z redex fm))
+             (otherwise (fast-try-entry-f z redex fm))))))
+
+; --- one step: MACHINE-STEP over FM (after the dispatch it calls) -------------------------------------------
 
 (defun fm-set (store frame vals is ctrl status fm)
   (declare (xargs :stobjs fm))
@@ -223,6 +289,8 @@
                   (cons e (fm-ctrl fm)) :run fm))
       (update-fm-status :stuck fm))))
 
+
+
 (defun fast-exit-step (fm)
   (declare (xargs :stobjs fm))
   (let* ((e (car (fm-ctrl fm))) (k (entry-kind e))
@@ -230,7 +298,7 @@
                            (rev-onto (fm-vals fm) (fm-is fm))))
          (outer-frame (if (eq k :f) (entry-x e) (fm-frame fm))))
     (mv-let (ok z2 res fm)
-      (fast-try-rules (rules-for (list :entry k)) (list :|%;%| (fm-store fm) outer-frame) (list term) fm)
+      (fast-try-entry k (list :|%;%| (fm-store fm) outer-frame) (list term) fm)
       (if ok
           (fm-set (car-t (drop-n 1 z2)) (car-t (drop-n 2 z2)) (entry-v e) (app res (entry-r e))
                   (cdr (fm-ctrl fm)) :run fm)
@@ -239,20 +307,19 @@
 (defun fast-anyprefix-step (fm)
   (declare (xargs :stobjs fm))
   (mv-let (ok z2 res fm)
-    (fast-try-rules (rules-for :anyprefix) (fm-z fm) (rev-onto (fm-vals fm) (fm-is fm)) fm)
+    (fast-try-anyprefix (fm-z fm) (rev-onto (fm-vals fm) (fm-is fm)) fm)
     (if (and ok (true-listp res))
         (fm-set (car-t (drop-n 1 z2)) (car-t (drop-n 2 z2)) nil res (fm-ctrl fm) :run fm)
       (update-fm-status :stuck fm))))
 
 (defun fast-op-step (fm)
   (declare (xargs :stobjs fm))
-  (let* ((i (car (fm-is fm))) (vals (fm-vals fm))
-         (rules (rules-for (list :op (entry-kind i))))
+  (let* ((i (car (fm-is fm))) (vals (fm-vals fm)) (kw (entry-kind i))
          (k (redex-arity i (fm-z fm) vals)))
-    (cond ((or (atom rules) (not (natp k))) (update-fm-status :unsupported fm))
+    (cond ((or (not (op-has-rules kw)) (not (natp k))) (update-fm-status :unsupported fm))
           ((< (len-t vals) k) (update-fm-status :stuck fm))
           (t (mv-let (ok z2 res fm)
-               (fast-try-rules rules (fm-z fm) (rev-onto (take-n k vals) (list i)) fm)
+               (fast-try-op kw (fm-z fm) (rev-onto (take-n k vals) (list i)) fm)
                (if ok
                    (fm-set (car-t (drop-n 1 z2)) (car-t (drop-n 2 z2)) (drop-n k vals)
                            (app res (cdr (fm-is fm))) (fm-ctrl fm) :run fm)
@@ -285,6 +352,9 @@
   (declare (xargs :stobjs fm))
   (if (or (zp n) (not (eq (fm-status fm) :run))) fm
     (let ((fm (fast-step fm))) (fast-run (1- n) fm))))
+
+
+; the step parts, with the direct dispatch
 
 ; --- between the two machines -----------------------------------------------
 

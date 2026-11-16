@@ -537,7 +537,10 @@ Scripts and commands inside S0 recorded
       costs with memory size (64 pages: 257 s on the list machine, 0.23 s
       fast); the slides 0.7 to 1.4 s each, still identical to V8
       ([E7-fast-machine](notes/E7-fast-machine.md)). A plain stobj with a
-      refinement theorem replaces `defabsstobj` (simpler; same theorem)
+      refinement theorem replaces `defabsstobj` (simpler; same theorem).
+      Direct dispatch per opcode (generated): flat code twice as fast
+      (counting loop 81 ms, about 2 million spec steps per second), slides
+      0.33 to 0.69 s each
 - [ ] Refinement: the correspondence obligations of the `defabsstobj`
       primitives. `mbe` fast paths for the spec's numeric functions where
       the profile asks for them

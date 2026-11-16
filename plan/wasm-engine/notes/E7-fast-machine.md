@@ -14,7 +14,7 @@
   array and the store holds an empty byte list. `fm->ms` puts the bytes
   back.
 - **It equals the list machine at every step**: lockstep comparison of
-  `fm->ms` with `machine-step`, 0 disagreements in 8 runs (10,485 steps,
+  `fm->ms` with `machine-step`, 0 disagreements in 8 runs (9,481 steps,
   with a trap and an uncaught exception), and equal final states on every
   timed run.
 - **Memory no longer costs with its size**: the memory loop (10,000
@@ -76,6 +76,50 @@ The slides (`data/e7-fast/slides-fast.txt`, `slides-check.out`):
 |---|---|---|---|---|---|---|---|
 | Fast machine, ms | 901 | 675 | 1,208 | 678 | 1,366 | 1,417 | 1,183 |
 | Identical to V8 | yes | yes | yes | yes | yes | yes | yes |
+
+### Arithmetic and dispatch: where a step's time goes
+
+A microbenchmark of the parts of one `i32.sub` step on the list machine
+(1,000,000 calls each, `engine/fast/micro.lsp`):
+
+| Part | us per call |
+|---|---|
+| `$BINOP_` alone (the spec's arithmetic, D6) | 0.046 |
+| the rule function `STEP_PURE/R-BINOP-VAL` (pattern match + `$BINOP_`) | 0.129 |
+| through `apply-rule` (a `case` over 212 rule names) | 0.283 |
+| through `try-rules` and `rules-for` (an `assoc-equal` on list keys) | 0.494 |
+| a whole `machine-step` (arity, value tests, redex, new state) | 0.860 |
+| a whole `machine-step` of a value push | 0.179 |
+| a whole `machine-step` of `local.get` | 0.791 |
+
+So the arithmetic is about 5% of a step; dispatch is about 40%. A CPU
+profile of the counting loop has 93% of its samples in `__bzero`
+(allocation, about 500 bytes a spec step).
+
+**Direct dispatch** (in `fast.lisp`): for every place (an opcode, an
+entry kind, `:anyprefix`), one generated function calls that place's rules
+in `STEP`'s order, each through its fixed path; a step is one `case` on
+the opcode keyword. Result (`data/e7-fast/fasttest-dispatch.out`,
+`slides-fast-dispatch.txt`):
+
+| Run | List machine | Fast, generic dispatch | Fast, direct dispatch |
+|---|---|---|---|
+| count 20,000 | 165 ms | 156 ms | 81 ms |
+| nested 5,000 | 132 ms | 132 ms | 62 ms |
+| throw 3,000 | 181 ms | 186 ms | 83 ms |
+| memloop 10,000, 64 pages | 259,937 ms | 226 ms | 70 ms |
+| slides (7) | 3.3 to 4.3 s | 0.7 to 1.4 s | 0.33 to 0.69 s |
+
+Lockstep: still 0 disagreements; slides: still 7 of 7 identical to V8. The
+counting loop now runs about 2 million spec steps per second.
+
+What is left in a step, in the order of the measurements: the value test
+(`VAL-P` through `ec-call` on every value push), building the redex list
+and the new operand stack, the rule's pattern match, and the store
+updates. The next cuts are clean fast paths for the hottest instructions
+(`local.get/set/tee`, `binop`, `relop`, `br_if`), each proved equal to its
+rule (E4 item 3's clean forms), and guard-verified raw execution in Phase
+B.
 
 ## Open questions
 
