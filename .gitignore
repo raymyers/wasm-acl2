@@ -33,3 +33,6 @@ translate/tests/sem-3.0/modes-write.log
 
 # plan/wasm3-demo: derived files (D1)
 demo/build/
+
+# talk figures: kept local for now
+talk/

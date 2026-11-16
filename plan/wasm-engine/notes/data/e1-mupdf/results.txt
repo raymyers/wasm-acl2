@@ -1,0 +1,9 @@
+2026-11-15, node v24.18.1 (nix develop), no flags.
+
+render.mjs test1.pdf, page 1, identity matrix, DeviceRGB, no alpha: width height bytes sha256(samples)
+  npm mupdf 1.28.6      612 792 1454112 e1e83ad30c2bfc21f25c734954a4431c937940d4d3c63460a7fc04b2ed54dae8
+  fork 3eae43d          612 792 1454112 e1e83ad30c2bfc21f25c734954a4431c937940d4d3c63460a7fc04b2ed54dae8
+
+errpath.mjs (two errors raised inside MuPDF and caught by its fz_try/fz_catch):
+  npm mupdf 1.28.6      ["no objects found","invalid page number: 6"]
+  fork 3eae43d          ["no objects found","invalid page number: 6"]
