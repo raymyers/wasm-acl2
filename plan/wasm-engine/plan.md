@@ -494,8 +494,10 @@ Scripts and commands inside S0 recorded
       for `local.get` and `local.set` was tried and proves with four
       record lemmas (2026-11-16). `engine/fast/frame.lisp`: the frame
       lemma for 81 of the 98 rules that are neither pure nor memory
-      rules (184 s); the 17 left include `global.set` (S0), `throw` (S3)
-      and the host calls (H)
+      rules at first; with more record lemmas and the hypothesis that the
+      store has all its fields, every D5 rule that is neither pure nor a
+      memory rule has its frame lemma (27, 273 s) except `ref.cast-succeed`
+      (S1) and the two host calls (H)
 - [ ] Refinement: the correspondence obligations of the `defabsstobj`
       primitives. `mbe` fast paths for the spec's numeric functions where
       the profile asks for them

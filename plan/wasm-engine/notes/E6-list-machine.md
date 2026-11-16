@@ -346,6 +346,22 @@ non-value. This was not continued here.
   and `return_call_ref` (frame). Of these, S0 needs `global.set`, S3
   `throw`, H the host calls; the rest are outside D5. Each needs a lemma
   that the store update it makes commutes with replacing memory 0's bytes.
+
+  **Second version** (same day): three more record lemmas
+  (`put-assoc-equal` of two different keys commutes when both are
+  present; putting back a key's own value under another update is the
+  identity; a value that is a cons means the key is present) and the
+  hypothesis `store-fields-p` for the step rules (the store record has
+  all ten fields; without it `global.set` fails on a store with no
+  `:globals`, where `put-assoc-equal` appends). The commute lemma makes
+  some proofs slow: with every rule, the book did not finish in 3,000 s
+  (`table.grow` 1,152 s, `throw` 193 s, `call_ref-func` 45 s). So the
+  generator now covers only rules of D5 opcodes and of the control
+  entries. **Result: `engine/fast/frame.lisp` certifies in 273 s, 27 frame
+  lemmas, none failing.** Three D5 rules are left out on purpose
+  (`*frame-not-yet*`): `ref.cast-succeed` (S1, behind `call_indirect`)
+  and the two host-call rules (H). `store-fields-p` becomes part of the
+  stobj machine's invariant.
 - **E11.** Every clock-1 step is a rule function on a subterm of
   `machine-abs`. The simulation lemma for a step is then: `STEP` of the
   whole configuration equals the rule result put back in place. That is
