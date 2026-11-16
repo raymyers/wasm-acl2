@@ -243,6 +243,30 @@ variable; and the fact that a value's head is never an instruction's
 head, as rewrite rules in both orientations (a forward-chaining form did
 not refute `entry-kind = :TRAP`).
 
+## First test of a clock-1 lemma (E11, 2026-11-16)
+
+The context lemma for a flat instruction needs every rule of `STEP` to
+fail on the whole block `v ++ (i) ++ r` (values `v`, the instruction,
+the rest), except along the `ctxt-instrs` path. With `i = nop`, the
+generator of `rules/terminal.lisp` was run over all 212 rules with that
+list, hypotheses `(vals-p v)`, `(true-listp r)`, `v` or `r` not empty:
+
+1. Without list lemmas, every rule lemma failed, even `UNREACHABLE`
+   (length 1, head `:unreachable`): the prover has no facts about `len`,
+   `car` and `cdr` of `append`.
+2. With four lemmas (`len`, `car`, `cdr`, `true-listp` of `append`),
+   `UNREACHABLE` and `DROP`, stated by hand, prove in 0.01 s each
+   (`data/e6-machine/e11-nop-context-proved.txt`). The generator run over
+   all rules, with summary output off, reported one failure,
+   `TRAP-INSTRS` (its search scans the whole list), and then spent 35
+   minutes on one lemma and was stopped. Which generated lemmas had proved
+   before that is not in the log.
+
+So the approach carries over, and what E11 needs first is a library about
+`take` and `nthcdr` of `append` (the searches split the list at symbolic
+positions), so that each search can be shown to stop at the first
+non-value. This was not continued here.
+
 ## What this means for E7 and E11
 
 - **E7.** The primitives of the step function are the state accessors
