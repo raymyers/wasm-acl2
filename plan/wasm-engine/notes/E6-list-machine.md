@@ -292,11 +292,32 @@ non-value. This was not continued here.
 ## What this means for E7 and E11
 
 - **E7.** The primitives of the step function are the state accessors
-  (`ms-*`, `entry-*`) and `apply-rule`. The stobj machine has to give fast
-  versions of `apply-rule` for the rules that touch memory, locals and
-  globals, as `mbe` with the rule function as the logical side, and keep
-  the store in the stobj. This is the "mbe fast paths" of E5, at the level
-  of rules.
+  (`ms-*`, `entry-*`) and `apply-rule`. Every rule function takes the
+  whole spec store, and only the memory rules read the memory's byte list
+  (`load`, `store`, `memory.size`, `memory.grow`, `memory.fill`,
+  `memory.copy`, `memory.init`, the vector loads and stores: they reach it
+  through `$MEM z x`). So the stobj machine can be built in three parts:
+  1. **Memory in an array.** The abstract stobj holds the store with an
+     empty byte list for memory 0 and the bytes in an array; its logical
+     side is the E6 state, with the bytes put back. MuPDF has one memory.
+  2. **Fast paths for the memory rules**, as `mbe` around `apply-rule` for
+     those rule ids: the `:exec` side reads or writes the array and calls
+     the same spec functions on the bytes it touched (the load rule takes
+     `(take n (nthcdr addr bytes))` and decodes it with `$INV_NBYTES_`, so
+     the fast side reads `n` bytes and calls `$INV_NBYTES_`). The
+     obligation per rule is the equality of the two sides, about
+     `take`/`nthcdr` of the array's list.
+  3. **Every other rule ignores the bytes**: for each non-memory rule
+     function, its result on a store with bytes `b` is its result on the
+     store with no bytes, with `b` put back. This is one lemma per rule
+     function, and the generator of `rules/terminal.lisp` is the way to
+     state and try all of them.
+  This replaces "about 30 primitives" in E5 by "memory in an array, about
+  12 memory rules with fast paths, and one generated frame lemma per
+  other rule". The E0 profile ranks the memory first, and the list
+  machine already removes the other two costs (search and depth). So E7
+  part 1 and part 2 for `load`/`store` are what the go/no-go rate needs
+  first.
 - **E11.** Every clock-1 step is a rule function on a subterm of
   `machine-abs`. The simulation lemma for a step is then: `STEP` of the
   whole configuration equals the rule result put back in place. That is
