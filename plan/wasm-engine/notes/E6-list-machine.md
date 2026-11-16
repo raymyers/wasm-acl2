@@ -221,6 +221,28 @@ the spec's cost, since the machine runs the spec's out-of-bounds rules on
 the spec's byte list. At 16 pages it is slower than the spec. That was not
 investigated, since E7 replaces the memory.
 
+## C2 for the clock-0 steps (E11, started 2026-11-16)
+
+`engine/machine/clock0.lisp` (4.2 s) proves `machine-clock-0-simulates`:
+for a state with `machine-ok` that is running and whose clock is 0,
+`(stepn 0 (machine-abs s))` is `(list (machine-abs (machine-step s)))`,
+that is, the step leaves `machine-abs` unchanged. These steps are a value
+moved to the operand stack, an entry into a `LABEL_`, `HANDLER_` or
+`FRAME_` term, and every step into `:done`, `:trap`, `:throw`, `:stuck`
+or `:unsupported`. No fact about the spec is used.
+
+What it took (each failed attempt's checkpoint is in the certification
+output of that attempt; summarized): a lemma that a four-element true list
+is rebuilt from its parts, stated with the head as a variable (the goal
+has the head keyword as a constant); `car-t` kept closed, with
+`(car-t x) = (car x)` for a cons; per-function lemmas "a step that stops
+leaves `abs` unchanged" so that `op-step`, `exit-step`, `anyprefix-step`
+and `enter-step` stay closed in the main proof; `machine-abs` normalized
+into a function of the five parts, both for an `ms` term and for a state
+variable; and the fact that a value's head is never an instruction's
+head, as rewrite rules in both orientations (a forward-chaining form did
+not refute `entry-kind = :TRAP`).
+
 ## What this means for E7 and E11
 
 - **E7.** The primitives of the step function are the state accessors

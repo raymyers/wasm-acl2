@@ -68,6 +68,27 @@ The lemma library therefore needs one function, "index of the first
 instruction that is not a value", and per rule function one lemma in
 terms of it. `ctxt-instrs` uses the same index (`STEP/PREFIX7`).
 
+## Item 1 completed (second session, 2026-11-15)
+
+`engine/rules/if-true.lisp` (2.5 s): the hand-written `case-match` form
+of `if-true` from the talk snippet
+(`talk/figures/snippets/if-true.handwritten-proof.lisp`, not checked in),
+proved equal to `W3T::STEP_PURE/R-IF-TRUE` for every input, with the same
+two lemmas about `len` as in the snippet. The snippet proved it against a
+pasted copy of the generated clause; the book proves it against the
+function in the certified semantics.
+
+Two things learned since, for items 3 and 4:
+
+- The list machine of E6 never restates a rule: it calls the rule
+  functions. So the simulation proof of E11 does not need a clean form
+  per rule. Item 3 is still in the plan; its use is now the talk and the
+  reader, not E11 (see [E6-list-machine](E6-list-machine.md)).
+- `engine/rules/terminal.lisp` (E3 item 2) generates one lemma per rule
+  function ("fails on a list of values") with `make-event` and `(:or ...)`
+  and proves 211 of 212 directly. That is the pattern item 4 needs, with
+  the hypothesis "the head instruction does not have opcode k".
+
 ## Open questions
 
 - How large the proofs become with a symbolic prefix of values and a

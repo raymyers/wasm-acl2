@@ -402,13 +402,14 @@ and the reason for each hypothesis.
 
 ### E4: Rule lemmas (needs D4)
 
-- [ ] Move the `if-true` proof into `engine/rules/` as the first test.
-      Started: `engine/rules/first-lemmas.lisp` has the clean form and the
+- [x] Move the `if-true` proof into `engine/rules/` as the first test.
+      `engine/rules/first-lemmas.lisp` has the clean form and the
       dispatch lemma of `if-true`, written against the rule function
       `STEP_PURE/R-IF-TRUE`, and a whole `STEP` under a label for any
-      state ([E4-first-lemmas](notes/E4-first-lemmas.md), 2026-11-15).
-      The hand-written `case-match` form of the talk snippet is not moved
-      yet
+      state ([E4-first-lemmas](notes/E4-first-lemmas.md)).
+      `engine/rules/if-true.lisp` has the hand-written `case-match` form
+      of the talk snippet, proved equal to the generated rule function
+      itself (2.5 s) (2026-11-15)
 - [x] D4 (a): translator emits one function per rule
       (`FN/R-<RULE-ID>`), for every relation and spec version; gates as in
       D4. Done with E2, which needed it
@@ -528,6 +529,12 @@ the folder.
 ### E11: Simulation proofs
 
 - [ ] S0: one simulation lemma per instruction from the E4 clean forms;
+      (Started: C2 for every clock-0 step of the list machine, i.e. value
+      pushes, entries into `LABEL_`/`HANDLER_`/`FRAME_` and stops, is
+      proved for all groups: `engine/machine/clock0.lisp`,
+      `machine-clock-0-simulates`, 4.2 s, 2026-11-16. What is left of C2
+      is the clock-1 steps: a rule function on a subterm of `abs`, lifted
+      through the contexts.)
       the operand-prefix and `ctxt-instrs` lemmas; the context lemma (a
       step inside the innermost label or frame of `(abs s)` is a `STEP`
       of the whole configuration), by induction on the control stack;
