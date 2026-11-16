@@ -135,6 +135,26 @@ step, 7 of 7 slides identical to V8 (`data/e7-fast/fasttest-logic.out`,
 version: count 88 ms (81), throw 147 ms (83), slides 0.40 to 0.85 s (0.33
 to 0.69).
 
+### Refinement, layers 1 to 3 (`engine/fast/refine.lisp`, 78 s)
+
+- (1) The array as a list: `mem-to-list` is the stobj's array field.
+- The fast store invariant `fast-store-ok`: memory 0's bytes are empty in
+  the store, there is a memory, and the store has all its fields
+  (`store-fields-p`). Every frame-safe step rule keeps it (generated
+  `*-KEEPS-FAST-STORE`, all prove after record lemmas at the level of
+  `%GET-FIELD`/`%PUT-FIELD`; `global.set` and `throw` needed them).
+- (2) Per rule: a frame-safe rule on the full store equals the rule on the
+  fast store, with the bytes put back into the result (`*-ON-FAST-STORE`,
+  from the frame lemmas).
+- (3) Per place: for each of the **60 of 103 places** whose rules are all
+  frame-safe, `TRY-RULES` of the list machine on the full store equals the
+  generated `FAST-TRY-*` function on the fast store with the bytes put back,
+  and the place function leaves the array unchanged
+  (`FAST-TRY-*-REFINES`, `*-KEEPS-ARRAY`).
+- Remaining: 5 places with memory fast paths (load, store, memory.size,
+  memory.fill, memory.copy) and 38 that use the general fallback (tables,
+  GC structs and arrays, SIMD, memory.init, memory.grow, return_call).
+
 ## Open questions
 
 - Where the time of flat code goes (rule dispatch over 212 symbols, a new

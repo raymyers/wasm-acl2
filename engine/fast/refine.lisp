@@ -1,8 +1,9 @@
 ; E7 Phase B: the fast machine refines the list machine.
 ; Built bottom-up: (1) the array as a list; (2) per rule, the direct call
 ; in the generated dispatch agrees with APPLY-RULE on the full store; (3)
-; per place; (4) per step part. This book: (1) and (2) for the rules that
-; ignore the bytes (pure rules and the frame lemmas of frame.lisp).
+; per place; (4) per step part. Done: (1); (2) and (3) for the rules that
+; ignore the bytes (pure rules and the frame lemmas of frame.lisp): 60 of
+; the 103 places of the generated dispatch.
 (in-package "WE")
 (include-book "fast")
 
@@ -114,3 +115,75 @@
         (t (store-ok-lemmas (cdr rules)))))
 
 (make-event `(progn ,@(store-ok-lemmas *frame-safe-rules*)))
+
+; --- (3) per place, for the places whose rules are all frame-safe ---------------
+
+; APPLY-RULE on a constant rule name is a direct call of that rule.
+(defun apply-rule-lemma (fn)
+  (declare (xargs :mode :program))
+  (let ((name (intern-in-package-of-symbol (concatenate 'string "APPLY-RULE-OF-" (symbol-name fn)) 'we::here)))
+    `(defthm ,name
+       (equal (apply-rule ',fn z redex)
+              ,(case (rule-kind fn)
+                 (:pure `(let ((r (,fn redex))) (if (consp r) (mv t z (car r)) (mv nil z nil))))
+                 (:read `(let ((r (,fn (list :|%;%| z redex)))) (if (consp r) (mv t z (car r)) (mv nil z nil))))
+                 (t `(let ((r (,fn (list :|%;%| z redex))))
+                       (if (consp r) (mv t (car-t (drop-n 1 (car r))) (car-t (drop-n 2 (car r))))
+                         (mv nil z nil))))))
+       :hints (("Goal" :in-theory (e/d (apply-rule) (,fn)))))))
+
+(defun apply-rule-lemmas (rules)
+  (declare (xargs :mode :program))
+  (if (endp rules) nil (cons (apply-rule-lemma (car rules)) (apply-rule-lemmas (cdr rules)))))
+
+(make-event `(progn ,@(apply-rule-lemmas *step-rules*)))
+
+(defthm car-t-drop-n-1-of-put-result-bytes
+  (implies (consp r)
+           (and (equal (car-t (drop-n 1 (car (put-result-bytes r b))))
+                       (put-z-bytes (car-t (drop-n 1 (car r))) b))
+                (equal (car-t (drop-n 2 (car (put-result-bytes r b))))
+                       (car-t (drop-n 2 (car r))))
+                (consp (put-result-bytes r b))))
+  :hints (("Goal" :in-theory (enable put-result-bytes car-t drop-n))))
+
+(defthm consp-of-put-result-bytes
+  (equal (consp (put-result-bytes r b)) (consp r))
+  :hints (("Goal" :in-theory (enable put-result-bytes))))
+
+(defthm put-z-bytes-of-config
+  (equal (put-z-bytes (list :|%;%| s f) b) (list :|%;%| (put-mem0-bytes s b) f)))
+
+(defun all-frame-safe-p (rules)
+  (declare (xargs :mode :program))
+  (or (endp rules) (and (member-eq (car rules) *frame-safe-rules*) (all-frame-safe-p (cdr rules)))))
+
+(defun place-lemma (place rules)
+  (declare (xargs :mode :program))
+  (let* ((fast (place-fn-name place))
+         (name (intern-in-package-of-symbol (concatenate 'string (symbol-name fast) "-REFINES") 'we::here))
+         (fm-name (intern-in-package-of-symbol (concatenate 'string (symbol-name fast) "-KEEPS-ARRAY") 'we::here)))
+    `(make-event
+      '(:or (progn
+              (defthm ,name
+                (implies (fast-store-ok s)
+                         (equal (try-rules ',rules (list :|%;%| (put-mem0-bytes s b) f) redex)
+                                (mv-let (ok z2 res fm2) (,fast (list :|%;%| s f) redex fm)
+                                  (declare (ignore fm2))
+                                  (mv ok (put-z-bytes z2 b) res))))
+                :hints (("Goal" :in-theory (e/d (,fast try-rules) (put-z-bytes put-result-bytes put-mem0-bytes
+                                                                   ,@rules))
+                                :do-not-induct t)))
+              (defthm ,fm-name
+                (equal (mv-nth 3 (,fast z redex fm)) fm)
+                :hints (("Goal" :in-theory (e/d (,fast) ,rules)))))
+            (value-triple (cw "REFINE-FAILED ~x0~%" ',place))))))
+
+(defun place-lemmas (alist)
+  (declare (xargs :mode :program))
+  (cond ((endp alist) nil)
+        ((all-frame-safe-p (cdar alist))
+         (cons (place-lemma (caar alist) (cdar alist)) (place-lemmas (cdr alist))))
+        (t (place-lemmas (cdr alist)))))
+
+(make-event `(progn ,@(place-lemmas *rule-places*)))
