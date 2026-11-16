@@ -257,7 +257,8 @@
 (defun redex-arity (i z vals)
   (declare (xargs :guard t))
   (case (entry-kind i)
-    ((:unreachable :nop :local.get :global.get :call :call_indirect :memory.size :ref.null :ref.func) 0)
+    ((:unreachable :nop :local.get :global.get :call :call_indirect :memory.size :ref.null :ref.func
+      :data.drop :elem.drop) 0)
     ((:drop :ifelse :br_if :br_table :local.tee :local.set :global.set
       :unop :testop :cvtop :load :memory.grow :ref.cast
       :ref.is_null :ref.as_non_null :br_on_null :br_on_non_null :table.get :throw_ref) 1)

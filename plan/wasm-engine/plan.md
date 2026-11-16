@@ -22,6 +22,13 @@
 > View alone is a demo of a tested engine. The plan is done only with
 > both. §4 "Litmus milestones" says which items each half needs.
 >
+> **Earlier milestone L0 (decided by the user, 2026-11-16)**: before MuPDF,
+> the slides of a deck in the plain-text format of suckless `sent` (one
+> slide per paragraph, scaled to fit, black on white), rendered by a small
+> renderer of our own compiled to wasm, run on the engine, with pixels
+> identical to V8 running the same module (E12). MuPDF stays the litmus
+> test above.
+>
 > **What the theorem says, and what it does not**: it relates the engine to
 > the generated ACL2 semantics, for the instructions in the proved subset
 > and for any host functions. It says nothing about the translator
@@ -34,8 +41,8 @@
 > Generated code is never edited by hand. Everything that certified or
 > passed before must still certify and pass.
 >
-> **Status: in execution. E0, E2 (go), E3, E5, E6 and E4 items 1 and 2
-> complete; E1 (item 5) and E11 (S0) in progress** (written 2026-11-15, at `d845f70`; revised the same day for
+> **Status: in execution. L0 met (E12). E0, E2 (go), E3, E5, E6, E12 and E4
+> items 1 and 2 complete; E1 (item 5), E7 and E11 (S0) in progress** (written 2026-11-15, at `d845f70`; revised the same day for
 > 3.0 and MuPDF). Per-session procedure: [step.md](step.md). Prompts behind
 > this plan: [seed.md](seed.md).
 
@@ -88,7 +95,15 @@
   recurses once per byte; SBCL's default stack ends near 32 pages. Run
   with `SBCL_USER_ARGS='--control-stack-size 1000'` (64 pages) or `4000`
   (MuPDF's 352 pages) ([E0-baseline](notes/E0-baseline.md))
-- **Next action**: record the full module's decode when it ends (E1
+- **Decided by the user (2026-11-16)**: D10, an earlier demo (L0, E12):
+  a sent-style slide renderer of our own, compiled to wasm, run on the
+  engine. MuPDF stays the litmus test
+- **L0 met (2026-11-16)**: the talk's 7 slides, rendered by the engine
+  from a sent-format deck, are pixel-identical to V8's (`make -C engine
+  slides`, [E12-slides](notes/E12-slides.md)). The module uses only S0,
+  so E11 for S0 is what puts it inside the proved subset
+- **Next action**: E11 for S0 (it would make L0's slides "rendered by the
+  verified engine"). Then record the full module's decode when it ends (E1
   item 5, still parsing after 5 CPU hours on 2026-11-16 03:30). E7: the
   frame lemmas exist (`engine/fast/frame.lisp`); next is a book of memory
   fast-path lemmas (`engine/fast/memory.lisp`: every D5 memory rule but
@@ -178,6 +193,11 @@ is added here marked *(for the user)* and listed in "Current state".
   MuPDF renders. The proof then covers one group at a time (E11). Every
   run reports whether the module is inside the proved subset. A page is
   "rendered by the verified engine" only when it is.
+- **D10 (decided by the user, 2026-11-16): an earlier, smaller demo.**
+  A sent-style slide renderer (E12) comes before MuPDF: it needs no host
+  functions, one page of memory and only S0 instructions, so the list
+  machine of E6 can run it and E11 for S0 can cover it. MuPDF remains the
+  litmus test.
 - **D9: the spec's memory stays a list.** A store in the generated
   semantics rebuilds the byte list (`APPEND` of `TAKE` and `NTHCDR` in
   `$WITH_MEM`), and a list cannot be updated faster. The fix is the
@@ -569,10 +589,33 @@ the folder.
 the machine's `:unsupported` case (E3: this is how a subset is
 expressed). When all groups are done, MuPDF is inside the proved subset.
 
+### E12: sent-style slides (L0, D10)
+
+- [x] `engine/slides/`: a renderer in C, freestanding (`clang
+      --target=wasm32 -nostdlib -mcpu=mvp`), no imports, one page of
+      memory, the deck in sent's format as a data segment, Spleen 6x12,
+      a 320 x 180 1-bit framebuffer; `@` image slides drawn as text. Built
+      from Nix by `build.sh` (module sha256 `33eb3567...775b`, the same in
+      two builds) (2026-11-16)
+- [x] The census of the module: only S0 instructions (2026-11-16)
+- [x] V8 reference: `ref.mjs`, `check.mjs` (2026-11-16)
+- [x] The engine renders every slide (the E6 list machine runs the
+      instantiation and every `render(n)`), writes PBM files, and **all 7
+      checksums equal V8's**; 3.3 to 4.3 s per slide (2026-11-16)
+- [x] A viewer (`build/view/index.html`, from the engine's pixels) with a
+      caption naming the engine and the proof status (not yet inside the
+      proved subset) (2026-11-16)
+
+**Exit**: every slide of the talk's deck rendered by the engine with
+pixels identical to V8's, and shown from the folder. **Met (2026-11-16)**:
+`make -C engine slides`, 7 of 7 identical
+([E12-slides](notes/E12-slides.md)).
+
 ### Litmus milestones
 
 | | Needs | Checked by |
 |---|---|---|
+| **L0 Slides** | E6, E12 | `make -C engine slides`: the engine renders every slide of the sent-format deck with pixels identical to V8's (E12). **Met 2026-11-16, 7 of 7**; the module is not yet inside the proved subset (needs E11 for S0) |
 | **L1 View** | E1, E5 to E10 | `make -C engine view-check`: renders the three E1 PDFs on the stobj machine, compares each pixel file with the V8 reference checksum, and writes the image files the viewer shows |
 | **L2 Certify** | E2, E3, E4, E11 for S0, S1, S2, S3 and H | `make -C engine check`: every engine book certifies; a test fails if any book contains `skip-proofs` or `defaxiom`, or if an opcode of the E1 census is outside the theorem's subset predicate |
 | **Litmus** | L1 and L2 at the same commit, on the same module checksum | `make -C engine litmus` runs both and prints the module checksum, the fork commit, and the hypotheses of the top theorem |
