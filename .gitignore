@@ -1,3 +1,5 @@
+.DS_Store
+
 # ACL2 / cert.pl build artifacts
 *.cert
 *.cert.out
