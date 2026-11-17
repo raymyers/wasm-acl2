@@ -4,7 +4,7 @@ WebAssembly (Wasm) is a compilation target supported by popular languages includ
 
 This repository is an agentic port of the Wasm 3.0 semantics from SpecTec into ACL2, extending the [Kestrel Institute's WASM books](https://github.com/acl2/acl2/tree/master/books/kestrel/wasm). The agents were Claude Code and OpenHands, using the Claude Opus 5.5 and Fable 5.2 models. It passes 99.98% of Wasm's official test suite.
 
-**AI-use disclosure**: This is agent-generated code. It has not yet been evaluated by qualified researchers. We invite feedback on improvements, so that this experimental port can be refined into a reusable foundation and contributed to the ACL2 community books.
+**LLM-use disclosure**: This is agent-generated code. It has not yet been evaluated by qualified researchers. We invite feedback on improvements, so that this experimental port can be refined into a reusable foundation and contributed to the ACL2 community books.
 
 The repository holds two semantics that share no code. The first is generated from SpecTec for WASM 1.0, 2.0 and 3.0, under `translate/` (next section). A verified engine and a browser demo are built on its 3.0 output (sections below). The second is an earlier, agent-written WASM 1.0 formalization at the repository root ([README_WASM1_PORT.md](README_WASM1_PORT.md)).
 
@@ -42,6 +42,6 @@ The engine's target workload is the workshop talk's slides: `make -C engine slid
 
 ## Initial agentic WASM 1.0 formalization
 
-The files at the repository root (`execution.lisp`, `validation.lisp`, `proofs/`, `tests/`) are a WASM 1.0 semantics written by an AI agent on top of the Kestrel WASM books: 170 of 170 instructions, 45 certified books (27 proof books, 15 test books), tested against Node.js as an oracle. `make` (or `nix build`) certifies it.
+The files at the repository root (`execution.lisp`, `validation.lisp`, `proofs/`, `tests/`) are a WASM 1.0 semantics written by a coding agent on top of the Kestrel WASM books: 170 of 170 instructions, 45 certified books (27 proof books, 15 test books), tested against Node.js as an oracle. `make` (or `nix build`) certifies it.
 
 Status, instruction coverage, files, build commands, design decisions and remaining work: **[README_WASM1_PORT.md](README_WASM1_PORT.md)**.

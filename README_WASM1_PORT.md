@@ -1,8 +1,8 @@
 # Initial agentic WASM 1.0 formalization
 
-The first artifact of this repository: a WASM 1.0 operational semantics in ACL2 written by an AI agent, extending the [Kestrel Institute's WASM books](https://github.com/acl2/acl2/tree/master/books/kestrel/wasm). It lives at the repository root (`execution.lisp`, `validation.lisp`, `proofs/`, `tests/`) and shares no code with the semantics generated from SpecTec under `translate/`, which the [main README](README.md) describes.
+The first artifact of this repository: a WASM 1.0 operational semantics in ACL2 written by a coding agent, extending the [Kestrel Institute's WASM books](https://github.com/acl2/acl2/tree/master/books/kestrel/wasm). It lives at the repository root (`execution.lisp`, `validation.lisp`, `proofs/`, `tests/`) and shares no code with the semantics generated from SpecTec under `translate/`, which the [main README](README.md) describes.
 
-**AI-use disclosure**: This is agent-generated code, using OpenHands and Claude. It has not yet been evaluated by qualified researchers.
+**LLM-use disclosure**: This is agent-generated code, using OpenHands and Claude. It has not yet been evaluated by qualified researchers.
 
 ## Status: 170/170 Instructions — Complete ✅
 
@@ -19,7 +19,7 @@ All WASM 1.0 instructions are implemented, certified by ACL2's proof checker, an
 
 ## What This Is
 
-A fully implemented WASM 1.0 interpreter / operational semantics in ACL2, produced incrementally by an AI agent across multiple sessions:
+A fully implemented WASM 1.0 interpreter / operational semantics in ACL2, produced incrementally by a coding agent across multiple sessions:
 
 1. **Studied the source material**: The [WASM 1.0 SpecTec formal spec](https://github.com/WebAssembly/spec/tree/main/specification/wasm-1.0) and the existing [Kestrel WASM skeleton](https://github.com/acl2/acl2/blob/master/books/kestrel/wasm/execution.lisp)
 2. **Studied related Kestrel models**: The [EVM formalization](https://github.com/acl2/acl2/tree/master/books/kestrel/ethereum/evm) and [JVM execution model](https://github.com/acl2/acl2/tree/master/books/kestrel/jvm) for architectural patterns
