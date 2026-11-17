@@ -1,0 +1,2 @@
+(include-book "../translate/gen/wasm-3.0/portcullis")
+(ld "package.lsp")

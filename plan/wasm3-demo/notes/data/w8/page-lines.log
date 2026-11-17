@@ -1,0 +1,31 @@
+W6-LINES PASS factorial/fac(3) [wabt]: 37/37 lines as expected, 36 steps (Run mode 36), ok 6, 1.56 ms/step with mapping
+W6-LINES PASS factorial/fac: rule chains on 36/36 steps (6.7 rules per chain)
+W6-LINES PASS factorial/fac: covers lines 6 7 8 9 11 12 13 14 15 16 17 19 20 21 24
+W6-LINES PASS factorial/fac_rec(2) [wabt]: 22/22 lines as expected, 21 steps (Run mode 21), ok 2, 1.29 ms/step with mapping
+W6-LINES PASS factorial/fac_rec: rule chains on 21/21 steps (5.6 rules per chain)
+W6-LINES PASS factorial/fac_rec: covers lines 26 28 29 32 33 35 36 37 38
+W6-LINES PASS float/hypot(1.5, 2) [wabt]: 12/12 lines as expected, 11 steps (Run mode 11), ok 2.5 (0x4004000000000000), 1.36 ms/step with mapping
+W6-LINES PASS float/hypot: rule chains on 11/11 steps (4.1 rules per chain)
+W6-LINES PASS float/third(10) [wabt]: 7/7 lines as expected, 6 steps (Run mode 6), ok 3 (0x40400000), 1.17 ms/step with mapping
+W6-LINES PASS float/third: rule chains on 6/6 steps (3.3 rules per chain)
+W6-LINES PASS memory/squares(1) [wabt]: 52/52 lines as expected, 51 steps (Run mode 51), ok 0, 1.63 ms/step with mapping
+W6-LINES PASS memory/squares: rule chains on 51/51 steps (6.9 rules per chain)
+W6-LINES PASS gc/f(3, 4) [fallback]: 18/18 lines as expected, 17 steps (Run mode 17), ok 15, 1.00 ms/step with mapping
+W6-LINES PASS gc/f: rule chains on 17/17 steps (4.2 rules per chain)
+W6-LINES PASS exception/safe(-7) [wabt]: 23/23 lines as expected, 22 steps (Run mode 22), ok 993, 1.23 ms/step with mapping
+W6-LINES PASS exception/safe: rule chains on 22/22 steps (8.5 rules per chain)
+W6-LINES PASS exception/safe(5) [wabt]: 21/21 lines as expected, 20 steps (Run mode 20), ok 10, 1.20 ms/step with mapping
+W6-LINES PASS exception/safe: rule chains on 20/20 steps (8.4 rules per chain)
+W6-LINES PASS exception/unsafe(-7) [wabt]: 17/17 lines as expected, 16 steps (Run mode 16), exception, 0.94 ms/step with mapping
+W6-LINES PASS exception/unsafe: rule chains on 16/16 steps (5.3 rules per chain)
+W6-LINES PASS simd/dot(5, 6, 7, 8) [wabt]: 25/25 lines as expected, 24 steps (Run mode 24), ok 70, 1.25 ms/step with mapping
+W6-LINES PASS simd/dot: rule chains on 24/24 steps (4.5 rules per chain)
+W6-LINES PASS every step of every example has a non-empty chain: 224/224 steps
+W6-LINES PASS print Run mode: ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"] (72 steps)
+W6-LINES PASS print Step mode: ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"], printed at steps 12 26 40 54 70 of 72
+W6-LINES PASS print: rule chains on 72/72 steps
+W6-LINES PASS next line x6 from the start of fac(3): 1:6 2:7 3:8 4:9 5:11 6:12 (want 1:6 2:7 3:8 4:9 5:11 6:12)
+W6-LINES PASS next line from step 29 (line 11): stops at step 30, line 12 (want 30, 12)
+W6-LINES PASS next line from step 30 (line 12; 31 is 12 again): stops at step 32, line 8 (want 32, 8)
+W6-LINES PASS breakpoint at line 21, run to end x3: 14:21 26:21 end@36 (want 14:21 26:21 end@36)
+W6-LINES all passed

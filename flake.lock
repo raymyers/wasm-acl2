@@ -1,0 +1,85 @@
+{
+  "nodes": {
+    "acl2-mcp": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794806018,
+        "narHash": "sha256-hQ1oXv0E/Gigb39hsBbnT8prJIRywH5RnxkocExvqrk=",
+        "owner": "raymyers",
+        "repo": "acl2-mcp",
+        "rev": "4e3ea526d983070aaf36fb5975310518a6fcb2d2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "raymyers",
+        "ref": "nix-flake",
+        "repo": "acl2-mcp",
+        "type": "github"
+      }
+    },
+    "jscl-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794674230,
+        "narHash": "sha256-GLa6SRjFchViH2Aq15EZpZLp/QKJVkwNl9ma1CayKdc=",
+        "owner": "jscl-project",
+        "repo": "jscl",
+        "rev": "54c88494e9f8f22e4c24c666e84aab7053f18cee",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jscl-project",
+        "repo": "jscl",
+        "rev": "54c88494e9f8f22e4c24c666e84aab7053f18cee",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1786384358,
+        "narHash": "sha256-RzPPiWeUtuvymnpuEWsdtzli5w4kjZs49FqEs3/1u+I=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "2fcb964de67fcf60b43471c55d5d99e61a9ccb5a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "acl2-mcp": "acl2-mcp",
+        "jscl-src": "jscl-src",
+        "nixpkgs": "nixpkgs",
+        "wasm-spec": "wasm-spec"
+      }
+    },
+    "wasm-spec": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794303605,
+        "narHash": "sha256-QzJC14jYWEMOuZ5lrq3XetPT4mCHFi2G3HurKlijHcQ=",
+        "owner": "WebAssembly",
+        "repo": "spec",
+        "rev": "943c5df07e84f11d2b83078964df5812530afbd2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "WebAssembly",
+        "repo": "spec",
+        "rev": "943c5df07e84f11d2b83078964df5812530afbd2",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

@@ -1,0 +1,67 @@
+Probe of WASM 3.0 (SpecTec 943c5df)
+Excluded: X.* 6.* 7.*
+Spec files: 25, lines: 7008
+IL lines: 52937, bytes: 1272952
+IL forms (top level): 795, hint forms: 640
+IL forms by kind (rec members counted): (("TYP" . 191) ("DEF" . 479) ("REC" . 61) ("REL" . 85) ("GRAM" . 87))
+IL names: (:TYP 191 :DEF 442 :REL 85 :RULE 509 :GRAM 87 :VAR 726 :ATOM 284)
+Rules: 509, in 85 relations; relations with no rules: NIL
+Relations with the most rules: (("Instr_ok" . 110) ("Step_read" . 103) ("Step_pure" . 79) ("Step" . 36) ("Heaptype_sub" . 21) ("Instr_const" . 14) ("Ref_ok" . 9) ("Externaddr_ok" . 6))
+Clause-less defs: 89
+Defs taking def (function) parameters: 0: 
+Defs taking type parameters: 14
+Largest rec group: 19 members (first: Heaptype_ok)
+Grammars: 87, binary B*: 87, text T*: 0
+Config entries used: 7 (ignored kinds: NIL)
+Config entries that do not match the IL: 0
+
+Schema errors: 0
+
+Mangling: collisions 0, renamed 18, atom collisions 0
+
+Phase 1: events 1240, defuns 1335, builtins/overrides 90, forms skipped 0
+
+Builtins (clause-less defs): 89; numeric 77 (no definition in rt/: 34), choice 11, host 1, notation 0, unclassified 0
+  missing in rt/: inv_concat_ inv_concatn_ s33_to_u32 ibits_ fbits_ nbytes_ vbytes_ zbytes_ cbytes_ inv_ibits_ inv_fbits_ inv_nbytes_ inv_vbytes_ inv_zbytes_ inv_cbytes_ ceilz iq15mulr_sat_ irelaxed_q15mulr_ iavgr_ irev_ iandnot_ ibitselect_ irelaxed_laneselect_ fpmin_ fpmax_ frelaxed_min_ frelaxed_max_ frelaxed_madd_ frelaxed_nmadd_ trunc_sat__ relaxed_trunc__ narrow__ lanes_ inv_lanes_
+
+Specialized defs with function parameters (G1): 16 dropped, 53 specializations
+
+Stubs: 2
+Stubs by source file:
+  2.4-validation.modules: 1: MODULE_OK
+  5.1-binary.values: 1: $UTF8SINGLE
+
+Relations emitted without some rules (per-rule stubs): 4, rules dropped: 7
+  Deftype_sub (:CHECK): 1/2 translated; dropped: Deftype_sub/super
+  Heaptype_sub (:CHECK): 19/21 translated; dropped: Heaptype_sub/rec-sub Heaptype_sub/trans
+  Instr_ok (:MULTI): 107/110 translated; dropped: Instr_ok/array.init_data Instr_ok/array.new_data Instr_ok/select-impl
+  Step_read (:FUN): 102/103 translated; dropped: Step_read/array.new_data-num
+
+Relation modes (final): :fun 21, :check 47, :multi 15, :closure 1; declared 22
+  :check: Start_ok Elemmode_ok Expr_const Instr_const Nondefaultable Memarg_ok Defaultable Catch_ok Externtype_sub Tabletype_sub Memtype_sub Globaltype_sub Tagtype_sub Limits_sub Instrtype_sub Externtype_ok Tabletype_ok Memtype_ok Globaltype_ok Tagtype_ok Limits_ok Rectype_ok Subtype_ok Instrtype_ok Localtype_ok Fieldtype_sub Storagetype_sub Resulttype_sub Valtype_sub Reftype_sub Heaptype_sub Deftype_sub Comptype_sub Deftype_ok Rectype_ok2 Subtype_ok2 Comptype_ok Storagetype_ok Fieldtype_ok Resulttype_ok Typeuse_ok Valtype_ok Reftype_ok Heaptype_ok Packtype_ok Vectype_ok Numtype_ok
+  :multi: Externaddr_ok Fieldval_ok Val_ok Ref_ok Globals_ok Elem_ok Data_ok Datamode_ok Func_ok Table_ok Global_ok Expr_ok_const Expr_ok Instrs_ok Instr_ok
+
+Relation groups where no mode compiles every rule: 4
+  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):
+  (("Heaptype_ok" "Reftype_ok" "Valtype_ok" "Typeuse_ok" "Resulttype_ok" "Fieldtype_ok" "Storagetype_ok" "Comptype_ok" "Subtype_ok2" "Rectype_ok2" "Deftype_ok" "Comptype_sub" "Deftype_sub" "Heaptype_sub" "Reftype_sub" "Valtype_sub" "Resulttype_sub" "Storagetype_sub" "Fieldtype_sub") ((3 . 0) (3 . 0) (3 . 0)) :BEST 0 :EMITTED 0)
+  (("Instr_ok" "Instrs_ok") ((3 . 0) (3 . 0) (3 . 0)) :BEST 0 :EMITTED 0)
+  (("Module_ok") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+  (("Step_read") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+
+Logged errors: 56, in 6 functions
+Errors by kind:
+  15: "unbound variable"
+  11: "pattern"
+  8: "relation inputs unbound"
+  7: "condition with unbound variables"
+  7: "iterated premise output not bound"
+  6: "checker relation with unbound arguments"
+  2: "disjuncts bind different variables"
+
+Rules dropped from split variants (all attempts, including discarded ones): 89
+  Instr_ok: 77: unreachable drop select-impl br br_table br_on_null return return_call return_call_ref return_call_indirect throw throw_ref ref.is_null ref.as_non_null ref.test ref.cast array.new_data array.init_data extern.convert_any any.convert_extern unreachable drop select-impl br br_table br_on_null return return_call return_call_ref return_call_indirect throw throw_ref ref.is_null ref.as_non_null ref.test ref.cast array.new_data array.init_data extern.convert_any any.convert_extern unreachable drop select-impl br br_table br_on_null return return_call return_call_ref return_call_indirect throw throw_ref ref.is_null ref.as_non_null ref.test ref.cast array.new_data array.init_data extern.convert_any any.convert_extern unreachable drop br br_table br_on_null return return_call return_call_ref return_call_indirect throw throw_ref ref.is_null ref.as_non_null ref.test ref.cast extern.convert_any any.convert_extern
+  Instrs_ok: 8: sub frame sub frame sub frame sub frame
+  Module_ok: 1: (unnamed)
+  Ref_ok: 1: sub
+  Externaddr_ok: 1: sub
+  Step_read: 1: array.new_data-num

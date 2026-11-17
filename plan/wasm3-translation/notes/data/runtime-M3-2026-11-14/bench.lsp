@@ -1,0 +1,56 @@
+; wasm3 M3: cost of one generated 3.0 STEP with 0, 1 and 4 pages of memory in
+; the store (the memory is not used): a counting loop, as prep P6's bench
+; for 1.0. The configuration is built by hand (no $instantiate yet, M4) and
+; checked with the generated recognizers. From translate/gen/wasm-3.0:
+;   acl2 < ../../../plan/wasm3-translation/notes/data/runtime-M3-2026-11-14/bench.lsp
+(ld "portcullis.acl2")
+(include-book "wasm3")
+(in-package "W3T")
+(program)
+(set-state-ok t)
+(defun i32c (n) (list :const '(:i32) n))
+(defconst *mi* '(:%rec (:types) (:tags) (:globals) (:mems 0) (:tables) (:funcs) (:datas) (:elems) (:exports)))
+(defun meminst (pages)
+  (list :%rec (cons :type (list :page '(:i32) (list :[%..%] pages nil)))
+        (cons :bytes (make-list (* pages 65536) :initial-element 0))))
+(defun store (pages)
+  (list :%rec '(:tags) '(:globals) (cons :mems (if (zp pages) nil (list (meminst pages))))
+        '(:tables) '(:funcs) '(:datas) '(:elems) '(:structs) '(:arrays) '(:exns)))
+(defun cfg (pages n instrs)
+  (list :|%;%| (list :|%;%| (store pages) (list :%rec (cons :locals (list (list (i32c n)))) (cons :module *mi*))) instrs))
+(defconst *loop*
+  (list (list :block '(:_result nil)
+              (list (list :loop '(:_result nil)
+                          (list '(:local.get 0) '(:testop (:i32) (:eqz)) '(:br_if 1)
+                                '(:local.get 0) (i32c 1) '(:binop (:i32) (:sub)) '(:local.set 0)
+                                '(:br 0)))))))
+; memloop: also an i32.store and an i32.load (address 0) per iteration
+(defconst *ma* '(:%rec (:align . 2) (:offset . 0)))
+(defconst *memloop*
+  (list (list :block '(:_result nil)
+              (list (list :loop '(:_result nil)
+                          (list '(:local.get 0) '(:testop (:i32) (:eqz)) '(:br_if 1)
+                                (i32c 0) '(:local.get 0) (list :store '(:i32) nil 0 *ma*)
+                                (i32c 0) (list :load '(:i32) nil 0 *ma*) '(:drop)
+                                '(:local.get 0) (i32c 1) '(:binop (:i32) (:sub)) '(:local.set 0)
+                                '(:br 0)))))))
+(defun run (c k)                                ; (mv steps final-instrs)
+  (let ((r (step c)))
+    (if (or (zp k) (atom r)) (mv k (caddr c)) (run (car r) (1- k)))))
+(defun bench-of (prog pages n state)
+  (let ((c (cfg pages n prog)))
+    (mv-let (t0 state) (read-run-time state)
+      (mv-let (left final) (run c 100000)
+        (mv-let (t1 state) (read-run-time state)
+          (let ((steps (- 100000 left)))
+            (prog2$ (cw "BENCH ~s8 pages ~x0 n ~x1: ~x2 steps, final ~x3, ~x4 ms/step (store-p ~x5 config-p ~x6 meminst-p ~x7)~%"
+                        pages n steps final
+                        (if (zp steps) 0 (/ (round (* 1000000 (/ (- t1 t0) steps)) 1) 1000))
+                        (store-p (store pages)) (config-p c) (or (zp pages) (meminst-p (meminst pages))) (if (equal prog *loop*) "loop" "memloop"))
+                    (mv nil :ok state))))))))
+(defun bench (pages n state) (bench-of *loop* pages n state))
+(bench 0 40 state)
+(bench 1 40 state)
+(bench 4 10 state)
+(bench-of *memloop* 1 40 state)
+(bench-of *memloop* 4 10 state)

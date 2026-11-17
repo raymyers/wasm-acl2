@@ -1,0 +1,65 @@
+warning: Git tree '/Users/Apple/dev/wasm-acl2' has uncommitted changes
+wasm-acl2 dev shell
+  make all      certify top + proofs + tests
+  make top      certify just the library
+  make proofs / make tests
+  (cd tests/oracle && bash check-all.sh)   Node.js oracle
+System books directory is /nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/portcullis.cert on 15-Nov-2026 04:05:55.812
+Making /Users/Apple/dev/wasm-acl2/translate/rt/builtins-3.0.cert on 15-Nov-2026 04:05:55.813
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/portcullis.cert (0.228s) at 15-Nov-2026 04:05:56.050[0m
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/rt/builtins-3.0.cert (0.291s) at 15-Nov-2026 04:05:56.114[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/0_1-aux_vars.cert on 15-Nov-2026 04:05:56.136
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/0_1-aux_vars.cert (0.235s) at 15-Nov-2026 04:05:56.380[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/0_2-aux_num.cert on 15-Nov-2026 04:05:56.402
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/0_2-aux_num.cert (0.248s) at 15-Nov-2026 04:05:56.659[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/0_3-aux_seq.cert on 15-Nov-2026 04:05:56.682
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/0_3-aux_seq.cert (0.491s) at 15-Nov-2026 04:05:57.183[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/1_1-syntax_values.cert on 15-Nov-2026 04:05:57.206
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/1_1-syntax_values.cert (0.547s) at 15-Nov-2026 04:05:57.769[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/1_2-syntax_types.cert on 15-Nov-2026 04:05:57.794
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/1_2-syntax_types.cert (1.204s) at 15-Nov-2026 04:05:59.032[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/1_3-syntax_instructions.cert on 15-Nov-2026 04:05:59.057
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/1_3-syntax_instructions.cert (4.688s) at 15-Nov-2026 04:06:03.787[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/1_4-syntax_modules.cert on 15-Nov-2026 04:06:03.811
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/1_4-syntax_modules.cert (0.884s) at 15-Nov-2026 04:06:04.711[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/2_0-validation_contexts.cert on 15-Nov-2026 04:06:04.735
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/2_0-validation_contexts.cert (1.007s) at 15-Nov-2026 04:06:05.755[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/2_1-validation_types.cert on 15-Nov-2026 04:06:05.778
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/2_1-validation_types.cert (1.312s) at 15-Nov-2026 04:06:07.115[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/2_2-validation_subtyping.cert on 15-Nov-2026 04:06:07.138
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/2_2-validation_subtyping.cert (0.824s) at 15-Nov-2026 04:06:07.973[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/2_3-validation_instructions.cert on 15-Nov-2026 04:06:07.998
+[32;1mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/2_3-validation_instructions.cert (14.545s) at 15-Nov-2026 04:06:22.645[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/2_4-validation_modules.cert on 15-Nov-2026 04:06:22.669
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/2_4-validation_modules.cert (1.198s) at 15-Nov-2026 04:06:23.888[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/3_0-numerics_relaxed.cert on 15-Nov-2026 04:06:23.912
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/3_0-numerics_relaxed.cert (0.885s) at 15-Nov-2026 04:06:24.808[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/3_1-numerics_scalar.cert on 15-Nov-2026 04:06:24.834
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/3_1-numerics_scalar.cert (1.024s) at 15-Nov-2026 04:06:25.878[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/3_2-numerics_vector.cert on 15-Nov-2026 04:06:25.903
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/3_2-numerics_vector.cert (2.562s) at 15-Nov-2026 04:06:28.512[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/4_0-execution_configurations.cert on 15-Nov-2026 04:06:28.537
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/4_0-execution_configurations.cert (1.548s) at 15-Nov-2026 04:06:30.103[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/4_1-execution_values.cert on 15-Nov-2026 04:06:30.128
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/4_1-execution_values.cert (1.234s) at 15-Nov-2026 04:06:31.377[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/4_2-execution_types.cert on 15-Nov-2026 04:06:31.400
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/4_2-execution_types.cert (1.171s) at 15-Nov-2026 04:06:32.581[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/4_3-execution_instructions.cert on 15-Nov-2026 04:06:32.605
+[33mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/4_3-execution_instructions.cert (34.401s) at 15-Nov-2026 04:07:07.210[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/4_4-execution_modules.cert on 15-Nov-2026 04:07:07.235
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/4_4-execution_modules.cert (4.279s) at 15-Nov-2026 04:07:11.539[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/5_1-binary_values.cert on 15-Nov-2026 04:07:11.565
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/5_1-binary_values.cert (1.605s) at 15-Nov-2026 04:07:13.185[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/5_2-binary_types.cert on 15-Nov-2026 04:07:13.209
+[33mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/5_2-binary_types.cert (38.499s) at 15-Nov-2026 04:07:51.727[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/5_3-binary_instructions.cert on 15-Nov-2026 04:07:51.752
+[31mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/5_3-binary_instructions.cert (118.344s) at 15-Nov-2026 04:09:50.243[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/5_4-binary_modules.cert on 15-Nov-2026 04:09:50.266
+[33;1mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/5_4-binary_modules.cert (40.116s) at 15-Nov-2026 04:10:30.415[0m
+Making /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/wasm3.cert on 15-Nov-2026 04:10:30.437
+[32mBuilt /Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/wasm3.cert (1.415s) at 15-Nov-2026 04:10:31.861[0m
+
+real	4m38.181s
+user	4m31.376s
+sys	0m7.884s

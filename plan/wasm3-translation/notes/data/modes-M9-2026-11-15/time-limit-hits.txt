@@ -1,0 +1,6 @@
+5_2-binary_types 1
+5_3-binary_instructions 2
+5_4-binary_modules 1
+DEFUN GRAM/BINSTR/REP32
+DEFUN GRAM/BRECTYPE/REP9
+DEFUN GRAM/BTYPESEC/REP17

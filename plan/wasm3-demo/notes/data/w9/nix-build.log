@@ -1,0 +1,5 @@
+warning: Git tree '/Users/Apple/dev/wasm-acl2' has uncommitted changes
+this derivation will be built:
+  /nix/store/rh759ny9vs31m50jg6w64jp7jarbhw84-wasm3-demo-0.1.drv
+building '/nix/store/rh759ny9vs31m50jg6w64jp7jarbhw84-wasm3-demo-0.1.drv'...
+W9-NIX nix build .#wasm3-demo: exit 0

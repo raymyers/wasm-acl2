@@ -1,0 +1,13 @@
+; E6 differential test 1: the runs (see difftest.lsp).
+(ld "difftest.lsp")
+(in-package "WE")
+(diff1 "count 200" "../bench/wasm/count-1.wasm" "run" (list (i32 200)) state)
+(diff1 "memloop 100" "../bench/wasm/memloop-1.wasm" "run" (list (i32 100)) state)
+(diff1 "nested 50" "../bench/wasm/nested-1.wasm" "run" (list (i32 50)) state)
+(diff1 "throw 30" "../bench/wasm/throw-1.wasm" "run" (list (i32 30)) state)
+(diff1 "fac loop 25" "../bench/wasm/fac-1.wasm" "run" (list (i64 25)) state)
+(diff1 "fac rec 20" "../bench/wasm/fac-1.wasm" "run_rec" (list (i64 20)) state)
+(diff1 "calls 20" "../bench/wasm/calls-1.wasm" "run" (list (i32 20)) state)
+(diff1 "div 7/0 (trap)" "../bench/wasm/trap-1.wasm" "div" (list (i32 0)) state)
+(diff1 "div 7/2" "../bench/wasm/trap-1.wasm" "div" (list (i32 2)) state)
+(diff1 "uncaught throw" "../bench/wasm/trap-1.wasm" "uncaught" (list (i32 3)) state)

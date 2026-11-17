@@ -1,0 +1,26 @@
+# The talk's deck, in the format of suckless sent: one slide per paragraph.
+# Rendered by sent.c, compiled to WebAssembly, run on the engine in ACL2.
+
+A verified
+WebAssembly engine
+
+The specification:
+WebAssembly 3.0 in SpecTec,
+translated to ACL2
+
+The engine:
+a second definition,
+much faster
+
+The theorem:
+what the engine computes,
+the specification computes
+
+This slide was drawn by
+WebAssembly code
+running on the engine
+
+\# not a comment
+\@ not an image
+
+Thank you

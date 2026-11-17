@@ -1,0 +1,31 @@
+annotations: annotations.wast:14:7: error: unexpected char   (@a , ; ] [ }}
+instance: instance.wast:3:9: error: unexpected token "definition", expec
+memory: memory.wast:8:9: error: unexpected token "definition", expecte
+ref_null: ref_null.wast:3:35: error: unexpected token anyref, expected )
+table: table.wast:9:9: error: unexpected token "definition", expected
+type-canon: type-canon.wast:2:4: error: unexpected token "rec", expected a
+type-equivalence: type-equivalence.wast:31:4: error: unexpected token "rec", exp
+type-rec: type-rec.wast:5:3: error: unexpected token (, expected ).   (r
+bulk-memory--table_init: bulk-memory/table_init.wast:2273:26: error: unexpected token "arrayref", expected i32, i64, f32, f64, v128, externref, e
+exceptions--cast: exceptions/cast.wast:11:39: error: unexpected token "ref.test", expected an instr.
+exceptions--tag: exceptions/tag.wast:31:4: error: unexpected token "rec", expected a module field.
+exceptions--try_table: exceptions/try_table.wast:435:42: error: unexpected token "exn", expected a numeric index or a name (e.g. 12 or $foo).
+gc--array: gc/array.wast:4:16: error: unexpected token "i8", expected i32, i64, f32, f64, v128, externref, exnref or funcref.
+gc--array_copy: gc/array_copy.wast:7:21: error: unexpected token "i8", expected i32, i64, f32, f64, v128, externref, exnref or funcref.
+gc--array_fill: gc/array_fill.wast:7:21: error: unexpected token "i8", expected i32, i64, f32, f64, v128, externref, exnref or funcref.
+gc--array_init_data: gc/array_init_data.wast:7:21: error: unexpected token "i8", expected i32, i64, f32, f64, v128, externref, exnref or func
+gc--array_init_elem: gc/array_init_elem.wast:12:8: error: unexpected token "array.init_elem", expected an instr.
+gc--array_new_data: gc/array_new_data.wast:2:26: error: unexpected token "i8", expected i32, i64, f32, f64, v128, externref, exnref or funcr
+gc--array_new_elem: gc/array_new_elem.wast:4:21: error: unexpected token "i31ref", expected i32, i64, f32, f64, v128, externref, exnref or f
+gc--br_on_cast: gc/br_on_cast.wast:5:28: error: unexpected token "i16", expected i32, i64, f32, f64, v128, externref, exnref or funcref.
+gc--br_on_cast_fail: gc/br_on_cast_fail.wast:5:28: error: unexpected token "i16", expected i32, i64, f32, f64, v128, externref, exnref or fun
+gc--extern: gc/extern.wast:4:20: error: unexpected token "i8", expected i32, i64, f32, f64, v128, externref, exnref or funcref.
+gc--i31: gc/i31.wast:2:52: error: unexpected token "i31", expected a numeric index or a name (e.g. 12 or $foo).
+gc--ref_cast: gc/ref_cast.wast:6:20: error: unexpected token "i8", expected i32, i64, f32, f64, v128, externref, exnref or funcref.
+gc--ref_eq: gc/ref_eq.wast:2:14: error: unexpected token "sub", expected func, struct or array.
+gc--ref_test: gc/ref_test.wast:6:20: error: unexpected token "i8", expected i32, i64, f32, f64, v128, externref, exnref or funcref.
+gc--struct: gc/struct.wast:5:23: error: unexpected token ")", expected i32, i64, f32, f64, v128, externref, exnref or funcref.
+gc--type-subtyping: gc/type-subtyping.wast:4:14: error: unexpected token "sub", expected func, struct or array.
+memory64--memory64: memory64/memory64.wast:8:9: error: unexpected token "definition", expected a module field.
+memory64--table64: memory64/table64.wast:9:9: error: unexpected token "definition", expected a module field.
+memory64--table_init64: memory64/table_init64.wast:2458:26: error: unexpected token "arrayref", expected i32, i64, f32, f64, v128, externref, ex

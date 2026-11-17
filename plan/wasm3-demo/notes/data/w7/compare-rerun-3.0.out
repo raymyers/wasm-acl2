@@ -1,0 +1,5 @@
+W7-RERUN bulk-memory--memory_copy: before 124 (4218 lines), after 124 (4449 lines): same on the first 4218 lines (prefix)
+W7-RERUN call: before 124 (33 lines), after 137 (35 lines): same on the first 33 lines (prefix)
+W7-RERUN call_indirect: before 137 (76 lines), after 137 (76 lines): identical
+W7-RERUN call_ref: before 0 (35 lines), after 0 (35 lines): identical
+W7-RERUN memory64--memory_copy64: before 124 (4218 lines), after 124 (4449 lines): same on the first 4218 lines (prefix)

@@ -1,3 +1,5 @@
+.DS_Store
+
 # ACL2 / cert.pl build artifacts
 *.cert
 *.cert.out
@@ -13,3 +15,26 @@ Makefile-tmp
 
 # Jupyter notebook checkpoints
 .ipynb_checkpoints/
+
+# Nix build symlink
+result
+result-*
+
+# translate/ scratch
+translate/gen.log
+translate/.check-gen-*/
+translate/.il-out
+translate/.probe/
+translate/tests/sem/modes-write.log
+# gen/ of 2.0 and 3.0 is not checked in: a deterministic function of IL,
+# config and translator, rebuilt by check-2.0 / check-3.0 (wasm3 prep P4, M0)
+translate/gen/wasm-2.0/
+translate/gen/wasm-3.0/
+workxxx.*
+translate/tests/sem-3.0/modes-write.log
+
+# plan/wasm3-demo: derived files (D1)
+demo/build/
+
+# talk figures: kept local for now
+talk/

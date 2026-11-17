@@ -1,0 +1,63 @@
+Probe of WASM 2.0 (SpecTec 943c5df)
+Excluded: none
+Spec files: 10, lines: 4175
+IL lines: 34707, bytes: 814842
+IL forms (top level): 470, hint forms: 366
+IL forms by kind (rec members counted): (("TYP" . 145) ("DEF" . 214) ("REC" . 37) ("REL" . 41) ("GRAM" . 71))
+IL names: (:TYP 145 :DEF 214 :REL 41 :RULE 265 :GRAM 71 :VAR 521 :ATOM 196)
+Rules: 265, in 41 relations; relations with no rules: NIL
+Relations with the most rules: (("Instr_ok" . 74) ("Step_pure" . 56) ("Step_read" . 47) ("Step" . 23) ("Instrs_ok" . 5) ("Instr_const" . 5) ("Externaddr_ok" . 5) ("Externtype_ok" . 4))
+Clause-less defs: 64
+Defs taking def (function) parameters: 0: 
+Defs taking type parameters: 8
+Largest rec group: 2 members (first: Instr_ok)
+Grammars: 71, binary B*: 71, text T*: 0
+Config entries used: 8 (ignored kinds: NIL)
+Config entries that do not match the IL: 0
+
+Schema errors: 0
+
+Mangling: collisions 0, renamed 19, atom collisions 0
+
+Phase 1: events 742, defuns 759, builtins/overrides 65, forms skipped 0
+
+Builtins (clause-less defs): 64; numeric 64 (no definition in rt/: 0), choice 0, host 0, notation 0, unclassified 0
+  missing in rt/: 
+
+Specialized defs with function parameters (G1): 0 dropped, 0 specializations
+
+Stubs: 1
+Stubs by source file:
+  6-typing: 1: MODULE_OK
+
+Relations emitted without some rules (per-rule stubs): 2, rules dropped: 3
+  Instrs_ok (:CHECK): 3/5 translated; dropped: Instrs_ok/sub Instrs_ok/seq
+  Externaddr_ok (:FUN): 4/5 translated; dropped: Externaddr_ok/sub
+
+Relation modes (final): :fun 18, :check 22, :multi 0, :closure 1; declared 0
+  :check: Start_ok Data_ok Datamode_ok Elemmode_ok Expr_ok_const Expr_const Instr_const Expr_ok Instrs_ok Instr_ok Externtype_sub Memtype_sub Tabletype_sub Limits_sub Resulttype_sub Valtype_sub Externtype_ok Memtype_ok Tabletype_ok Globaltype_ok Functype_ok Limits_ok
+  :multi: 
+
+Output variants that drop rules, in a multi-mode relation (a premise that takes a value from one uses a single witness): 
+  accepted as witness sources (config :witness): 
+
+Output variants on demand, as (relation output-positions...): emitted 0: NIL
+  demanded, but some rule does not compile in that mode: (("Limits_ok" 0) ("Valtype_sub" 1) ("Limits_sub" 1) ("Memtype_sub" 1) ("Tabletype_sub" 1) ("Resulttype_sub" 1) ("Instr_ok" 2) ("Instrs_ok" 2) ("Expr_ok" 2) ("Expr_const" 1) ("Instrs_ok" 1) ("Blocktype_ok" 1) ("Instr_ok" 1) ("Expr_ok" 1) ("Expr_ok_const" 1) ("Datamode_ok" 1) ("Externidx_ok" 0) ("Export_ok" 0 2) ("Externidx_ok" 0 2) ("Export_ok" 0 2 3) ("Start_ok" 0) ("Instrs_ok" 0 2) ("Blocktype_ok" 0 2) ("Instr_ok" 0 2) ("Expr_ok" 0 2) ("Func_ok" 0 2) ("Instr_const" 0) ("Expr_const" 0) ("Instrs_ok" 0) ("Expr_ok" 0) ("Expr_ok_const" 0) ("Datamode_ok" 0) ("Data_ok" 0) ("Elemmode_ok" 0) ("Elem_ok" 0 2) ("Mem_ok" 0 2) ("Table_ok" 0 2) ("Global_ok" 0 2) ("Limits_sub" 0) ("Memtype_sub" 0) ("Tabletype_sub" 0) ("Externtype_sub" 0) ("Externtype_sub" 1))
+  compiled, not called by emitted code: (("Valtype_sub" 0) ("Resulttype_sub" 0) ("Globaltype_sub" 0) ("Functype_sub" 0))
+
+Relation groups where no mode compiles every rule: 3
+  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):
+  (("Instr_ok" "Instrs_ok") ((9 . 0) (2 . 0) (2 . 0)) :BEST 1 :EMITTED 1)
+  (("Module_ok") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+  (("Externaddr_ok") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+
+Logged errors: 33, in 3 functions
+Errors by kind:
+  8: "checker relation with unbound arguments"
+  7: "pattern"
+  6: "relation inputs unbound"
+  6: "iterated premise output not bound"
+  4: "condition with unbound variables"
+  2: "unbound variable"
+
+Rules dropped from the output variants of multi-mode relations: 0

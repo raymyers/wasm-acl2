@@ -1,0 +1,75 @@
+RENDER test1.pdf 612 792 1454112 e1e83ad30c2bfc21f25c734954a4431c937940d4d3c63460a7fc04b2ed54dae8
+RENDER slide.pdf 960 540 1555200 86375811de1a8e1f218d82b80b12d533eda035652ff778ed953caf1f3c5cac5a
+RENDER text.pdf 612 792 1454112 77dcea3e9642fdc24e13d16864667d10d94ad958ca8f583b2fec39dc65428b42
+IMPORTS load
+   1 __wasi_environ_get 
+   1 __wasi_environ_sizes_get 
+   9 _gmtime_js 
+   1 _tzset_js 
+   9 emscripten_date_now 
+   1 export qc 
+   1 export ra 
+   1 export rc 
+   1 export sc 
+   1 export tc 
+   1 export uc 
+   1 export x 
+   1 export y 
+   6 export z 
+IMPORTS open test1.pdf
+   1 export J 
+   1 export Se 
+   1 export Te 
+   1 export de 
+   1 export kc 
+   1 export ke 
+   2 export z 
+IMPORTS render test1.pdf
+   2 emscripten_asm_const_ptr @6164637 (_,a,e,t)=>globalThis.$libmupdf_load_font_file(_,a,e,t)
+   1 export A 
+   1 export Aa 
+   2 export Ba 
+   1 export Fa 
+   1 export Ka 
+   1 export Nc 
+   1 export z 
+IMPORTS open slide.pdf
+   1 export A 
+   1 export J 
+   1 export Se 
+   1 export Te 
+   1 export de 
+   1 export kc 
+   1 export ke 
+   2 export z 
+IMPORTS render slide.pdf
+   3 _gmtime_js 
+   3 emscripten_asm_const_ptr @6164637 (_,a,e,t)=>globalThis.$libmupdf_load_font_file(_,a,e,t)
+   3 emscripten_date_now 
+   1 export A 
+   1 export Aa 
+   2 export Ba 
+   1 export Fa 
+   1 export Ka 
+   1 export Nc 
+   1 export z 
+IMPORTS open text.pdf
+   1 export A 
+   1 export J 
+   1 export Se 
+   1 export Te 
+   1 export de 
+   1 export kc 
+   1 export ke 
+   2 export z 
+IMPORTS render text.pdf
+   4 _gmtime_js 
+   4 emscripten_asm_const_ptr @6164637 (_,a,e,t)=>globalThis.$libmupdf_load_font_file(_,a,e,t)
+   4 emscripten_date_now 
+   1 export A 
+   1 export Aa 
+   2 export Ba 
+   1 export Fa 
+   1 export Ka 
+   1 export Nc 
+   1 export z 

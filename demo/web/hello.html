@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JSCL hello</title>
+<style>
+  :root { --bg: #fafaf7; --fg: #1d1d1b; --muted: #6b6b66; --accent: #3a5f8f; --card: #ffffff; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #1b1b1a; --fg: #ececea; --muted: #a0a09a; --accent: #8fb3e0; --card: #252524; }
+  }
+  body { background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 48px 16px; }
+  main { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.sub { color: var(--muted); margin: 0 0 24px; }
+  output { display: block; font: 18px/1.4 ui-monospace, monospace; padding: 16px; border-left: 4px solid var(--accent); background: var(--card); }
+</style>
+</head>
+<body>
+<main>
+  <h1>WASM 3.0 demo: toolchain check</h1>
+  <p class="sub">Lisp compiled ahead of time by JSCL, running in this page (W0 item 1).</p>
+  <output id="out">loading…</output>
+</main>
+<script src="jscl.js"></script>
+<script src="hello.js"></script>
+<script>
+  document.getElementById('out').textContent = window.jsclHello || 'no result';
+</script>
+</body>
+</html>

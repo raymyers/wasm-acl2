@@ -1,0 +1,7 @@
+Form:  ( DEFUN D2-CMD ...)
+ D2-CMD
+Form:  ( DEFUN D2-FORMS ...)
+ D2-FORMS
+Form:  ( DEFUN D2-SETUP ...)
+ D2-SETUP
+W3T p!>FIB20-MACHINE (((:CONST (:I32) 10946)) 1)

@@ -1,0 +1,6 @@
+W9-GATE make -C translate check: exit 0 7s
+W9-GATE make -C translate check-2.0: exit 0 144s
+W9-GATE make -C translate check-3.0: exit 0 293s
+W9-GATE translate porcelain lines after gates: 0
+
+[exited with code 0]

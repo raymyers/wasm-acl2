@@ -1,0 +1,26 @@
+--- a/spectec/src/backend-ast/print.ml	2026-11-14 11:07:15.353811597 -0800
++++ b/spectec/src/backend-ast/print.ml	2026-11-14 11:07:22.088258661 -0800
+@@ -215,8 +215,21 @@
+     Node ("gram", [id x] @ List.map param ps @ [typ t] @ List.map prod prods)
+   | RecD ds ->
+     Node ("rec", List.map def ds)
+-  | HintD _ ->
+-    Atom ""
++  | HintD hd ->
++    hintdef hd
++
++(* Hint definitions: (hint <kind> "<id>" ["<rule id>"] (<hint> "<EL expression>")...).
++   The hint expression is surface syntax, printed as text. *)
++and hintdef hd =
++  match hd.it with
++  | TypH (x, hs) -> Node ("hint", [Atom "typ"; id x] @ List.map hint hs)
++  | RelH (x, hs) -> Node ("hint", [Atom "rel"; id x] @ List.map hint hs)
++  | DecH (x, hs) -> Node ("hint", [Atom "def"; id x] @ List.map hint hs)
++  | GramH (x, hs) -> Node ("hint", [Atom "gram"; id x] @ List.map hint hs)
++  | RuleH (x, y, hs) -> Node ("hint", [Atom "rule"; id x; id y] @ List.map hint hs)
++
++and hint h =
++  Node (h.hintid.it, [text (El.Print.string_of_exp h.hintexp)])
+ 
+ 
+ (* Scripts *)

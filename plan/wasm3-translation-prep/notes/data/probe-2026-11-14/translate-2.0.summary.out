@@ -1,0 +1,39 @@
+RESULT SCRATCH/wasm-2.0.il.sexp
+events 631 defuns 639 builtins 65 skipped 0
+nstubs 10
+STUBS 
+("STEP" "STEP_READ"
+        "STEP_PURE" "MODULE_OK" "INSTRS_OK"
+        "INSTR_OK" "$VRELOP_" "$VEXTUNOP__"
+        "$VEXTBINOP__" "GRAM/BINSTR")
+
+nerrs 116
+ERRKINDS 
+(("GRAM/BINSTR" . 3)
+ ("STEP" . 4)
+ ("STEP_READ" . 14)
+ ("STEP_PURE" . 20)
+ ("MODULE_OK" . 26)
+ ("INSTRS_OK" . 6)
+ ("INSTR_OK" . 19)
+ ("$VEXTBINOP__" . 3)
+ ("$VEXTUNOP__" . 3)
+ ("$VRELOP_" . 18))
+
+INCOMPLETE 
+("Instr_ok/unreachable" "Instr_ok/select-impl"
+                        "Instr_ok/br" "Instr_ok/br_table"
+                        "Instr_ok/return" "Instrs_ok/sub"
+                        "Module_ok/" "Step_pure/vbitmask"
+                        "Step_pure/vswizzle"
+                        "Step_pure/vshuffle" "Step_pure/vsplat"
+                        "Step_pure/vreplace_lane"
+                        "Step_read/load-num-val"
+                        "Step_read/vload-val"
+                        "Step_read/vload-shape-val"
+                        "Step_read/vload-splat-val"
+                        "Step_read/vload_lane-val"
+                        "Step/ctxt-frame" "Step/vstore_lane-val"
+                        "Externaddr_ok/sub")
+
+BUILTINS 

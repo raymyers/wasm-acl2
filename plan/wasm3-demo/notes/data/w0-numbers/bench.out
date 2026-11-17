@@ -1,0 +1,7 @@
+W0-NUM +      plain 15.14 ms  tower 49.09 ms  ratio 3.24  results 1012344 1012344 equal
+W0-NUM *      plain 15.16 ms  tower 49.77 ms  ratio 3.28  results 2999997 2999997 equal
+W0-NUM FLOOR  plain 49.67 ms  tower 195.36 ms  ratio 3.93  results 142857 142857 equal
+W0-NUM LOGAND plain 338.75 ms  tower 47.14 ms  ratio 0.14  results 63 63 equal
+W0-NUM ASH    plain 56.89 ms  tower 50.49 ms  ratio 0.89  results 7999992 7999992 equal
+W0-NUM ASH-R  plain 57.77 ms  tower 43.22 ms  ratio 0.75  results 249999 249999 equal
+W0-NUM slow path: 2^53+1 via t+ = 9007199254740993 , t* 2^40*2^40 = 1208925819614629174706176

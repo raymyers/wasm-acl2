@@ -1,0 +1,17 @@
+Form:  ( DEFUN BENCH ...)
+Rules: NIL
+--
+W3T p!>BENCH loop pages 0 n 40: 327 steps, final NIL, 3/250 ms/step (store-
+p T config-p T meminst-p T)
+--
+W3T p!>BENCH loop pages 1 n 40: 327 steps, final NIL, 11/1000 ms/step (store-
+p T config-p T meminst-p T)
+--
+W3T p!>BENCH loop pages 4 n 10: 87 steps, final NIL, 11/1000 ms/step (store-
+p T config-p T meminst-p T)
+--
+W3T p!>BENCH memloop pages 1 n 40: 487 steps, final NIL, 29/1000 ms/step (store-
+p T config-p T meminst-p T)
+--
+W3T p!>BENCH memloop pages 4 n 10: 127 steps, final NIL, 59/1000 ms/step (store-
+p T config-p T meminst-p T)

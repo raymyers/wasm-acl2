@@ -1,0 +1,2 @@
+T3 SIMD (2.0): 528 of 528 vectors agree with the WASM engine.
+T3 numerics (2.0): 8724 of 8724 vectors agree with the WASM engine

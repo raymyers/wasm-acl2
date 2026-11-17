@@ -1,0 +1,37 @@
+E1 item 4: census of the fork module (commit 3eae43d, sha256 e3c67c2e...af14),
+from wasm-objdump -h and -x (wabt 1.0.41), 2026-11-15. Opcode counts are in
+fork-3eae43d-opcodes.txt.
+
+Sections: Type 191, Import 22, Function 7,035, Table 1, Memory 1, Tag 1,
+Global 1, Export 556, Elem 1, DataCount 3,140, Code 7,035, Data 3,140
+(6,057,960 bytes of section), name section.
+
+Memory[0]  initial 352 pages (23,068,672 bytes), max 32,768
+Table[0]   funcref, initial 3,246, max 3,246; one active element segment at
+           offset 1 with 3,245 functions
+Global[0]  i32 mutable __stack_pointer = 6,261,248
+Tag[0]     type 3 (i32) -> ()   (the C++/longjmp tag)
+
+Imports (all from module "a"; field name -> real name, signature):
+  a.a  emscripten_asm_const_int   (i32, i32, i32) -> i32
+  a.b  exit                       (i32) -> ()
+  a.c  emscripten_date_now        () -> f64
+  a.d  __wasi_fd_write            (i32, i32, i32, i32) -> i32
+  a.e  __wasi_fd_close            (i32) -> i32
+  a.f  __syscall_unlinkat         (i32, i32, i32) -> i32
+  a.g  __syscall_openat           (i32, i32, i32, i32) -> i32
+  a.h  __syscall_fcntl64          (i32, i32, i32) -> i32
+  a.i  emscripten_resize_heap     (i32) -> i32
+  a.j  emscripten_asm_const_ptr   (i32, i32, i32) -> i32
+  a.k  _tzset_js                  (i32, i32, i32, i32) -> ()
+  a.l  _timegm_js                 (i32) -> i64
+  a.m  _gmtime_js                 (i64, i32) -> ()
+  a.n  _abort_js                  () -> ()
+  a.o  __wasi_fd_seek             (i32, i64, i32, i32) -> i32
+  a.p  __wasi_fd_read             (i32, i32, i32, i32) -> i32
+  a.q  __wasi_environ_sizes_get   (i32, i32) -> i32
+  a.r  __wasi_environ_get         (i32, i32) -> i32
+  a.s  __wasi_clock_time_get      (i32, i64, i32) -> i32
+  a.t  __syscall_rmdir            (i32) -> i32
+  a.u  __syscall_ioctl            (i32, i32, i32) -> i32
+  a.v  __syscall_ftruncate64      (i32, i64) -> i32

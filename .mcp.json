@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "acl2-mcp": {
+      "command": "nix",
+      "args": ["run", ".#acl2-mcp"]
+    }
+  }
+}

@@ -1,0 +1,93 @@
+Probe of WASM 3.0 (SpecTec 943c5df)
+Excluded: none
+Spec files: 37, lines: 9353
+IL lines: 67086, bytes: 1606982
+IL forms (top level): 1011, hint forms: 713
+IL forms by kind (rec members counted): (("TYP" . 208) ("DEF" . 499) ("REC" . 84) ("REL" . 125) ("GRAM" . 232))
+IL names: (:TYP 208 :DEF 462 :REL 125 :RULE 567 :GRAM 232 :VAR 829 :ATOM 294)
+Rules: 567, in 125 relations; relations with no rules: ("NotationTypingPremise" "NotationTypingPremisedots")
+Relations with the most rules: (("Instr_ok" . 110) ("Step_read" . 103) ("Step_pure" . 79) ("Step" . 36) ("Heaptype_sub" . 21) ("Instr_const" . 14) ("Ref_ok" . 9) ("Instr_ok2" . 8))
+Clause-less defs: 93
+Defs taking def (function) parameters: 0: 
+Defs taking type parameters: 17
+Largest rec group: 19 members (first: Heaptype_ok)
+Grammars: 232, binary B*: 90, text T*: 142
+Config entries used: 7 (ignored kinds: NIL)
+Config entries that do not match the IL: 0
+
+Schema errors: 0
+
+Mangling: collisions 0, renamed 27, atom collisions 0
+
+Phase 1: events 1566, defuns 1676, builtins/overrides 94, forms skipped 0
+
+Builtins (clause-less defs): 93; numeric 77 (no definition in rt/: 13), choice 11, host 1, notation 0, unclassified 4
+  missing in rt/: inv_concatn_ zbytes_ cbytes_ inv_zbytes_ inv_cbytes_ ceilz irelaxed_q15mulr_ irelaxed_laneselect_ frelaxed_min_ frelaxed_max_ frelaxed_madd_ frelaxed_nmadd_ relaxed_trunc__
+
+Specialized defs with function parameters (G1): 16 dropped, 53 specializations
+
+Stubs: 76
+Stubs by source file:
+  2.4-validation.modules: 1: MODULE_OK
+  5.1-binary.values: 1: $UTF8SINGLE
+  6.0-text.lexical: 7: GRAM/TRESERVED GRAM/TBLOCKCOMMENT GRAM/TBLOCKCHAR GRAM/TEOF GRAM/TLINECOMMENT GRAM/TSPACE GRAM/TANNOT
+  6.1-text.values: 17: GRAM/THEXNUM GRAM/TSTRINGCHAR GRAM/TSTRINGELEM GRAM/TSTRING GRAM/TID GRAM/TSIGN GRAM/TNUM GRAM/TUN GRAM/TFRAC GRAM/THEXFRAC GRAM/TMANT GRAM/THEXMANT GRAM/TFLOAT GRAM/THEXFLOAT GRAM/TFNMAG GRAM/TIDX_ GRAM/TEXTERNIDX_
+  6.2-text.types: 19: GRAM/TNUMTYPE GRAM/TVECTYPE GRAM/TABSHEAPTYPE GRAM/TNULL GRAM/TREFTYPE_ GRAM/TPACKTYPE GRAM/TFIELDTYPE_ GRAM/TFIELD_ GRAM/TPARAM_ GRAM/TRESULT_ GRAM/TCOMPTYPE_ GRAM/TFINAL GRAM/TSUBTYPE_ GRAM/TTYPEDEF_ GRAM/TRECTYPE_ GRAM/TADDRTYPE GRAM/TTYPEUSE_ GRAM/TGLOBALTYPE_ GRAM/TEXTERNTYPE_
+  6.3-text.instructions: 6: GRAM/TLABEL_ GRAM/TCATCH_ GRAM/TALIGN_ GRAM/TOFFSET GRAM/TPLAININSTR_ GRAM/TBLOCKINSTR_
+  6.4-text.modules: 20: GRAM/TTAG_ GRAM/TGLOBAL_ GRAM/TMEM_ GRAM/TTABLE_ GRAM/TLOCAL_ GRAM/TFUNC_ GRAM/TMEMUSE_ GRAM/TOFFSETEXPR_ GRAM/TDATA_ GRAM/TELEMEXPR_ GRAM/TTABLEUSE_ GRAM/TELEM_ GRAM/TSTART_ GRAM/TIMPORT_ GRAM/TEXPORT_ GRAM/TEXPORTDOTS GRAM/TIMPORTDOTS GRAM/TEXPORTMEMDOTS_ GRAM/TEXPORTTABLEDOTS_ GRAM/TMODULE
+  7.0-soundness.contexts: 1: CONTEXT_OK
+  7.1-soundness.configurations: 2: FRAME_OK MODULEINST_OK
+  X.2-notation.typing: 2: NOTATIONTYPINGSCHEME NOTATIONTYPINGPREMISEDOTS
+
+Relations emitted without some rules (per-rule stubs): 5, rules dropped: 10
+  Deftype_sub (:CHECK): 1/2 translated; dropped: Deftype_sub/super
+  Heaptype_sub (:CHECK): 19/21 translated; dropped: Heaptype_sub/rec-sub Heaptype_sub/trans
+  Instr_ok (:MULTI): 107/110 translated; dropped: Instr_ok/array.init_data Instr_ok/array.new_data Instr_ok/select-impl
+  Step_read (:FUN): 102/103 translated; dropped: Step_read/array.new_data-num
+  ImmutReachable (:FUN): 2/5 translated; dropped: ImmutReachable/ref.exn ImmutReachable/ref.array ImmutReachable/ref.struct
+
+Relation modes (final): :fun 38, :check 62, :multi 23, :closure 1; declared 22
+  :check: NotationReduct Extend_store Extend_arrayinst Extend_structinst Extend_tableinst Extend_meminst Extend_globalinst Store_ok NotImmutReachable Exninst_ok Arrayinst_ok Structinst_ok Exportinst_ok Localval_ok Idctxt_ok Start_ok Elemmode_ok Expr_const Instr_const Nondefaultable Memarg_ok Defaultable Catch_ok Externtype_sub Tabletype_sub Memtype_sub Globaltype_sub Tagtype_sub Limits_sub Instrtype_sub Externtype_ok Tabletype_ok Memtype_ok Globaltype_ok Tagtype_ok Limits_ok Rectype_ok Subtype_ok Instrtype_ok Localtype_ok Fieldtype_sub Storagetype_sub Resulttype_sub Valtype_sub Reftype_sub Heaptype_sub Deftype_sub Comptype_sub Deftype_ok Rectype_ok2 Subtype_ok2 Comptype_ok Storagetype_ok Fieldtype_ok Resulttype_ok Typeuse_ok Valtype_ok Reftype_ok Heaptype_ok Packtype_ok Vectype_ok Numtype_ok
+  :multi: Config_ok Funcinst_ok Tableinst_ok Globalinst_ok Expr_ok2 Instrs_ok2 Instr_ok2 Eleminst_ok Externaddr_ok Fieldval_ok Val_ok Ref_ok Globals_ok Elem_ok Data_ok Datamode_ok Func_ok Table_ok Global_ok Expr_ok_const Expr_ok Instrs_ok Instr_ok
+
+Relation groups where no mode compiles every rule: 10
+  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):
+  (("Heaptype_ok" "Reftype_ok" "Valtype_ok" "Typeuse_ok" "Resulttype_ok" "Fieldtype_ok" "Storagetype_ok" "Comptype_ok" "Subtype_ok2" "Rectype_ok2" "Deftype_ok" "Comptype_sub" "Deftype_sub" "Heaptype_sub" "Reftype_sub" "Valtype_sub" "Resulttype_sub" "Storagetype_sub" "Fieldtype_sub") ((3 . 0) (3 . 0) (3 . 0)) :BEST 0 :EMITTED 0)
+  (("Instr_ok" "Instrs_ok") ((3 . 0) (3 . 0) (3 . 0)) :BEST 0 :EMITTED 0)
+  (("Module_ok") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+  (("Step_read") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+  (("Context_ok") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+  (("Moduleinst_ok") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+  (("Frame_ok") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+  (("ImmutReachable") ((3 . 0) (4 . 0) (3 . 0)) :BEST 0 :EMITTED 0)
+  (("NotationTypingPremisedots") ((0 . 1) (0 . 1) (0 . 2)) :BEST 0 :EMITTED NIL)
+  (("NotationTypingScheme") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+
+Logged errors: 838, in 81 functions
+Errors by kind:
+  736: "grammar symbol"
+  29: "unbound variable"
+  17: "condition with unbound variables"
+  16: "pattern"
+  13: "iterated premise without inputs"
+  8: "relation inputs unbound"
+  8: "iterated premise output not bound"
+  7: "checker relation with unbound arguments"
+  2: "disjuncts bind different variables"
+  1: "relation with an empty tuple (arity 0)"
+  1: "exp"
+
+Rules dropped from split variants (all attempts, including discarded ones): 100
+  Instr_ok: 77: unreachable drop select-impl br br_table br_on_null return return_call return_call_ref return_call_indirect throw throw_ref ref.is_null ref.as_non_null ref.test ref.cast array.new_data array.init_data extern.convert_any any.convert_extern unreachable drop select-impl br br_table br_on_null return return_call return_call_ref return_call_indirect throw throw_ref ref.is_null ref.as_non_null ref.test ref.cast array.new_data array.init_data extern.convert_any any.convert_extern unreachable drop select-impl br br_table br_on_null return return_call return_call_ref return_call_indirect throw throw_ref ref.is_null ref.as_non_null ref.test ref.cast array.new_data array.init_data extern.convert_any any.convert_extern unreachable drop br br_table br_on_null return return_call return_call_ref return_call_indirect throw throw_ref ref.is_null ref.as_non_null ref.test ref.cast extern.convert_any any.convert_extern
+  Instrs_ok: 8: sub frame sub frame sub frame sub frame
+  Module_ok: 1: (unnamed)
+  Ref_ok: 1: sub
+  Externaddr_ok: 1: sub
+  Step_read: 1: array.new_data-num
+  Context_ok: 1: (unnamed)
+  Moduleinst_ok: 1: (unnamed)
+  Frame_ok: 1: (unnamed)
+  Instr_ok2: 2: return_call_ref trap
+  Instrs_ok2: 2: sub frame
+  ImmutReachable: 3: ref.struct ref.array ref.exn
+  NotationTypingScheme: 1: (unnamed)

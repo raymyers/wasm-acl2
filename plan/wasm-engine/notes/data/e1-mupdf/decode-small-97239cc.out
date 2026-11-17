@@ -1,0 +1,9 @@
+W3T p!>E1-DECODE read 4537938 bytes in 83 ms
+E1-DECODE parse: complete, rest 0 bytes, 4378762 ms
+E1-DECODE module :MODULE, field lengths in order 
+(158 21 1 1 1 1 4470 1456 1 0 556)
+E1-DECODE Module_ok: T, 85040 ms
+ :OK
+     4700.94 real      4452.24 user        16.70 sys
+         10811375616  maximum resident set size
+                   0  average shared memory size

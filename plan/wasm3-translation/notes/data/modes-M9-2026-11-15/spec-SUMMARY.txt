@@ -1,0 +1,258 @@
+address 259 260 done skipped=0 :ASSERT_RETURN=206/206 :MODULE=4/4 :ASSERT_INVALID=0/1 :ASSERT_TRAP=49/49
+align 119 119 done skipped=46 :ASSERT_RETURN=47/47 :MODULE=25/25 :ASSERT_MALFORMED=2/2 :ASSERT_INVALID=44/44 :ASSERT_TRAP=1/1
+annotations 10 10 done skipped=0 :MODULE=10/10
+binary 127 129 done skipped=0 :MODULE=20/20 :ASSERT_MALFORMED=106/106 CRASH=0/2 :ASSERT_INVALID=1/1
+binary-leb128 91 91 done skipped=0 :MODULE=33/33 :ASSERT_MALFORMED=58/58
+block 208 208 done skipped=15 :ASSERT_RETURN=52/52 :MODULE=1/1 :ASSERT_INVALID=155/155
+br 97 97 done skipped=0 :ASSERT_RETURN=76/76 :MODULE=1/1 :ASSERT_INVALID=20/20
+br_if 119 119 done skipped=0 :ASSERT_RETURN=88/88 :MODULE=1/1 :ASSERT_INVALID=30/30
+br_on_non_null 12 12 done skipped=0 :ASSERT_RETURN=7/7 :MODULE=3/3 :ASSERT_INVALID=1/1 :ASSERT_TRAP=1/1
+br_on_null 10 10 done skipped=0 :ASSERT_RETURN=5/5 :MODULE=3/3 :ASSERT_INVALID=1/1 :ASSERT_TRAP=1/1
+br_table 186 186 done skipped=0 :ASSERT_RETURN=161/161 :MODULE=1/1 :ASSERT_INVALID=24/24
+bulk-memory--bulk 117 117 done skipped=0 :ASSERT_RETURN=48/48 :MODULE=13/13 :ASSERT_TRAP=18/18 :ACTION=38/38
+bulk-memory--memory_copy 4222 4450 done skipped=0 :ASSERT_RETURN=4093/4320 :MODULE=33/33 CRASH=0/1 :ASSERT_INVALID=64/64 :ASSERT_TRAP=18/18 :ACTION=14/14
+bulk-memory--memory_fill 96 100 done skipped=0 :ASSERT_RETURN=10/14 :MODULE=11/11 :ASSERT_INVALID=64/64 :ASSERT_TRAP=6/6 :ACTION=5/5
+bulk-memory--memory_init 248 250 done skipped=0 :ASSERT_RETURN=126/126 :MODULE=29/29 :ASSERT_INVALID=65/67 :ASSERT_TRAP=16/16 :ACTION=12/12
+bulk-memory--table-sub 3 3 done skipped=0 :MODULE=1/1 :ASSERT_INVALID=2/2
+bulk-memory--table_copy 1727 1727 done skipped=0 :ASSERT_RETURN=443/443 :MODULE=52/52 :ASSERT_TRAP=1206/1206 :ACTION=26/26
+bulk-memory--table_fill 45 45 done skipped=0 :ASSERT_RETURN=32/32 :MODULE=1/1 :ASSERT_INVALID=9/9 :ASSERT_TRAP=3/3
+bulk-memory--table_init 791 791 done skipped=0 :ASSERT_RETURN=81/81 :MODULE=41/41 :ASSERT_INVALID=67/67 :ASSERT_TRAP=584/584 :ACTION=18/18
+call 33 33 timeout skipped=0 :ASSERT_RETURN=32/32 :MODULE=1/1
+call_indirect 76 77 crashed skipped=0 :ASSERT_RETURN=62/62 :MODULE=1/1 CRASH=0/1 :ASSERT_TRAP=13/13
+call_ref 33 35 done skipped=0 :ASSERT_RETURN=21/22 :MODULE=4/4 CRASH=0/1 :ASSERT_INVALID=4/4 :ASSERT_TRAP=4/4
+comments 8 8 done skipped=0 :ASSERT_RETURN=3/3 :MODULE=5/5
+const 702 702 done skipped=76 :ASSERT_RETURN=300/300 :MODULE=402/402
+conversions 619 619 done skipped=0 :ASSERT_RETURN=526/526 :MODULE=1/1 :ASSERT_INVALID=25/25 :ASSERT_TRAP=67/67
+custom 11 11 done skipped=0 :MODULE=3/3 :ASSERT_MALFORMED=8/8
+data 68 68 done skipped=0 :ASSERT_RETURN=1/1 :MODULE=32/32 :ASSERT_INVALID=20/20 :ACTION=1/1 :ASSERT_UNINSTANTIABLE=14/14
+elem 151 151 done skipped=0 :ASSERT_RETURN=28/28 :MODULE=77/77 :ASSERT_INVALID=26/26 :ASSERT_TRAP=7/7 :ACTION=1/1 :ASSERT_UNINSTANTIABLE=12/12
+endianness 69 69 done skipped=0 :ASSERT_RETURN=68/68 :MODULE=1/1
+exceptions--cast 5 5 done skipped=0 :ASSERT_RETURN=4/4 :MODULE=1/1
+exceptions--tag 8 8 done skipped=0 :MODULE=4/4 :ASSERT_UNLINKABLE=2/2 :ASSERT_INVALID=2/2
+exceptions--throw 13 13 done skipped=0 :ASSERT_RETURN=2/2 :MODULE=1/1 :ASSERT_INVALID=3/3 :ASSERT_EXCEPTION=7/7
+exceptions--throw_ref 15 15 done skipped=0 :ASSERT_RETURN=5/5 :MODULE=1/1 :ASSERT_INVALID=2/2 :ASSERT_EXCEPTION=7/7
+exceptions--try_table 64 64 done skipped=0 :ASSERT_RETURN=43/43 :MODULE=6/6 :ASSERT_INVALID=9/9 :ASSERT_EXCEPTION=4/4 :ASSERT_TRAP=2/2
+exports 97 97 done skipped=0 :ASSERT_RETURN=9/9 :MODULE=56/56 :ASSERT_INVALID=32/32
+f32 2512 2512 done skipped=2 :ASSERT_RETURN=2500/2500 :MODULE=1/1 :ASSERT_INVALID=11/11
+f32_bitwise 364 364 done skipped=0 :ASSERT_RETURN=360/360 :MODULE=1/1 :ASSERT_INVALID=3/3
+f32_cmp 2407 2407 done skipped=0 :ASSERT_RETURN=2400/2400 :MODULE=1/1 :ASSERT_INVALID=6/6
+f64 2512 2512 done skipped=2 :ASSERT_RETURN=2500/2500 :MODULE=1/1 :ASSERT_INVALID=11/11
+f64_bitwise 364 364 done skipped=0 :ASSERT_RETURN=360/360 :MODULE=1/1 :ASSERT_INVALID=3/3
+f64_cmp 2407 2407 done skipped=0 :ASSERT_RETURN=2400/2400 :MODULE=1/1 :ASSERT_INVALID=6/6
+fac 7 7 done skipped=1 :ASSERT_RETURN=6/6 :MODULE=1/1
+float_exprs 927 927 done skipped=0 :ASSERT_RETURN=819/819 :MODULE=98/98 :ACTION=10/10
+float_literals 101 101 done skipped=78 :ASSERT_RETURN=99/99 :MODULE=2/2
+float_memory 90 90 done skipped=0 :ASSERT_RETURN=60/60 :MODULE=6/6 :ACTION=24/24
+float_misc 471 471 done skipped=0 :ASSERT_RETURN=470/470 :MODULE=1/1
+forward 5 5 done skipped=0 :ASSERT_RETURN=4/4 :MODULE=1/1
+func 152 152 done skipped=23 :ASSERT_RETURN=96/96 :MODULE=4/4 :ASSERT_INVALID=52/52
+func_ptrs 36 36 done skipped=0 :ASSERT_RETURN=19/19 :MODULE=3/3 :ASSERT_INVALID=7/7 :ASSERT_TRAP=6/6 :ACTION=1/1
+gc--array 54 54 done skipped=0 :ASSERT_RETURN=24/24 :MODULE=7/7 :ASSERT_INVALID=6/6 :ASSERT_TRAP=17/17
+gc--array_copy 44 44 done skipped=0 :ASSERT_RETURN=31/31 :MODULE=2/2 :ASSERT_INVALID=4/4 :ASSERT_TRAP=7/7
+gc--array_fill 30 30 done skipped=0 :ASSERT_RETURN=22/22 :MODULE=1/1 :ASSERT_INVALID=3/3 :ASSERT_TRAP=4/4
+gc--array_init_data 48 48 done skipped=0 :ASSERT_RETURN=24/24 :MODULE=3/3 :ASSERT_INVALID=2/2 :ASSERT_TRAP=19/19
+gc--array_init_elem 36 36 done skipped=0 :ASSERT_RETURN=16/16 :MODULE=3/3 :ASSERT_INVALID=3/3 :ASSERT_TRAP=14/14
+gc--array_new_data 30 30 done skipped=0 :ASSERT_RETURN=10/10 :MODULE=6/6 :ASSERT_TRAP=14/14
+gc--array_new_elem 24 24 done skipped=0 :ASSERT_RETURN=11/11 :MODULE=5/5 :ASSERT_TRAP=8/8
+gc--binary-gc 1 1 done skipped=0 :ASSERT_MALFORMED=1/1
+gc--br_on_cast 37 37 done skipped=0 :ASSERT_RETURN=25/25 :MODULE=3/3 :ASSERT_INVALID=6/6 :ACTION=3/3
+gc--br_on_cast_fail 37 37 done skipped=0 :ASSERT_RETURN=25/25 :MODULE=3/3 :ASSERT_INVALID=6/6 :ACTION=3/3
+gc--extern 18 18 done skipped=0 :ASSERT_RETURN=16/16 :MODULE=1/1 :ACTION=1/1
+gc--i31 72 72 done skipped=0 :ASSERT_RETURN=55/55 :MODULE=7/7 :ASSERT_TRAP=2/2 :ACTION=8/8
+gc--ref_cast 45 45 done skipped=0 :ASSERT_RETURN=11/11 :MODULE=2/2 :ASSERT_TRAP=29/29 :ACTION=3/3
+gc--ref_eq 89 89 done skipped=0 :ASSERT_RETURN=81/81 :MODULE=1/1 :ASSERT_INVALID=6/6 :ACTION=1/1
+gc--ref_test 71 71 done skipped=0 :ASSERT_RETURN=68/68 :MODULE=2/2 :ACTION=1/1
+gc--struct 29 29 done skipped=0 :ASSERT_RETURN=17/17 :MODULE=6/6 :ASSERT_INVALID=4/4 :ASSERT_TRAP=2/2
+gc--type-subtyping 120 120 done skipped=0 :ASSERT_RETURN=17/17 :MODULE=46/46 :ASSERT_UNLINKABLE=8/8 :ASSERT_INVALID=37/37 :ASSERT_TRAP=12/12
+global 120 120 done skipped=3 :ASSERT_RETURN=66/66 :MODULE=9/9 :ASSERT_MALFORMED=4/4 :ASSERT_INVALID=40/40 :ASSERT_TRAP=1/1
+i32 458 458 done skipped=2 :ASSERT_RETURN=364/364 :MODULE=1/1 :ASSERT_INVALID=83/83 :ASSERT_TRAP=10/10
+i64 414 414 done skipped=2 :ASSERT_RETURN=374/374 :MODULE=1/1 :ASSERT_INVALID=29/29 :ASSERT_TRAP=10/10
+id 1 1 done skipped=6 :MODULE=1/1
+if 217 217 done skipped=24 :ASSERT_RETURN=123/123 :MODULE=1/1 :ASSERT_INVALID=92/92 :ASSERT_TRAP=1/1
+imports 196 196 done skipped=16 :ASSERT_RETURN=26/26 :MODULE=68/68 :ASSERT_UNLINKABLE=93/93 :ASSERT_INVALID=1/1 :ASSERT_TRAP=8/8
+inline-module 1 1 done skipped=0 :MODULE=1/1
+instance 18 18 done skipped=0 :ASSERT_RETURN=12/12 :MODULE=6/6
+int_exprs 108 108 done skipped=0 :ASSERT_RETURN=75/75 :MODULE=19/19 :ASSERT_TRAP=14/14
+int_literals 31 31 done skipped=20 :ASSERT_RETURN=30/30 :MODULE=1/1
+labels 29 29 done skipped=0 :ASSERT_RETURN=25/25 :MODULE=1/1 :ASSERT_INVALID=3/3
+left-to-right 96 96 done skipped=0 :ASSERT_RETURN=95/95 :MODULE=1/1
+linking 154 154 done skipped=0 :ASSERT_RETURN=65/65 :MODULE=21/21 :ASSERT_UNLINKABLE=43/43 :ASSERT_TRAP=18/18 :ASSERT_UNINSTANTIABLE=7/7
+load 84 84 done skipped=13 :ASSERT_RETURN=37/37 :MODULE=1/1 :ASSERT_INVALID=46/46
+local_get 36 36 done skipped=0 :ASSERT_RETURN=19/19 :MODULE=1/1 :ASSERT_INVALID=16/16
+local_init 10 10 done skipped=0 :ASSERT_RETURN=4/4 :MODULE=2/2 :ASSERT_INVALID=4/4
+local_set 53 53 done skipped=0 :ASSERT_RETURN=19/19 :MODULE=1/1 :ASSERT_INVALID=33/33
+local_tee 97 98 done skipped=0 :ASSERT_RETURN=54/54 :MODULE=1/1 CRASH=0/1 :ASSERT_INVALID=42/42
+loop 106 106 done skipped=15 :ASSERT_RETURN=78/78 :MODULE=1/1 :ASSERT_INVALID=27/27
+memory 86 86 done skipped=0 :ASSERT_RETURN=53/53 :MODULE=11/11 :ASSERT_INVALID=22/22
+memory64--address64 242 242 done skipped=0 :ASSERT_RETURN=206/206 :MODULE=4/4 :ASSERT_TRAP=32/32
+memory64--align64 111 111 done skipped=46 :ASSERT_RETURN=47/47 :MODULE=26/26 :ASSERT_INVALID=37/37 :ASSERT_TRAP=1/1
+memory64--binary_leb128_64 2 2 done skipped=0 :MODULE=1/1 :ASSERT_MALFORMED=1/1
+memory64--bulk64 70 70 done skipped=0 :ASSERT_RETURN=38/38 :MODULE=5/5 :ASSERT_TRAP=7/7 :ACTION=20/20
+memory64--call_indirect64 2 2 done skipped=0 :ASSERT_RETURN=1/1 :MODULE=1/1
+memory64--endianness64 69 69 done skipped=0 :ASSERT_RETURN=68/68 :MODULE=1/1
+memory64--float_memory64 90 90 done skipped=0 :ASSERT_RETURN=60/60 :MODULE=6/6 :ACTION=24/24
+memory64--load64 85 85 done skipped=13 :ASSERT_RETURN=37/37 :MODULE=1/1 :ASSERT_INVALID=47/47
+memory64--memory64 68 68 done skipped=0 :ASSERT_RETURN=45/45 :MODULE=9/9 :ASSERT_INVALID=14/14
+memory64--memory64-imports 70 70 done skipped=0 :MODULE=40/40 :ASSERT_UNLINKABLE=30/30
+memory64--memory_copy64 4222 4450 done skipped=0 :ASSERT_RETURN=4093/4320 :MODULE=33/33 CRASH=0/1 :ASSERT_INVALID=64/64 :ASSERT_TRAP=18/18 :ACTION=14/14
+memory64--memory_fill64 96 100 done skipped=0 :ASSERT_RETURN=10/14 :MODULE=11/11 :ASSERT_INVALID=64/64 :ASSERT_TRAP=6/6 :ACTION=5/5
+memory64--memory_grow64 42 54 done skipped=0 :ASSERT_RETURN=31/39 :MODULE=5/5 CRASH=0/4 :ASSERT_TRAP=6/6
+memory64--memory_init64 248 250 done skipped=0 :ASSERT_RETURN=126/126 :MODULE=29/29 :ASSERT_INVALID=65/67 :ASSERT_TRAP=16/16 :ACTION=12/12
+memory64--memory_redundancy64 8 8 done skipped=0 :ASSERT_RETURN=4/4 :MODULE=1/1 :ACTION=3/3
+memory64--memory_trap64 172 172 done skipped=0 :ASSERT_RETURN=4/4 :MODULE=2/2 :ASSERT_TRAP=166/166
+memory64--table64 13 13 done skipped=0 :MODULE=11/11 :ASSERT_INVALID=2/2
+memory64--table_copy64 1727 1727 done skipped=0 :ASSERT_RETURN=443/443 :MODULE=52/52 :ASSERT_TRAP=1206/1206 :ACTION=26/26
+memory64--table_copy_mixed 4 4 done skipped=0 :MODULE=1/1 :ASSERT_INVALID=3/3
+memory64--table_fill64 80 80 done skipped=0 :ASSERT_RETURN=64/64 :MODULE=1/1 :ASSERT_INVALID=9/9 :ASSERT_TRAP=6/6
+memory64--table_get64 11 11 done skipped=0 :ASSERT_RETURN=5/5 :MODULE=1/1 :ASSERT_TRAP=4/4 :ACTION=1/1
+memory64--table_grow64 24 27 done skipped=0 :ASSERT_RETURN=16/17 :MODULE=2/2 CRASH=0/2 :ASSERT_TRAP=6/6
+memory64--table_init64 887 887 done skipped=0 :ASSERT_RETURN=121/121 :MODULE=44/44 :ASSERT_INVALID=67/67 :ASSERT_TRAP=634/634 :ACTION=21/21
+memory64--table_set64 19 19 done skipped=0 :ASSERT_RETURN=10/10 :MODULE=1/1 :ASSERT_TRAP=8/8
+memory64--table_size64 37 37 done skipped=0 :ASSERT_RETURN=36/36 :MODULE=1/1
+memory_grow 95 107 done skipped=0 :ASSERT_RETURN=70/77 :MODULE=9/9 CRASH=0/5 :ASSERT_INVALID=9/9 :ASSERT_TRAP=7/7
+memory_redundancy 8 8 done skipped=0 :ASSERT_RETURN=4/4 :MODULE=1/1 :ACTION=3/3
+memory_size 42 42 done skipped=0 :ASSERT_RETURN=36/36 :MODULE=4/4 :ASSERT_INVALID=2/2
+memory_trap 181 182 done skipped=0 :ASSERT_RETURN=9/9 :MODULE=2/2 CRASH=0/1 :ASSERT_TRAP=170/170
+multi-memory--address0 92 92 done skipped=0 :ASSERT_RETURN=74/74 :MODULE=1/1 :ASSERT_TRAP=17/17
+multi-memory--address1 127 127 done skipped=0 :ASSERT_RETURN=104/104 :MODULE=1/1 :ASSERT_TRAP=22/22
+multi-memory--align0 5 5 done skipped=0 :ASSERT_RETURN=4/4 :MODULE=1/1
+multi-memory--binary0 7 7 done skipped=0 :MODULE=5/5 :ASSERT_MALFORMED=2/2
+multi-memory--data0 7 7 done skipped=0 :MODULE=7/7
+multi-memory--data1 14 14 done skipped=0 :ASSERT_UNINSTANTIABLE=14/14
+multi-memory--data_drop0 11 11 done skipped=0 :ASSERT_RETURN=2/2 :MODULE=1/1 :ASSERT_TRAP=2/2 :ACTION=6/6
+multi-memory--exports0 8 8 done skipped=0 :MODULE=8/8
+multi-memory--float_exprs0 14 14 done skipped=0 :ASSERT_RETURN=8/8 :MODULE=1/1 :ACTION=5/5
+multi-memory--float_exprs1 3 3 done skipped=0 :ASSERT_RETURN=2/2 :MODULE=1/1
+multi-memory--float_memory0 30 30 done skipped=0 :ASSERT_RETURN=20/20 :MODULE=2/2 :ACTION=8/8
+multi-memory--imports0 7 7 done skipped=0 :MODULE=1/1 :ASSERT_UNLINKABLE=6/6
+multi-memory--imports1 5 5 done skipped=0 :ASSERT_RETURN=3/3 :MODULE=1/1 :ASSERT_TRAP=1/1
+multi-memory--imports2 19 19 done skipped=0 :ASSERT_RETURN=6/6 :MODULE=5/5 :ASSERT_UNLINKABLE=6/6 :ASSERT_TRAP=2/2
+multi-memory--imports3 9 9 done skipped=0 :MODULE=1/1 :ASSERT_UNLINKABLE=8/8
+multi-memory--imports4 13 13 done skipped=0 :ASSERT_RETURN=8/8 :MODULE=5/5
+multi-memory--linking0 5 5 done skipped=0 :ASSERT_RETURN=1/1 :MODULE=1/1 :ASSERT_UNLINKABLE=1/1 :ASSERT_TRAP=1/1 :ASSERT_UNINSTANTIABLE=1/1
+multi-memory--linking1 13 13 done skipped=0 :ASSERT_RETURN=7/7 :MODULE=4/4 :ASSERT_UNINSTANTIABLE=2/2
+multi-memory--linking2 10 10 done skipped=0 :ASSERT_RETURN=8/8 :MODULE=2/2
+multi-memory--linking3 12 12 done skipped=0 :ASSERT_RETURN=6/6 :MODULE=2/2 :ASSERT_UNLINKABLE=1/1 :ASSERT_UNINSTANTIABLE=3/3
+multi-memory--load0 3 3 done skipped=0 :ASSERT_RETURN=2/2 :MODULE=1/1
+multi-memory--load1 17 17 done skipped=0 :ASSERT_RETURN=15/15 :MODULE=2/2
+multi-memory--load2 38 38 done skipped=0 :ASSERT_RETURN=37/37 :MODULE=1/1
+multi-memory--memory-multi 6 6 done skipped=0 :ASSERT_RETURN=4/4 :MODULE=2/2
+multi-memory--memory_copy0 29 29 done skipped=0 :ASSERT_RETURN=19/19 :MODULE=1/1 :ASSERT_TRAP=2/2 :ACTION=7/7
+multi-memory--memory_copy1 14 14 done skipped=0 :ASSERT_RETURN=6/6 :MODULE=1/1 :ASSERT_TRAP=2/2 :ACTION=5/5
+multi-memory--memory_fill0 16 16 done skipped=0 :ASSERT_RETURN=9/9 :MODULE=1/1 :ASSERT_TRAP=2/2 :ACTION=4/4
+multi-memory--memory_grow 49 50 done skipped=0 :ASSERT_RETURN=46/46 :MODULE=3/3 CRASH=0/1
+multi-memory--memory_init0 13 13 done skipped=0 :ASSERT_RETURN=5/5 :MODULE=1/1 :ASSERT_TRAP=3/3 :ACTION=4/4
+multi-memory--memory_size0 8 8 done skipped=0 :ASSERT_RETURN=7/7 :MODULE=1/1
+multi-memory--memory_size1 15 15 done skipped=0 :ASSERT_RETURN=14/14 :MODULE=1/1
+multi-memory--memory_size2 21 21 done skipped=0 :ASSERT_RETURN=20/20 :MODULE=1/1
+multi-memory--memory_size3 2 2 done skipped=0 :ASSERT_INVALID=2/2
+multi-memory--memory_size_import 6 6 done skipped=0 :ASSERT_RETURN=4/4 :MODULE=2/2
+multi-memory--memory_trap0 13 14 done skipped=0 :ASSERT_RETURN=2/2 :MODULE=1/1 CRASH=0/1 :ASSERT_TRAP=10/10
+multi-memory--memory_trap1 168 168 done skipped=0 :ASSERT_RETURN=7/7 :MODULE=1/1 :ASSERT_TRAP=160/160
+multi-memory--start0 9 9 done skipped=0 :ASSERT_RETURN=6/6 :MODULE=1/1 :ACTION=2/2
+multi-memory--store0 5 5 done skipped=0 :ASSERT_RETURN=2/2 :MODULE=1/1 :ACTION=2/2
+multi-memory--store1 11 11 done skipped=0 :ASSERT_RETURN=4/4 :MODULE=3/3 :ACTION=4/4
+multi-memory--store2 24 24 done skipped=0 :ASSERT_RETURN=20/20 :MODULE=2/2 :ACTION=2/2
+multi-memory--traps0 15 15 done skipped=0 :MODULE=1/1 :ASSERT_TRAP=14/14
+names 486 486 done skipped=0 :ASSERT_RETURN=482/482 :MODULE=4/4
+nop 88 88 done skipped=0 :ASSERT_RETURN=83/83 :MODULE=1/1 :ASSERT_INVALID=4/4
+obsolete-keywords 0 0 done skipped=11
+ref 13 13 done skipped=0 :MODULE=1/1 :ASSERT_INVALID=12/12
+ref_as_non_null 7 7 done skipped=0 :ASSERT_RETURN=2/2 :MODULE=2/2 :ASSERT_INVALID=1/1 :ASSERT_TRAP=2/2
+ref_func 16 16 done skipped=0 :ASSERT_RETURN=8/8 :MODULE=3/3 :ASSERT_INVALID=3/3 :ACTION=2/2
+ref_is_null 22 22 done skipped=0 :ASSERT_RETURN=16/16 :MODULE=2/2 :ASSERT_INVALID=2/2 :ACTION=2/2
+ref_null 34 34 done skipped=0 :ASSERT_RETURN=32/32 :MODULE=2/2
+relaxed-simd--i16x8_relaxed_q15mulr_s 2 3 done skipped=0 :ASSERT_RETURN=1/2 :MODULE=1/1
+relaxed-simd--i32x4_relaxed_trunc 1 1 done skipped=0 :MODULE=1/1
+relaxed-simd--i8x16_relaxed_swizzle 3 6 done skipped=0 :ASSERT_RETURN=2/5 :MODULE=1/1
+relaxed-simd--relaxed_dot_product 9 12 done skipped=0 :ASSERT_RETURN=8/11 :MODULE=1/1
+relaxed-simd--relaxed_laneselect 6 12 done skipped=0 :ASSERT_RETURN=5/11 :MODULE=1/1
+relaxed-simd--relaxed_madd_nmadd 12 20 done skipped=0 :ASSERT_RETURN=10/18 :MODULE=2/2
+relaxed-simd--relaxed_min_max 13 25 done skipped=0 :ASSERT_RETURN=12/24 :MODULE=1/1
+return 84 84 done skipped=0 :ASSERT_RETURN=63/63 :MODULE=1/1 :ASSERT_INVALID=20/20
+return_call 46 51 done skipped=0 :ASSERT_RETURN=29/34 :MODULE=3/3 :ASSERT_INVALID=14/14
+return_call_indirect 68 72 done skipped=11 :ASSERT_RETURN=39/43 :MODULE=3/3 :ASSERT_INVALID=19/19 :ASSERT_TRAP=7/7
+return_call_ref 48 53 done skipped=0 :ASSERT_RETURN=26/31 :MODULE=5/5 :ASSERT_INVALID=13/13 :ASSERT_TRAP=4/4
+select 157 157 done skipped=0 :ASSERT_RETURN=118/118 :MODULE=3/3 :ASSERT_INVALID=30/30 :ASSERT_TRAP=6/6
+simd--simd_address 45 47 done skipped=2 :ASSERT_RETURN=36/36 :MODULE=3/3 :ASSERT_INVALID=0/2 :ASSERT_TRAP=6/6
+simd--simd_align 66 66 done skipped=34 :ASSERT_RETURN=8/8 :MODULE=46/46 :ASSERT_INVALID=12/12
+simd--simd_bit_shift 237 237 done skipped=15 :ASSERT_RETURN=211/211 :MODULE=2/2 :ASSERT_INVALID=24/24
+simd--simd_bitwise 169 169 done skipped=0 :ASSERT_RETURN=139/139 :MODULE=2/2 :ASSERT_INVALID=28/28
+simd--simd_boolean 273 273 done skipped=4 :ASSERT_RETURN=259/259 :MODULE=2/2 :ASSERT_INVALID=12/12
+simd--simd_const 577 577 done skipped=181 :ASSERT_RETURN=265/265 :MODULE=312/312
+simd--simd_conversions 252 252 done skipped=30 :ASSERT_RETURN=232/232 :MODULE=2/2 :ASSERT_INVALID=18/18
+simd--simd_f32x4 782 782 done skipped=8 :ASSERT_RETURN=772/772 :MODULE=2/2 :ASSERT_INVALID=8/8
+simd--simd_f32x4_arith 1822 1822 done skipped=0 :ASSERT_RETURN=1803/1803 :MODULE=3/3 :ASSERT_INVALID=16/16
+simd--simd_f32x4_cmp 2601 2601 done skipped=6 :ASSERT_RETURN=2581/2581 :MODULE=2/2 :ASSERT_INVALID=18/18
+simd--simd_f32x4_pmin_pmax 3879 3879 done skipped=8 :ASSERT_RETURN=3872/3872 :MODULE=1/1 :ASSERT_INVALID=6/6
+simd--simd_f32x4_rounding 185 185 done skipped=16 :ASSERT_RETURN=176/176 :MODULE=1/1 :ASSERT_INVALID=8/8
+simd--simd_f64x2 803 803 done skipped=0 :ASSERT_RETURN=793/793 :MODULE=2/2 :ASSERT_INVALID=8/8
+simd--simd_f64x2_arith 1825 1825 done skipped=0 :ASSERT_RETURN=1806/1806 :MODULE=3/3 :ASSERT_INVALID=16/16
+simd--simd_f64x2_cmp 2679 2679 done skipped=6 :ASSERT_RETURN=2659/2659 :MODULE=2/2 :ASSERT_INVALID=18/18
+simd--simd_f64x2_pmin_pmax 3879 3879 done skipped=8 :ASSERT_RETURN=3872/3872 :MODULE=1/1 :ASSERT_INVALID=6/6
+simd--simd_f64x2_rounding 185 185 done skipped=16 :ASSERT_RETURN=176/176 :MODULE=1/1 :ASSERT_INVALID=8/8
+simd--simd_i16x8_arith 194 194 done skipped=0 :ASSERT_RETURN=181/181 :MODULE=2/2 :ASSERT_INVALID=11/11
+simd--simd_i16x8_arith2 170 170 done skipped=2 :ASSERT_RETURN=151/151 :MODULE=2/2 :ASSERT_INVALID=17/17
+simd--simd_i16x8_cmp 465 465 done skipped=0 :ASSERT_RETURN=433/433 :MODULE=2/2 :ASSERT_INVALID=30/30
+simd--simd_i16x8_extadd_pairwise_i8x16 21 21 done skipped=0 :ASSERT_RETURN=16/16 :MODULE=1/1 :ASSERT_INVALID=4/4
+simd--simd_i16x8_extmul_i8x16 117 117 done skipped=0 :ASSERT_RETURN=104/104 :MODULE=1/1 :ASSERT_INVALID=12/12
+simd--simd_i16x8_q15mulr_sat_s 30 30 done skipped=0 :ASSERT_RETURN=26/26 :MODULE=1/1 :ASSERT_INVALID=3/3
+simd--simd_i16x8_sat_arith 218 218 done skipped=4 :ASSERT_RETURN=204/204 :MODULE=2/2 :ASSERT_INVALID=12/12
+simd--simd_i32x4_arith 194 194 done skipped=0 :ASSERT_RETURN=181/181 :MODULE=2/2 :ASSERT_INVALID=11/11
+simd--simd_i32x4_arith2 137 137 done skipped=12 :ASSERT_RETURN=121/121 :MODULE=2/2 :ASSERT_INVALID=14/14
+simd--simd_i32x4_cmp 465 465 done skipped=10 :ASSERT_RETURN=433/433 :MODULE=2/2 :ASSERT_INVALID=30/30
+simd--simd_i32x4_dot_i16x8 32 32 done skipped=0 :ASSERT_RETURN=28/28 :MODULE=1/1 :ASSERT_INVALID=3/3
+simd--simd_i32x4_extadd_pairwise_i16x8 21 21 done skipped=0 :ASSERT_RETURN=16/16 :MODULE=1/1 :ASSERT_INVALID=4/4
+simd--simd_i32x4_extmul_i16x8 117 117 done skipped=0 :ASSERT_RETURN=104/104 :MODULE=1/1 :ASSERT_INVALID=12/12
+simd--simd_i32x4_trunc_sat_f32x4 107 107 done skipped=0 :ASSERT_RETURN=102/102 :MODULE=1/1 :ASSERT_INVALID=4/4
+simd--simd_i32x4_trunc_sat_f64x2 107 107 done skipped=0 :ASSERT_RETURN=102/102 :MODULE=1/1 :ASSERT_INVALID=4/4
+simd--simd_i64x2_arith 200 200 done skipped=0 :ASSERT_RETURN=187/187 :MODULE=2/2 :ASSERT_INVALID=11/11
+simd--simd_i64x2_arith2 25 25 done skipped=0 :ASSERT_RETURN=21/21 :MODULE=2/2 :ASSERT_INVALID=2/2
+simd--simd_i64x2_cmp 113 113 done skipped=0 :ASSERT_RETURN=102/102 :MODULE=1/1 :ASSERT_INVALID=10/10
+simd--simd_i64x2_extmul_i32x4 117 117 done skipped=0 :ASSERT_RETURN=104/104 :MODULE=1/1 :ASSERT_INVALID=12/12
+simd--simd_i8x16_arith 131 131 done skipped=0 :ASSERT_RETURN=121/121 :MODULE=2/2 :ASSERT_INVALID=8/8
+simd--simd_i8x16_arith2 205 205 done skipped=6 :ASSERT_RETURN=184/184 :MODULE=2/2 :ASSERT_INVALID=19/19
+simd--simd_i8x16_cmp 445 445 done skipped=0 :ASSERT_RETURN=413/413 :MODULE=2/2 :ASSERT_INVALID=30/30
+simd--simd_i8x16_sat_arith 202 202 done skipped=12 :ASSERT_RETURN=188/188 :MODULE=2/2 :ASSERT_INVALID=12/12
+simd--simd_int_to_int_extend 253 253 done skipped=0 :ASSERT_RETURN=228/228 :MODULE=1/1 :ASSERT_INVALID=24/24
+simd--simd_lane 369 369 done skipped=106 :ASSERT_RETURN=274/274 :MODULE=12/12 :ASSERT_INVALID=83/83
+simd--simd_linking 2 2 done skipped=0 :MODULE=2/2
+simd--simd_load 36 36 done skipped=3 :ASSERT_RETURN=17/17 :MODULE=14/14 :ASSERT_INVALID=5/5
+simd--simd_load16_lane 36 36 done skipped=0 :ASSERT_RETURN=32/32 :MODULE=1/1 :ASSERT_INVALID=3/3
+simd--simd_load32_lane 24 24 done skipped=0 :ASSERT_RETURN=20/20 :MODULE=1/1 :ASSERT_INVALID=3/3
+simd--simd_load64_lane 16 16 done skipped=0 :ASSERT_RETURN=12/12 :MODULE=1/1 :ASSERT_INVALID=3/3
+simd--simd_load8_lane 52 52 done skipped=0 :ASSERT_RETURN=48/48 :MODULE=1/1 :ASSERT_INVALID=3/3
+simd--simd_load_extend 98 98 done skipped=6 :ASSERT_RETURN=72/72 :MODULE=2/2 :ASSERT_INVALID=12/12 :ASSERT_TRAP=12/12
+simd--simd_load_splat 122 122 done skipped=4 :ASSERT_RETURN=80/80 :MODULE=2/2 :ASSERT_INVALID=8/8 :ASSERT_TRAP=32/32
+simd--simd_load_zero 33 33 done skipped=6 :ASSERT_RETURN=23/23 :MODULE=2/2 :ASSERT_INVALID=4/4 :ASSERT_TRAP=4/4
+simd--simd_memory-multi 1 1 done skipped=0 :MODULE=1/1
+simd--simd_select 7 7 done skipped=0 :ASSERT_RETURN=6/6 :MODULE=1/1
+simd--simd_splat 184 184 done skipped=1 :ASSERT_RETURN=158/158 :MODULE=4/4 :ASSERT_INVALID=22/22
+simd--simd_store 25 25 done skipped=3 :ASSERT_RETURN=17/17 :MODULE=2/2 :ASSERT_INVALID=6/6
+simd--simd_store16_lane 36 36 done skipped=0 :ASSERT_RETURN=32/32 :MODULE=1/1 :ASSERT_INVALID=3/3
+simd--simd_store32_lane 24 24 done skipped=0 :ASSERT_RETURN=20/20 :MODULE=1/1 :ASSERT_INVALID=3/3
+simd--simd_store64_lane 16 16 done skipped=0 :ASSERT_RETURN=12/12 :MODULE=1/1 :ASSERT_INVALID=3/3
+simd--simd_store8_lane 52 52 done skipped=0 :ASSERT_RETURN=48/48 :MODULE=1/1 :ASSERT_INVALID=3/3
+stack 7 7 done skipped=0 :ASSERT_RETURN=5/5 :MODULE=2/2
+start 19 19 done skipped=1 :ASSERT_RETURN=6/6 :MODULE=5/5 :ASSERT_INVALID=3/3 :ASSERT_UNINSTANTIABLE=1/1 :ACTION=4/4
+store 61 61 done skipped=7 :ASSERT_RETURN=9/9 :MODULE=1/1 :ASSERT_INVALID=51/51
+switch 28 28 done skipped=0 :ASSERT_RETURN=26/26 :MODULE=1/1 :ASSERT_INVALID=1/1
+table 41 41 done skipped=0 :ASSERT_RETURN=5/5 :MODULE=17/17 :ASSERT_INVALID=19/19
+table_get 16 16 done skipped=0 :ASSERT_RETURN=5/5 :MODULE=1/1 :ASSERT_INVALID=5/5 :ASSERT_TRAP=4/4 :ACTION=1/1
+table_grow 57 59 done skipped=0 :ASSERT_RETURN=35/35 :MODULE=9/9 CRASH=0/2 :ASSERT_INVALID=7/7 :ASSERT_TRAP=6/6
+table_set 26 26 done skipped=0 :ASSERT_RETURN=10/10 :MODULE=1/1 :ASSERT_INVALID=7/7 :ASSERT_TRAP=8/8
+table_size 39 39 done skipped=0 :ASSERT_RETURN=36/36 :MODULE=1/1 :ASSERT_INVALID=2/2
+token 35 35 done skipped=26 :MODULE=35/35
+traps 36 36 done skipped=0 :MODULE=4/4 :ASSERT_TRAP=32/32
+type 1 1 done skipped=2 :MODULE=1/1
+type-canon 2 2 done skipped=0 :MODULE=2/2
+type-equivalence 26 26 done skipped=0 :ASSERT_RETURN=4/4 :MODULE=21/21 :ASSERT_INVALID=1/1
+type-rec 26 26 done skipped=0 :ASSERT_RETURN=1/1 :MODULE=11/11 :ASSERT_UNLINKABLE=2/2 :ASSERT_INVALID=10/10 :ASSERT_TRAP=2/2
+unreachable 64 64 done skipped=0 :ASSERT_RETURN=5/5 :MODULE=1/1 :ASSERT_TRAP=58/58
+unreached-invalid 121 121 done skipped=0 :ASSERT_INVALID=121/121
+unreached-valid 13 13 done skipped=0 :MODULE=3/3 :ASSERT_TRAP=10/10
+unwind 50 50 done skipped=0 :ASSERT_RETURN=41/41 :MODULE=1/1 :ASSERT_TRAP=8/8
+utf8-custom-section-id 176 176 done skipped=0 :ASSERT_MALFORMED=176/176
+utf8-import-field 176 176 done skipped=0 :ASSERT_MALFORMED=176/176
+utf8-import-module 176 176 done skipped=0 :ASSERT_MALFORMED=176/176
+utf8-invalid-encoding 3 3 done skipped=180 :MODULE=3/3

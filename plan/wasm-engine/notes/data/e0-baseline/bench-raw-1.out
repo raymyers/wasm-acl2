@@ -1,0 +1,208 @@
+wasm-acl2 dev shell
+  make all      certify top + proofs + tests
+  make top      certify just the library
+  make proofs / make tests
+  (cd tests/oracle && bash check-all.sh)   Node.js oracle
+This is SBCL 2.6.6, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ + ACL2 Version 8.7                                                     +
+ +   built August 12, 2026  00:46:05.                                   +
+ + Copyright (C) 2026, Regents of the University of Texas.              +
+ + ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and   +
+ + you are welcome to redistribute it under certain conditions.  For    +
+ + details, see the LICENSE file distributed with ACL2.                 +
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>>> "ACL2"
+ACL2 !>>>>
+Summary
+Form:  ( DEFPKG "IL2ACL2" ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ "IL2ACL2"
+ACL2 !>>>>
+Summary
+Form:  ( DEFPKG "WRT" ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ "WRT"
+ACL2 !>>>>Bye.
+ :EOF
+ACL2 !>>>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>>> "ACL2"
+ACL2 !>>>>
+Summary
+Form:  ( DEFPKG "W3T" ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ "W3T"
+ACL2 !>>>>Bye.
+ :EOF
+ACL2 !>>>Bye.
+ :EOF
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "../../translate/gen/wasm-3.0/wasm3" ...)
+Rules: NIL
+Time:  2.07 seconds (prove: 0.00, print: 0.00, other: 2.07)
+ "/Users/Apple/dev/wasm-acl2/translate/gen/wasm-3.0/wasm3.lisp"
+ACL2 !>> "W3T"
+W3T !>>W3T p!>> T
+W3T p!>>
+Summary
+Form:  ( DEFUN READ-BYTES-LOOP ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ READ-BYTES-LOOP
+W3T p!>>
+Summary
+Form:  ( DEFUN READ-BYTES ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ READ-BYTES
+W3T p!>>
+Summary
+Form:  ( DEFCONST *S0* ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ *S0*
+W3T p!>>
+Summary
+Form:  ( DEFUN RUN-STEPS ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ RUN-STEPS
+W3T p!>>
+Summary
+Form:  ( DEFUN FIND-EXPORT ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ FIND-EXPORT
+W3T p!>>
+Summary
+Form:  ( DEFUN STR-BYTES ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ STR-BYTES
+W3T p!>>
+Summary
+Form:  ( DEFUN BENCH1 ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ BENCH1
+W3T p!>>
+Summary
+Form:  ( DEFUN I32 ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ I32
+W3T p!>>
+Summary
+Form:  ( DEFUN I64 ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ I64
+W3T p!>>
+Summary
+Form:  ( DEFUN B3 ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ B3
+W3T p!>>Bye.
+ :EOF
+ACL2 p!> "W3T"
+W3T p!>BENCH wasm/count-1.wasm run ((:CONST (:I32) 20000)): inst-steps 0 steps
+160011 ms 4040 steps/s 39604 result ((:CONST (:I32) 0))
+BENCH wasm/count-16.wasm run ((:CONST (:I32) 20000)): inst-steps 0
+steps 160011 ms 3940 steps/s 40610 result ((:CONST (:I32) 0))
+BENCH wasm/count-64.wasm run ((:CONST (:I32) 20000)): inst-steps 0
+steps 160011 ms 3956 steps/s 40447 result ((:CONST (:I32) 0))
+ :OK
+W3T p!>BENCH wasm/memloop-1.wasm run ((:CONST (:I32) 10000)): inst-steps 0
+steps 120011 ms 5811 steps/s 20652 result ((:CONST (:I32) 1))
+BENCH wasm/memloop-16.wasm run ((:CONST (:I32) 10000)): inst-steps
+0 steps 120011 ms 27485 steps/s 4366 result ((:CONST (:I32) 1))
+BENCH wasm/memloop-64.wasm run ((:CONST (:I32) 10000)): inst-steps
+0 steps 120011 ms 95157 steps/s 1261 result ((:CONST (:I32) 1))
+ :OK
+W3T p!>BENCH wasm/nested-1.wasm run ((:CONST (:I32) 5000)): inst-steps 0 steps
+120011 ms 4825 steps/s 24872 result ((:CONST (:I32) 0))
+BENCH wasm/nested-16.wasm run ((:CONST (:I32) 5000)): inst-steps 0
+steps 120011 ms 4866 steps/s 24664 result ((:CONST (:I32) 0))
+BENCH wasm/nested-64.wasm run ((:CONST (:I32) 5000)): inst-steps 0
+steps 120011 ms 4772 steps/s 25148 result ((:CONST (:I32) 0))
+ :OK
+W3T p!>BENCH wasm/throw-1.wasm run ((:CONST (:I32) 3000)): inst-steps 0 steps
+69011 ms 2935 steps/s 23515 result ((:CONST (:I32) 4501500))
+BENCH wasm/throw-16.wasm run ((:CONST (:I32) 3000)): inst-steps 0 steps
+69011 ms 2931 steps/s 23543 result ((:CONST (:I32) 4501500))
+BENCH wasm/throw-64.wasm run ((:CONST (:I32) 3000)): inst-steps 0 steps
+69011 ms 2949 steps/s 23398 result ((:CONST (:I32) 4501500))
+ :OK
+W3T p!>BENCH wasm/fac-1.wasm run ((:CONST (:I64) 10000)): inst-steps 0 steps
+120000 ms 3722 steps/s 32238 result ((:CONST (:I64) 0))
+BENCH wasm/fac-16.wasm run ((:CONST (:I64) 10000)): inst-steps 0 steps
+120000 ms 3701 steps/s 32424 result ((:CONST (:I64) 0))
+BENCH wasm/fac-64.wasm run ((:CONST (:I64) 10000)): inst-steps 0 steps
+120000 ms 3713 steps/s 32323 result ((:CONST (:I64) 0))
+ :OK
+W3T p!>BENCH wasm/fac-1.wasm run_rec ((:CONST (:I64) 20)): inst-steps 0 steps
+255 ms 160 steps/s 1591 result ((:CONST (:I64) 2432902008176640000))
+BENCH wasm/fac-16.wasm run_rec ((:CONST (:I64) 20)): inst-steps 0 steps
+255 ms 158 steps/s 1612 result ((:CONST (:I64) 2432902008176640000))
+BENCH wasm/fac-64.wasm run_rec ((:CONST (:I64) 20)): inst-steps 0 steps
+255 ms 159 steps/s 1604 result ((:CONST (:I64) 2432902008176640000))
+ :OK
+W3T p!>BENCH wasm/calls-1.wasm run ((:CONST (:I32) 100)): inst-steps 0 steps
+1308 ms 15839 steps/s 83 result ((:CONST (:I32) 5050))
+BENCH wasm/calls-16.wasm run ((:CONST (:I32) 100)): inst-steps 0 steps
+1308 ms 15855 steps/s 82 result ((:CONST (:I32) 5050))
+BENCH wasm/calls-64.wasm run ((:CONST (:I32) 100)): inst-steps 0 steps
+1308 ms 15881 steps/s 82 result ((:CONST (:I32) 5050))
+ :OK
+W3T p!>W3T p!>

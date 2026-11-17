@@ -1,0 +1,68 @@
+Probe of WASM 3.0 (SpecTec 943c5df)
+Excluded: X.* 6.* 7.*
+Spec files: 25, lines: 7008
+IL lines: 52937, bytes: 1272952
+IL forms (top level): 795, hint forms: 640
+IL forms by kind (rec members counted): (("TYP" . 191) ("DEF" . 479) ("REC" . 61) ("REL" . 85) ("GRAM" . 87))
+IL names: (:TYP 191 :DEF 442 :REL 85 :RULE 509 :GRAM 87 :VAR 726 :ATOM 284)
+Rules: 509, in 85 relations; relations with no rules: NIL
+Relations with the most rules: (("Instr_ok" . 110) ("Step_read" . 103) ("Step_pure" . 79) ("Step" . 36) ("Heaptype_sub" . 21) ("Instr_const" . 14) ("Ref_ok" . 9) ("Externaddr_ok" . 6))
+Clause-less defs: 89
+Defs taking def (function) parameters: 0: 
+Defs taking type parameters: 14
+Largest rec group: 19 members (first: Heaptype_ok)
+Grammars: 87, binary B*: 87, text T*: 0
+Config entries used: 7 (ignored kinds: NIL)
+Config entries that do not match the IL: 0
+
+Schema errors: 0
+
+Mangling: collisions 0, renamed 18, atom collisions 0
+
+Phase 1: events 1244, defuns 1340, builtins/overrides 90, forms skipped 0
+
+Builtins (clause-less defs): 89; numeric 77 (no definition in rt/: 13), choice 11, host 1, notation 0, unclassified 0
+  missing in rt/: inv_concatn_ zbytes_ cbytes_ inv_zbytes_ inv_cbytes_ ceilz irelaxed_q15mulr_ irelaxed_laneselect_ frelaxed_min_ frelaxed_max_ frelaxed_madd_ frelaxed_nmadd_ relaxed_trunc__
+
+Specialized defs with function parameters (G1): 16 dropped, 53 specializations
+
+Stubs: 2
+Stubs by source file:
+  2.4-validation.modules: 1: MODULE_OK
+  5.1-binary.values: 1: $UTF8SINGLE
+
+Relations emitted without some rules (per-rule stubs): 2, rules dropped: 2
+  Heaptype_sub (:CHECK): 20/21 translated; dropped: Heaptype_sub/trans
+  Step_read (:FUN): 102/103 translated; dropped: Step_read/array.new_data-num
+
+Relation modes (final): :fun 22, :check 47, :multi 15, :closure 1; declared 0
+  :check: Start_ok Elemmode_ok Expr_const Instr_const Nondefaultable Memarg_ok Defaultable Catch_ok Externtype_sub Tabletype_sub Memtype_sub Globaltype_sub Tagtype_sub Limits_sub Instrtype_sub Externtype_ok Tabletype_ok Memtype_ok Globaltype_ok Tagtype_ok Limits_ok Rectype_ok Subtype_ok Instrtype_ok Localtype_ok Fieldtype_sub Storagetype_sub Resulttype_sub Valtype_sub Reftype_sub Heaptype_sub Deftype_sub Comptype_sub Deftype_ok Rectype_ok2 Subtype_ok2 Comptype_ok Storagetype_ok Fieldtype_ok Resulttype_ok Typeuse_ok Valtype_ok Reftype_ok Heaptype_ok Packtype_ok Vectype_ok Numtype_ok
+  :multi: Externaddr_ok Fieldval_ok Val_ok Ref_ok Globals_ok Elem_ok Data_ok Datamode_ok Func_ok Table_ok Global_ok Expr_ok_const Expr_ok Instrs_ok Instr_ok
+
+Output variants that drop rules, in a multi-mode relation (a premise that takes a value from one uses a single witness): Instr_ok Instrs_ok Ref_ok Externaddr_ok
+  accepted as witness sources (config :witness): Instr_ok Instrs_ok Ref_ok Externaddr_ok
+
+Output variants on demand, as (relation output-positions...): emitted 1: (("Eval_expr" 2 3))
+  demanded, but some rule does not compile in that mode: (("Packtype_ok" 1) ("Vectype_ok" 1) ("Numtype_ok" 1) ("Deftype_ok" 1) ("Typeuse_ok" 1) ("Heaptype_ok" 1) ("Reftype_ok" 1) ("Valtype_ok" 1) ("Resulttype_ok" 1) ("Expand_use" 0 2) ("Limits_ok" 1 2) ("Tabletype_ok" 1) ("Memtype_ok" 1) ("Globaltype_ok" 1) ("Tagtype_ok" 1) ("Deftype_sub" 2) ("Heaptype_sub" 2) ("Reftype_sub" 2) ("Valtype_sub" 2) ("Resulttype_sub" 2) ("Deftype_sub" 1) ("Heaptype_sub" 1) ("Reftype_sub" 1) ("Valtype_sub" 1) ("Resulttype_sub" 1) ("Limits_sub" 2) ("Tabletype_sub" 2) ("Memtype_sub" 2) ("Globaltype_sub" 2) ("Tagtype_sub" 2) ("Resulttype_sub" 1 2) ("Instrtype_sub" 1) ("Instrtype_sub" 2) ("Heaptype_sub" 1 2) ("Deftype_sub" 1 2) ("Reftype_sub" 1 2) ("Vectype_sub" 1 2) ("Numtype_sub" 1 2) ("Valtype_sub" 1 2) ("Instrtype_ok" 1) ("Expand" 0) ("Externidx_ok" 0 2) ("Export_ok" 0 2 3) ("Start_ok" 0) ("Limits_ok" 0) ("Memtype_ok" 0) ("Mem_ok" 0 2) ("Expand_use" 1 2) ("Rectype_ok2" 0) ("Deftype_ok" 0) ("Typeuse_ok" 0) ("Tagtype_ok" 0) ("Tag_ok" 0 2) ("Limits_sub" 1) ("Tabletype_sub" 1) ("Memtype_sub" 1) ("Globaltype_sub" 1) ("Tagtype_sub" 1) ("Externtype_sub" 1) ("Externtype_sub" 2) ("Externtype_ok" 1))
+  compiled, not called by emitted code: (("Vectype_sub" 1) ("Numtype_sub" 1))
+
+Relation groups where no mode compiles every rule: 3
+  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):
+  (("Heaptype_ok" "Reftype_ok" "Valtype_ok" "Typeuse_ok" "Resulttype_ok" "Fieldtype_ok" "Storagetype_ok" "Comptype_ok" "Subtype_ok2" "Rectype_ok2" "Deftype_ok" "Comptype_sub" "Deftype_sub" "Heaptype_sub" "Reftype_sub" "Valtype_sub" "Resulttype_sub" "Storagetype_sub" "Fieldtype_sub") ((22 . 0) (1 . 0) (1 . 0)) :BEST 1 :EMITTED 1)
+  (("Module_ok") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+  (("Step_read") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+
+Logged errors: 47, in 4 functions
+Errors by kind:
+  14: "unbound variable"
+  11: "pattern"
+  8: "relation inputs unbound"
+  7: "iterated premise output not bound"
+  4: "checker relation with unbound arguments"
+  3: "condition with unbound variables"
+
+Rules dropped from the output variants of multi-mode relations: 22
+  Instr_ok: 18: unreachable drop select-impl br br_table br_on_null return return_call return_call_ref return_call_indirect throw throw_ref ref.is_null ref.as_non_null ref.test ref.cast extern.convert_any any.convert_extern
+  Instrs_ok: 2: sub frame
+  Ref_ok: 1: sub
+  Externaddr_ok: 1: sub

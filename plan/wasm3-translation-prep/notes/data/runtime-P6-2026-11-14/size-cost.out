@@ -1,0 +1,3 @@
+COST loop-0.wasm: one %SIZE 1 us, one STEP of the call 1 us, one STEP inside the loop 46 us
+COST loop-1.wasm: one %SIZE 797 us, one STEP of the call 0 us, one STEP inside the loop 15105 us
+COST loop-4.wasm: one %SIZE 3392 us, one STEP of the call 1 us, one STEP inside the loop 62818 us

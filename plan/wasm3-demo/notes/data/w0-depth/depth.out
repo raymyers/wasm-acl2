@@ -1,0 +1,76 @@
+* W0-DEPTH uninstrumented: status :OK, invoke => ((:CONST (:I32) 146)), 0.07 s
+* W0-DEPTH instrumented 1585 defuns
+* W0-DEPTH decode: max nesting 33
+W0-DEPTH decode: path at the deepest point, frames by function:
+W0-DEPTH        15 W3T::$FREE_BLOCK/ITER0
+W0-DEPTH        11 WRT::%COMP-FIELDS
+W0-DEPTH         1 W3T::GRAM/BMODULE
+W0-DEPTH         1 W3T::$DATAIDX_FUNCS
+W0-DEPTH         1 W3T::$DATAIDX_FUNCS/ITER0
+W0-DEPTH         1 W3T::$FREE_FUNC
+W0-DEPTH         1 W3T::$FREE_BLOCK
+W0-DEPTH decode: functions by own maximum active frames (top 12):
+W0-DEPTH        17 W3T::GRAM/BEXPR/REP2
+W0-DEPTH        17 W3T::$FREE_BLOCK/ITER0
+W0-DEPTH        17 W3T::$FREE_LIST
+W0-DEPTH        12 W3T::GRAM/BDATA/ITER20
+W0-DEPTH        12 W3T::GRAM/BDATA/REP15
+W0-DEPTH        11 WRT::%COMP-FIELDS
+W0-DEPTH         2 W3T::GRAM/BMODULE/MAP133
+W0-DEPTH         2 W3T::GRAM/BMODULE/MATCH113
+W0-DEPTH         2 W3T::GRAM/BDATASEC/ITER22
+W0-DEPTH         2 W3T::GRAM/BDATASEC/REP17
+W0-DEPTH         2 W3T::GRAM/BCODESEC/ITER22
+W0-DEPTH         2 W3T::GRAM/BCODESEC/REP17
+W0-DEPTH instantiate status :OK
+W0-DEPTH instantiate: max nesting 65541
+W0-DEPTH instantiate: path at the deepest point, frames by function:
+W0-DEPTH     65537 W3T::$ALLOCMEM/ITER2
+W0-DEPTH         1 W3T::$INSTANTIATE
+W0-DEPTH         1 W3T::$ALLOCMODULE
+W0-DEPTH         1 W3T::$ALLOCMEMS
+W0-DEPTH instantiate: functions by own maximum active frames (top 12):
+W0-DEPTH     65537 W3T::$ALLOCMEM/ITER2
+W0-DEPTH        17 W3T::SEQ-RUN
+W0-DEPTH        14 WRT::%COMP-FIELDS
+W0-DEPTH        10 W3T::STEP_READ/SPLIT/SEARCH134
+W0-DEPTH        10 W3T::STEP_PURE/SEARCH171
+W0-DEPTH        10 W3T::SEQ-PUT-FIELD
+W0-DEPTH         9 W3T::STEP_READ/SPLIT/MATCH127
+W0-DEPTH         9 W3T::STEP_PURE/MATCH166
+W0-DEPTH         8 W3T::STEP/SEARCH21
+W0-DEPTH         8 W3T::STEP_READ/SPLIT/MATCH198
+W0-DEPTH         8 W3T::STEP_READ/SPLIT/MATCH16
+W0-DEPTH         8 W3T::STEP_READ/SPLIT/MATCH3
+W0-DEPTH invoke f => ((:CONST (:I32) 146))
+W0-DEPTH invoke: max nesting 38
+W0-DEPTH invoke: path at the deepest point, frames by function:
+W0-DEPTH        17 W3T::STEP_PURE/SEARCH51
+W0-DEPTH        14 W3T::STEP_PURE/MATCH41
+W0-DEPTH         2 W3T::STEP
+W0-DEPTH         1 W3T::STEP_PURE
+W0-DEPTH         1 W3T::VAL-P
+W0-DEPTH         1 W3T::NUM_-P
+W0-DEPTH invoke: functions by own maximum active frames (top 12):
+W0-DEPTH        18 W3T::STEP_READ/SPLIT/SEARCH134
+W0-DEPTH        18 W3T::STEP_READ/SPLIT/SEARCH60
+W0-DEPTH        18 W3T::STEP_PURE/SEARCH171
+W0-DEPTH        18 W3T::STEP_PURE/SEARCH141
+W0-DEPTH        18 W3T::STEP_PURE/SEARCH65
+W0-DEPTH        18 W3T::STEP_PURE/SEARCH51
+W0-DEPTH        17 W3T::STEP_READ/SPLIT/MATCH127
+W0-DEPTH        17 W3T::STEP_PURE/MATCH166
+W0-DEPTH        17 W3T::STEP_PURE/MATCH30
+W0-DEPTH        16 W3T::STEP_READ/SPLIT/MATCH198
+W0-DEPTH        16 W3T::STEP_READ/SPLIT/MATCH54
+W0-DEPTH        16 W3T::STEP_READ/SPLIT/MATCH16
+W0-DEPTH instrumented run 0.14 s
+== probes (node: probe-node.js; browsers: probe-browser.mjs), 2026-11-15
+W0-PROBE node main (default stack): {"W0-ITER (allocmem shape)":9695,"EQUAL on two n-lists":2815,"APPEND of an n-list":1471,"plain JS recursion":15343}
+W0-PROBE node worker stackSizeMb=16: {"W0-ITER (allocmem shape)":229711,"EQUAL on two n-lists":68912,"APPEND of an n-list":44941,"plain JS recursion":258442}
+W0-PROBE node worker stackSizeMb=64: {"W0-ITER (allocmem shape)":">=524288","EQUAL on two n-lists":464378,"APPEND of an n-list":181712,"plain JS recursion":1044874}
+W0-PROBE node main (--stack-size=3900): {"W0-ITER (allocmem shape)":55095,"EQUAL on two n-lists":16527,"APPEND of an n-list":8191,"plain JS recursion":61999}
+W0-PROBE chromium page: {"W0-ITER (allocmem shape)":6655,"EQUAL on two n-lists":3583,"APPEND of an n-list":1559,"plain JS recursion":14336}
+W0-PROBE chromium worker: {"W0-ITER (allocmem shape)":2047,"EQUAL on two n-lists":1599,"APPEND of an n-list":621,"plain JS recursion":7936}
+W0-PROBE firefox page: {"W0-ITER (allocmem shape)":30927,"EQUAL on two n-lists":5311,"APPEND of an n-list":3071,"plain JS recursion":29259}
+W0-PROBE firefox worker: {"W0-ITER (allocmem shape)":4095,"EQUAL on two n-lists":2951,"APPEND of an n-list":1705,"plain JS recursion":16255}

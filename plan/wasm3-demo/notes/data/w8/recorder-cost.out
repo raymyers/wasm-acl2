@@ -1,0 +1,5 @@
+    at internals.error (/Users/Apple/dev/wasm-acl2/demo/build/jscl.js:83:12)
+W8-COST build fac.0.wasm fac-iter(25): run (recorder off) 318.3 ms; no recorder in this build
+W8-COST build call_indirect.0.wasm fac-i64(10): run (recorder off) 266.4 ms; no recorder in this build
+W8-COST w8 fac.0.wasm fac-iter(25): run (recorder off) 316.0 ms; step with chains 274.9 ms for 366 steps (0.751 ms/step)
+W8-COST w8 call_indirect.0.wasm fac-i64(10): run (recorder off) 275.9 ms; step with chains 286.1 ms for 158 steps (1.811 ms/step)

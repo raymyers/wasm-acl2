@@ -1,0 +1,67 @@
+Probe of WASM 3.0 (SpecTec 943c5df)
+Excluded: X.* 6.* 7.*
+Spec files: 25, lines: 7008
+IL lines: 52107, bytes: 1236630
+IL forms (top level): 758
+IL forms by kind (rec members counted): (("TYP" . 191) ("DEF" . 442) ("REC" . 61) ("REL" . 85) ("GRAM" . 87))
+IL names: (:TYP 191 :DEF 442 :REL 85 :RULE 509 :GRAM 87 :VAR 726 :ATOM 284)
+Rules: 509, in 85 relations; relations with no rules: NIL
+Relations with the most rules: (("Instr_ok" . 110) ("Step_read" . 103) ("Step_pure" . 79) ("Step" . 36) ("Heaptype_sub" . 21) ("Instr_const" . 14) ("Ref_ok" . 9) ("Externaddr_ok" . 6))
+Clause-less defs: 89
+Defs taking def (function) parameters: 16: ivunop_ fvunop_ ivbinop_ ivbinopsx_ ivbinopsxnd_ fvbinop_ ivternopnd_ fvternop_ ivrelop_ ivrelopsx_ fvrelop_ ivshiftop_ ivshiftopsx_ ivswizzlop_ ivextunop__ ivextbinop__
+Defs taking type parameters: 14
+Largest rec group: 19 members (first: Heaptype_ok)
+Grammars: 87, binary B*: 87, text T*: 0
+Config entries used: 6 (ignored kinds: (:REL-OVERRIDE :IL-PATCH))
+
+Schema errors: 0
+
+Mangling: collisions 0, renamed 18, atom collisions 0
+
+Phase 1: events 993, defuns 1068, builtins/overrides 90, forms skipped 0
+
+Stubs: 35
+Stubs by source file:
+  2.1-validation.types: 11: DEFTYPE_SUB COMPTYPE_SUB DEFTYPE_OK RECTYPE_OK2 SUBTYPE_OK2 COMPTYPE_OK STORAGETYPE_OK RESULTTYPE_OK TYPEUSE_OK VALTYPE_OK HEAPTYPE_OK
+  2.2-validation.subtyping: 2: VALTYPE_SUB HEAPTYPE_SUB
+  2.3-validation.instructions: 2: INSTRS_OK INSTR_OK
+  2.4-validation.modules: 1: MODULE_OK
+  3.2-numerics.vector: 13: $FVRELOP_ $IVBITMASKOP_ $VUNOP_ $VBINOP_ $VTERNOP_ $VRELOP_ $VSHIFTOP_ $VSWIZZLOP_ $IVADD_PAIRWISE_ $VEXTUNOP__ $IVDOT_ $IVDOT_SAT_ $VEXTBINOP__
+  4.3-execution.instructions: 3: STEP STEP_READ STEP_PURE
+  4.4-execution.modules: 2: $EVALEXPRS $EVALGLOBALS
+  5.1-binary.values: 1: $UTF8SINGLE
+
+Logged errors: 249, in 35 functions
+Errors by kind:
+  92: "unbound variable"
+  53: "higher-order argument"
+  30: "condition with unbound variables"
+  26: "pattern"
+  19: "relation inputs unbound"
+  15: "checker relation with unbound arguments"
+  7: "iterated premise output not bound"
+  3: "iterated premise without inputs"
+  3: "disjuncts bind different variables"
+  1: "premise"
+
+Rules dropped from split variants (all attempts, including discarded ones): 50
+  Heaptype_ok: 1: abs
+  Valtype_ok: 2: num vec
+  Typeuse_ok: 2: typeidx rec
+  Resulttype_ok: 1: (unnamed)
+  Storagetype_ok: 1: pack
+  Comptype_ok: 1: struct
+  Subtype_ok2: 1: (unnamed)
+  Rectype_ok2: 1: empty
+  Deftype_ok: 1: (unnamed)
+  Comptype_sub: 1: func
+  Deftype_sub: 2: refl super
+  Heaptype_sub: 7: typeidx-r rec-sub none nofunc noexn noextern bot
+  Valtype_sub: 1: bot
+  Instr_ok: 14: unreachable select-impl br br_table return return_call return_call_ref return_call_indirect throw throw_ref array.new_data array.init_data extern.convert_any any.convert_extern
+  Instrs_ok: 1: sub
+  Module_ok: 1: (unnamed)
+  Externaddr_ok: 1: sub
+  Step_pure: 2: vsplat vreplace_lane
+  Step_read: 7: load-num-val vload-num-val vload-pack-val vload-splat-val vload_lane-val array.new_data-num array.init_data-num
+  Step: 2: ctxt-frame vstore_lane-val

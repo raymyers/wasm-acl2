@@ -1,0 +1,22 @@
+scripts 258  finished 256
+same 33113
+differ 2
+unsupported 24773
+spec-fuel 45
+not-invoke 11
+commands per class and group (S4 = outside D5; no group = printed on another line):
+   2 :DIFFER ?
+  11 :NOT-INVOKE S0
+  14 :SAME ?
+14303 :SAME S0
+17991 :SAME S1
+ 176 :SAME S2
+  66 :SAME S3
+ 563 :SAME S4
+   2 :SPEC-FUEL ?
+  29 :SPEC-FUEL S0
+  14 :SPEC-FUEL S4
+24773 :UNSUPPORTED S4
+scripts with a difference: call_indirect 
+scripts where the driver itself failed (ACL2 Error before the first command): 
+scripts not finished (D2-EXIT 137 or 124 is the time limit): call_indirect(137) call(137) 

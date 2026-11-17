@@ -1,0 +1,50 @@
+warning: Git tree '/Users/Apple/dev/wasm-acl2' has uncommitted changes
+wasm-acl2 dev shell
+  make all      certify top + proofs + tests
+  make top      certify just the library
+  make proofs / make tests
+  (cd tests/oracle && bash check-all.sh)   Node.js oracle
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+W5-SMOKE chromium PASS page ready in 853 ms (Worker: wasm3.js + jscl.js 461 ms, ready message after 475 ms)
+W5-SMOKE chromium PASS factorial/fac(20): semantics ok i64:2432902008176640000 [240 steps, 173 ms] native ok i64:2432902008176640000 [0.10 ms]
+W5-SMOKE chromium PASS float/hypot(1.5, 2): semantics ok f64:4612811918334230528 [11 steps, 8 ms] native ok f64:4612811918334230528 [0.00 ms]
+W5-SMOKE chromium PASS memory/squares(10): semantics ok i32:285 [321 steps, 211 ms] native ok i32:285 [0.00 ms]
+W5-SMOKE chromium PASS gc/f(3, 4): semantics ok i32:15 [17 steps, 8 ms] native ok i32:15 [0.00 ms]
+W5-SMOKE chromium PASS exception/safe(-7): semantics ok i32:993 [22 steps, 14 ms] native ok i32:993 [0.10 ms]
+W5-SMOKE chromium PASS print/squares(4): semantics ok  [72 steps, 46 ms] native ok  [0.10 ms]; prints ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"] / native ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"]
+W5-SMOKE chromium PASS simd/dot(5, 6, 7, 8): semantics ok i32:70 [24 steps, 16 ms] native ok i32:70 [0.00 ms]
+W5-SMOKE chromium PASS exception/unsafe(-7): semantics exception [16 steps, 6 ms] native exception [0.00 ms]
+W5-SMOKE chromium PASS float/third(10): semantics ok f32:1077936128 [6 steps, 2 ms] native ok f32:1077936128 [0.10 ms]
+W5-SMOKE chromium PASS fuel: fac(20) with fuel 50 -> fuel after 50 steps
+W5-SMOKE chromium PASS stop: state before running, after stopped; fresh Worker ready in 800 ms; then fac(20) ok i64:2432902008176640000
+W5-SMOKE chromium PASS step mode fac(20): Step x100 -> 100 steps; Run to end -> 240 steps (Run mode 240), ok i64:2432902008176640000 (Run mode ok i64:2432902008176640000, native ok i64:2432902008176640000); worker 0.93 ms/step
+W5-SMOKE chromium PASS W8 rule chains: 17/17 steps of gc f(3, 4) show a non-empty chain (last: Step/pure › Step_pure/frame-vals)
+W5-SMOKE chromium PASS step mode gc f(3, 4): 17 Step clicks to the normal form, 17 steps (Run mode 17), ok i32:15 (native ok i32:15); 33 ms per click (UI round trip)
+W5-SMOKE chromium PASS step mode memory squares(3): first changed bytes after step 28: [{"addr":4,"new":"1"}]
+W5-SMOKE chromium PASS W6 lines fac(3): 37/37 highlighted lines as written by hand (printed by wabt from the bytes; label "highlight: a display aid, not part of the semantics"); 33 ms per click
+W5-SMOKE chromium PASS W6 breakpoint on line 21: Run to end stops after step 14 on line 21 (want 14, 21); Next line -> step 15, line 8 (want 15, 8)
+W5-SMOKE chromium PASS print host, Step mode (15 Step x5 requests, 72 steps): semantics ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"], native ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"]
+W5-SMOKE chromium PASS page errors: none
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+W5-SMOKE firefox PASS page ready in 1049 ms (Worker: wasm3.js + jscl.js 513 ms, ready message after 573 ms)
+W5-SMOKE firefox PASS factorial/fac(20): semantics ok i64:2432902008176640000 [240 steps, 318 ms] native ok i64:2432902008176640000 [0.00 ms]
+W5-SMOKE firefox PASS float/hypot(1.5, 2): semantics ok f64:4612811918334230528 [11 steps, 13 ms] native ok f64:4612811918334230528 [0.00 ms]
+W5-SMOKE firefox PASS memory/squares(10): semantics ok i32:285 [321 steps, 387 ms] native ok i32:285 [0.00 ms]
+W5-SMOKE firefox PASS gc/f(3, 4): semantics ok i32:15 [17 steps, 15 ms] native ok i32:15 [0.00 ms]
+W5-SMOKE firefox PASS exception/safe(-7): semantics ok i32:993 [22 steps, 24 ms] native ok i32:993 [0.00 ms]
+W5-SMOKE firefox PASS print/squares(4): semantics ok  [72 steps, 85 ms] native ok  [0.00 ms]; prints ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"] / native ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"]
+W5-SMOKE firefox PASS simd/dot(5, 6, 7, 8): semantics ok i32:70 [24 steps, 31 ms] native ok i32:70 [0.00 ms]
+W5-SMOKE firefox PASS exception/unsafe(-7): semantics exception [16 steps, 12 ms] native exception [0.00 ms]
+W5-SMOKE firefox PASS float/third(10): semantics ok f32:1077936128 [6 steps, 4 ms] native ok f32:1077936128 [0.00 ms]
+W5-SMOKE firefox PASS fuel: fac(20) with fuel 50 -> fuel after 50 steps
+W5-SMOKE firefox PASS stop: state before running, after stopped; fresh Worker ready in 827 ms; then fac(20) ok i64:2432902008176640000
+W5-SMOKE firefox PASS step mode fac(20): Step x100 -> 100 steps; Run to end -> 240 steps (Run mode 240), ok i64:2432902008176640000 (Run mode ok i64:2432902008176640000, native ok i64:2432902008176640000); worker 1.48 ms/step
+W5-SMOKE firefox PASS W8 rule chains: 17/17 steps of gc f(3, 4) show a non-empty chain (last: Step/pure › Step_pure/frame-vals)
+W5-SMOKE firefox PASS step mode gc f(3, 4): 17 Step clicks to the normal form, 17 steps (Run mode 17), ok i32:15 (native ok i32:15); 33 ms per click (UI round trip)
+W5-SMOKE firefox PASS step mode memory squares(3): first changed bytes after step 28: [{"addr":4,"new":"1"}]
+W5-SMOKE firefox PASS W6 lines fac(3): 37/37 highlighted lines as written by hand (printed by wabt from the bytes; label "highlight: a display aid, not part of the semantics"); 35 ms per click
+W5-SMOKE firefox PASS W6 breakpoint on line 21: Run to end stops after step 14 on line 21 (want 14, 21); Next line -> step 15, line 8 (want 15, 8)
+W5-SMOKE firefox PASS print host, Step mode (15 Step x5 requests, 72 steps): semantics ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"], native ["print_i32(0)","print_i32(1)","print_i32(4)","print_i32(9)","print_f64(1 (0x3ff0000000000000))"]
+W5-SMOKE firefox PASS page errors: none
+W5-SMOKE all passed
+W9-NIX smoke on the nix output: exit 0

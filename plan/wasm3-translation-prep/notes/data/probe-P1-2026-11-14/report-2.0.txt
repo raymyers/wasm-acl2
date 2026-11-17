@@ -1,0 +1,62 @@
+Probe of WASM 2.0 (SpecTec 943c5df)
+Excluded: none
+Spec files: 10, lines: 4175
+IL lines: 34341, bytes: 798453
+IL forms (top level): 470
+IL forms by kind (rec members counted): (("TYP" . 145) ("DEF" . 214) ("REC" . 37) ("REL" . 41) ("GRAM" . 71))
+IL names: (:TYP 145 :DEF 214 :REL 41 :RULE 265 :GRAM 71 :VAR 521 :ATOM 196)
+Rules: 265, in 41 relations; relations with no rules: NIL
+Relations with the most rules: (("Instr_ok" . 74) ("Step_pure" . 56) ("Step_read" . 47) ("Step" . 23) ("Instrs_ok" . 5) ("Instr_const" . 5) ("Externaddr_ok" . 5) ("Externtype_ok" . 4))
+Clause-less defs: 64
+Defs taking def (function) parameters: 0: 
+Defs taking type parameters: 8
+Largest rec group: 2 members (first: Instr_ok)
+Grammars: 71, binary B*: 71, text T*: 0
+Config entries used: 6 (ignored kinds: (:REL-OVERRIDE :IL-PATCH))
+
+Schema errors: 0
+
+Mangling: collisions 0, renamed 19, atom collisions 0
+
+Phase 1: events 688, defuns 700, builtins/overrides 65, forms skipped 0
+
+Stubs: 5
+Stubs by source file:
+  3-numerics: 3: $VRELOP_ $VEXTUNOP__ $VEXTBINOP__
+  6-typing: 1: MODULE_OK
+  A-binary: 1: GRAM/BINSTR
+
+Relations emitted without some rules (per-rule stubs): 5, rules dropped: 20
+  Instr_ok (:FUN): 67/74 translated; dropped: Instr_ok/ref.is_null Instr_ok/return Instr_ok/br_table Instr_ok/br Instr_ok/select-impl Instr_ok/drop Instr_ok/unreachable
+  Instrs_ok (:FUN): 3/5 translated; dropped: Instrs_ok/frame Instrs_ok/sub
+  Step_pure (:FUN): 51/56 translated; dropped: Step_pure/vreplace_lane Step_pure/vsplat Step_pure/vshuffle Step_pure/vswizzle Step_pure/vbitmask
+  Step_read (:FUN): 42/47 translated; dropped: Step_read/vload_lane-val Step_read/vload-splat-val Step_read/vload-shape-val Step_read/vload-val Step_read/load-num-val
+  Step (:FUN): 22/23 translated; dropped: Step/vstore_lane-val
+
+Relation groups where no mode compiles every rule: 5
+  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):
+  (("Instr_ok" "Instrs_ok") ((9 . 0) (3 . 0) (2 . 0)) :BEST 2 :EMITTED 0)
+  (("Module_ok") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+  (("Step_pure") ((5 . 0) (5 . 0) (5 . 0)) :BEST 0 :EMITTED 0)
+  (("Step_read") ((5 . 0) (3 . 0) (3 . 0)) :BEST 1 :EMITTED 0)
+  (("Step") ((1 . 0) (1 . 0) (1 . 0)) :BEST 0 :EMITTED 0)
+
+Logged errors: 129, in 10 functions
+Errors by kind:
+  48: "unbound variable"
+  28: "pattern"
+  24: "condition with unbound variables"
+  10: "checker relation with unbound arguments"
+  7: "relation inputs unbound"
+  6: "iterated premise output not bound"
+  4: "premise"
+  2: "iterated premise without inputs"
+
+Rules dropped from split variants (all attempts, including discarded ones): 20
+  Instr_ok: 5: unreachable select-impl br br_table return
+  Instrs_ok: 1: sub
+  Module_ok: 1: (unnamed)
+  Step_pure: 5: vbitmask vswizzle vshuffle vsplat vreplace_lane
+  Step_read: 5: load-num-val vload-val vload-shape-val vload-splat-val vload_lane-val
+  Step: 2: ctxt-frame vstore_lane-val
+  Externaddr_ok: 1: sub

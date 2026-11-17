@@ -1,0 +1,2 @@
+instantiated modules (distinct files): 293 validate, 0 do not
+assert_invalid modules: 290 rejected, 0 accepted

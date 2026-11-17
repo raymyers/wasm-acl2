@@ -1,0 +1,173 @@
+wasm-acl2 dev shell
+  make all      certify top + proofs + tests
+  make top      certify just the library
+  make proofs / make tests
+  (cd tests/oracle && bash check-all.sh)   Node.js oracle
+This is SBCL 2.6.6, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ + ACL2 Version 8.7                                                     +
+ +   built August 12, 2026  00:46:05.                                   +
+ + Copyright (C) 2026, Regents of the University of Texas.              +
+ + ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and   +
+ + you are welcome to redistribute it under certain conditions.  For    +
+ + details, see the LICENSE file distributed with ACL2.                 +
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>>
+Summary
+Form:  ( INCLUDE-BOOK "../portcullis" ...)
+Rules: NIL
+Time:  0.03 seconds (prove: 0.00, print: 0.00, other: 0.03)
+ "/Users/Apple/dev/wasm-acl2/engine/portcullis.lisp"
+ACL2 !>>>Bye.
+ :EOF
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "machine" ...)
+Rules: NIL
+Time:  2.57 seconds (prove: 0.00, print: 0.01, other: 2.56)
+ "/Users/Apple/dev/wasm-acl2/engine/machine/machine.lisp"
+ACL2 !>> "WE"
+WE !>>WE p!>> T
+WE p!>>
+Summary
+Form:  ( DEFUN READ-BYTES-LOOP ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ READ-BYTES-LOOP
+WE p!>>
+Summary
+Form:  ( DEFUN READ-BYTES ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ READ-BYTES
+WE p!>>
+Summary
+Form:  ( DEFCONST *S0* ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ *S0*
+WE p!>>
+Summary
+Form:  ( DEFUN STEPN ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ STEPN
+WE p!>>
+Summary
+Form:  ( DEFUN SPEC-RUN ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ SPEC-RUN
+WE p!>>
+Summary
+Form:  ( DEFUN FIND-EXPORT ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ FIND-EXPORT
+WE p!>>
+Summary
+Form:  ( DEFUN STR-BYTES ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ STR-BYTES
+WE p!>>
+Summary
+Form:  ( DEFUN INVOKE-CONFIG ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ INVOKE-CONFIG
+WE p!>>
+Summary
+Form:  ( DEFUN DIFF-WALK ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ DIFF-WALK
+WE p!>>
+Summary
+Form:  ( DEFUN DIFF1 ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ DIFF1
+WE p!>>
+Summary
+Form:  ( DEFUN I32 ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ I32
+WE p!>>
+Summary
+Form:  ( DEFUN I64 ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ I64
+WE p!>>
+Summary
+Form:  ( DEFUN MRUN ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ MRUN
+WE p!>>
+Summary
+Form:  ( DEFUN MCLOCKS ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ MCLOCKS
+WE p!>>
+Summary
+Form:  ( DEFUN RATE1 ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ RATE1
+WE p!>>Bye.
+ :EOF
+ACL2 p!> "WE"
+WE p!>RATE count 20000: machine-steps 280023 spec-steps 160011 ms 175 spec-
+steps/s 914349 status :DONE result ((:CONST (:I32) 0))
+ :OK
+WE p!>RATE memloop 10000 (1 page): machine-steps 220023 spec-steps 120011
+ms 4369 spec-steps/s 27469 status :DONE result ((:CONST (:I32) 1))
+ :OK
+WE p!>RATE memloop 10000 (16 pages): machine-steps 220023 spec-steps 120011
+ms 67889 spec-steps/s 1768 status :DONE result ((:CONST (:I32) 1))
+ :OK
+WE p!>RATE nested 5000: machine-steps 190023 spec-steps 120011 ms 139 spec-
+steps/s 863388 status :DONE result ((:CONST (:I32) 0))
+ :OK
+WE p!>RATE throw 3000: machine-steps 135023 spec-steps 69011 ms 198 spec-
+steps/s 348540 status :DONE result ((:CONST (:I32) 4501500))
+ :OK
+WE p!>RATE calls 150: machine-steps 4070 spec-steps 1958 ms 2 spec-steps/s
+979000 status :DONE result ((:CONST (:I32) 11325))
+ :OK
+WE p!>Bye.

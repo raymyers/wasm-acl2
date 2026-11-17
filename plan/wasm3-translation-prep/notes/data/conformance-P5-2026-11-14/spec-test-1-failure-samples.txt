@@ -1,0 +1,29 @@
+T7-FAILS 
+(("br" (:MODULE "br.0.wasm" NIL)
+       :INVALID)
+ ("br" (:ASSERT_RETURN (:INVOKE NIL (116 121 112 101 45 105 51 50)
+                                NIL)
+                       NIL)
+       :ERROR)
+************ ABORTING from raw Lisp ***********
+********** (see :DOC raw-lisp-error) **********
+Error:  Control stack exhausted (no more space for function call frames).
+This is probably due to heavily nested or infinitely recursive function
+calls, or a tail call that SBCL cannot or has not optimized away.
+
+PROCEED WITH CAUTION.
+Heap exhausted during allocation: 0 bytes available, 16 requested.
+  Gen#    Raw  Boxed  Mixed   Cons   Code  Total
+Small objects (in MiB):
+     0      0      0      0      0      0      0
+     5      0      0      2  31739      1  31743
+     6     45     13      9     92     35    195
+Large objects:
+--
+************ ABORTING from raw Lisp ***********
+********** (see :DOC raw-lisp-error) **********
+Error:  Control stack exhausted (no more space for function call frames).
+This is probably due to heavily nested or infinitely recursive function
+calls, or a tail call that SBCL cannot or has not optimized away.
+
+PROCEED WITH CAUTION.

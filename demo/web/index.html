@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WASM 3.0 semantics</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="title">
+    <div>
+      <h1>WebAssembly 3.0, run by its formal semantics</h1>
+      <p class="sub">The SpecTec semantics, translated to ACL2 and compiled to JavaScript by JSCL, steps the module in a Web Worker; this browser's own engine runs the same bytes alongside.</p>
+    </div>
+  </div>
+  <div class="head-right">
+    <span id="engine" class="pill" data-state="loading">semantics: loading…</span>
+  </div>
+</header>
+<main>
+  <section class="panel source" id="source" data-view="module">
+    <div class="bar">
+      <div class="seg" role="tablist" aria-label="Left pane">
+        <button id="tab-module" type="button" role="tab" aria-selected="true" aria-controls="printed-wrap">Module</button>
+        <button id="tab-source" type="button" role="tab" aria-selected="false" aria-controls="src">Edit source</button>
+      </div>
+      <label class="ex">Example <select id="example"></select></label>
+      <span id="format" class="tag"></span>
+    </div>
+    <textarea id="src" class="view-source" spellcheck="false" autocomplete="off" aria-label="WAT or hex bytes"></textarea>
+    <div id="printed-wrap" class="printed-wrap view-module">
+      <div class="pv-head">
+        <span id="pv-printer" class="muted"></span>
+        <span class="pv-aid" title="The page works the line out from the configuration's LABEL_/FRAME_ nesting and the printed module (W6). The semantics has no notion of source lines.">highlight: a display aid, not part of the semantics</span>
+      </div>
+      <ol id="printed" class="printed" data-line="" aria-label="the module as printed from its bytes; click a line number for a breakpoint"></ol>
+    </div>
+    <div id="src-msg" class="msg" role="status"></div>
+  </section>
+
+  <section class="side">
+    <div class="panel controls">
+      <div class="call-row">
+        <label class="exp"><span class="sr">Export</span><select id="export"></select></label>
+        <div id="args" class="args"></div>
+        <label class="fuel">fuel <input id="fuel" type="number" min="1" step="1" value="200000" title="the most steps the semantics takes"></label>
+      </div>
+      <div class="toolbar" role="toolbar" aria-label="Stepping">
+        <button id="step" type="button" class="strong" disabled title="one step of the reduction relation">Step</button>
+        <span class="stepn"><button id="stepn" type="button" disabled>Step ×</button><input id="n" type="number" min="1" step="1" value="10" aria-label="steps per click"></span>
+        <button id="nextline" type="button" disabled title="steps until the highlighted line changes">Next line</button>
+        <button id="toend" type="button" class="primary" disabled title="to the result, under the fuel; stops at a breakpoint">Run to end</button>
+        <span class="spacer"></span>
+        <button id="restart" type="button" class="quiet" disabled>Restart</button>
+        <button id="stop" type="button" class="quiet" disabled>Stop</button>
+      </div>
+    </div>
+
+    <div class="results">
+      <article class="card sem" id="sem" data-state="idle">
+        <div class="card-head">
+          <h2>ACL2 semantics</h2>
+          <span class="chip" id="sem-status">—</span>
+        </div>
+        <div class="value" id="sem-value">—</div>
+        <ol class="prints" id="sem-prints" data-prints="[]" aria-label="printed by env.print_*"></ol>
+        <dl class="meta">
+          <div><dt>steps</dt><dd id="sem-steps">—</dd></div>
+          <div><dt>run</dt><dd id="sem-time">—</dd></div>
+          <div><dt title="decode, validate, instantiate">load</dt><dd id="sem-load">—</dd></div>
+        </dl>
+      </article>
+      <article class="card nat" id="nat" data-state="idle">
+        <div class="card-head">
+          <h2>Native WebAssembly <span class="muted" id="nat-engine">this browser</span></h2>
+          <span class="chip" id="nat-status">—</span>
+        </div>
+        <div class="value" id="nat-value">—</div>
+        <ol class="prints" id="nat-prints" data-prints="[]" aria-label="printed by env.print_*"></ol>
+        <dl class="meta">
+          <div><dt>steps</dt><dd class="muted">not observable</dd></div>
+          <div><dt title="timer resolution is coarse: 0.1 ms in Chromium, 1 ms in Firefox">run</dt><dd id="nat-time">—</dd></div>
+          <div><dt title="compile, instantiate">load</dt><dd id="nat-load">—</dd></div>
+        </dl>
+      </article>
+    </div>
+
+    <div id="stepview" class="panel stepview" data-steps="" data-done="">
+      <div class="sv-head">
+        <h2>Configuration after <b id="sv-steps">0</b> steps</h2>
+        <span id="sv-nest" class="nest" title="LABEL_ / FRAME_ contexts, outermost first"></span>
+      </div>
+      <div class="sv-chain">
+        <div class="sv-chain-head"><span class="muted" title="each name searches for the rule id in the SpecTec source (specification/wasm-3.0)">Rules of the last step, outermost first</span>
+        <a class="rev" href="https://github.com/WebAssembly/spec/tree/943c5df07e84f11d2b83078964df5812530afbd2/specification/wasm-3.0" target="_blank" rel="noopener" title="the SpecTec source the semantics was translated from; the rule links search GitHub's default branch, restricted to specification/wasm-3.0">WebAssembly/spec@943c5df</a></div>
+        <div id="sv-chain" class="chain" data-chain=""></div>
+      </div>
+      <div class="sv-grid">
+        <div class="sv-col">
+          <h3>Instructions <span class="legend"><span class="k-v">operands</span><span class="k-redex">redex</span><span class="k-r">rest</span></span></h3>
+          <ol id="sv-instrs" class="instrs"></ol>
+        </div>
+        <div class="sv-col">
+          <h3>Locals <span class="muted">innermost frame</span></h3>
+          <ol id="sv-locals" class="locals"></ol>
+          <h3 class="mem-h">Memory <span class="muted" id="sv-mem-what">changed bytes</span></h3>
+          <div id="sv-mem" class="mem" data-count="0"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="wabt.js"></script>
+<script src="examples.js"></script>
+<script src="modinfo.js"></script>
+<script src="lines.js"></script>
+<script src="semantics.js"></script>
+<script src="native.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

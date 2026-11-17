@@ -1,0 +1,3 @@
+T5 subtyping (3.0): 46 of 46 cases right (encodings T).
+Wrong: NIL
+

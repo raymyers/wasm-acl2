@@ -1,0 +1,6 @@
+fork: https://github.com/raymyers/mupdf
+commit: 3eae43d49c1ebe9d49cff2adc4245c034b2c0692
+emscripten: 4.0.8 (emsdk 708dcbc)
+host: Darwin arm64
+node: v24.21.0
+sha256 mupdf-wasm.wasm: e3c67c2e8529a89116ed643c05782cbe199ff91f4864a1a03a92e500efb3af14

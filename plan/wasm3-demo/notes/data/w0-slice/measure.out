@@ -1,0 +1,169 @@
+== commit 050fa11, jscl jscl-0.9.0-alpha.0-54c8849
+== slice (root 1_4-syntax_modules, books ("0_" "1_"), flatten nil)
+; events by kind:
+;      567 DEFUN
+;      396 %TRY-GUARDS-T
+;      396 %TRY-LOGIC-T
+;       10 IN-PACKAGE
+;        9 SET-VERIFY-GUARDS-EAGERNESS
+;        9 INCLUDE-BOOK
+;        7 SET-BOGUS-MUTUAL-RECURSION-OK
+;        5 MUTUAL-RECURSION
+;        4 DEFTHM
+;        4 DEFMACRO
+;        2 IN-THEORY
+;        1 DEFATTACH
+;        1 ENCAPSULATE
+; integer literals above 2^53: 0; ratio literals: 3
+; clause chains flattened: 0
+lisp bytes 703297
+forms 573; depth histogram: >50: 1, >100: 1, >200: 1, >400: 0, >800: 0
+217 |W3T|::|$FREE_INSTR|
+41 |W3T|::|$FREE_MODULE|
+29 |W3T|::|$MINUS_RECS|
+W0-COMPILE-SECONDS 0.32
+undefined: `ACL2-COUNT' is undefined.
+undefined: `ALISTP' is undefined.
+undefined: `ASSOC-EQUAL' is undefined.
+undefined: `IFF' is undefined.
+undefined: `IFIX' is undefined.
+undefined: `LEN' is undefined.
+undefined: `MAKE-ORD' is undefined.
+undefined: `MEMBER-EQ' is undefined.
+undefined: `MEMBER-EQUAL' is undefined.
+undefined: `NATP' is undefined.
+undefined: `NFIX' is undefined.
+undefined: `POSP' is undefined.
+undefined: `PUT-ASSOC-EQUAL' is undefined.
+undefined: `RFIX' is undefined.
+undefined: `TAKE' is undefined.
+undefined: `TRUE-LISTP' is undefined.
+undefined: `ZP' is undefined.
+js bytes 677960
+node stack default:
+W0-LOAD jscl.js 158.958083 ms, slice.js 19.599209 ms
+W0-CALL W3T::$MIN [3,5] => 3
+node stack 2000:
+W0-LOAD jscl.js 164.492791 ms, slice.js 19.5725 ms
+W0-CALL W3T::$MIN [3,5] => 3
+W0-BROWSER chromium: page jscl 283 ms, slice.js 19 ms
+W0-BROWSER chromium: worker jscl.js + slice.js (the prologue imports jscl.js) 315 ms
+W0-BROWSER firefox: page jscl 376 ms, slice.js 30 ms
+W0-BROWSER firefox: worker jscl.js + slice.js (the prologue imports jscl.js) 400 ms
+== full (root wasm3, books (""), flatten nil)
+; events by kind:
+;     1463 DEFUN
+;     1298 %TRY-GUARDS-T
+;     1298 %TRY-LOGIC-T
+;       28 IN-PACKAGE
+;       27 INCLUDE-BOOK
+;       26 SET-VERIFY-GUARDS-EAGERNESS
+;       24 SET-BOGUS-MUTUAL-RECURSION-OK
+;       11 MUTUAL-RECURSION
+;        4 DEFTHM
+;        4 DEFMACRO
+;        2 IN-THEORY
+;        1 MEMOIZE
+;        1 DEFATTACH
+;        1 ENCAPSULATE
+; integer literals above 2^53: 0; ratio literals: 3
+; clause chains flattened: 0
+lisp bytes 5023067
+forms 1475; depth histogram: >50: 14, >100: 9, >200: 5, >400: 1, >800: 1
+1010 |W3T|::|GRAM/BINSTR/REP32|
+269 |W3T|::|STEP_READ|
+245 |W3T|::|STEP_READ/SPLIT|
+W0-COMPILE-SECONDS 2.41
+undefined: `ACL2-COUNT' is undefined.
+undefined: `ALISTP' is undefined.
+undefined: `ASSOC-EQUAL' is undefined.
+undefined: `HONS-COPY' is undefined.
+undefined: `IFF' is undefined.
+undefined: `IFIX' is undefined.
+undefined: `LEN' is undefined.
+undefined: `MAKE-ORD' is undefined.
+undefined: `MEMBER-EQ' is undefined.
+undefined: `MEMBER-EQUAL' is undefined.
+undefined: `MV' is undefined.
+undefined: `MV-LET' is undefined.
+undefined: `NATP' is undefined.
+undefined: `NFIX' is undefined.
+undefined: `OK' is undefined.
+undefined: `POSP' is undefined.
+undefined: `PUT-ASSOC-EQUAL' is undefined.
+undefined: `REMOVE-DUPLICATES-EQUAL' is undefined.
+undefined: `RFIX' is undefined.
+undefined: `SUBSETP-EQUAL' is undefined.
+undefined: `TAKE' is undefined.
+undefined: `TRUE-LISTP' is undefined.
+undefined: `UPDATE-NTH' is undefined.
+undefined: `ZP' is undefined.
+js bytes 3766008
+node stack default:
+RangeError: Maximum call stack size exceeded
+node stack 2000:
+W0-LOAD jscl.js 166.213667 ms, full.js 142.365542 ms
+W0-CALL W3T::$MIN [3,5] => 3
+W0-BROWSER chromium: page ERROR Uncaught RangeError: Maximum call stack size exceeded
+W0-BROWSER chromium: worker ERROR RangeError: Failed to execute 'importScripts' on 'WorkerGlobalScope': Maximum call stack size exceeded
+W0-BROWSER firefox: page ERROR InternalError: too much recursion
+W0-BROWSER firefox: worker ERROR InternalError: too much recursion
+== flat (root wasm3, books (""), flatten t)
+; events by kind:
+;     1463 DEFUN
+;     1298 %TRY-GUARDS-T
+;     1298 %TRY-LOGIC-T
+;       28 IN-PACKAGE
+;       27 INCLUDE-BOOK
+;       26 SET-VERIFY-GUARDS-EAGERNESS
+;       24 SET-BOGUS-MUTUAL-RECURSION-OK
+;       11 MUTUAL-RECURSION
+;        4 DEFTHM
+;        4 DEFMACRO
+;        2 IN-THEORY
+;        1 MEMOIZE
+;        1 DEFATTACH
+;        1 ENCAPSULATE
+; integer literals above 2^53: 0; ratio literals: 3
+; clause chains flattened: 104
+lisp bytes 4932884
+forms 1475; depth histogram: >50: 7, >100: 2, >200: 0, >400: 0, >800: 0
+111 |W3T|::|$ALLOCMODULE|
+101 |W3T|::|GRAM/BMODULE|
+87 |W3T|::|$INSTANTIATE|
+W0-COMPILE-SECONDS 2.33
+undefined: `ACL2-COUNT' is undefined.
+undefined: `ALISTP' is undefined.
+undefined: `ASSOC-EQUAL' is undefined.
+undefined: `HONS-COPY' is undefined.
+undefined: `IFF' is undefined.
+undefined: `IFIX' is undefined.
+undefined: `LEN' is undefined.
+undefined: `MAKE-ORD' is undefined.
+undefined: `MEMBER-EQ' is undefined.
+undefined: `MEMBER-EQUAL' is undefined.
+undefined: `MV' is undefined.
+undefined: `MV-LET' is undefined.
+undefined: `NATP' is undefined.
+undefined: `NFIX' is undefined.
+undefined: `OK' is undefined.
+undefined: `POSP' is undefined.
+undefined: `PUT-ASSOC-EQUAL' is undefined.
+undefined: `REMOVE-DUPLICATES-EQUAL' is undefined.
+undefined: `RFIX' is undefined.
+undefined: `SUBSETP-EQUAL' is undefined.
+undefined: `TAKE' is undefined.
+undefined: `TRUE-LISTP' is undefined.
+undefined: `UPDATE-NTH' is undefined.
+undefined: `ZP' is undefined.
+js bytes 3751475
+node stack default:
+W0-LOAD jscl.js 155.9515 ms, flat.js 101.630583 ms
+W0-CALL W3T::$MIN [3,5] => 3
+node stack 2000:
+W0-LOAD jscl.js 167.88925 ms, flat.js 103.780542 ms
+W0-CALL W3T::$MIN [3,5] => 3
+W0-BROWSER chromium: page jscl 282 ms, flat.js 85 ms
+W0-BROWSER chromium: worker jscl.js + flat.js (the prologue imports jscl.js) 418 ms
+W0-BROWSER firefox: page jscl 357 ms, flat.js 135 ms
+W0-BROWSER firefox: worker jscl.js + flat.js (the prologue imports jscl.js) 644 ms

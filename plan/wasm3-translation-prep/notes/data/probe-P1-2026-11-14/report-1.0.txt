@@ -1,0 +1,36 @@
+Probe of WASM 1.0 (SpecTec 943c5df)
+Excluded: none
+Spec files: 10, lines: 2353
+IL lines: 13309, bytes: 314916
+IL forms (top level): 318
+IL forms by kind (rec members counted): (("TYP" . 90) ("DEF" . 132) ("REC" . 31) ("REL" . 36) ("GRAM" . 61))
+IL names: (:TYP 90 :DEF 132 :REL 36 :RULE 137 :GRAM 61 :VAR 359 :ATOM 118)
+Rules: 137, in 36 relations; relations with no rules: NIL
+Relations with the most rules: (("Instr_ok" . 31) ("Step_pure" . 29) ("Step_read" . 13) ("Step" . 13) ("Externaddr_ok" . 5) ("Externtype_ok" . 4) ("Externtype_sub" . 4) ("Instrs_ok" . 4))
+Clause-less defs: 45
+Defs taking def (function) parameters: 0: 
+Defs taking type parameters: 4
+Largest rec group: 2 members (first: Instr_ok)
+Grammars: 61, binary B*: 61, text T*: 0
+Config entries used: 8 (ignored kinds: NIL)
+
+Schema errors: 0
+
+Mangling: collisions 0, renamed 13, atom collisions 0
+
+Phase 1: events 477, defuns 507, builtins/overrides 46, forms skipped 0
+
+Stubs: 0
+Stubs by source file:
+
+Relations emitted without some rules (per-rule stubs): 0, rules dropped: 0
+
+Relation groups where no mode compiles every rule: 0
+  (members, (failing rules . relation-level errors) for attempts 0 :fun, 1 :check, 2 :multi, best and emitted attempt):
+
+Logged errors: 0, in 0 functions
+Errors by kind:
+
+Rules dropped from split variants (all attempts, including discarded ones): 5
+  Instr_ok: 4: unreachable br br_table return
+  Externaddr_ok: 1: sub

@@ -1,0 +1,14 @@
+      2 binary T7-TRY :ASSERT_MALFORMED
+      1 bulk-memory--memory_copy T7-TRY :ACTION
+      1 call T7-TRY :ASSERT_RETURN
+      1 call_indirect T7-TRY :ASSERT_RETURN
+      1 call_ref T7-TRY :ASSERT_RETURN
+      1 local_tee T7-TRY :ASSERT_RETURN
+      1 memory64--memory_copy64 T7-TRY :ACTION
+      4 memory64--memory_grow64 T7-TRY :ASSERT_RETURN
+      2 memory64--table_grow64 T7-TRY :ASSERT_RETURN
+      5 memory_grow T7-TRY :ASSERT_RETURN
+      1 memory_trap T7-TRY :ASSERT_RETURN
+      1 multi-memory--memory_grow T7-TRY :ASSERT_RETURN
+      1 multi-memory--memory_trap0 T7-TRY :ASSERT_RETURN
+      2 table_grow T7-TRY :ASSERT_RETURN

@@ -1,0 +1,8 @@
+ENGINE-SLIDE 0 status :DONE scale 2 ms 246
+ENGINE-SLIDE 1 status :DONE scale 1 ms 197
+ENGINE-SLIDE 2 status :DONE scale 2 ms 329
+ENGINE-SLIDE 3 status :DONE scale 1 ms 280
+ENGINE-SLIDE 4 status :DONE scale 2 ms 355
+ENGINE-SLIDE 5 status :DONE scale 3 ms 356
+ENGINE-SLIDE 6 status :DONE scale 5 ms 310
+slides: all 7 identical to V8; viewer: /Users/Apple/dev/wasm-acl2/engine/slides/build/view/index.html

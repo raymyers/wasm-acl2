@@ -1,0 +1,50 @@
+CASE sub I31<:EQ: expected T, got T
+CASE sub I31<:ANY (needs trans): expected T, got T
+CASE sub I31<:FUNC: expected NIL, got NIL
+CASE A const : eps->i32: expected T, got T
+CASE A' const : eps->i64: expected NIL, got NIL
+CASE B const const add : eps->i32: expected T, got T
+CASE B2 add : i32 i32->i32: expected T, got T
+CASE B3 add framed : i32 i32 i32->i32 i32: expected T, got T
+CASE B4 const framed : i32->i32 i32: expected T, got T
+CASE B5 const add : i32->i32: expected T, got T
+CASE C const drop : eps->eps: expected T, got T
+CASE D nop nop : eps->eps: expected T, got T
+CASE E block(i32){const} : eps->i32: expected T, got T
+CASE F block(i32){const const add}: expected T, got T
+CASE G const ref.i31 : eps->(ref i31): expected T, got T
+CASE G2 const ref.i31 : eps->(ref null i31) (subsumption): expected
+CASE G3 const ref.i31 : eps->anyref (subsumption+trans): expected T,
+CASE H block(ref null i31){const ref.i31}: expected T, got NIL
+CASE J unreachable add : eps->i32 (dead code): expected T, got NIL
+CASE K const const const add add: expected T, got T
+CASE L const const : eps->i32 (ill-typed): expected NIL, got NIL
+CASE M add : eps->i32 (ill-typed): expected NIL, got NIL
+CASE S1 split const: expected :SOME, got ((NIL ((:I32))))
+CASE S2 split const const add: expected :SOME, got ((NIL ((:I32))))
+CASE S3 split const add: expected :SOME, got ((NIL ((:I32))))
+CASE X expr_ok/split const const add: expected :SOME, got (((:I32)))
+CASE X2 expr_ok const const add : i32: expected T, got T
+CASE T1 (type 0) <: struct (typeidx-l): expected T, got T
+CASE T2 deftype A <: struct: expected T, got T
+CASE T3 A <: A: expected T, got T
+CASE T4 B <: A (declared supertype): expected T, got T
+CASE T5 (type 1) <: (type 0): expected T, got T
+CASE T6 A <: (type 0) (typeidx-r): expected T, got T
+CASE T7 A <: B: expected NIL, got NIL
+CASE T8 (ref (type 1)) <: (ref null (type 0)): expected T, got T
+CASE T9 A <: eq (needs trans): expected T, got T
+CASE T10 none <: struct: expected T, got T
+CASE T11 (type 0) <: (type 0): expected T, got T
+CASE T12 struct <: (type 0): expected NIL, got NIL
+CASE V1 reftype_sub (ref i31) <: (ref null i31): expected T, got T
+CASE V2 valtype_sub (ref i31) <: (ref null i31) (delegates to Reftype_-
+CASE V3 valtype_sub i32 <: i32: expected T, got T
+CASE V4 resulttype_sub [(ref i31)] <: [(ref null i31)]: expected T,
+CASE V5 deftype_sub B <: A: expected T, got T
+CASE V6 valtype_ok (ref null i31): expected T, got T
+CASE V7 reftype_ok (ref null i31): expected T, got T
+CASE V8 deftype_ok A: expected T, got T
+CASE V9 storagetype_sub i32 <: i32: expected T, got T
+CASE V10 fieldtype_sub const i32: expected T, got T
+CASE memo 8 const 9 add : eps->i32 (ill-typed, 17 instrs): expected

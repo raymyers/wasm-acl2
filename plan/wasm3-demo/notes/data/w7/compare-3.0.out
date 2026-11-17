@@ -1,0 +1,3 @@
+W7-SPEC identical T7-CMD sequences: 258; differing: 0
+W7-SPEC not exit 0 in before/after: bulk-memory--memory_copy(124/124) call(137/137) call_indirect(137/137) call_ref(124/124) memory64--memory_copy64(124/124)
+W7-SPEC T7-CMD lines: before 65009, after 65009

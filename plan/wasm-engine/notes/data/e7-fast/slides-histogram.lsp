@@ -1,0 +1,18 @@
+(ld "build/render-defs.lsp")
+(in-package "WE")
+:q
+(defvar *h* (make-hash-table :test 'equal))
+(defvar *n* 0)
+(sb-int:encapsulate 'we::fast-step 'count
+  (lambda (f fm)
+    (let* ((is (we::fm-is fm)) (i (and (consp is) (car is)))
+           (k (cond ((atom is) :exit) ((we::value-instr-p i) :value) ((consp i) (car i)) (t i))))
+      (incf *n*) (incf (gethash k *h* 0)))
+    (funcall f fm)))
+(let ((live (cdr (assoc 'we::fm acl2::*user-stobj-alist*))))
+  (we::render-deck "build/sent.wasm" "/private/tmp/claude-501/-Users-Apple-dev-wasm-acl2/41dcd935-9a00-4395-896c-5bb647eb9223/scratchpad/prof" live acl2::*the-live-state*))
+(format t "~&TOTAL ~a~%" *n*)
+(let (l) (maphash (lambda (k v) (push (cons v k) l)) *h*)
+  (dolist (x (subseq (sort l #'> :key #'car) 0 (min 25 (length l))))
+    (format t "~&HIST ~10d ~5,1f% ~s~%" (car x) (/ (* 100.0 (car x)) *n*) (cdr x))))
+(acl2::exit-lisp 0)

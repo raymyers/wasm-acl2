@@ -1,0 +1,17 @@
+            compile basic types
+            elapsed time:0.017 sec.
+             elapsed time:0.004 sec.
+W4-CONF i32: AGREE 460/460 commands (node: 460 commands, 458 pass, 0 crash), 1175 ms
+W4-CONF i64: AGREE 416/416 commands (node: 416 commands, 414 pass, 0 crash), 944 ms
+W4-CONF f32: AGREE 2514/2514 commands (node: 2514 commands, 2512 pass, 0 crash), 4731 ms
+W4-CONF f64: AGREE 2514/2514 commands (node: 2514 commands, 2512 pass, 0 crash), 4296 ms
+W4-CONF memory: AGREE 86/86 commands (node: 86 commands, 86 pass, 0 crash), 325 ms
+W4-CONF call_indirect: AGREE 77/77 commands (ACL2 prefix: its run ended with T7-EXIT 137) (node: 77 commands, 76 pass, 0 crash), 835974 ms
+  fail on both sides, differently: #72 :ASSERT_RETURN: acl2 CRASH, node NIL (:FUEL)
+W4-CONF br_table: AGREE 186/186 commands (node: 186 commands, 186 pass, 0 crash), 6573 ms
+W4-CONF simd--simd_i32x4_arith: AGREE 194/194 commands (node: 194 commands, 194 pass, 0 crash), 379 ms
+W4-CONF simd--simd_lane: AGREE 475/475 commands (node: 475 commands, 369 pass, 0 crash), 719 ms
+W4-CONF gc--struct: AGREE 29/29 commands (node: 29 commands, 29 pass, 0 crash), 111 ms
+W4-CONF gc--i31: AGREE 72/72 commands (node: 72 commands, 72 pass, 0 crash), 173 ms
+W4-CONF exceptions--try_table: AGREE 64/64 commands (node: 64 commands, 64 pass, 0 crash), 468 ms
+W4-CONF total: all agree; 7087/7087 commands in agreeing scripts

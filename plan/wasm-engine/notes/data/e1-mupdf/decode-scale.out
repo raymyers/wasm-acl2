@@ -1,0 +1,24 @@
+== m-100.wasm     9733 bytes
+W3T p!>E1-DECODE read 9733 bytes in 0 ms
+E1-DECODE parse: complete, rest 0 bytes, 14 ms
+E1-DECODE module :MODULE, field lengths in order (1 0 0 0 1 0 100 0 0 0 0)
+E1-DECODE Module_ok: T, 24 ms
+ :OK
+== m-400.wasm    40637 bytes
+W3T p!>E1-DECODE read 40637 bytes in 1 ms
+E1-DECODE parse: complete, rest 0 bytes, 120 ms
+E1-DECODE module :MODULE, field lengths in order (1 0 0 0 1 0 400 0 0 0 0)
+E1-DECODE Module_ok: T, 114 ms
+ :OK
+== m-1600.wasm   164237 bytes
+W3T p!>E1-DECODE read 164237 bytes in 3 ms
+E1-DECODE parse: complete, rest 0 bytes, 1391 ms
+E1-DECODE module :MODULE, field lengths in order (1 0 0 0 1 0 1600 0 0 0 0)
+E1-DECODE Module_ok: T, 645 ms
+ :OK
+== m-6400.wasm   658637 bytes
+W3T p!>E1-DECODE read 658637 bytes in 12 ms
+E1-DECODE parse: complete, rest 0 bytes, 21199 ms
+E1-DECODE module :MODULE, field lengths in order (1 0 0 0 1 0 6400 0 0 0 0)
+E1-DECODE Module_ok: T, 7123 ms
+ :OK

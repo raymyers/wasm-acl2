@@ -1,0 +1,181 @@
+% slides.tex: a small slide layer for the TeX that runs on the engine.
+%
+% The format tex.wasm starts from has LaTeX 2020-02-02, the standalone class,
+% xcolor and TikZ loaded, Computer Modern only, 75 fonts and 20,000 words of
+% font metrics. There is no beamer, and TikZ costs 60 to 500 million engine
+% steps per picture, so this file gives: fixed 160 x 90 mm pages, a slide
+% environment, images and a few drawing commands as dvipdfmx specials.
+%
+% Font budget: every (font, size) pair is a font, and entering math mode at a
+% size loads about ten. Keep `$', tabular and minipage[c] at \normalsize;
+% use \sym for single symbols.
+\scrollmode   % report errors in the log and carry on
+\makeatletter
+\hoffset=-1in \voffset=-1in
+\newdimen\slidew \slidew=160mm
+\newdimen\slideh \slideh=90mm
+\textwidth=140mm \textheight=80mm
+\newbox\slidebox \newbox\overbox \newbox\codebox
+\newcount\slideno
+\newif\iffootline \footlinetrue
+
+% ------------------------------------------------------------------ look
+% Colours are dvips colour specials written here directly: xcolor's
+% \definecolor costs about ten million engine steps a colour in this format.
+\def\defrgb#1#2{\expandafter\def\csname rgb@#1\endcsname{#2}}
+\def\rgb#1{\csname rgb@#1\endcsname}
+\defrgb{ink}{.102 .102 .102}    \defrgb{muted}{.604 .604 .604}
+\defrgb{wasm}{.396 .310 .941}   \defrgb{accent}{.102 .051 .671}
+\defrgb{alert}{.878 .224 .243}  \defrgb{alertdark}{.702 .179 .194}
+\defrgb{codebg}{.961 .957 .941} \defrgb{boxbg}{.957 .953 .937}
+\defrgb{boxhl}{.910 .941 .984}  \defrgb{boxhlb}{.290 .525 .910}
+\defrgb{bar}{.184 .435 .839}    \defrgb{black20}{.8 .8 .8}
+\defrgb{black60}{.4 .4 .4}      \defrgb{black70}{.3 .3 .3}
+\defrgb{termbg}{.11 .12 .14}    \defrgb{termfg}{.80 .82 .84}
+\defrgb{termcmd}{1 1 1}         \defrgb{termdim}{.50 .53 .56}
+\defrgb{termhi}{.55 .85 .55}
+\renewcommand\color[1]{\special{color push rgb \rgb{#1}}\aftergroup\rgb@pop\ignorespaces}
+\def\rgb@pop{\special{color pop}}
+
+% beamer's 11pt sizes, in Computer Modern Sans
+\renewcommand\familydefault{\sfdefault}
+\renewcommand\normalsize{\@setfontsize\normalsize{10.95}{13.6}}
+\renewcommand\small{\@setfontsize\small{10}{12}}
+\renewcommand\footnotesize{\@setfontsize\footnotesize{9}{11}}
+\renewcommand\scriptsize{\@setfontsize\scriptsize{8}{9.5}}
+\renewcommand\tiny{\@setfontsize\tiny{6}{7}}
+\renewcommand\large{\@setfontsize\large{12}{14}}
+\renewcommand\Large{\@setfontsize\Large{14.4}{18}}
+\renewcommand\LARGE{\@setfontsize\LARGE{17.28}{22}}
+\renewcommand\huge{\@setfontsize\huge{20.74}{25}}
+\renewcommand\Huge{\@setfontsize\Huge{24.88}{30}}
+
+\newcommand\muted[1]{{\color{muted}#1}}
+\newcommand\link[1]{{\color{accent}#1}}
+\newcommand\hi[1]{{\color{wasm}#1}}
+\newcommand\red[1]{{\color{alertdark}#1}}
+% one symbol from cmsy without entering math mode: \sym{"19} is \approx,
+% \sym{"01} \cdot, \sym{"0F} \bullet
+\newcommand\sym[1]{{\fontencoding{OMS}\fontfamily{cmsy}\fontseries{m}\fontshape{n}\selectfont\char#1}}
+\def\${\char36 }   % the kernel's \$ wants a TS1 font, which is not there
+\newcommand\strike[1]{\leavevmode\setbox\z@\hbox{#1}\rlap{\raise.55ex\hbox{\vrule width\wd\z@ height.07em}}\box\z@}
+\renewcommand\labelitemi{\color{wasm}\raisebox{.15ex}{\small\sym{"0F}}}
+\renewcommand\labelenumi{\color{wasm}\theenumi.}
+
+% ------------------------------------------------------------------ frames
+% \begin{slide}[Title] ... \end{slide}: one page. The body is centred
+% vertically below the title; \vfill in the body overrides that.
+\newcount\shipped
+\def\titleskip{4mm}   % space above a slide's title
+\newenvironment{slide}[1][]{%
+  \global\advance\slideno\@ne \global\advance\shipped\@ne
+  \setbox\slidebox\vbox to\slideh\bgroup
+    \hsize\textwidth \linewidth\hsize \columnwidth\hsize
+    \parindent\z@ \parskip\z@ \normalfont\normalsize
+    \def\@tempa{#1}\ifx\@tempa\@empty\else
+      \vspace*{\titleskip}{\centering\LARGE #1\par}\fi
+    \vskip\z@ plus 1fil\relax
+}{\par\vskip\z@ plus 1fil\egroup \shipslide}
+% The standalone class ships pages of its own at \end{document}; after
+% \nomorepages a \shipout builds its box and throws it away.
+\def\nomorepages{\gdef\shipout{\setbox\z@}}
+\def\skipslide{\global\advance\slideno\@ne}   % stands for a slide left out (pick.mjs)
+\def\shipslide{\global\count0=\slideno   % TeX prints [page number] as it ships
+  \shipout\vbox{\special{papersize=160mm,90mm}\color{ink}\offinterlineskip
+    \vbox to\z@{\box\overbox \vss}%
+    \iffootline\vbox to\z@{\vskip\dimexpr\slideh-5mm\relax
+      \hbox to\slidew{\hfil\normalfont\scriptsize\color{muted}\the\slideno\hskip4mm}\vss}\fi
+    \moveright10mm\box\slidebox}%
+  \global\setbox\overbox\box\voidb@x}
+\newcommand\statement[1]{\vfill\begin{center}\LARGE #1\end{center}\vfill}
+% put something in the bottom right corner of the page (inside a slide)
+\newcommand\atSE[1]{\global\setbox\overbox\vbox to\slideh{\vfil\hbox to\slidew{\hfil #1}}}
+% a page that is one image, page wide
+\newcommand\fullbleed[1]{\global\advance\slideno\@ne \global\advance\shipped\@ne
+  \global\count0=\slideno
+  \shipout\vbox{\special{papersize=160mm,90mm}\offinterlineskip
+    \vbox to\slideh{\vss\hbox{\imgw{\slidew}{#1}}\vss}}}
+
+% ------------------------------------------------------------------ images
+% TeX never opens the image: figdims.tex (generated) gives the pixel size,
+% and dvipdfmx embeds the file. \imgh{height}{file}, \imgw{width}{file};
+% they set \imgwidth and \imgheight globally, for what is placed around it.
+\def\figdim#1#2#3{\expandafter\gdef\csname fig@#1\endcsname{{#2}{#3}}}
+\newdimen\imgwidth \newdimen\imgheight
+\def\img@set#1#2{\def\img@W{#1}\def\img@H{#2}}
+\def\img@dims#1{\@ifundefined{fig@#1}{\errmessage{no size for image #1}}{}%
+  \expandafter\expandafter\expandafter\img@set\csname fig@#1\endcsname}
+\newcommand\imgh[2]{\img@dims{#2}\global\imgheight=\dimexpr#1\relax
+  \global\imgwidth=\dimexpr\imgheight*\img@W/\img@H\relax \img@put{#2}}
+\newcommand\imgw[2]{\img@dims{#2}\global\imgwidth=\dimexpr#1\relax
+  \global\imgheight=\dimexpr\imgwidth*\img@H/\img@W\relax \img@put{#2}}
+\def\img@put#1{\leavevmode\hbox to\imgwidth{\vbox to\imgheight{\vfil
+  \special{pdf:image width \the\imgwidth\space height \the\imgheight\space (#1)}}\hfil}}
+% right after an image: put #3 at the point (#1,#2) of it, as fractions
+\newcommand\imgmark[3]{\llap{\hbox to\imgwidth{\kern#1\imgwidth
+  \raise#2\imgheight\hbox to\z@{#3\hss}\hss}}}
+
+% ------------------------------------------------------------------ drawing
+\def\bp#1{\strip@pt\dimexpr 0.99626\dimexpr#1\relax\relax}   % a length as a number of bp
+% \ellipse{rx}{ry}{line width}: a red ellipse centred at the current point
+\newcommand\ellipse[3]{\begingroup
+  \dimen0=\dimexpr#1\relax \dimen2=\dimexpr#2\relax \dimen4=.55228\dimen0 \dimen6=.55228\dimen2
+  \edef\e@a{\bp{\dimen0}}\edef\e@b{\bp{\dimen2}}\edef\e@ka{\bp{\dimen4}}\edef\e@kb{\bp{\dimen6}}%
+  \special{pdf:content \rgb{alert} RG \bp{#3} w
+    \e@a\space 0 m \e@a\space \e@kb\space \e@ka\space \e@b\space 0 \e@b\space c
+    -\e@ka\space \e@b\space -\e@a\space \e@kb\space -\e@a\space 0 c
+    -\e@a\space -\e@kb\space -\e@ka\space -\e@b\space 0 -\e@b\space c
+    \e@ka\space -\e@b\space \e@a\space -\e@kb\space \e@a\space 0 c S}\endgroup}
+% \tintbox{fill}{border}{rule width}{padding}{content}
+\newcommand\tintbox[5]{\hbox{\setbox\z@\hbox{\kern#4\relax #5\kern#4}%
+  \dimen@=\dimexpr\ht\z@+#4\relax \dimen@ii=\dimexpr\dp\z@+#4\relax
+  \special{pdf:content \rgb{#1} rg \rgb{#2} RG \bp{#3} w 0 -\bp{\dimen@ii} \bp{\wd\z@}
+    \bp{\dimexpr\dimen@+\dimen@ii\relax} re B}%
+  \vrule width\z@ height\dimen@ depth\dimen@ii \box\z@}}
+\newcommand\circled[3]{\leavevmode\setbox\z@\hbox{#3}\rlap{\kern.5\wd\z@\raise.3em\hbox{\ellipse{#1}{#2}{1pt}}}\box\z@}
+\newcommand\rotated[2]{\leavevmode\special{pdf:btrans rotate #1}\hbox{#2}\special{pdf:etrans}}
+% \flow[label]{length}: an arrow to the right along the baseline
+\newcommand\flow[2][]{\hbox to#2{\rlap{\special{pdf:content \rgb{black60} RG \rgb{black60} rg .5 w
+    0 0 m \bp{\dimexpr#2-1mm\relax} 0 l S \bp{#2} 0 m \bp{\dimexpr#2-2mm\relax} 1.6 l
+    \bp{\dimexpr#2-2mm\relax} -1.6 l f}}\hss
+  \raise2.5pt\hbox{\normalfont\tiny\ttfamily\color{black60}#1}\hss}}
+% \stage{lines}: a box of centred \scriptsize lines (separated by \\),
+% centred on the baseline; \stagehl is the highlighted one. \stagemark is
+% drawn at the centre of the next \stagehl.
+\let\stagemark\relax
+\newcommand\stage[1]{\stage@{black20}{boxbg}{.4pt}{}{#1}}
+\newcommand\stagehl[1]{\stage@{boxhlb}{boxhl}{.8pt}{\stagemark}{#1}}
+\newcommand\stage@[5]{%
+  \setbox\z@\vbox{\normalfont\scriptsize\let\\\cr\halign{\hfil##\hfil\cr#5\crcr}}%
+  \dimen@=\wd\z@ \ifdim\dimen@<\dimexpr24mm-6pt\relax \dimen@=\dimexpr24mm-6pt\relax\fi
+  \setbox\z@\hbox to\dimen@{\hss\vbox to\dimexpr12mm-6pt\relax{\vss\box\z@\vss}\hss}%
+  \setbox\z@\hbox{\tintbox{#2}{#1}{#3}{3pt}{\box\z@}}%
+  \dimen@=\dimexpr(\ht\z@-\dp\z@)/2\relax
+  \lower\dimen@\hbox{\rlap{\kern.5\wd\z@\raise\dimen@\hbox{#4}}\box\z@}}
+% \barrow{label}{width}{value}: one row of a bar chart
+\newcommand\barrow[3]{\hbox{\hbox to9mm{\hss\bfseries #1}\kern2mm
+  {\color{bar}\vrule height2.6mm depth1.4mm width#2}\kern1.5mm{\small\color{black70}#3}}}
+
+% ------------------------------------------------------------------ code
+% \begin{code}{font setup} ... \end{code}: lines as typed, on a tinted
+% background. \ { } keep their meaning, so \hi{...} and \red{...} work.
+\font\codenine=cmtt9
+\font\codesmall=cmtt8 at 6.6pt
+\font\codetiny=cmtt8 at 4.6pt
+\def\code@sp{\leavevmode\kern\fontdimen2\font}
+{\obeyspaces\gdef\code@spaces{\obeyspaces\let =\code@sp}}
+\def\code#1{\par\setbox\codebox\vbox\bgroup #1\relax
+  \hsize\dimexpr\linewidth-8pt\relax \parindent\z@ \parskip\z@
+  \rightskip\z@ plus 1fil \parfillskip\z@ \frenchspacing
+  \catcode`\%=12 \catcode`\_=12 \catcode`\~=12 \catcode`\$=12
+  \catcode`\&=12 \catcode`\#=12 \catcode`\^=12
+  \obeylines \code@spaces}
+\def\endcode{\egroup \noindent\tintbox{codebg}{codebg}{0pt}{4pt}{\box\codebox}\par}
+% \begin{term}{font setup} ... \end{term}: the same, as a dark terminal.
+% \cmd{...} a command line, \note{...} a comment, \hl{...} a line to notice.
+\def\term#1{\code{#1}\hsize\dimexpr\linewidth-12pt\relax}
+\def\endterm{\egroup \noindent\tintbox{termbg}{termbg}{0pt}{6pt}{\color{termfg}\box\codebox}\par}
+\newcommand\cmd[1]{{\color{termcmd}#1}}
+\newcommand\note[1]{{\color{termdim}#1}}
+\newcommand\hl[1]{{\color{termhi}#1}}
+\makeatother

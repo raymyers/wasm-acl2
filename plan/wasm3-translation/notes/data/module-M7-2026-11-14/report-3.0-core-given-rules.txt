@@ -1,0 +1,4 @@
+; Failing rules of WASM 3.0: rule, mode, error kinds, first error detail
+Heaptype_sub/trans :CHECK (("checker relation with unbound arguments" . 3)) (RULE "Heaptype_ok" "%|-%:OK" (TUP (VAR "C") (VAR "heaptype'")))
+Instrs_ok/sub :CHECK (("output variant needs the input part of the last component" . 1) ("checker relation with unbound arguments" . 1)) (RULE "Instrs_ok" "%|-%:%" (TUP (VAR "C") (ITER (VAR "instr") LIST (DOM "instr" (VAR "instr*"))) (VAR "it")))
+Step_read/array.new_data-num :FUN (("unbound variable" . 3)) "c*"

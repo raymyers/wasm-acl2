@@ -1,0 +1,7 @@
+(ld "portcullis.acl2")
+(include-book "2_3-validation_instructions")
+(in-package "W3T")
+(defconst *c* '(:%rec (:types) (:tags) (:globals) (:mems) (:tables) (:funcs) (:datas) (:elems) (:locals) (:labels) (:return) (:refs) (:recs)))
+(cw "OV ~x0~%" (list (instrs_ok *c* '((:binop (:i32) (:add))) '(:%->_%% ((:i32) (:i32)) nil ((:i32))))
+                     (instrs_ok *c* '((:nop) (:nop)) '(:%->_%% nil nil nil))
+                     (instr_ok *c* '(:block (:_result nil) ((:nop))) '(:%->_%% nil nil nil))))
