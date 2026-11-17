@@ -12,23 +12,26 @@
  * Freestanding wasm32: no libc, no imports, integer arithmetic only. The deck
  * is a data segment (deck.h). render(n) draws slide n into a 1-bit
  * framebuffer of W x H pixels, row-major, 8 pixels per byte with the leftmost
- * in bit 7, 1 = black. Every framebuffer byte is written exactly once per
- * render, and a character and its glyph row are loaded only when they change:
- * memory accesses are the slow part on the engine's list machine (E0, E6). */
+ * in bit 7, 1 = black. A render clears the framebuffer a word at a time and
+ * then draws glyph by glyph, a byte at a time: the cost follows the ink, not
+ * the number of pixels. */
 
-#include "font.h"   /* FONT[95][12], Spleen 6x12 */
+#include "font.h"   /* FONT[95][64][4], Spleen 32x64 */
 #include "deck.h"   /* DECK[], DECK_LEN */
 
-#define W 320
-#define H 180
+#define W 1280
+#define H 720
 #define ROWBYTES (W / 8)
-#define GW 6        /* glyph width */
-#define GH 12       /* glyph height */
+#define GW 32       /* glyph width */
+#define GH 64       /* glyph height */
+#define GB (GW / 8) /* bytes in a glyph row */
 #define MAXLINES 16
-#define MARGIN_X 16
-#define MARGIN_Y 9
+#define MARGIN_X 64
+#define MARGIN_Y 36
 
-static unsigned char fb[ROWBYTES * H];
+static unsigned int fbw[ROWBYTES * H / 4];
+#define fb ((unsigned char *)fbw)
+static unsigned char rowbuf[ROWBYTES];     /* one glyph row, scaled */
 static unsigned int line_start[MAXLINES];  /* offsets into DECK */
 static unsigned int line_len[MAXLINES];
 
@@ -105,43 +108,43 @@ int render(int n) {
   if (k == 0) k = 1;
 
   unsigned int bw = maxlen * GW * k, bh = (unsigned int)nl * GH * k;
-  unsigned int x0 = bw < W ? (W - bw) / 2 : 0;
+  unsigned int xb0 = bw < W ? (W - bw) / 16 : 0;  /* left edge, in bytes */
   unsigned int y0 = bh < H ? (H - bh) / 2 : 0;
+  unsigned int cb = GB * k;                       /* bytes in a scaled glyph row */
 
-  unsigned int p = 0;  /* framebuffer index */
-  for (unsigned int y = 0; y < H; y++) {
-    int line = -1;
-    unsigned int gy = 0, lstart = 0, llen = 0;
-    if (y >= y0 && y < y0 + bh) {
-      unsigned int ry = (y - y0) / k;
-      line = (int)(ry / GH);
-      gy = ry % GH;
-      lstart = line_start[line];
-      llen = line_len[line];
-    }
-    unsigned int cached_ci = 0xffffffffu, cached_row = 0;
-    for (unsigned int bx = 0; bx < ROWBYTES; bx++) {
-      unsigned int byte = 0;
-      if (line >= 0) {
-        for (unsigned int b = 0; b < 8; b++) {
-          unsigned int x = bx * 8 + b;
-          if (x >= x0) {
-            unsigned int col = (x - x0) / k;
-            unsigned int ci = col / GW;
-            if (ci < llen) {
-              if (ci != cached_ci) {
-                unsigned int ch = (unsigned char)DECK[lstart + ci];
-                if (ch < 32 || ch > 126) ch = '?';
-                cached_row = FONT[ch - 32][gy];
-                cached_ci = ci;
+  for (unsigned int i = 0; i < ROWBYTES * H / 4; i++) fbw[i] = 0;
+
+  for (unsigned int l = 0; l < (unsigned int)nl; l++) {
+    for (unsigned int c = 0; c < line_len[l]; c++) {
+      unsigned int xb = xb0 + c * cb;
+      if (xb + cb > ROWBYTES) break;              /* clipped on the right */
+      unsigned int ch = (unsigned char)DECK[line_start[l] + c];
+      if (ch < 32 || ch > 126) ch = '?';
+      if (ch == ' ') continue;
+      for (unsigned int gy = 0; gy < GH; gy++) {
+        const unsigned char *g = FONT[ch - 32][gy];
+        if (!(g[0] | g[1] | g[2] | g[3])) continue;
+        unsigned int y = y0 + (l * GH + gy) * k;
+        if (y + k > H) break;                     /* clipped at the bottom */
+        unsigned char *dst = fb + y * ROWBYTES + xb;
+        if (k == 1) {
+          dst[0] = g[0]; dst[1] = g[1]; dst[2] = g[2]; dst[3] = g[3];
+        } else {
+          /* every glyph pixel becomes k pixels of rowbuf, then k rows */
+          for (unsigned int i = 0; i < cb; i++) rowbuf[i] = 0;
+          for (unsigned int sb = 0; sb < GB; sb++) {
+            unsigned int v = g[sb];
+            if (!v) continue;
+            for (unsigned int bit = 0; bit < 8; bit++)
+              if (v & (0x80u >> bit)) {
+                unsigned int j = (sb * 8 + bit) * k, e = j + k;
+                for (; j < e; j++) rowbuf[j >> 3] |= (unsigned char)(0x80u >> (j & 7));
               }
-              unsigned int gx = col % GW;
-              if ((cached_row >> (7 - gx)) & 1u) byte |= 0x80u >> b;
-            }
           }
+          for (unsigned int r = 0; r < k; r++, dst += ROWBYTES)
+            for (unsigned int i = 0; i < cb; i++) dst[i] = rowbuf[i];
         }
       }
-      fb[p++] = (unsigned char)byte;
     }
   }
   return (int)k;

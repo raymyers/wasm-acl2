@@ -11,7 +11,7 @@ cp "$here/font.h" "$here/sent.c" "$out/"
 cd "$here/../.."
 nix shell --inputs-from . nixpkgs#llvmPackages.clang-unwrapped nixpkgs#lld -c sh -c "
   cd '$out' && clang --target=wasm32 -O2 -nostdlib -mcpu=mvp -fno-builtin \
-    -Wl,--no-entry -Wl,-z,stack-size=4096 -Wl,--initial-memory=65536 -Wl,--max-memory=65536 \
+    -Wl,--no-entry -Wl,-z,stack-size=4096 -Wl,--initial-memory=196608 -Wl,--max-memory=196608 \
     -o sent.wasm sent.c && clang --version | head -1 > clang-version"
 { echo "deck: $(basename "$deck") sha256 $(shasum -a 256 "$deck" | cut -d' ' -f1)"
   echo "clang: $(cat "$out/clang-version")"

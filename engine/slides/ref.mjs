@@ -1,6 +1,6 @@
 // V8 reference for the slide renderer (E12): node ref.mjs sent.wasm OUTDIR
 // Renders every slide, prints "SLIDE n scale sha256(framebuffer)" and writes
-// OUTDIR/slide-n.png (4x upscaled, black on white) for viewing.
+// OUTDIR/slide-n.png (black on white) for viewing.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { deflateSync } from 'node:zlib';
@@ -30,5 +30,5 @@ for (let i = 0; i < n; i++) {
   const k = e.render(i);
   const fb = new Uint8Array(e.memory.buffer, e.framebuffer(), (W / 8) * H);
   console.log('SLIDE', i, 'scale', k, createHash('sha256').update(fb).digest('hex'));
-  writeFileSync(`${out}/slide-${i}.png`, png(fb, 4));
+  writeFileSync(`${out}/slide-${i}.png`, png(fb, 1));
 }

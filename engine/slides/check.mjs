@@ -2,7 +2,7 @@
 // node check.mjs sent.wasm ENGINEDIR VIEWDIR
 // For every ENGINEDIR/slide-N.pbm: sha256 of its pixel data, compared with
 // V8 rendering the same module (render(N), framebuffer bytes). Writes
-// VIEWDIR/slide-N.png (4x) from the ENGINE's pixels, VIEWDIR/index.html
+// VIEWDIR/slide-N.png  from the ENGINE's pixels, VIEWDIR/index.html
 // (full-screen viewer, arrow keys) and prints one line per slide and a total.
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -24,6 +24,8 @@ function png(fb, scale) {
   const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8;
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
 }
+const ro = `${engDir}/render.out`;
+const machine = existsSync(ro) && /machine :LIST/.test(readFileSync(ro, 'latin1')) ? 'list machine' : 'fast machine';
 let same = 0;
 for (let i = 0; i < n; i++) {
   e.render(i);
@@ -34,7 +36,7 @@ for (let i = 0; i < n; i++) {
   const ok = pbm.subarray(0, header.length).toString() === header && pix.equals(v8);
   if (ok) same++;
   console.log('SLIDE', i, ok ? 'SAME' : 'DIFFERENT', 'engine', sha(pix), 'v8', sha(v8));
-  writeFileSync(`${viewDir}/slide-${i}.png`, png(pix, 4));
+  writeFileSync(`${viewDir}/slide-${i}.png`, png(pix, 1));
 }
 console.log('TOTAL', same, 'of', n, 'slides identical to V8; module sha256', sha(readFileSync(wasmFile)));
 writeFileSync(`${viewDir}/index.html`, `<!doctype html><meta charset="utf-8"><title>Engine slides</title>
@@ -42,6 +44,6 @@ writeFileSync(`${viewDir}/index.html`, `<!doctype html><meta charset="utf-8"><ti
 #cap{position:fixed;bottom:4px;left:8px;font:12px sans-serif;color:#888}</style>
 <img id="s"><div id="cap"></div><script>
 const n=${n};let i=0;const s=document.getElementById('s'),cap=document.getElementById('cap');
-function show(){s.src='slide-'+i+'.png';cap.textContent='slide '+(i+1)+'/'+n+' rendered by the list machine of the WebAssembly engine in ACL2; pixels identical to V8: ${same}/${n}; module not yet inside the proved subset (E11)';}
+function show(){s.src='slide-'+i+'.png';cap.textContent='slide '+(i+1)+'/'+n+' rendered by the ${machine} of the WebAssembly engine in ACL2; pixels identical to V8: ${same}/${n}; module not yet inside the proved subset (E11)';}
 document.onkeydown=e=>{if(e.key==='ArrowRight'||e.key===' ')i=Math.min(n-1,i+1);else if(e.key==='ArrowLeft')i=Math.max(0,i-1);else if(e.key==='f')document.documentElement.requestFullscreen();show();};show();
 </script>`);
