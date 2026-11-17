@@ -6,28 +6,28 @@
 > generated books (`translate/gen/wasm-3.0`) stay the specification. The
 > engine is a second, faster definition, and the theorem connects the two.
 >
-> **Target workload**: MuPDF (the PDF renderer of the `mupdf` npm package),
-> rebuilt with 3.0 exception handling, rendering the pages of a slide deck
-> outside the browser: ACL2 on SBCL computes the pixels and a viewer on the
-> same machine shows them.
+> **Target workload (changed by the user, 2026-11-17)**: the workshop
+> talk's own slides, produced by WebAssembly programs that the engine
+> runs. Two exist: a sent-style bitmap renderer of our own (E12, met), and
+> TeX itself (`tex.wasm`) typesetting the deck to a DVI file
+> (`engine/tex/`, runs since 2026-11-16).
 >
-> **Litmus test (set by the user, 2026-11-15)**: the plan has worked when
-> both of these hold for the same engine and the same MuPDF module:
-> 1. **View**: a page of a PDF, rendered by the engine and shown outside
->    the browser, with pixels identical to V8's render (E9, E10).
+> **Test of the plan**: both of these for the same engine:
+> 1. **Run**: the engine produces the slides (E12: pixels identical to
+>    V8's; `engine/tex/`: the 33-slide deck, 606 M instructions).
 > 2. **Certify**: the engine's books certify with the theorem against the
 >    generated 3.0 semantics, with no `skip-proofs` and no `defaxiom`, for
->    every instruction that module uses (E11, all groups).
+>    the instructions those modules use (E7 Phase B and E11).
 >
-> View alone is a demo of a tested engine. The plan is done only with
-> both. §4 "Litmus milestones" says which items each half needs.
+> Run alone is a demo of a tested engine. §4 "Milestones for the test"
+> says which items each half needs.
 >
-> **Earlier milestone L0 (decided by the user, 2026-11-16)**: before MuPDF,
-> the slides of a deck in the plain-text format of suckless `sent` (one
-> slide per paragraph, scaled to fit, black on white), rendered by a small
-> renderer of our own compiled to wasm, run on the engine, with pixels
-> identical to V8 running the same module (E12). MuPDF stays the litmus
-> test above.
+> **Dropped (user, 2026-11-17)**: the PDF viewer. MuPDF was the target
+> from 2026-11-15; rendering a PDF on the engine and showing it (the old
+> E9, E10 and litmus test) is no longer a goal. What E1 found stays as a
+> record ([E1-mupdf-target](notes/E1-mupdf-target.md), `engine/mupdf/`):
+> a 4.5 MB MuPDF build passes the generated decoder and `Module_ok`, which
+> is evidence about the semantics, not about a viewer.
 >
 > **What the theorem says, and what it does not**: it relates the engine to
 > the generated ACL2 semantics, for the instructions in the proved subset
@@ -42,15 +42,16 @@
 > passed before must still certify and pass.
 >
 > **Status: in execution. L0 met (E12). E0, E2 (go), E3, E5, E6, E12 and E4
-> items 1 and 2 complete; E1 (item 5), E7 and E11 (S0) in progress** (written 2026-11-15, at `d845f70`; revised the same day for
-> 3.0 and MuPDF). Per-session procedure: [step.md](step.md). Prompts behind
+> items 1 and 2 complete; E7 and E11 (S0) in progress; E1 closed, E9 and
+> E10 dropped** (written 2026-11-15, at `d845f70`; target changed
+> 2026-11-17). Per-session procedure: [step.md](step.md). Prompts behind
 > this plan: [seed.md](seed.md).
 
 ---
 
 ## Current state
 
-- **Last updated**: 2026-11-15
+- **Last updated**: 2026-11-17
 - **Milestones complete**: E2 (**go**: `STEP`, `STEP_READ`, `STEPS/%FUEL`
   are `:logic`; [E2-step-logic](notes/E2-step-logic.md)), E5 (machine
   design; [E5-machine](notes/E5-machine.md)) and E0 (baseline: 23,000 to
@@ -60,12 +61,11 @@
   [E6-list-machine](notes/E6-list-machine.md)). E3 (the theorem for any machine, its run level, and
   the spec facts behind C3; [E3-theorem](notes/E3-theorem.md)). For the
   list machine, C1 and C3 are proved; C2 is E11
-- **In progress**: E1, every item but 5 done (census, reference renders,
-  imports, build script that reproduces the module bit for bit, small
-  target; [E1-mupdf-target](notes/E1-mupdf-target.md)). Item 5: the small
-  target passes the generated decoder and `Module_ok` (73 min and 85 s);
-  the full module's parse was still running after more than 100 CPU
-  minutes. E11 (S0) started: C2 for every clock-0 step is proved
+- **Closed, not a goal any more**: E1 (MuPDF as a 3.0 module). Its
+  results are a record: the small target passes the generated decoder and
+  `Module_ok` (73 min and 85 s); the full module's parse was stopped
+  ([E1-mupdf-target](notes/E1-mupdf-target.md))
+- **In progress**: E11 (S0) started: C2 for every clock-0 step is proved
   (`engine/machine/clock0.lisp`); for the clock-1 steps the first test
   shows that an `append`/`take`/`nthcdr` library comes first. E4 items 1
   and 2 done
@@ -75,17 +75,15 @@
   2026-11-15 did the items where a wrong early choice costs most (E2, the
   E5 design, the E3 statement, D4 (a)). The remaining items follow written
   designs and are for later sessions
-- **Litmus test set by the user (2026-11-15)**: view a PDF with the engine,
-  and the engine certifies against the semantics (top of this file, and
-  §4 "Litmus milestones")
-- **Decided by the user (2026-11-15)**: D1, the engine is for 3.0. The
-  target is MuPDF, forked and rebuilt with 3.0 exceptions. The display is
-  outside the browser
+- **Target changed by the user (2026-11-17)**: no PDF viewer. The engine's
+  workload is the talk's slides: the sent-style renderer (E12) and TeX
+  (`engine/tex/`). The test of the plan is at the top of this file and in
+  §4 "Milestones for the test"
+- **Decided by the user (2026-11-15)**: D1, the engine is for 3.0
 - **Decided by the user (2026-11-15)**: D2 checked engine; D4 (a), the
   translator may emit one function per rule; E2 approved (a headless
   session may change `translate/` to admit the 3.0 step group in
-  `:logic`); E5 runs headless and the user reviews the note later; the
-  fork lives at `raymyers/mupdf`
+  `:logic`); E5 runs headless and the user reviews the note later
 - **Waiting for the user**: nothing. Two points of the E5 design touch
   what is trusted and are listed for review in the note ("For the user to
   review"): the fast host layer enters under a trust tag in the view
@@ -94,10 +92,14 @@
 - **Spec runs with large memories**: the generated `$ALLOCMEM/ITER2`
   recurses once per byte; SBCL's default stack ends near 32 pages. Run
   with `SBCL_USER_ARGS='--control-stack-size 1000'` (64 pages) or `4000`
-  (MuPDF's 352 pages) ([E0-baseline](notes/E0-baseline.md))
+  (352 pages) ([E0-baseline](notes/E0-baseline.md))
 - **Decided by the user (2026-11-16)**: D10, an earlier demo (L0, E12):
   a sent-style slide renderer of our own, compiled to wasm, run on the
-  engine. MuPDF stays the litmus test
+  engine
+- **TeX on the engine (2026-11-16)**: `tex.wasm` typesets the talk deck
+  on the fast machine (`engine/tex/README.md`). It uses `f32` instructions
+  and host calls (files), so it is outside S0; its host functions and run
+  loop are raw Lisp in `engine/tex/texrun.lisp`, outside any theorem
 - **L0 met (2026-11-16)**: the talk's 7 slides, rendered by the engine
   from a sent-format deck, are pixel-identical to V8's (`make -C engine
   slides`, [E12-slides](notes/E12-slides.md)). The module uses only S0,
@@ -143,8 +145,8 @@ All decisions below are settled. A new one that only the user can make
 is added here marked *(for the user)* and listed in "Current state".
 
 - **D1 (decided by the user, 2026-11-15): the engine and its theorem are
-  for 3.0.** MuPDF needs exceptions, bulk memory and sign extension, none
-  of which is in 1.0. The 1.0 books are used only as a proof rehearsal if
+  for 3.0.** (The reason then: MuPDF needs exceptions, bulk memory and
+  sign extension, none of which is in 1.0.) The 1.0 books are used only as a proof rehearsal if
   E2 is no-go.
 - **D2 (decided by the user, 2026-11-15): a checked engine.** A checked engine keeps the dynamic checks the spec
   rules make (operand tags, bounds). It gets stuck exactly where the spec
@@ -173,9 +175,9 @@ is added here marked *(for the user)* and listed in "Current state".
     clause out of the certified book into a local function and proves it
     equal to its place in the relation. More proof work per rule, and the
     copies must be regenerated when the translator changes.
-- **D5: the subset is what MuPDF uses, reached in groups.** The census of
-  the rebuilt module (E1 item 4) is the definition. Expected groups, from
-  the census of the published binary:
+- **D5: the subset is reached in groups.** The groups were drawn from the
+  census of MuPDF (E1 item 4); they stay as the order of work. The slide
+  renderer uses S0 only; `tex.wasm` uses S0, `f32` operations of S1 and H:
   - **S0** integer core: `const`, integer numeric ops, `drop`, `select`,
     `nop`, `unreachable`, `local.*`, `global.*`, `block`, `loop`, `if`,
     `br`, `br_if`, `br_table`, `return`, `call`, integer `load`/`store`,
@@ -194,21 +196,21 @@ is added here marked *(for the user)* and listed in "Current state".
   semantics comes before each proof. A proof attempt on a machine with a
   bug is wasted time.
 - **D8: running comes before proving, and the two are reported apart.**
-  The machine is built and tested for all of D5 first (E6 to E9), so that
-  MuPDF renders. The proof then covers one group at a time (E11). Every
-  run reports whether the module is inside the proved subset. A page is
-  "rendered by the verified engine" only when it is.
+  The machine is built and tested first; the proof then covers one group
+  at a time (E11). Every run reports whether the module is inside the
+  proved subset. A slide is "rendered by the verified engine" only when
+  it is.
 - **D10 (decided by the user, 2026-11-16): an earlier, smaller demo.**
-  A sent-style slide renderer (E12) comes before MuPDF: it needs no host
-  functions, one page of memory and only S0 instructions, so the list
-  machine of E6 can run it and E11 for S0 can cover it. MuPDF remains the
-  litmus test.
+  A sent-style slide renderer (E12): it needs no host functions, one page
+  of memory and only S0 instructions, so the list machine of E6 can run
+  it and E11 for S0 can cover it.
 - **D9: the spec's memory stays a list.** A store in the generated
   semantics rebuilds the byte list (`APPEND` of `TAKE` and `NTHCDR` in
   `$WITH_MEM`), and a list cannot be updated faster. The fix is the
   engine's stobj memory with its refinement theorem (E7), not a change of
-  the specification's representation. Consequence: MuPDF never runs on the
-  generated semantics; the two are compared on small programs only.
+  the specification's representation. Consequence: a large program never
+  runs on the generated semantics; the two are compared on small programs
+  only.
 
 ---
 
@@ -270,9 +272,9 @@ engine/machine/              list machine (D3): operand stack, control stack,
         |   refinement (E7): the same step function over an abstract stobj
         v
 engine/fast/                 the concrete stobj and its correspondence: what runs
-        |   host functions (E9), outside the theorem
+        |   host functions, outside the theorem
         v
-engine/host/ , engine/view/  MuPDF's 22 imports; pixels to a viewer (E10)
+engine/tex/texrun.lisp       tex.wasm's 18 imports (files, printing, date), raw Lisp
 ```
 
 - **Abstraction function** `abs`: machine state to spec configuration. It
@@ -288,8 +290,9 @@ engine/host/ , engine/view/  MuPDF's 22 imports; pixels to a viewer (E10)
   proved from this for any machine; E11 instantiates it.
 - **Host functions**: the spec side already calls a constrained function
   (`%hostcall-hook`). The engine calls the same one, so the theorem holds
-  for every host. What MuPDF's imports actually do is engine/host code
-  under an attachment, tested and not proved.
+  for every host. What a module's imports actually do is host code, tested
+  and not proved. (`engine/tex/texrun.lisp` does not yet go through the
+  hook: it steps over host calls itself.)
 - **Stuck and trap**: with D2 checked, the machine reports `:stuck` when
   no spec rule applies and `:trap` when the spec steps to `TRAP`. The
   theorem covers `:done` and `:trap`. `:stuck` and `:unsupported` carry no
@@ -330,55 +333,13 @@ engine/host/ , engine/view/  MuPDF's 22 imports; pixels to a viewer (E10)
 **Exit**: a table of measured rates and a ranked list of costs, in
 `notes/E0-baseline.md` (met: [E0-baseline](notes/E0-baseline.md)).
 
-### E1: MuPDF as a 3.0 module
+### E1: MuPDF as a 3.0 module (closed 2026-11-17, not a goal any more)
 
-- [x] Fork MuPDF on GitHub: `raymyers/mupdf`, fork of
-      `ArtifexSoftware/mupdf` (2026-11-15)
-- [x] Branch with 3.0 exception handling: `wasm3-exceptions` at `3eae43d`
-      adds `-sWASM_LEGACY_EXCEPTIONS=0` to the compile and link flags.
-      Built with Emscripten 4.0.8: 2,492 `try_table`, 1,201 `throw_ref`,
-      no `try`, `catch` or `delegate`
-      ([E1-mupdf-target](notes/E1-mupdf-target.md), 2026-11-15)
-- [x] The rebuilt module still works: one test PDF renders in node to
-      the same 1,454,112 RGB samples (sha256 equal) as the published
-      `mupdf` 1.28.6, and two MuPDF errors are caught the same way
-      (2026-11-15; one PDF only, item 6 adds more)
-- [x] Census of the rebuilt module: every opcode with its count
-      (`notes/data/e1-mupdf/fork-3eae43d-opcodes.txt`), the imports with
-      their signatures, memory and table sizes
-      (`fork-3eae43d-census.txt`). This fixes D5: 165 instructions, S0 97,
-      S1 59, S2 6, S3 3, none outside; `memory.grow` and `nop` do not
-      occur (memory grows through the import `emscripten_resize_heap`)
-      (2026-11-15)
-- [x] The module through the generated 3.0 decoder and `Module_ok`:
-      result and time, or the reason it does not finish. The small target
-      passes (parse 73 min, `Module_ok` T in 85 s); the full module's
-      parse was stopped unfinished after 434 CPU minutes. Parse time grows
-      about with the square of the size ([E1-mupdf-target](notes/E1-mupdf-target.md),
-      2026-11-16)
-- [x] Reference renders from node (V8): three PDFs, one of them a slide,
-      as raw pixel files with checksums. These are what E9 compares with.
-      `test1.pdf`, `slide.pdf` (960 x 540), `text.pdf`; `ref-render.mjs`
-      writes the PPM files and prints the sha256 of the samples
-      (`ref-render.out`); the files themselves are regenerated, not
-      checked in (2026-11-15)
-- [x] What each of the 22 imports must do for "open a PDF from memory,
-      render page n to a pixmap", read from the Emscripten glue and traced
-      in node: six are called (environment, time zone, `date_now`,
-      `gmtime`, and the font loader through `asm_const_ptr`, which returns
-      0); the export call sequence is in `exports-called.txt` (2026-11-15)
-- [x] The build as a script in `engine/mupdf/` that takes the fork commit
-      and produces the module with a recorded checksum, run from Nix
-      (Emscripten 4.0.8, the version MuPDF tests with):
-      `engine/mupdf/build.sh` reproduces the hand build bit for bit
-      (sha256 `e3c67c2e...af14`) (2026-11-15)
-- [x] A smaller build if the census allows it (features off, fonts out),
-      recorded as a second target: `engine/mupdf/build-small.sh`, 4.5 MB,
-      4,470 functions, 288 pages, sha256 `97239ccb...1f97`; same pixels as
-      the full build except CMYK (no ICC) (2026-11-15)
-
-**Exit**: a 3.0 module of MuPDF with no legacy exception opcode, proved to
-render the same pixels as the published one in V8, with its census.
+Done before the target changed: the fork `raymyers/mupdf` rebuilt with 3.0
+exceptions, its census, V8 reference renders, a reproducible build
+(`engine/mupdf/`), and a 4.5 MB build through the generated decoder and
+`Module_ok`. The full 10 MB module's parse was stopped. Record:
+[E1-mupdf-target](notes/E1-mupdf-target.md).
 
 ### E2: The 3.0 step group in logic mode (go/no-go)
 
@@ -564,12 +525,11 @@ Scripts and commands inside S0 recorded
       for `fast-step` (hypotheses: `fmp`, the fast store invariant, and
       that the fast step does not stop `:unsupported`; gaps: `call_ref`
       of a host function and `return_call_ref` in a frame)
-- [ ] Rate on the E0 benchmarks at 1, 16, 64 and 352 pages
+- [ ] Rate on the E0 benchmarks at 1, 16 and 64 pages
 
 **Exit**: the refinement theorem certifies for S0. Rates recorded next to
-E0's. **Go/no-go for the target**: from the measured rate and the E1
-instruction counts, the time to render one page. If it is over an hour,
-the user decides (smaller build of E1, a faster machine design, or stop).
+E0's. (Measured on real work, 2026-11-16: 3.1 to 3.2 M steps/s on
+`tex.wasm`; the 33-slide deck takes 3 min 16 s.)
 
 ### E8: Widen the machine to D5
 
@@ -577,32 +537,13 @@ the user decides (smaller build of E1, a faster machine design, or stop).
       differential tests 1 and 2 extended, and the stobj refinement
       theorem extended
 
-**Exit**: every opcode of the E1 census is supported. The spec test
+**Exit**: every opcode of the target modules is supported. The spec test
 scripts inside D5 agree with the generated semantics per command.
 
-### E9: Host layer and the first page
+### E9, E10: host layer for MuPDF, display outside the browser (dropped 2026-11-17)
 
-- [ ] `engine/host/`: the imports E1 lists, as an attachment of the host
-      hook. Each with its reason and what it does
-- [ ] Driver: load the module, put a PDF in memory, call the exports that
-      open it and render page n, copy the pixmap out
-- [ ] The three E1 PDFs: pixels equal to the V8 reference renders
-
-**Exit**: one page rendered by the engine with pixels identical to V8's.
-Time and step count recorded.
-
-### E10: Display outside the browser
-
-- [ ] The driver writes each page as an image file (PPM or PNG) from ACL2
-- [ ] A viewer for presenting: pages pre-rendered to a folder and shown
-      full screen, with a caption that names the engine and whether the
-      module is inside the proved subset (D8)
-- [ ] Optional, live: frames from the running SBCL image to a window or
-      a local socket. This needs a trust tag; it is recorded and kept out
-      of every certified engine book
-
-**Exit**: the slide deck of the talk, rendered by the engine, shown from
-the folder.
+The PDF viewer is not a goal. The host layer that exists is the one for
+`tex.wasm` (`engine/tex/texrun.lisp`).
 
 ### E11: Simulation proofs
 
@@ -624,7 +565,8 @@ the folder.
 **Exit**: per group, the instantiated theorem certifies with no
 `skip-proofs` and no `defaxiom`, with that group's instructions outside
 the machine's `:unsupported` case (E3: this is how a subset is
-expressed). When all groups are done, MuPDF is inside the proved subset.
+expressed). The slide renderer is inside the proved subset after S0;
+`tex.wasm` needs S0, the `f32` part of S1, and H.
 
 ### E12: sent-style slides (L0, D10)
 
@@ -648,32 +590,27 @@ pixels identical to V8's, and shown from the folder. **Met (2026-11-16)**:
 `make -C engine slides`, 7 of 7 identical
 ([E12-slides](notes/E12-slides.md)).
 
-### Litmus milestones
+### Milestones for the test
 
 | | Needs | Checked by |
 |---|---|---|
 | **L0 Slides** | E6, E12 | `make -C engine slides`: the engine renders every slide of the sent-format deck with pixels identical to V8's (E12). **Met 2026-11-16, 7 of 7**; the module is not yet inside the proved subset (needs E11 for S0) |
-| **L1 View** | E1, E5 to E10 | `make -C engine view-check`: renders the three E1 PDFs on the stobj machine, compares each pixel file with the V8 reference checksum, and writes the image files the viewer shows |
-| **L2 Certify** | E2, E3, E4, E11 for S0, S1, S2, S3 and H | `make -C engine check`: every engine book certifies; a test fails if any book contains `skip-proofs` or `defaxiom`, or if an opcode of the E1 census is outside the theorem's subset predicate |
-| **Litmus** | L1 and L2 at the same commit, on the same module checksum | `make -C engine litmus` runs both and prints the module checksum, the fork commit, and the hypotheses of the top theorem |
+| **L1 TeX deck** | E7 Phase A, `engine/tex/` | `engine/tex/build/acl2-wasm-tex deck.tex`, then `dvipdfmx`: the talk deck, typeset by `tex.wasm` on the fast machine. **Runs since 2026-11-16** (33 slides, 606,084,354 instructions, 195 s). No reference comparison of the DVI yet |
+| **L2 Certify** | E2, E3, E4, E7 Phase B, E11 for S0 (then `f32` and H for TeX) | `make -C engine check`: every engine book certifies; a test fails if any book contains `skip-proofs` or `defaxiom` |
 
-What stays trusted when the litmus passes, and is printed with it: the
-translator and SpecTec (evidence: the spec test suite), the engine's
-loader (evidence: differential tests), the host functions (evidence: the
-pixel comparison), ACL2 itself.
+What stays trusted when L2 passes: the translator and SpecTec (evidence:
+the spec test suite), the engine's loader (evidence: differential tests),
+the host functions and, for TeX, the run loop in raw Lisp, ACL2 itself.
 
 ### Order and dependencies
 
 ```
-E1 ------------------------------> E9 -> E10
-E0 -> E5 -> E6 -> E7 -> E8 -------> E9
+E0 -> E5 -> E6 -> E7 -> E8
 E2 -> E3 -> E4 -> E11 (needs E6, E7 for each group)
 ```
 
-The run track (E0, E1, E5 to E10) does not wait for the proof track (E2,
-E3, E4, E11). Every item runs headless. Suggested order of sessions: E1,
-E0, E2, E5, E6, E3, E4, E7, E11 for S0, E8, E9, E10, E11 for the rest
-(E2, E5, the E3 statement and E4 item 2 were done first, on 2026-11-15).
+The run track does not wait for the proof track (E2, E3, E4, E11). Every
+item runs headless.
 E11 for S0 comes before E8 on purpose: if the simulation proof forces a
 change of the machine, it is cheaper before the machine is widened.
 
@@ -681,7 +618,7 @@ change of the machine, it is cheaper before the machine is widened.
 
 - Unchecked engine with a `Module_ok` hypothesis (D2).
 - The engine through JSCL in the browser demo.
-- SIMD, GC, tail calls, multi-memory: MuPDF uses none.
+- SIMD, GC, tail calls, multi-memory: no target module uses them.
 - A theorem about the decoder or the loader. The loader is compared by
   test only (E6).
 - A different representation of memory in the generated semantics (D9).
@@ -696,7 +633,7 @@ It stops, with the evidence in a note and "Current state" updated, only:
 - when a proof item has failed three distinct approaches, each recorded
   with its checkpoint;
 - when a new decision is the user's (anything that changes what the
-  litmus test means, what is trusted, or the non-interference rule).
+  test of the plan means, what is trusted, or the non-interference rule).
 
 It does not stop for a choice this plan settles, or for a long run: gates
 and spec runs take minutes to tens of minutes and run in the background.
@@ -708,10 +645,7 @@ and spec runs take minutes to tens of minutes and run in the background.
 | Risk | What decides it | If it happens |
 |---|---|---|
 | The 3.0 step group cannot be admitted in `:logic` | E2 | Proofs rehearse on 1.0; the 3.0 engine is tested, not proved; the user decides |
-| The engine is too slow to render a page | E7 exit, from measured rate and instruction counts | Smaller MuPDF build; pre-render overnight; a faster machine design |
-| The rebuilt MuPDF does not validate under `Module_ok`, or the decoder cannot handle 10 MB | E1 item 5 | The engine's own loader takes the binary; the disagreement is a finding about the generated validator and is reported |
 | Proofs about the generated bodies are too slow for ACL2 | E4: certification time per rule lemma | D4 (a) is in place (E2); a rule lemma is about one small function |
 | The spec's numeric functions are too slow for the fast machine (D6) | E7 rate | `mbe` fast paths, checked by guard verification (E5) |
 | The `ctxt-*` recursion makes the context lemma hard | E11, tried on two instructions first. First evidence: a step under one label with a fixed instruction is proved in 10,141 prover steps ([E4-first-lemmas](notes/E4-first-lemmas.md)); symbolic lists are untested | Prove flat configurations first, then one nesting form at a time |
-| Exceptions make `abs` and the invariant much larger | E5 design, E11 S3 | S3 stays tested and unproved; MuPDF is then outside the proved subset and every run says so (D8) |
-| The host functions hide behaviour the comparison misses | E9 pixel comparison on three PDFs | More PDFs; the host layer is named as trusted in every claim |
+| Exceptions make `abs` and the invariant much larger | E5 design, E11 S3 | S3 stays tested and unproved; a module that uses exceptions is then outside the proved subset and every run says so (D8) |
