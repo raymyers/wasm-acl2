@@ -553,9 +553,17 @@ Scripts and commands inside S0 recorded
 - [ ] Refinement (Phase B, in progress): `engine/fast/refine.lisp`
       (frame-safe rules per rule and per place, 60 of 103 places; the
       general fallback; per-rule facts for 87 of 90 fallback rules) and
-      `refine-mem.lisp` (all 19 memory rules). Left: the fast paths, the
-      memory places, the step parts, and the theorem for `fast-step`
-      (hypotheses: the fast store invariant, memory 0 a record)
+      `refine-mem.lisp` (all 19 memory rules), `refine-hot.lisp` (the six
+      fast paths equal the general path), `refine-step.lisp` (per rule
+      (U) for 209 of 212 rules; `fast-try-rules` refines `try-rules`
+      for any list of rules satisfying (U)). In progress, not yet
+      certified: per-place lemmas (place function = `fast-try-rules`,
+      every rule of the place satisfies (U); 105 places proved before a
+      timeout, hint since made cheaper), `op-has-rules`/`redex-arity`
+      lemmas (proved interactively). Left: the step parts and the theorem
+      for `fast-step` (hypotheses: `fmp`, the fast store invariant, and
+      that the fast step does not stop `:unsupported`; gaps: `call_ref`
+      of a host function and `return_call_ref` in a frame)
 - [ ] Rate on the E0 benchmarks at 1, 16, 64 and 352 pages
 
 **Exit**: the refinement theorem certifies for S0. Rates recorded next to

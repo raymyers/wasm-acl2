@@ -83,21 +83,65 @@
                                     rule-may-match fallback-shape-ok))
                    :do-not-induct t)))))
 
+; (U) as a predicate of the rule FN
+(defun-nx u-holds (fn s f redex fm)
+  (let ((full (mv-list 3 (apply-rule fn (list :|%;%| (put-mem0-bytes s (nth *fm-memi* fm)) f) redex)))
+        (fast (mv-list 4 (fast-apply-rule fn (list :|%;%| s f) redex fm))))
+    (implies (and (fast-inv-store s) (byte-list-p (nth *fm-memi* fm))
+                  (not (equal (car fast) :refuse)))
+             (and (iff (car full) (car fast))
+                  (implies (car fast)
+                           (and (equal (cadr full)
+                                       (put-z-bytes (cadr fast) (nth *fm-memi* (cadddr fast))))
+                                (equal (caddr full) (caddr fast))))
+                  (implies (not (car fast)) (equal (cadddr fast) fm))))))
+
+(defthm u-holds-from-parts
+  (implies (and (let ((full (apply-rule fn (list :|%;%| (put-mem0-bytes s (nth *fm-memi* fm)) f) redex))
+                      (fast (fast-apply-rule fn (list :|%;%| s f) redex fm)))
+                  (implies (and (fast-inv-store s) (byte-list-p (nth *fm-memi* fm))
+                                (not (equal (car fast) :refuse)))
+                           (and (iff (car full) (car fast))
+                                (implies (car fast)
+                                         (and (equal (cadr full)
+                                                     (put-z-bytes (cadr fast) (nth *fm-memi* (cadddr fast))))
+                                              (equal (caddr full) (caddr fast)))))))
+                (implies (not (car (fast-apply-rule fn (list :|%;%| s f) redex fm)))
+                         (equal (cadddr (fast-apply-rule fn (list :|%;%| s f) redex fm)) fm)))
+           (u-holds fn s f redex fm))
+  :hints (("Goal" :in-theory (disable apply-rule fast-apply-rule put-z-bytes put-mem0-bytes fast-inv-store
+                                      byte-list-p))))
+
 (defun u-lemma (fn)
   (declare (xargs :mode :program))
-  (let ((name (intern-in-package-of-symbol (concatenate 'string (symbol-name fn) "-U") 'we::here)))
+  (let* ((pkg 'we::here)
+         (u (intern-in-package-of-symbol (concatenate 'string (symbol-name fn) "-U") pkg))
+         (nf (intern-in-package-of-symbol (concatenate 'string (symbol-name fn) "-NOFIRE") pkg))
+         (uh (intern-in-package-of-symbol (concatenate 'string (symbol-name fn) "-U-HOLDS") pkg)))
     `(make-event
-      '(:or (defthm ,name
-              (let ((full (apply-rule ',fn (list :|%;%| (put-mem0-bytes s (nth *fm-memi* fm)) f) redex))
-                    (fast (fast-apply-rule ',fn (list :|%;%| s f) redex fm)))
-                (implies (and (fast-inv-store s) (byte-list-p (nth *fm-memi* fm))
-                              (not (equal (car fast) :refuse)))
-                         (and (iff (car full) (car fast))
-                              (implies (car fast)
-                                       (and (equal (cadr full)
-                                                   (put-z-bytes (cadr fast) (nth *fm-memi* (cadddr fast))))
-                                            (equal (caddr full) (caddr fast)))))))
-              :hints ,(u-hints fn))
+      '(:or (progn
+              (defthm ,u
+                (let ((full (apply-rule ',fn (list :|%;%| (put-mem0-bytes s (nth *fm-memi* fm)) f) redex))
+                      (fast (fast-apply-rule ',fn (list :|%;%| s f) redex fm)))
+                  (implies (and (fast-inv-store s) (byte-list-p (nth *fm-memi* fm))
+                                (not (equal (car fast) :refuse)))
+                           (and (iff (car full) (car fast))
+                                (implies (car fast)
+                                         (and (equal (cadr full)
+                                                     (put-z-bytes (cadr fast) (nth *fm-memi* (cadddr fast))))
+                                              (equal (caddr full) (caddr fast)))))))
+                :hints ,(u-hints fn))
+              (defthm ,nf
+                (implies (not (car (fast-apply-rule ',fn z redex fm)))
+                         (equal (cadddr (fast-apply-rule ',fn z redex fm)) fm))
+                :hints (("Goal" :in-theory (e/d (fast-apply-rule fast-apply-fallback)
+                                                (,fn apply-rule list-to-mem mem-write fallback-shape-ok
+                                                     ,@(and (member-eq fn *fast-memory-rules*) (list (fast-name fn)))))
+                                :do-not-induct t)))
+              (defthm ,uh
+                (u-holds ',fn s f redex fm)
+                :hints (("Goal" :use ((:instance u-holds-from-parts (fn ',fn)) ,u (:instance ,nf (z (list :|%;%| s f))))
+                                :in-theory (theory 'minimal-theory)))))
             (value-triple (cw "REFINE-STEP-FAILED ~x0~%" ',fn))))))
 
 (defun u-lemmas (fns)
@@ -105,3 +149,64 @@
   (if (endp fns) nil (cons (u-lemma (car fns)) (u-lemmas (cdr fns)))))
 
 (make-event `(progn ,@(u-lemmas *step-rules*)))
+
+; --- (P) a list of rules: FAST-TRY-RULES refines TRY-RULES --------------------
+
+(defun-nx all-u-holds (rules s f redex fm)
+  (or (atom rules)
+      (and (u-holds (car rules) s f redex fm) (all-u-holds (cdr rules) s f redex fm))))
+
+(defthm fast-try-rules-refines
+  (let ((full (try-rules rules (list :|%;%| (put-mem0-bytes s (nth *fm-memi* fm)) f) redex))
+        (fast (fast-try-rules rules (list :|%;%| s f) redex fm)))
+    (implies (and (all-u-holds rules s f redex fm)
+                  (fast-inv-store s) (byte-list-p (nth *fm-memi* fm))
+                  (not (equal (car fast) :refuse)))
+             (and (iff (car full) (car fast))
+                  (implies (car fast)
+                           (and (equal (cadr full)
+                                       (put-z-bytes (cadr fast) (nth *fm-memi* (cadddr fast))))
+                                (equal (caddr full) (caddr fast))))
+                  (implies (not (car fast)) (equal (cadddr fast) fm)))))
+  :hints (("Goal" :induct (fast-try-rules rules (list :|%;%| s f) redex fm)
+                  :in-theory (disable apply-rule fast-apply-rule put-mem0-bytes put-z-bytes fast-inv-store))))
+
+; --- (P) per place: the generated place function is FAST-TRY-RULES on the
+; place's rules, and every rule of the place satisfies (U) ------------------
+
+(defun place-eq-lemma (place rules)
+  (declare (xargs :mode :program))
+  (let* ((fast (place-fn-name place))
+         (eq (intern-in-package-of-symbol (concatenate 'string (symbol-name fast) "-IS-TRY-RULES") 'we::here))
+         (all (intern-in-package-of-symbol (concatenate 'string (symbol-name fast) "-ALL-U") 'we::here)))
+    `(make-event
+      '(:or (progn
+              (defthm ,eq
+                (equal (,fast z redex fm) (fast-try-rules ',rules z redex fm))
+                :hints (("Goal" :in-theory (e/d (,fast fast-try-rules fast-apply-rule)
+                                                (,@rules apply-rule fast-apply-fallback fast-memory-rule rule-may-match))
+                                :do-not-induct t)))
+              (defthm ,all
+                (all-u-holds ',rules s f redex fm)
+                :hints (("Goal" :in-theory (disable u-holds apply-rule fast-apply-rule)))))
+            (value-triple (cw "REFINE-STEP-FAILED ~x0~%" ',place))))))
+
+(defun place-eq-lemmas (alist)
+  (declare (xargs :mode :program))
+  (if (endp alist) nil
+    (cons (place-eq-lemma (caar alist) (cdar alist)) (place-eq-lemmas (cdr alist)))))
+
+(make-event `(progn ,@(place-eq-lemmas *rule-places*)))
+
+; --- the op step: pieces (proved interactively 2026-11-16; certified with
+; this book) ----------------------------------------------------------------
+
+(defthm op-has-rules-is-rules-for
+  (iff (op-has-rules kw) (consp (rules-for (list :op kw))))
+  :hints (("Goal" :in-theory (enable op-has-rules rules-for))))
+
+(defthm redex-arity-full-is-fast
+  (implies (and (fast-store-ok s) (mem0-record-p s))
+           (equal (redex-arity i (list :|%;%| (put-mem0-bytes s b) f) vals)
+                  (redex-arity i (list :|%;%| s f) vals)))
+  :hints (("Goal" :in-theory (e/d (redex-arity) (put-mem0-bytes)) :do-not-induct t)))

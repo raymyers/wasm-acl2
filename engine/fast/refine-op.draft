@@ -1,0 +1,57 @@
+; DRAFT (not yet certified; renamed to refine-op.lisp once it certifies).
+; Written while the machine was in use by other work (2026-11-16).
+; E7 Phase B, layer 4: the op step. FAST-OP-STEP on the fast state agrees
+; with the list machine's OP-STEP on FM->MS of it, unless the fast step
+; stops :unsupported (no rules, or a refusal).
+(in-package "WE")
+(include-book "refine-step")
+(include-book "refine-hot")
+
+; --- the opcode dispatch ----------------------------------------------------
+
+; FAST-TRY-OP is FAST-TRY-RULES on the opcode's rules (the place lemmas
+; *-IS-TRY-RULES of refine-step.lisp, case by case over the opcodes)
+(defthm fast-try-op-is-try-rules
+  (implies (op-has-rules kw)
+           (equal (fast-try-op kw z redex fm)
+                  (fast-try-rules (rules-for (list :op kw)) z redex fm)))
+  :hints (("Goal" :in-theory (e/d (fast-try-op op-has-rules rules-for) (fast-try-rules)))))
+
+; every rule of an opcode satisfies (U), but call_ref's (the host-call rules
+; have no opcode facts yet)
+(defthm all-u-holds-of-op
+  (implies (and (op-has-rules kw) (not (equal kw :call_ref)))
+           (all-u-holds (rules-for (list :op kw)) s f redex fm))
+  :hints (("Goal" :in-theory (e/d (op-has-rules rules-for) (all-u-holds)))))
+
+; --- FM->MS of the stobj updates of a step ----------------------------------
+
+(defthm fm->ms-of-update-fm-status
+  (equal (fm->ms (update-fm-status st fm))
+         (ms-with-status st (fm->ms fm)))
+  :hints (("Goal" :in-theory (enable fm->ms ms-with-status))))
+
+(defthm car-t-drop-n-1-is-cadr
+  (and (equal (car-t (drop-n 1 x)) (cadr x))
+       (equal (car-t (drop-n 2 x)) (caddr x)))
+  :hints (("Goal" :in-theory (enable car-t drop-n) :expand ((drop-n 1 x) (drop-n 2 x) (drop-n 1 (cdr x))))))
+
+; --- the op step --------------------------------------------------------------
+
+(defthm fast-op-step-refines
+  (let ((i (car (fm-is fm))))
+    (implies (and (fmp fm) (fast-inv-store (fm-store fm))
+                  (equal (fm-status fm) :run) (consp (fm-is fm))
+                  (not (equal (entry-kind i) :call_ref))
+                  (not (equal (fm-status (fast-op-step fm)) :unsupported)))
+             (equal (fm->ms (fast-op-step fm)) (op-step (fm->ms fm)))))
+  :hints (("Goal" :in-theory (e/d (fast-op-step op-step fm->ms ms-z fm-z)
+                                  (fast-try-op fast-try-rules try-rules apply-rule fast-apply-rule
+                                   put-mem0-bytes put-z-bytes))
+                  :use ((:instance fast-try-rules-refines
+                                   (rules (rules-for (list :op (entry-kind (car (fm-is fm))))))
+                                   (s (fm-store fm)) (f (fm-frame fm))
+                                   (redex (rev-onto (take-n (redex-arity (car (fm-is fm)) (fm-z fm) (fm-vals fm))
+                                                            (fm-vals fm))
+                                                    (list (car (fm-is fm)))))))
+                  :do-not-induct t)))
