@@ -226,18 +226,29 @@ it.
       `WE::CTRL-OK` with different bodies, so the two books cannot be
       included together, and V6 must include both. The fast one becomes
       `ctrl-kinds-ok`, proved to follow from the machine's
-- [ ] Theory pass over the existing books by [practices.md](practices.md): header,
-      local includes, definitions disabled after their lemmas. No
-      statement changes; `make -C engine check` before and after, with
-      certification times recorded
+- [ ] The existing books are not rewritten. Their proofs depend on the
+      theory they have (in `refine-step.lisp` moving two lemmas after
+      the generated ones cost a 6-hour run that did not come back), so
+      [practices.md](practices.md) applies to new books, and to an old
+      book only where a new book needs it: then the definitions it
+      exports are disabled at its end, in a new last event, and the
+      books that include it are certified again. Recorded per book,
+      with certification times before and after
 - [ ] `stepn`, `step-opener` and the `%SIZE` facts in
       `engine/rules/step-basics.lisp`: `STEP` opened one level as a
       rewrite rule with a `syntaxp` guard, `STEP` returns `nil` or a
       one-element list of a well-shaped configuration, `%SIZE` of a
       proper sublist and of a subterm is smaller
 
+- [ ] Spike, before the rest of V1 is built: the V1 exit statement for
+      `nop` alone ("`STEP/R-PURE` and `STEP/R-READ` return `nil` on
+      `v ++ (nop) ++ r`"), by hand in a session, with the library of
+      item 2. It is the plan's largest risk (§5, first row); if it
+      does not go through in three approaches, the session stops with
+      the checkpoints in a note
+
 **Exit**: `make -C engine check` passes with the same theorems as
-before; the census is in a note.
+before; the census and the spike's result are in a note.
 
 ### V1: dispatch lemmas (plan.md E4 item 4)
 
