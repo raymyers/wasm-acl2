@@ -335,3 +335,40 @@
         (t (cons (fallback-lemma (car rules)) (fallback-lemmas (cdr rules))))))
 
 (make-event `(progn ,@(fallback-lemmas *step-rules*)))
+
+; return_call_ref in a frame: its rule looks for the instruction with a
+; generated search (SEARCH119) from the first RETURN_CALL_REF on; without one
+; the search starts past its end. The generic attempt above does not see
+; that, so the lemma is tried again here with these facts.
+(encapsulate ()
+  (local (defthm tag-lo1-when-no-head
+           (implies (not (head-in-p tag s))
+                    (equal (wrt::%tag-lo1 tag off s i) (+ 1 i (len s))))))
+  (local (defthm search119-past-hi
+           (implies (< hi k) (equal (w3t::step_read/split/search119 k lo hi l z) nil))
+           :hints (("Goal" :expand ((w3t::step_read/split/search119 k lo hi l z)) :do-not-induct t))))
+  (local (defthm len-pos-of-consp (implies (consp x) (< 0 (len x))) :rule-classes :linear))
+  (make-event (fallback-lemma 'w3t::step_read/split/r-return_call_ref-frame-addr)))
+
+; The lemmas of this section are tried with a fallback that prints
+; REFINE-FAILED. The rules without one must be exactly the two host-call
+; rules of call_ref (a failed or an interrupted proof of any other rule
+; stops certification).
+(defconst *fallback-not-yet*
+  '(w3t::step/r-call_ref-hostfunc-res w3t::step/r-call_ref-hostfunc-div))
+
+(defun fallback-lemmas-missing (rules wrld)
+  (declare (xargs :mode :program))
+  (cond ((endp rules) nil)
+        ((or (member-eq (car rules) *fast-memory-rules*) (member-eq (car rules) *frame-safe-rules*)
+             (getpropc (intern-in-package-of-symbol
+                        (concatenate 'string (symbol-name (car rules)) "-FAILS-PLAINLY") 'we::here)
+                       'acl2::theorem nil wrld))
+         (fallback-lemmas-missing (cdr rules) wrld))
+        (t (cons (car rules) (fallback-lemmas-missing (cdr rules) wrld)))))
+
+(make-event
+ (let ((missing (fallback-lemmas-missing *step-rules* (w state))))
+   (if (equal missing *fallback-not-yet*)
+       (value '(value-triple :refine-gaps-as-recorded))
+     (er soft 'refine "No fallback lemma for ~x0 (recorded: ~x1)." missing *fallback-not-yet*))))

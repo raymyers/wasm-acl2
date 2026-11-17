@@ -120,3 +120,26 @@
         (t (cons (frame-lemma (car rules) (rule-kind (car rules))) (frame-lemmas (cdr rules))))))
 
 (make-event `(progn ,@(frame-lemmas *step-rules*)))
+
+; Every lemma above is tried with a fallback that prints FRAME-FAILED, so
+; that one hard rule does not stop the book. The fast machine applies a rule
+; without the bytes exactly when FRAME-SAFE-RULES (fast.lisp) lists it, and
+; that list does not look at which lemmas were proved. So a lemma that is
+; missing here (a failed or an interrupted proof) must stop certification.
+(defun frame-lemmas-missing (rules wrld)
+  (declare (xargs :mode :program))
+  (cond ((endp rules) nil)
+        ((or (eq (rule-kind (car rules)) :pure) (memory-rule-p (car rules))
+             (member-eq (car rules) *frame-not-yet*) (not (d5-rule-p (car rules))))
+         (frame-lemmas-missing (cdr rules) wrld))
+        ((getpropc (intern-in-package-of-symbol
+                    (concatenate 'string (symbol-name (car rules)) "-IGNORES-BYTES") 'we::here)
+                   'acl2::theorem nil wrld)
+         (frame-lemmas-missing (cdr rules) wrld))
+        (t (cons (car rules) (frame-lemmas-missing (cdr rules) wrld)))))
+
+(make-event
+ (let ((missing (frame-lemmas-missing *step-rules* (w state))))
+   (if missing
+       (er soft 'frame-lemmas "No frame lemma was proved for ~x0." missing)
+     (value '(value-triple :all-frame-lemmas-proved)))))

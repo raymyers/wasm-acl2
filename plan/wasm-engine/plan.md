@@ -511,20 +511,29 @@ Scripts and commands inside S0 recorded
       Differential test 3 (fast against list machine over the spec suite)
       found that the memory fast paths assumed one memory; now checked at
       run time, exact fallback otherwise
-- [ ] Refinement (Phase B, in progress): `engine/fast/refine.lisp`
-      (frame-safe rules per rule and per place, 60 of 103 places; the
-      general fallback; per-rule facts for 87 of 90 fallback rules) and
-      `refine-mem.lisp` (all 19 memory rules), `refine-hot.lisp` (the six
-      fast paths equal the general path), `refine-step.lisp` (per rule
-      (U) for 209 of 212 rules; `fast-try-rules` refines `try-rules`
-      for any list of rules satisfying (U)). In progress, not yet
-      certified: per-place lemmas (place function = `fast-try-rules`,
-      every rule of the place satisfies (U); 105 places proved before a
-      timeout, hint since made cheaper), `op-has-rules`/`redex-arity`
-      lemmas (proved interactively). Left: the step parts and the theorem
-      for `fast-step` (hypotheses: `fmp`, the fast store invariant, and
-      that the fast step does not stop `:unsupported`; gaps: `call_ref`
-      of a host function and `return_call_ref` in a frame)
+- [ ] Refinement (Phase B): the step theorem certifies (2026-11-17);
+      the invariant and the run are left.
+      - `engine/fast/refine.lisp` (frame-safe rules per rule and per
+        place; the general fallback; per-rule facts for 88 of 90 fallback
+        rules), `refine-mem.lisp` (all 19 memory rules), `refine-hot.lisp`
+        (the six fast paths equal the general path)
+      - `refine-step.lisp`: per rule (U) for 210 of 212 rules;
+        `fast-try-rules` refines `try-rules` for any rules satisfying (U);
+        per place, the place function is `fast-try-rules` and its rules
+        satisfy (U), for every place but `call_ref`
+      - `refine-op.lisp`: **`fast-step-refines`**:
+        `(fm->ms (fast-step fm)) = (machine-step (fm->ms fm))` when `fm`
+        is well formed (`fmp`), its store is the fast store
+        (`fast-inv-store`), every control entry is a label, handler or
+        frame (`ctrl-ok`), the instruction is not `call_ref`, and the
+        fast step does not stop `:unsupported`
+      - Gap: the two host-call rules of `call_ref`. `frame`, `refine` and
+        `refine-step` each end with a check that the rules without a
+        lemma are exactly the recorded ones, so a failed or interrupted
+        proof stops certification (before, the fallback that keeps one
+        hard rule from stopping a book also hid two interrupted proofs)
+      - Left: a step keeps `fmp`, `fast-inv-store` and `ctrl-ok`; then
+        `fast-run` refines the list machine's run; `fm-load-ms`
 - [ ] Rate on the E0 benchmarks at 1, 16 and 64 pages
 
 **Exit**: the refinement theorem certifies for S0. Rates recorded next to

@@ -14,6 +14,21 @@
   (declare (xargs :guard t))
   (and (ec-call (fast-store-ok s)) (mem0-record-p s)))
 
+; --- the op step: pieces (proved interactively 2026-11-16; certified with
+; this book).
+; They stand before the (U) lemmas: after them the prover did not come back
+; from one of these two (6 hours, 2026-11-17). ----------------------------------------------------------------
+
+(defthm op-has-rules-is-rules-for
+  (iff (op-has-rules kw) (consp (rules-for (list :op kw))))
+  :hints (("Goal" :in-theory (enable op-has-rules rules-for))))
+
+(defthm redex-arity-full-is-fast
+  (implies (and (fast-store-ok s) (mem0-record-p s))
+           (equal (redex-arity i (list :|%;%| (put-mem0-bytes s b) f) vals)
+                  (redex-arity i (list :|%;%| s f) vals)))
+  :hints (("Goal" :in-theory (e/d (redex-arity) (put-mem0-bytes)) :do-not-induct t)))
+
 (defthm not-refuse-gives-result-ok
   (implies (and (not (equal (car (fast-apply-fallback fn (list :|%;%| s f) redex fm)) :refuse))
                 (byte-list-p (nth *fm-memi* fm)))
@@ -174,6 +189,14 @@
 ; --- (P) per place: the generated place function is FAST-TRY-RULES on the
 ; place's rules, and every rule of the place satisfies (U) ------------------
 
+(defun direct-rule-expands (rules)
+  (declare (xargs :mode :program))
+  (cond ((endp rules) nil)
+        ((and (frame-safe-p (car rules)) (not (member-eq (car rules) *fast-memory-rules*)))
+         (cons `(:free (z redex fm) (fast-apply-rule ',(car rules) z redex fm))
+               (direct-rule-expands (cdr rules))))
+        (t (direct-rule-expands (cdr rules)))))
+
 (defun place-eq-lemma (place rules)
   (declare (xargs :mode :program))
   (let* ((fast (place-fn-name place))
@@ -183,8 +206,14 @@
       '(:or (progn
               (defthm ,eq
                 (equal (,fast z redex fm) (fast-try-rules ',rules z redex fm))
-                :hints (("Goal" :in-theory (e/d (,fast fast-try-rules fast-apply-rule)
-                                                (,@rules apply-rule fast-apply-fallback fast-memory-rule rule-may-match))
+                ; FAST-APPLY-RULE is opened only on the rules the place
+                ; function calls directly; on the others (memory rules,
+                ; fallback rules) both sides are the same call. Opening it
+                ; on a memory rule did not end (the store place, 2026-11-17).
+                :hints (("Goal" :in-theory (e/d (,fast fast-try-rules)
+                                                (,@rules apply-rule fast-apply-rule fast-apply-fallback
+                                                         fast-memory-rule rule-may-match))
+                                :expand ,(direct-rule-expands rules)
                                 :do-not-induct t)))
               (defthm ,all
                 (all-u-holds ',rules s f redex fm)
@@ -198,15 +227,38 @@
 
 (make-event `(progn ,@(place-eq-lemmas *rule-places*)))
 
-; --- the op step: pieces (proved interactively 2026-11-16; certified with
-; this book) ----------------------------------------------------------------
+; --- what is not proved, said once -------------------------------------------
+; The lemmas above are tried with a fallback that prints REFINE-STEP-FAILED.
+; The rules and places without a lemma must be exactly these (a failed or an
+; interrupted proof of any other one stops certification):
+;  - the two host-call rules of call_ref (refine.lisp, *FALLBACK-NOT-YET*);
+;  - the place that holds them.
+(defconst *u-not-yet*
+  '(w3t::step/r-call_ref-hostfunc-res w3t::step/r-call_ref-hostfunc-div))
+(defconst *places-not-yet* '((:op :call_ref)))
 
-(defthm op-has-rules-is-rules-for
-  (iff (op-has-rules kw) (consp (rules-for (list :op kw))))
-  :hints (("Goal" :in-theory (enable op-has-rules rules-for))))
+(defun u-lemmas-missing (rules wrld)
+  (declare (xargs :mode :program))
+  (cond ((endp rules) nil)
+        ((getpropc (intern-in-package-of-symbol
+                    (concatenate 'string (symbol-name (car rules)) "-U-HOLDS") 'we::here)
+                   'acl2::theorem nil wrld)
+         (u-lemmas-missing (cdr rules) wrld))
+        (t (cons (car rules) (u-lemmas-missing (cdr rules) wrld)))))
 
-(defthm redex-arity-full-is-fast
-  (implies (and (fast-store-ok s) (mem0-record-p s))
-           (equal (redex-arity i (list :|%;%| (put-mem0-bytes s b) f) vals)
-                  (redex-arity i (list :|%;%| s f) vals)))
-  :hints (("Goal" :in-theory (e/d (redex-arity) (put-mem0-bytes)) :do-not-induct t)))
+(defun place-lemmas-missing (alist wrld)
+  (declare (xargs :mode :program))
+  (cond ((endp alist) nil)
+        ((getpropc (intern-in-package-of-symbol
+                    (concatenate 'string (symbol-name (place-fn-name (caar alist))) "-ALL-U") 'we::here)
+                   'acl2::theorem nil wrld)
+         (place-lemmas-missing (cdr alist) wrld))
+        (t (cons (caar alist) (place-lemmas-missing (cdr alist) wrld)))))
+
+(make-event
+ (let ((rules (u-lemmas-missing *step-rules* (w state)))
+       (places (place-lemmas-missing *rule-places* (w state))))
+   (if (and (equal rules *u-not-yet*) (equal places *places-not-yet*))
+       (value '(value-triple :refine-step-gaps-as-recorded))
+     (er soft 'refine-step "Not proved: rules ~x0 (recorded: ~x1), places ~x2 (recorded: ~x3)."
+         rules *u-not-yet* places *places-not-yet*))))
