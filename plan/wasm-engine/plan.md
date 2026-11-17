@@ -52,6 +52,8 @@
 ## Current state
 
 - **Last updated**: 2026-11-17
+- **What we can say about the engine against the semantics** (proofs,
+  tests, construction, gaps): [evidence.md](evidence.md)
 - **Milestones complete**: E2 (**go**: `STEP`, `STEP_READ`, `STEPS/%FUEL`
   are `:logic`; [E2-step-logic](notes/E2-step-logic.md)), E5 (machine
   design; [E5-machine](notes/E5-machine.md)) and E0 (baseline: 23,000 to
