@@ -67,6 +67,7 @@ A fully implemented WASM 1.0 interpreter / operational semantics in ACL2, produc
 | [`Makefile`](Makefile) | `make` drives `cert.pl` over every book in this tree |
 | [`WASM1_PLAN.md`](WASM1_PLAN.md) | Milestone plan with task bullets, verified numbers, testing strategy |
 | [`ACL2_SEMANTICS_REF.md`](ACL2_SEMANTICS_REF.md) | SpecTec → ACL2 mapping, build commands, reduction rule catalogue |
+| [`TEST_GUIDELINES.md`](TEST_GUIDELINES.md) | Rules for writing correct tests, each from a bug that got through |
 | [`proofs/`](proofs/) | 27 proof books (280 Q.E.D.s) — each certifies independently |
 | [`tests/`](tests/) | 15 test books (312 assertions) — each certifies independently |
 | [`tests/oracle/`](tests/oracle/) | WAT source + Node.js oracle runner for cross-checking (excluded from cert.pl) |
