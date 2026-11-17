@@ -12,11 +12,34 @@
 
 (defparameter *dir* (sb-ext:posix-getenv "TEXHOST"))
 (defparameter *dl* (sb-ext:posix-getenv "TEXDL"))
-(defvar *input*) (defvar *out*) (defvar *max-steps*)
+(defvar *input*) (defvar *out*) (defvar *max-steps*) (defvar *path* nil)
+(defvar *job* "input.tex")               ; the name TeX knows the input file by: its basename
+(defvar *quiet* nil)                     ; TEXQUIET: TeX's own terminal output and a summary, no driver detail
+(defvar *wasm-bytes* 0)
+(defvar *snap* nil)                      ; TEXSNAP: where to save an image at the snapshot line
+(defvar *snap-file* nil)                 ; the open input.tex of a saved snapshot
+(defvar *snap-at* 0)                     ; where its snapshot line starts
 (defun configure ()                      ; read again when a saved image starts
-  (setq *input* (or (sb-ext:posix-getenv "TEXINPUT") (concatenate 'string *dir* "/input.tex"))
+  (setq *path* (let ((s (sb-ext:posix-getenv "TEXPATH")) (l nil)) ; colon-separated directories
+                 (loop while (and s (plusp (length s)))
+                       do (let ((c (position #\: s))) (push (subseq s 0 c) l) (setq s (and c (subseq s (1+ c))))))
+                 (nreverse l))
+        *snap* (sb-ext:posix-getenv "TEXSNAP")
+        *quiet* (sb-ext:posix-getenv "TEXQUIET")
+        *input* (or (sb-ext:posix-getenv "TEXINPUT") (concatenate 'string *dir* "/input.tex"))
         *out* (or (sb-ext:posix-getenv "TEXOUT") (concatenate 'string *dir* "/out"))
-        *max-steps* (let ((s (sb-ext:posix-getenv "TEXMAXSTEPS"))) (if s (parse-integer s) 20000000000))))
+        *max-steps* (let ((s (sb-ext:posix-getenv "TEXMAXSTEPS"))) (if s (parse-integer s) 20000000000))
+        *job* nil)
+  ; started as "acl2-wasm-tex FILE.tex": typeset FILE.tex, write FILE.dvi here, quiet output
+  (let ((arg (second sb-ext:*posix-argv*)) (cwd (sb-ext:posix-getenv "PWD")))
+    (when (and arg cwd (not (sb-ext:posix-getenv "TEXINPUT"))
+               (> (length arg) 4) (string= ".tex" arg :start2 (- (length arg) 4)))
+      (let* ((abs (if (char= (char arg 0) #\/) arg (concatenate 'string cwd "/" arg)))
+             (slash (position #\/ abs :from-end t)))
+        (setq *input* abs *quiet* t
+              *out* (concatenate 'string cwd "/" (subseq abs (1+ slash) (- (length abs) 4)))
+              *path* (append *path* (list (subseq abs 0 slash)))))))
+  (setq *job* (subseq *input* (1+ (or (position #\/ *input* :from-end t) -1)))))
 (configure)
 (defparameter *pages* 1100)
 
@@ -53,8 +76,8 @@
 
 (defstruct hf name stdin stdout (position 0) (position2 0) (erstat 0) eoln eof content regular)
 (defparameter *files* (make-array 16 :adjustable t :fill-pointer 0))
-(defparameter *stdin-text* (map '(vector (unsigned-byte 8)) #'char-code
-                                (format nil " input.tex ~%\\end~%")))
+(defun stdin-text ()                     ; what TeX reads from its terminal: the file name, then \end
+  (map '(vector (unsigned-byte 8)) #'char-code (format nil " ~a ~%\\end~%" *job*)))
 (defparameter *final-end* nil)
 (defparameter *calls* (make-hash-table :test 'equal))
 (defparameter *console* (make-string-output-stream))
@@ -68,11 +91,12 @@
 (defun s32 (x) (if (>= x #x80000000) (- x #x100000000) x))
 
 (defun host-file-bytes (name)            ; the bytes of a host file, or nil
-  (cond ((string= name "input.tex")
+  (cond ((string= name *job*)
          (concatenate '(vector (unsigned-byte 8)) (vector 10) (file-vector *input*)))
         ((or (find #\/ name) (string= name "")) nil)
-        (t (let ((p (concatenate 'string *dir* "/fs/" name)))
-             (and (probe-file p) (file-vector p))))))
+        (t (loop for d in (append *path* (list (concatenate 'string *dir* "/fs"))) ; TEXPATH first
+                 for p = (concatenate 'string d "/" name)
+                 when (probe-file p) return (file-vector p)))))
 
 (defun new-file (f) (vector-push-extend f *files*) (1- (length *files*)))
 
@@ -80,9 +104,9 @@
   (let ((content (host-file-bytes name)))
     (cond ((and (null content) (eq mode :r)
                 (not (find-if (lambda (f) (and (string= (hf-name f) name) (eql (hf-erstat f) 0))) *files*)))
-           (format t "HOST not found: ~a~%" name)
+           (unless *quiet* (format t "HOST not found: ~a~%" name))
            (new-file (make-hf :name name :erstat 1)))
-          (t (format t "HOST open ~a ~a (~a bytes)~%" mode name (length content))
+          (t (unless *quiet* (format t "HOST open ~a ~a (~a bytes)~%" mode name (length content)))
              (new-file (make-hf :name name :regular t
                                 :content (if (eq mode :r)
                                              (or content (make-array 0 :element-type '(unsigned-byte 8)))
@@ -106,7 +130,7 @@
          (f (strip-prefix f "TeXfonts:"))
          (f (if (string= f "TeXformats:TEX.POOL") "tex.pool" f)))
     (if (string= f "TTY:")
-        (new-file (make-hf :name "stdin" :stdin t :content *stdin-text*))
+        (new-file (make-hf :name "stdin" :stdin t :content (stdin-text)))
       (open-file f :r))))
 
 (defun h-rewrite (length pointer)
@@ -127,6 +151,14 @@
 (defun h-inputln (d bypass-eoln bufferp firstp lastp max-buf-stackp buf-size)
   (declare (ignore max-buf-stackp buf-size))
   (let* ((f (aref *files* d)) (first (mem32 firstp)) (last first) (c (hf-content f)))
+    ; A line "%%% snapshot" in input.tex, with TEXSNAP set: stop before this
+    ; call, so that the saved image repeats it with the input file of its run.
+    (when (and *snap* (string= (hf-name f) *job*))
+      (let ((at (+ (hf-position2 f) (if (and (/= bypass-eoln 0) (not (hf-eof f)) (hf-eoln f)) 1 0)))
+            (mark (map 'vector #'char-code "%%% snapshot")))
+        (when (and (<= (+ at (length mark)) (length c)) (equalp (subseq c at (+ at (length mark))) mark))
+          (setq *snap-file* f *snap-at* at)
+          (throw 'snapshot :snapshot))))
     (mem32-set lastp last)
     (when (and (/= bypass-eoln 0) (not (hf-eof f)) (hf-eoln f)) (incf (hf-position2 f)))
     (let ((end (or (position 10 c :start (min (hf-position2 f) (length c))) (length c))))
@@ -212,7 +244,8 @@
 (defun run-engine (label)
   (let ((t0 (get-internal-real-time)) (n 0) (fm *fm*) (hosts *host-by-addr*))
     (declare (fixnum n))
-    (loop
+    (catch 'snapshot
+     (loop
       (unless (eq (we::fm-status fm) :run) (return))
       (when (>= n *max-steps*) (format t "~a: step limit~%" label) (return))
       (let* ((i (car (we::fm-is fm)))
@@ -221,17 +254,26 @@
                          (aref hosts (cadr v)))))
         (if entry (host-step entry) (we::fast-step fm)))
       (incf n)
-      (when (zerop (mod n 20000000))
+      (when (and *quiet* (zerop (mod n 100000000)))
+        (flush-console)
+        (format t "~&[~d M WebAssembly instructions, ~d s]~%" (floor n 1000000)
+                (round (- (get-internal-real-time) t0) internal-time-units-per-second))
+        (finish-output))
+      (when (and (not *quiet*) (zerop (mod n 20000000)))
         (flush-console)
         (let ((s (/ (- (get-internal-real-time) t0) internal-time-units-per-second 1.0)))
           (format t "~&[~a: ~d M steps, ~,0f s, ~,2f M steps/s, ~d host calls, ~d fallbacks]~%"
                   label (floor n 1000000) s (/ n 1000000.0 (max s 0.001)) *host-calls* *fallbacks*)
-          (finish-output))))
+          (finish-output)))))
     (flush-console)
     (incf *steps* n)
     (let ((s (/ (- (get-internal-real-time) t0) internal-time-units-per-second 1.0)))
-      (format t "~&~a: status ~s after ~d steps, ~,1f s (~,2f M steps/s), ~d host calls, ~d fallbacks~%"
-              label (we::fm-status fm) n s (/ n 1000000.0 (max s 0.001)) *host-calls* *fallbacks*)
+      (if *quiet*
+          (format t "~&~a: ~:d WebAssembly instructions in ~,1f s (~,2f M/s), ~:d host calls~%"
+                  (if (eq (we::fm-status fm) :done) "tex.wasm returned" (format nil "tex.wasm stopped (~s)" (we::fm-status fm)))
+                  n s (/ n 1000000.0 (max s 0.001)) *host-calls*)
+        (format t "~&~a: status ~s after ~d steps, ~,1f s (~,2f M steps/s), ~d host calls, ~d fallbacks~%"
+                label (we::fm-status fm) n s (/ n 1000000.0 (max s 0.001)) *host-calls* *fallbacks*))
       (unless (member (we::fm-status fm) '(:done))
         (format t "  at ~a~%  vals ~a~%" (short (car (we::fm-is fm))) (short (we::fm-vals fm))))
       (finish-output))))
@@ -285,6 +327,7 @@
     (setq *host-by-addr* hosts)
     (format t "HOST functions at ~s~%" (loop for a from 0 for e across hosts when e collect (cons a (car e))))
     ; 3. tex.wasm: decode (cached), instantiate against those addresses
+    (setq *wasm-bytes* (length (file-vector (concatenate 'string *dl* "/tex.wasm"))))
     (let* ((m (decoded-module (concatenate 'string *dl* "/tex.wasm") (concatenate 'string *dir* "/tex.decoded")))
            (c0 (w3t::$instantiate store m externs))
            (s (we::ms-of-config c0)))
@@ -308,17 +351,35 @@
 (defun run-tex ()                        ; main, then the files TeX wrote
   (let ((t0 (get-internal-real-time)))
     (configure)
+    (when *snap-file*                    ; a snapshot image: this run's input.tex from the snapshot line on
+      (let ((new (host-file-bytes *job*)) (old (hf-content *snap-file*)))
+        (unless (and (>= (length new) *snap-at*) (equalp (subseq new 0 *snap-at*) (subseq old 0 *snap-at*)))
+          (error "the input before the snapshot line differs from the snapshot's; build the snapshot again"))
+        (setf (hf-content *snap-file*) new)
+        (setq *snap-file* nil *snap* nil)))
+    (when *quiet*                        ; no ACL2 warnings (one guard-checking note) among TeX's output
+      (acl2::f-put-global 'acl2::inhibit-output-lst '(acl2::warning acl2::observation) acl2::*the-live-state*)
+      (format t "~a: WebAssembly engine WE::FAST-STEP (certified book engine/fast/fast)~%running tex.wasm (~:d bytes) on ~a~%"
+              (acl2::f-get-global 'acl2::acl2-version acl2::*the-live-state*) *wasm-bytes* *job*)
+      (finish-output))
     (run-engine "main")
-    (format t "HOST calls: ~s~%" (let (l) (maphash (lambda (k v) (push (cons k v) l)) *calls*) (sort l #'> :key #'cdr)))
+    (when *snap-file*
+      (format t "SNAPSHOT after ~d steps -> ~a~%" *steps* *snap*) (finish-output)
+      (sb-ext:save-lisp-and-die *snap* :toplevel #'toplevel-run :executable t :save-runtime-options t))
+    (unless *quiet* (format t "HOST calls: ~s~%" (let (l) (maphash (lambda (k v) (push (cons k v) l)) *calls*) (sort l #'> :key #'cdr))))
     (loop for f across *files*
           when (and (hf-regular f) (adjustable-array-p (hf-content f)) (plusp (length (hf-content f))))
           do (let ((path (format nil "~a.~a" *out* (subseq (hf-name f) (1+ (or (position #\. (hf-name f) :from-end t) -1))))))
                (with-open-file (o path :direction :output :if-exists :supersede :element-type '(unsigned-byte 8))
                  (write-sequence (hf-content f) o))
-               (format t "WROTE ~a (~d bytes, from ~a)~%" path (length (hf-content f)) (hf-name f))))
-    (format t "TOTAL ~d steps, final-end ~s, ~,1f s~%" *steps* *final-end*
-            (/ (- (get-internal-real-time) t0) internal-time-units-per-second 1.0))))
+               (if *quiet*
+                   (format t "wrote ~a (~:d bytes)~%" (file-namestring path) (length (hf-content f)))
+                 (format t "WROTE ~a (~d bytes, from ~a)~%" path (length (hf-content f)) (hf-name f)))))
+    (unless *quiet*
+      (format t "TOTAL ~d steps, final-end ~s, ~,1f s~%" *steps* *final-end*
+              (/ (- (get-internal-real-time) t0) internal-time-units-per-second 1.0)))))
 
+(declaim (ftype function toplevel-run))
 (defmacro with-driver-errors (&body body)
   `(handler-bind ((error (lambda (e) (flush-console) (format t "~&DRIVER ERROR: ~a~%" e)
                            (sb-debug:print-backtrace :count 25) (finish-output) (sb-ext:exit :code 1 :abort t))))
@@ -330,9 +391,12 @@
   (sb-ext:exit))
 
 ; TEXMODE=build: prepare, then save an image that starts at the call of main
-; (tex.core next to this file). Otherwise prepare and run in this process.
+; (acl2-wasm-tex in the build directory, an executable: SBCL's runtime, this
+; ACL2 image, and the runtime options ACL2 was started with). Otherwise
+; prepare and run in this process.
 (with-driver-errors (prepare))
 (cond ((equal (sb-ext:posix-getenv "TEXMODE") "build")
        (finish-output)
-       (sb-ext:save-lisp-and-die (concatenate 'string *dir* "/tex.core") :toplevel #'toplevel-run))
+       (sb-ext:save-lisp-and-die (concatenate 'string *dir* "/acl2-wasm-tex") :toplevel #'toplevel-run
+                                 :executable t :save-runtime-options t))
       (t (with-driver-errors (run-tex)) (sb-ext:exit)))

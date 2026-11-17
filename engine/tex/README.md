@@ -1,8 +1,9 @@
-# LaTeX on the engine (spike)
+# LaTeX on the engine
 
 `tex.wasm` (web2js TeX, the TikZJax build: e-TeX with LaTeX preloaded) runs
-on the engine's fast machine and writes a DVI file. A spike of 2026-11-16,
-not part of `make -C engine check`.
+on the engine's fast machine and writes a DVI file. `deck/` is the workshop
+talk, typeset this way. Started as a spike on 2026-11-16; not part of
+`make -C engine check`.
 
 ## Run
 
@@ -10,13 +11,17 @@ Inside `nix develop`, with the engine books certified:
 
 ```sh
 sh engine/tex/fetch.sh                  # third-party files -> build/dl, build/fs
-TEXMODE=build sh engine/tex/run.sh      # build/tex.core: an image that starts at TeX's main
-sh engine/tex/tex.sh engine/tex/input.tex engine/tex/build/out   # -> out.dvi, out.log
+TEXMODE=build sh engine/tex/run.sh      # build/acl2-wasm-tex: an image that starts at TeX's main
+engine/tex/build/acl2-wasm-tex FILE.tex # -> FILE.dvi, FILE.log in the current directory
+sh engine/tex/tex.sh engine/tex/input.tex engine/tex/build/out   # the same with the driver's detail -> out.dvi, out.log
 python3 -I engine/tex/dvitype.py engine/tex/build/out.dvi        # what the DVI sets (any python3; the dev shell has none)
 ```
 
-`sh engine/tex/run.sh` without `TEXMODE` does the same in one process,
-without saving an image. To view a DVI: `dvipdfmx` from TeX Live
+`build/acl2-wasm-tex` is an executable: SBCL's runtime and the ACL2 image
+with the engine books loaded and `tex.wasm` instantiated, about to call
+`main`. Files that FILE.tex inputs are looked for next to it, then in
+`build/fs`. `sh engine/tex/run.sh` without `TEXMODE` runs `input.tex` in one
+process, without saving an image. To view a DVI: `dvipdfmx` from TeX Live
 (`nix shell nixpkgs#texliveSmall`).
 
 ## Measured (2026-11-16, `input.tex`)
@@ -52,7 +57,66 @@ without saving an image. To view a DVI: `dvipdfmx` from TeX Live
 
 - No comparison with another TeX: the DVI was read with `dvitype.py` and
   viewed through `dvipdfmx`, not checked byte for byte against a reference.
-- The preloaded format is LaTeX with the `standalone` class and TikZ: pages
-  are cropped to their content. Slides need a fixed page size.
-- About 9 s of every run is LaTeX's fixed work at `\begin{document}` and
-  shipout; a memory dump taken after the preamble would remove most of it.
+- No other format: the preloaded one is LaTeX with the `standalone` class
+  and TikZ. `deck/slides.tex` works inside it (its own fixed-size pages).
+- No beamer and no newer `tex.wasm`: see the end of the next section.
+
+## The talk deck (`deck/`)
+
+`deck/deck.tex` is `latex-slides/main.tex` rewritten for this TeX: no beamer,
+no TikZ. `deck/slides.tex` is the macro layer (fixed 160 x 90 mm pages, a
+`slide` environment, images, code blocks, and a few shapes drawn as dvipdfmx
+specials).
+
+```sh
+sh engine/tex/deck/build.sh                # all slides -> build/deck/deck.pdf (from a snapshot)
+sh engine/tex/deck/native.sh               # ordinary latex, for quick iteration -> build/deck/native.pdf
+SLIDES=13,14 sh engine/tex/deck/build.sh   # only those
+```
+
+### The demo: commands that show it
+
+In a shell with a TeX Live for `dvipdfmx`
+(`nix shell --inputs-from . nixpkgs#texliveSmall nixpkgs#poppler-utils`),
+from `engine/tex/deck`:
+
+```sh
+file ../build/dl/tex.wasm              # TeX, as a WebAssembly module
+time ../build/acl2-wasm-tex deck.tex   # the ACL2 engine runs it on the deck -> deck.dvi
+dvipdfmx deck.dvi                      # native: DVI -> deck.pdf, embeds fonts and images
+pdfinfo deck.pdf | grep Pages
+```
+
+`acl2-wasm-tex` starts at the call of `main`, not from a snapshot. It prints
+the ACL2 version, TeX's own terminal output (`[1] ... [33]` as pages are
+shipped), a line every 100 M instructions, and the total. On 2026-11-16:
+606,084,354 WebAssembly instructions in 195.4 s, 63,744 host calls, 33
+pages; `dvipdfmx` then takes 2.4 s. Slide 32 of the deck shows that
+transcript, with some of TeX's chatter left out.
+
+The engine typesets and writes `deck.dvi`. `dvipdfmx` (native) turns it into
+a PDF and embeds the fonts and the PNGs of `latex-slides/figs`; TeX never
+opens an image, it gets the pixel sizes from `figdims.tex` (written by
+`figdims.mjs`; the build scripts refresh it). `deck/figs` is a link to
+`latex-slides/figs`.
+
+Measured 2026-11-16:
+
+| | |
+|---|---|
+| Whole deck (33 slides), from the call of `main` | 606 M steps, 3 min 16 s |
+| Whole deck (29 slides then), from the snapshot | 508 M steps, 2 min 46 s |
+| One slide, from the snapshot | 67 to 82 M steps, 21 to 26 s |
+| Preamble and `\begin{document}` (in the snapshot) | 62 M steps |
+| One TikZ picture (why the deck has none) | 66 M steps for a line, 500 M for a rotated rounded node |
+
+The snapshot is an image of the engine saved when TeX is about to read the
+line `%%% snapshot` of `deck.tex` (`TEXSNAP`, `TEXCORE` in `tex.sh`);
+`build.sh` saves it again when anything before that line changes.
+
+Why not beamer: this `tex.wasm` is revision `d78ef1f` of `drgrice1/web2js`
+(its string pool checksum, 268807875, is in the binary). It is compiled for
+75 fonts and 20,000 words of font metrics and has no `\strcmp` or
+`\expanded`; `main.tex` under pdfTeX used 124 fonts and 748,218 words. The
+current upstream source has larger limits and those primitives; building it
+was not tried here.

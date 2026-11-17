@@ -1,0 +1,390 @@
+% Porting Wasm Semantics to ACL2 With Coding Agents
+% ACL2 Workshop 2026 -- Ray Myers
+% The deck of latex-slides/main.tex, rewritten without beamer and TikZ for
+% the TeX that runs on the engine (see slides.tex). Build: sh build.sh
+\input slides.tex
+\input figdims.tex
+\begin{document}
+%%% snapshot (build.sh saves an image here; lines above it need a new snapshot)
+
+% ================================================================ 1. Title
+{\footlinefalse
+\begin{slide}
+  \vspace*{12mm}
+  \begin{center}\huge Porting Wasm Semantics to ACL2\\With Coding Agents\end{center}
+  \vfill
+  \noindent\begin{minipage}[b]{.5\textwidth}
+    {\Large Ray Myers}\\[1mm]
+    \muted{The Coding Agency}
+  \end{minipage}\hfill
+  \begin{minipage}[b]{.4\textwidth}
+    \raggedleft\large ACL2 Workshop 2026
+  \end{minipage}\par
+  \vspace*{6mm}
+\end{slide}}
+
+% ================================================================ 2. Ported!
+{\footlinefalse
+\begin{slide}
+  \vspace*{12mm}
+  \begin{center}\huge\color{muted}%
+    \strike{Porting} Wasm Semantics to ACL2\\With Coding Agents
+  \end{center}
+  \vspace*{10mm}
+  \begin{center}
+    \rotated{8}{\Huge\bfseries\color{accent}Ported!}
+  \end{center}
+  \vfill
+\end{slide}}
+
+% ================================================================ 3. Why: proofs
+\begin{slide}[Why?]
+  \statement{Enable practical proofs of\\industrial software}
+\end{slide}
+
+% ================================================================ 4. Why: people/tools/agents
+\begin{slide}[Why?]
+  \begin{center}\LARGE
+    \leavevmode\raise17mm\hbox{People}\hskip12mm
+    \vtop{\hbox{\imgh{3.6cm}{figs/handshake.png}}\kern3mm
+      \hbox to\imgwidth{\hss Tools\hss}}\hskip12mm
+    \raise21mm\vtop{\hbox to19mm{\hss Coding\hss}\kern2mm\hbox to19mm{\hss Agents\hss}}
+  \end{center}
+\end{slide}
+
+% ================================================================ 5. Question
+\begin{slide}
+  \statement{\huge Why bring Wasm semantics to ACL2\\using coding agents?}
+\end{slide}
+
+% ================================================================ 6. Wasm & ACL2
+\begin{slide}
+  \vfill
+  \begin{minipage}{.8\textwidth}\LARGE
+    \textbf{ACL2}\\
+    Awesome industrial prover
+    \\[6mm]
+    \textbf{WebAssembly}\\
+    Widely-deployed compilation target\\
+    Official formal semantics
+  \end{minipage}
+  \vfill
+\end{slide}
+
+% ================================================================ 7. Coding Agent
+\begin{slide}
+  \vspace*{8mm}
+  \begin{center}
+    {\Huge Coding Agent}\\[1mm]
+    \muted{\large (as currently conceived)}
+  \end{center}
+  \vspace*{6mm}
+  \begin{center}\LARGE
+    Language Model in a chat loop\\
+    that calls tools for developing software
+  \end{center}
+  \vfill
+\end{slide}
+
+% ================================================================ 8. Toil
+\begin{slide}
+  \vspace*{14mm}
+  \begin{center}\LARGE
+    Semantics work is toilsome\\[6mm]
+    Agents can help, \emph{given boundaries}
+  \end{center}
+  \atSE{\imgh{3.4cm}{figs/sisyphus.png}}
+\end{slide}
+
+% ================================================================ 9-10. SpecTec
+\begin{slide}
+  \begin{center}
+    \imgh{.92\textheight}{figs/spectec-pipeline.png}
+  \end{center}
+\end{slide}
+
+\begin{slide}
+  \begin{center}
+    \imgw{.95\textwidth}{figs/spectec-diagram.png}%
+    % circle the "prover backends" box; coordinates are fractions of the image
+    \imgmark{.78}{.55}{\ellipse{.085\imgwidth}{.11\imgheight}{1.4pt}}%
+    \imgmark{.78}{.69}{\hbox to0pt{\hss\color{alert}\bfseries ACL2 backend goes here\hss}}
+  \end{center}
+\end{slide}
+
+% ================================================================ 11. Pipeline
+\newcommand\pipeline{\hbox to\textwidth{\hss
+  \stage{\textbf{WebAssembly spec}\\SpecTec source, 3.0\\25 files \sym{"01} 7,008 lines}%
+  \flow[spectec]{11mm}%
+  \stage{\textbf{SpecTec IL}\\s-expressions\\pinned, checked in}%
+  \flow{6mm}%
+  \stagehl{\textbf{il2acl2}\\translator + runtime\\6,097 lines of ACL2}%
+  \flow{6mm}%
+  \stage{\textbf{ACL2 books}\\generated, certified\\218 / 218 reduction rules}\hss}}
+
+\begin{slide}[Pipeline]
+  \pipeline
+  \vskip9mm
+  % lines of generated ACL2, by Wasm version; 105 mm is 495,746 lines
+  \moveright2mm\vbox{\footnotesize\muted{lines of generated ACL2}\par\vskip2mm
+    \barrow{1.0}{8.19mm}{38,672}\vskip2mm
+    \barrow{2.0}{56.68mm}{267,616}\vskip2mm
+    \barrow{3.0}{105mm}{\circled{9mm}{3mm}{495,746}}}
+\end{slide}
+
+% ================================================================ 12. Trust base
+\begin{slide}
+  \vspace*{22mm}
+  \def\stagemark{\ellipse{18.5mm}{18.5mm}{1.2pt}}
+  \pipeline
+  \vskip22mm
+  \begin{center}\LARGE Requires trusting \sym{"19} 6K lines\end{center}
+  \vfill
+\end{slide}
+
+% ================================================================ 13. Rule: cleaned up
+\begin{slide}
+  \vspace*{6mm}
+  \noindent\begin{minipage}{.25\textwidth}
+    \begin{center}\LARGE SpecTec rule\end{center}
+  \end{minipage}\hfill
+  \begin{minipage}{.73\textwidth}
+\begin{code}{\codesmall\baselineskip8pt}
+rule \red{Step_pure/if-true}:
+  (CONST I32 c) (\hi{IF} bt instr_1* ELSE instr_2*)  ~>  (BLOCK bt instr_1*)
+  -- if \hi{c =/= 0}
+\end{code}
+  \end{minipage}\par
+  \vspace*{5mm}
+  \noindent\begin{minipage}{.25\textwidth}
+    \begin{center}\LARGE ACL2 rule\\\muted{\large (cleaned up)}\end{center}
+  \end{minipage}\hfill
+  \begin{minipage}{.73\textwidth}
+\begin{code}{\codenine\baselineskip11pt}
+(defun if-true (instrs)
+  (case-match instrs
+    (((:const (:i32) c) (\hi{:ifelse} bt then else))
+     (and (true-listp then)
+          (true-listp else)
+          \hi{(not (equal c 0))}
+          (list (list (list :block bt then)))))))
+\end{code}
+  \end{minipage}\par
+  \vfill
+\end{slide}
+
+% ================================================================ 14. Rule: as generated
+\begin{slide}
+  \noindent\begin{minipage}{.25\textwidth}
+    \begin{center}\LARGE SpecTec rule\\[22mm]
+      Generated\\ACL2 rule\end{center}
+  \end{minipage}\hfill
+  \begin{minipage}{.73\textwidth}
+\begin{code}{\codesmall\baselineskip8pt}
+rule \red{Step_pure/if-true}:
+  (CONST I32 c) (\hi{IF} bt instr_1* ELSE instr_2*)  ~>  (BLOCK bt instr_1*)
+  -- if \hi{c =/= 0}
+\end{code}
+    \vspace*{2mm}
+\begin{code}{\codetiny\baselineskip5.2pt}
+(AND (TRUE-LISTP %A0)
+     (EQUAL (ACL2::LEN %A0) 2)
+     (LET* ((%T16 (CAR %A0)))
+       (AND (CONSP %T16)
+            (EQ (CAR %T16) :CONST)
+            (TRUE-LISTP (CDR %T16))
+            (EQUAL (ACL2::LEN (CDR %T16)) 2)
+            (LET* ((%T17 (CAR (CDR %T16))))
+              (AND (CONSP %T17)
+                   (EQ (CAR %T17) :I32)
+                   (TRUE-LISTP (CDR %T17))
+                   (EQUAL (ACL2::LEN (CDR %T17)) 0)
+                   (LET* ((C (CAR (CDR (CDR %T16))))
+                          (%T18 (CAR (CDR %A0))))
+                     (AND (CONSP %T18)
+                          (EQ (CAR %T18) \hi{:IFELSE})
+                          (TRUE-LISTP (CDR %T18))
+                          (EQUAL (ACL2::LEN (CDR %T18)) 3)
+                          (LET* ((BT (CAR (CDR %T18)))
+                                 (%T19 (CAR (CDR (CDR %T18)))))
+                            (AND (TRUE-LISTP %T19)
+                                 (LET* ((INSTR_1-STAR %T19)
+                                        (%T20 (CAR (CDR (CDR (CDR %T18))))))
+                                   (AND (TRUE-LISTP %T20)
+                                        (LET* ((INSTR_2-STAR %T20))
+                                          (AND \hi{(NOT (EQUAL C 0))}
+                                               (LIST (%RULE "Step_pure/if-true"
+                                                            (LIST (LIST :BLOCK
+                                                                        BT
+                                                                        INSTR_1-STAR)))))))))))))))))
+\end{code}
+  \end{minipage}\par
+\end{slide}
+
+% ================================================================ 15. Process
+\begin{slide}
+  \statement{\Huge Process}
+\end{slide}
+
+% ================================================================ 16. Phases
+\begin{slide}[Phases]
+  {\centering\muted{Reference: SpecTec DSL, Kestrel books}\par}
+  \vspace*{4mm}
+  \begin{center}
+  \begin{minipage}{100mm}
+    \LARGE
+    \begin{enumerate}\setlength\itemsep{2mm}
+      \item Direct agentic port of Wasm 1.0
+      \item Redo 1.0 as translator layer
+      \item Upgrade translator for Wasm 3.0
+    \end{enumerate}
+  \end{minipage}
+  \end{center}
+\end{slide}
+
+% ================================================================ 17. Tools
+\begin{slide}[Tools]
+  \vspace*{4mm}
+  \begin{center}
+  \renewcommand{\arraystretch}{1.35}
+  \begin{tabular}{@{}l@{\hspace{12mm}}l@{}}
+    \LARGE Wasm 1.0 Port
+      & Models: Claude Opus 4.6 \\
+      & Agent: OpenHands, no MCP \\
+      & Token cost: \$300 \\[5mm]
+    \LARGE Wasm 3.0 Translator
+      & Models: Claude Opus 5.5, Fable 5.2 \\
+      & Agent: Claude Code, no MCP \\
+      & Token cost: \$300 \\
+  \end{tabular}
+  \end{center}
+\end{slide}
+
+% ================================================================ 18. Orchestration
+\begin{slide}[Agent orchestration]
+  \statement{Single agent, repeated\\[1mm]
+    Ralph Wiggum pattern\\[6mm]
+    Agent plans and logs available}
+\end{slide}
+
+% ================================================================ 19. Confession
+\begin{slide}[Confession]
+  \vspace*{4mm}
+  \begin{center}
+    {\LARGE I don't know what I'm doing}\\[6mm]
+    \imgh{3.6cm}{figs/beagle.png}
+  \end{center}
+\end{slide}
+
+% ================================================================ 20. Beginner
+\begin{slide}[Beginner]
+  \vspace*{4mm}
+  \begin{center}
+  \begin{minipage}{.88\textwidth}\LARGE
+  \begin{itemize}\setlength\itemsep{2mm}
+    \item 20 years developing industrial software
+    \item Only 2 years with formal methods
+    \item Compiler literate, new to semantics
+    \item No PhD
+  \end{itemize}
+  \end{minipage}
+  \end{center}
+\end{slide}
+
+% ================================================================ 21. Slop
+\begin{slide}
+  \begin{center}
+    \imgw{.75\textwidth}{figs/slop.png}\\[6mm]
+    {\rmfamily\color{muted}\LARGE Merriam-Webster\\
+      \Large 2025 Word of the Year}
+  \end{center}
+\end{slide}
+
+% ================================================================ 22. Doorstep
+\begin{slide}
+  \statement{I don't want to drop slop at your doorstep\\[8mm]
+    I welcome guidance to make\\this a proper contribution}
+\end{slide}
+
+% ================================================================ 23. Evidence
+\begin{slide}[Evidence]
+  \statement{\huge ACL2 books certify\\[4mm]
+    SpecTest3 suite: 99.98\%\\[4mm]
+    64,005 examples pass, 13 fail}
+\end{slide}
+
+% ================================================================ 24-28. Demo
+\begin{slide}
+  \statement{\Huge Demo}
+\end{slide}
+
+\fullbleed{figs/sem-demo1.png}
+\fullbleed{figs/sem-demo2.png}
+\fullbleed{figs/sem-demo3.png}
+\fullbleed{figs/sem-demo4.png}
+
+% ================================================================ 29. Thanks to
+{\def\titleskip{12mm}
+\begin{slide}[Acknowledgements]
+  \statement{Jim White, testing and encouragement\\[4mm]
+    OpenHands, my employer during phase 1}
+\end{slide}}
+
+% ================================================================ 30-31. One more thing
+\begin{slide}
+  \statement{\Huge One more thing\dots}
+\end{slide}
+
+\begin{slide}
+  \statement{{\Huge The Real Demo}\\[10mm]
+    This presentation was rendered in ACL2 Wasm}
+\end{slide}
+
+% ================================================================ 32. These slides
+% The transcript of building this deck: TeX as WebAssembly, run by the ACL2
+% engine. Output of 2026-11-16, some lines of TeX's chatter left out.
+\begin{slide}
+\begin{term}{\codesmall\baselineskip8pt}
+\note{# TeX, compiled to WebAssembly}
+\cmd{$ file ../build/dl/tex.wasm}
+../build/dl/tex.wasm: WebAssembly (wasm) binary version 0x1 (MVP module)
+\vskip5pt
+\note{# acl2-wasm-tex: a saved ACL2 image = our engine's books + tex.wasm instantiated}
+\cmd{$ time ../build/acl2-wasm-tex deck.tex}
+\hl{ACL2 Version 8.7: WebAssembly engine WE::FAST-STEP (certified book engine/fast/fast)}
+running tex.wasm (517,692 bytes) on deck.tex
+This is e-TeX, Version 3.14159265-2.6 (preloaded format=latex 2022.5.1)
+(deck.tex LaTeX2e <2020-02-02> patch level 2 (slides.tex) (figdims.tex) [1]
+[100 M WebAssembly instructions, 32 s]
+ [2] [3] [4] [5] [6] [7]
+[200 M WebAssembly instructions, 64 s]
+ [8] [9] [10] [11]
+[300 M WebAssembly instructions, 96 s]
+ [12] [13]
+[400 M WebAssembly instructions, 129 s]
+ [14] [15] [16] [17] [18] [19] [20]
+[500 M WebAssembly instructions, 162 s]
+ [21] [22] [23] [24] [25] [26] [27] [28] [29] [30] [31] [32] [33]
+[600 M WebAssembly instructions, 193 s]
+Output written on deck.dvi (33 pages, 20864 bytes).
+\hl{tex.wasm returned: 606,084,354 WebAssembly instructions in 195.4 s (3.10 M/s), 63,744 host calls}
+../build/acl2-wasm-tex deck.tex  192.05s user 1.67s system 98% cpu 3:15.76 total
+\vskip5pt
+\note{# ordinary tools from here: DVI to PDF, fonts and images embedded}
+\cmd{$ dvipdfmx deck.dvi}
+deck.dvi -> deck.pdf
+2244229 bytes written
+\end{term}
+\end{slide}
+
+% ================================================================ 33. Thank you
+{\footlinefalse
+\begin{slide}
+  \statement{{\Huge Thank you}\\[14mm]
+    \link{github.com/raymyers/wasm-acl2}\\[2mm]
+    \link{raymyers.org}}
+\end{slide}}
+
+\typeout{SLIDES \the\shipped}
+\nomorepages
+\end{document}

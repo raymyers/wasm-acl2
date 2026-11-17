@@ -1,8 +1,8 @@
 #!/bin/sh
 # Run texrun.lisp with the engine's fast machine loaded (inside nix develop).
 #   sh run.sh                  typeset input.tex in this process -> build/out.dvi
-#   TEXMODE=build sh run.sh    save build/tex.core, an image that starts at
-#                              TeX's main (then use tex.sh)
+#   TEXMODE=build sh run.sh    save build/acl2-wasm-tex, an executable ACL2
+#                              image that starts at TeX's main
 # Needs build/dl and build/fs (sh fetch.sh) and the engine books certified
 # (make -C engine certify BOOKS=fast/fast).
 set -e
