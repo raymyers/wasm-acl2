@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; First facts about the generated 3.0 step functions (plan/wasm-engine E4):
 ; a test that ACL2 can reason about them now that they are in logic mode
 ; and each rule is its own function (E2). Not yet the E4 library.

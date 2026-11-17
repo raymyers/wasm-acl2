@@ -103,7 +103,7 @@ milestone E11 and is the main open proof.
 `engine/fast/refine-op.lisp`, `FAST-STEP-REFINES`:
 
 ```lisp
-(implies (and (fmp fm) (fast-inv-store (fm-store fm)) (ctrl-ok (fm-ctrl fm))
+(implies (and (fmp fm) (fast-inv-store (fm-store fm)) (ctrl-kinds-ok (fm-ctrl fm))
               (not (equal (entry-kind (car (fm-is fm))) :call_ref))
               (not (equal (fm-status (fast-step fm)) :unsupported)))
          (equal (fm->ms (fast-step fm)) (machine-step (fm->ms fm))))
@@ -132,7 +132,7 @@ Under it:
 Not proved:
 
 - **The invariant across a step**: that `fmp`, `fast-inv-store` and
-  `ctrl-ok` hold again after `fast-step`. Without it the step theorem
+  `ctrl-kinds-ok` hold again after `fast-step`. Without it the step theorem
   does not chain into a statement about `fast-run`. Parts exist: the
   array stays a byte list across any rule; the store invariant is kept
   by the frame-safe rules.

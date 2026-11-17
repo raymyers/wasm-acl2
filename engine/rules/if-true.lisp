@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; E4 item 1: the rule if-true in a clean, hand-written form, proved equal
 ; to the generated rule function W3T::STEP_PURE/R-IF-TRUE (not to a copy
 ; of it). Moved from the talk snippet

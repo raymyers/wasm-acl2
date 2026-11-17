@@ -375,6 +375,9 @@
                (if *quiet*
                    (format t "wrote ~a (~:d bytes)~%" (file-namestring path) (length (hf-content f)))
                  (format t "WROTE ~a (~d bytes, from ~a)~%" path (length (hf-content f)) (hf-name f)))))
+    (when (fboundp (quote census-report))
+      (format t "CENSUS-HOST ~d host calls (call_ref of a host function, stepped by the driver)~%" *host-calls*)
+      (funcall (quote census-report)))
     (unless *quiet*
       (format t "TOTAL ~d steps, final-end ~s, ~,1f s~%" *steps* *final-end*
               (/ (- (get-internal-real-time) t0) internal-time-units-per-second 1.0)))))
@@ -389,6 +392,11 @@
   (with-driver-errors (run-tex))
   (finish-output)
   (sb-ext:exit))
+
+; TEXCENSUS=FILE: load FILE (plan/wasm-engine/notes/data/v0-ground/census.lisp)
+; before the run; it counts the rule functions the run applies and RUN-TEX
+; prints the counts.
+(let ((c (sb-ext:posix-getenv "TEXCENSUS"))) (when (and c (plusp (length c))) (load c)))
 
 ; TEXMODE=build: prepare, then save an image that starts at the call of main
 ; (acl2-wasm-tex in the build directory, an executable: SBCL's runtime, this

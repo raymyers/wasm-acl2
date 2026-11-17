@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; E7, part 2 of the design in notes/E6-list-machine.md: the memory rules
 ; as functions of what the stobj machine can read from its byte array.
 ; First lemmas: a load reads only its window, and the bounds rule depends

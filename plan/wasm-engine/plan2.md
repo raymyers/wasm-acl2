@@ -20,16 +20,30 @@
 > see [../wasm3-translation/evidence.md](../wasm3-translation/evidence.md)),
 > and what a host function does. ACL2 and SBCL stay trusted.
 >
-> **Status**: written 2026-11-17 at `4f18f50`. Nothing started. P1 and
-> P3 are decided, P2 is decided after V5 (§2).
+> **Status**: written 2026-11-17 at `4f18f50`. V0 is complete
+> (2026-11-17). P1 and P3 are decided, P2 is decided after V5 (§2).
 
 ---
 
 ## Current state
 
 - **Last updated**: 2026-11-17
-- **Milestones complete**: none
-- **Next action**: V0
+- **Milestones complete**: V0 (ground work;
+  [V0-ground](notes/V0-ground.md)). The spike is a **go**: `STEP/R-PURE`
+  and `STEP/R-READ` return `nil` on `v ++ (nop) ++ r` in 3,634 and 4,719
+  prover steps for the two relations, with every rule function closed
+- **Next action**: V1 (start from `notes/data/v0-ground/spike-nop.lsp`:
+  it already has a lemma for each of the 212 rule functions), or V6;
+  they are independent
+- **From V0, for later milestones**: the demos apply 37 rule functions.
+  `memory.init`, `data.drop` and `ref.null` run at every instantiation
+  and are outside `*d5-opcodes*`: V5's table of proved opcodes must
+  contain them. Every call is a `call_ref` of a wasm function (V7 item
+  3). A generated lemma about a rule function is proved in a theory with
+  no other definition of the specification (`spec-definitions` of
+  `rules/step-basics.lisp` disabled); a step limit does not stop the
+  preprocessing otherwise. New books may use only the system books the
+  Nix ACL2 has certified (no `std/lists/top`)
 - **Decided by the user (2026-11-17)**: P1, host calls stay outside the
   theorem for now (the easy option); P2 is decided after V5
 - **Decided by the user (2026-11-17)**: P3, the theorem covers D5
@@ -211,41 +225,64 @@ it.
 
 ### V0: ground work
 
-- [ ] Opcode census of the TeX run and of the slides: which rule
+- [x] Opcode census of the TeX run and of the slides: which rule
       functions each executes, with counts (a counter in the driver).
       Fixes the set V5 and V7 must cover, and says whether `call_ref`
-      of a host function and `data.drop` occur (evidence.md §7 item 1)
-- [ ] `engine/lib/`: `lists.lisp` (the machine's `take-n`, `drop-n`,
+      of a host function and `data.drop` occur (evidence.md §7 item 1).
+      **Done**: 28 rule functions (slides, 3,626,696 applications), 34
+      (`input.tex`, 27,946,273) and 34 (the deck, 305,651,715); 37 in
+      the union. Host `call_ref`: 0, 3,717 and 63,681. `data.drop`: 1,
+      40 and 40, at instantiation
+      ([V0-ground](notes/V0-ground.md) §1)
+- [x] `engine/lib/`: `lists.lisp` (the machine's `take-n`, `drop-n`,
       `app`, `rev-onto`, `len-t`, `nth-t` equal to `take`, `nthcdr`,
       `append`, `revappend`, `len`, `nth` under `true-listp`; then
       `len`, `car`, `cdr`, `take`, `nthcdr`, `true-listp` of `append`
       and of each other, from `std/lists` included locally) and
       `records.lisp` (the seven `put-assoc-equal` lemmas now in
-      `frame.lisp`). Existing books include them instead of restating
-- [ ] One `ctrl-ok`. `machine/ok.lisp` and `fast/refine-op.lisp` define
+      `frame.lisp`). Existing books include them instead of restating.
+      **Done**: both books certify (2.0 s, 35 lemmas; 0.3 s).
+      `frame.lisp` includes `records`. No old book includes `lists`: it
+      would add its rules to their theories (next item but one); the
+      three lemmas they restate keep their names there
+      ([V0-ground](notes/V0-ground.md) §3)
+- [x] One `ctrl-ok`. `machine/ok.lisp` and `fast/refine-op.lisp` define
       `WE::CTRL-OK` with different bodies, so the two books cannot be
       included together, and V6 must include both. The fast one becomes
-      `ctrl-kinds-ok`, proved to follow from the machine's
-- [ ] The existing books are not rewritten. Their proofs depend on the
+      `ctrl-kinds-ok`, proved to follow from the machine's. **Done**:
+      `fast/ctrl-kinds.lisp` includes both books and proves
+      `ctrl-kinds-ok-when-ctrl-ok` ([V0-ground](notes/V0-ground.md) §4)
+- [x] The existing books are not rewritten. Their proofs depend on the
       theory they have (in `refine-step.lisp` moving two lemmas after
       the generated ones cost a 6-hour run that did not come back), so
       [practices.md](practices.md) applies to new books, and to an old
       book only where a new book needs it: then the definitions it
       exports are disabled at its end, in a new last event, and the
       books that include it are certified again. Recorded per book,
-      with certification times before and after
-- [ ] `stepn`, `step-opener` and the `%SIZE` facts in
+      with certification times before and after. **Done**: no proof of
+      an old book changed and none needed a disabling event yet; the
+      changes are the `LICENSE` line, the include in `frame.lisp` and
+      the rename in `refine-op.lisp`; times per book in
+      [V0-ground](notes/V0-ground.md) §6
+- [x] `stepn`, `step-opener` and the `%SIZE` facts in
       `engine/rules/step-basics.lisp`: `STEP` opened one level as a
       rewrite rule with a `syntaxp` guard, `STEP` returns `nil` or a
       one-element list of a well-shaped configuration, `%SIZE` of a
-      proper sublist and of a subterm is smaller
+      proper sublist and of a subterm is smaller. **Done** (2.7 s):
+      `step-opener`, `step-result-shape` (72,317 prover steps),
+      `%size-check-of-admin-body`, `%size-check-of-sublist`, and the
+      theory `spec-definitions`. Left to V2: that the state of the
+      result has the shape `(:|%;%| s f)`
+      ([V0-ground](notes/V0-ground.md) §5)
 
-- [ ] Spike, before the rest of V1 is built: the V1 exit statement for
+- [x] Spike, before the rest of V1 is built: the V1 exit statement for
       `nop` alone ("`STEP/R-PURE` and `STEP/R-READ` return `nil` on
       `v ++ (nop) ++ r`"), by hand in a session, with the library of
       item 2. It is the plan's largest risk (§5, first row); if it
       does not go through in three approaches, the session stops with
-      the checkpoints in a note
+      the checkpoints in a note. **Done, go, first approach**: 8.3 s
+      for the script, 722,354 prover steps in all, the rule functions
+      closed ([V0-ground](notes/V0-ground.md) §2)
 
 **Exit**: `make -C engine check` passes with the same theorems as
 before; the census and the spike's result are in a note.
@@ -357,7 +394,9 @@ case.
       not, `machine-clock` is corrected and test 1 re-run
 - [ ] P3: the generated table of proved opcodes; an opcode outside it
       stops the machine `:unsupported` before any rule is tried. Test 2
-      re-run: the agreeing commands do not change for D5
+      re-run: the agreeing commands do not change for D5. The table
+      must contain `memory.init`, `data.drop` and `ref.null`, which
+      every instantiation runs ([V0-ground](notes/V0-ground.md) §1)
 - [ ] The slides: `render.lsp` on the list machine is inside T1; say so
       in the viewer caption (plan.md D8)
 

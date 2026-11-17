@@ -1,14 +1,16 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; E7 Phase B, layer 4: the step theorem.
 ;   FAST-STEP-REFINES: one step of the fast machine, seen through FM->MS, is
 ;   one step of the list machine (MACHINE-STEP), when
 ;     - the stobj is well formed (FMP) and its store is the fast store
 ;       (FAST-INV-STORE: memory 0 a record without its bytes, all fields);
-;     - every control entry is a label, a handler or a frame (CTRL-OK);
+;     - every control entry is a label, a handler or a frame (CTRL-KINDS-OK);
 ;     - the instruction is not call_ref (its two host-call rules have no
 ;       lemma: refine-step.lisp, *U-NOT-YET*);
 ;     - the fast step does not stop :unsupported (an opcode without rules, or
 ;       a fallback result the fast machine cannot hold).
-; Not here: that a step keeps FMP, FAST-INV-STORE and CTRL-OK (needed to
+; Not here: that a step keeps FMP, FAST-INV-STORE and CTRL-KINDS-OK (needed to
 ; chain steps into a run), and FM-LOAD-MS.
 (in-package "WE")
 (include-book "refine-step")
@@ -113,10 +115,10 @@
 
 ; --- control entries, trap/throw propagation --------------------------------
 
-(defun ctrl-ok (ctrl)
+(defun ctrl-kinds-ok (ctrl)
   (declare (xargs :guard t))
   (or (atom ctrl)
-      (and (sym-member (entry-kind (car ctrl)) '(:l :h :f)) (ctrl-ok (cdr ctrl)))))
+      (and (sym-member (entry-kind (car ctrl)) '(:l :h :f)) (ctrl-kinds-ok (cdr ctrl)))))
 (defthm fast-try-entry-is-try-rules
   (implies (sym-member k '(:l :h :f))
            (equal (fast-try-entry k z redex fm)
@@ -206,18 +208,18 @@
          (ms (ms-store (fm->ms fm)) (ms-frame (fm->ms fm)) b a (ms-ctrl (fm->ms fm)) (ms-status (fm->ms fm))))
   :hints (("Goal" :in-theory (e/d (fm->ms) (put-mem0-bytes)))))
 
-(defthm ctrl-ok-top
-  (implies (and (ctrl-ok c) (consp c))
+(defthm ctrl-kinds-ok-top
+  (implies (and (ctrl-kinds-ok c) (consp c))
            (sym-member (entry-kind (car c)) '(:l :h :f)))
   :hints (("Goal" :in-theory (disable sym-member entry-kind))))
 
-(defthm fast-exit-step-refines-ctrl-ok
+(defthm fast-exit-step-refines-ctrl-kinds-ok
   (implies (and (fmp fm) (fast-inv-store (fm-store fm))
-                (ctrl-ok (fm-ctrl fm)) (consp (fm-ctrl fm))
+                (ctrl-kinds-ok (fm-ctrl fm)) (consp (fm-ctrl fm))
                 (not (equal (fm-status (fast-exit-step fm)) :unsupported)))
            (equal (fm->ms (fast-exit-step fm)) (exit-step (fm->ms fm))))
-  :hints (("Goal" :use (fast-exit-step-refines (:instance ctrl-ok-top (c (fm-ctrl fm))))
-                  :in-theory (disable fast-exit-step-refines ctrl-ok-top fast-exit-step exit-step fm->ms ctrl-ok
+  :hints (("Goal" :use (fast-exit-step-refines (:instance ctrl-kinds-ok-top (c (fm-ctrl fm))))
+                  :in-theory (disable fast-exit-step-refines ctrl-kinds-ok-top fast-exit-step exit-step fm->ms ctrl-kinds-ok
                                       sym-member entry-kind fmp fast-inv-store))))
 
 ; the fast paths (refine-hot.lisp): a handled instruction is the op step; a
@@ -256,7 +258,7 @@
                                   (w3t::val-p fast-val-p w3t::$binop_ w3t::$relop_ w3t::$with_local w3t::$local)))))
 
 (defthm fast-step-refines
-  (implies (and (fmp fm) (fast-inv-store (fm-store fm)) (ctrl-ok (fm-ctrl fm))
+  (implies (and (fmp fm) (fast-inv-store (fm-store fm)) (ctrl-kinds-ok (fm-ctrl fm))
                 (not (equal (entry-kind (car (fm-is fm))) :call_ref))
                 (not (equal (fm-status (fast-step fm)) :unsupported)))
            (equal (fm->ms (fast-step fm)) (machine-step (fm->ms fm))))
@@ -266,7 +268,7 @@
                                    hot-local.get hot-local.set hot-local.tee hot-binop hot-relop hot-br_if
                                    fast-op-step op-step fast-exit-step exit-step fast-anyprefix-step anyprefix-step
                                    fast-enter-step enter-step fast-hot-step fmp fast-inv-store fm->ms
-                                   put-mem0-bytes mem-to-list fast-val-p value-instr-p ctrl-ok
+                                   put-mem0-bytes mem-to-list fast-val-p value-instr-p ctrl-kinds-ok
                                    update-fm-status update-fm-vals update-fm-is ms-with-status
                                    ms-is ms-vals ms-ctrl ms-status ms-frame ms-store))
                   :do-not-induct t)))

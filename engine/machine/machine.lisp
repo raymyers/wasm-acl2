@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; The list machine of the verified engine (plan/wasm-engine E6), after the
 ; design of notes/E5-machine.md.
 ;

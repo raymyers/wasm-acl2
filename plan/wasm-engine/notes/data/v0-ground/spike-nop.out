@@ -1,0 +1,3048 @@
+This is SBCL 2.6.6, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ + ACL2 Version 8.7                                                     +
+ +   built August 12, 2026  00:46:05.                                   +
+ + Copyright (C) 2026, Regents of the University of Texas.              +
+ + ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and   +
+ + you are welcome to redistribute it under certain conditions.  For    +
+ + details, see the LICENSE file distributed with ACL2.                 +
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "../portcullis" ...)
+Rules: NIL
+Time:  0.02 seconds (prove: 0.00, print: 0.00, other: 0.02)
+ "engine/portcullis.lisp"
+ACL2 !>>Bye.
+ :EOF
+ACL2 !>
+Summary
+Form:  ( INCLUDE-BOOK "../../../../../engine/rules/terminal" ...)
+Rules: NIL
+Time:  1.88 seconds (prove: 0.00, print: 0.00, other: 1.88)
+ "engine/rules/terminal.lisp"
+ACL2 !>
+Summary
+Form:  ( INCLUDE-BOOK "../../../../../engine/machine/machine" ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ "engine/machine/machine.lisp"
+ACL2 !>
+ACL2 Warning [Compiled file] in ( INCLUDE-BOOK "std/lists/top" ...):
+Unable to load compiled file for book
+  /nix/store/...-acl2-with-wasm-books-
+8.7/share/acl2/books/std/lists/top.lisp
+because that book is not certified.  See :DOC include-book.  No load
+was in progress for any parent book.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "std/lists/top" ...):
+There is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/top.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "add-to-set" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/add-to-set.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "all-equalp" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/all-equalp.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "bits-equiv" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/bits-equiv.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "std/basic/arith-equiv-defs"
+...):  There is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/basic/arith-equiv-defs.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "centaur/misc/universal-equiv"
+...):  There is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/centaur/misc/universal-equiv.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "clause-processors/equality"
+...):  There is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/clause-processors/equality.lisp".
+See :DOC uncertified-books.
+
+Note (from clause-processors/equality): disabling DISJOIN, DISJOIN2,
+CONJOIN and CONJOIN2.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "duplicity" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/duplicity.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "final-cdr" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/final-cdr.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "intersection" ...): 
+There is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/intersection.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "index-of" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/index-of.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "intersectp" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/intersectp.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "last" ...):  There is
+no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/last.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "nats-equiv" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/nats-equiv.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "no-duplicatesp" ...):
+There is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/no-duplicatesp.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "nth" ...):  There is
+no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/nth.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "remove" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/remove.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "remove-duplicates" ...):
+There is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/remove-duplicates.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "remove1-equal" ...):
+There is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/remove1-equal.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "resize-list" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/resize-list.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "reverse" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/reverse.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "set-difference" ...):
+There is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/set-difference.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "sublistp" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/sublistp.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "subseq" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/subseq.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "suffixp" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/suffixp.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "true-listp" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/true-listp.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "update-nth" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/update-nth.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "union" ...):  There is
+no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/union.lisp".
+See :DOC uncertified-books.
+
+
+Summary
+Form:  ( INCLUDE-BOOK "std/lists/top" ...)
+Rules: NIL
+Warnings:  Uncertified and Compiled file
+Time:  1.51 seconds (prove: 0.00, print: 0.00, other: 1.51)
+ "/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/std/lists/top.lisp"
+ACL2 !>
+ACL2 Warning [Compiled file] in ( INCLUDE-BOOK "arithmetic/top-with-meta"
+...):  Unable to load compiled file for book
+  /nix/store/...-acl2-with-wasm-books-
+8.7/share/acl2/books/arithmetic/top-with-meta.lisp
+because that book is not certified.  See :DOC include-book.  No load
+was in progress for any parent book.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "arithmetic/top-with-meta"
+...):  There is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/arithmetic/top-with-meta.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "meta/meta" ...):  There
+is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/meta/meta.lisp".
+See :DOC uncertified-books.
+
+
+ACL2 Warning [Uncertified] in ( INCLUDE-BOOK "meta-times-equal" ...):
+There is no certificate on file for 
+"/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/meta/meta-times-equal.lisp".
+See :DOC uncertified-books.
+
+
+Summary
+Form:  ( INCLUDE-BOOK "arithmetic/top-with-meta" ...)
+Rules: NIL
+Warnings:  Uncertified and Compiled file
+Time:  0.05 seconds (prove: 0.00, print: 0.00, other: 0.05)
+ "/nix/store/...-acl2-with-wasm-books-8.7/share/acl2/books/arithmetic/top-with-meta.lisp"
+ACL2 !> "WE"
+WE !> (PROOF-TREE PROVE EVENT COMMON-LISP::WARNING
+             WARNING! OBSERVATION)
+WE !> 2000000
+WE !>
+Summary
+Form:  ( DEFUN REDEX-SHAPE-P ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ REDEX-SHAPE-P
+WE !>Goal'
+Subgoal 10
+Subgoal 9
+Subgoal 8
+Subgoal 7
+Subgoal 6
+Subgoal 5
+Subgoal 4
+Subgoal 3
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM REDEX-SHAPE-P-WHEN-CONSP-CDR ...)
+Rules: ((:DEFINITION NOT)
+        (:DEFINITION REDEX-SHAPE-P)
+        (:DEFINITION VALUE-HEAD-P)
+        (:EXECUTABLE-COUNTERPART CONS)
+        (:EXECUTABLE-COUNTERPART TAU-SYSTEM)
+        (:REWRITE ACL2::MEMBER-OF-CONS)
+        (:REWRITE ACL2::MEMBER-WHEN-ATOM))
+Time:  0.03 seconds (prove: 0.03, print: 0.00, other: 0.00)
+Prover steps counted:  21761
+ REDEX-SHAPE-P-WHEN-CONSP-CDR
+WE !>
+Summary
+Form:  ( DEFTHM REDEX-SHAPE-P-WHEN-NOT-CONSP-CDR ...)
+Rules: ((:DEFINITION NOT)
+        (:DEFINITION REDEX-SHAPE-P)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  435
+ REDEX-SHAPE-P-WHEN-NOT-CONSP-CDR
+WE !>Goal'
+Subgoal 6
+Subgoal 5
+Subgoal 4
+Subgoal 4'
+Subgoal 4''
+Subgoal 3
+Subgoal 2
+Subgoal 1
+Subgoal 1'
+Subgoal 1.2
+Subgoal 1.1
+Subgoal 1.1'
+
+Summary
+Form:  ( DEFTHM EQUAL-OF-LEN-AND-CONSTANT ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION NOT)
+        (:ELIM CAR-CDR-ELIM)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART SYNP)
+        (:EXECUTABLE-COUNTERPART TAU-SYSTEM)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE ACL2::|(equal 0 (len x))|)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::LEN-WHEN-ATOM)
+        (:REWRITE ACL2::NATP-POSP)
+        (:TYPE-PRESCRIPTION LEN))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  738
+ EQUAL-OF-LEN-AND-CONSTANT
+WE !>
+Summary
+Form:  ( DEFTHM VALUE-HEAD-P-OF-CAR-WHEN-VAL-P ...)
+Rules: ((:FORWARD-CHAINING VAL-P-HEAD)
+        (:TYPE-PRESCRIPTION W3T::VAL-P))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ VALUE-HEAD-P-OF-CAR-WHEN-VAL-P
+WE !>Subgoal 63
+Subgoal 62
+Subgoal 61
+Subgoal 60
+Subgoal 59
+Subgoal 58
+Subgoal 57
+Subgoal 56
+Subgoal 55
+Subgoal 54
+Subgoal 53
+Subgoal 52
+Subgoal 51
+Subgoal 50
+Subgoal 49
+Subgoal 48
+Subgoal 47
+Subgoal 46
+Subgoal 45
+Subgoal 44
+Subgoal 43
+Subgoal 42
+Subgoal 41
+Subgoal 40
+Subgoal 39
+Subgoal 38
+Subgoal 37
+Subgoal 36
+Subgoal 35
+Subgoal 34
+Subgoal 33
+Subgoal 32
+Subgoal 31
+Subgoal 30
+Subgoal 29
+Subgoal 28
+Subgoal 28'
+Subgoal 27
+Subgoal 26
+Subgoal 25
+Subgoal 24
+Subgoal 23
+Subgoal 23'
+Subgoal 22
+Subgoal 21
+Subgoal 20
+Subgoal 19
+Subgoal 19'
+Subgoal 18
+Subgoal 17
+Subgoal 17'
+Subgoal 16
+Subgoal 15
+Subgoal 14
+Subgoal 13
+Subgoal 12
+Subgoal 11
+Subgoal 10
+Subgoal 9
+Subgoal 8
+Subgoal 7
+Subgoal 6
+Subgoal 5
+Subgoal 4
+Subgoal 3
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM VAL-P-WHEN-REF-P ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:DEFINITION W3T::$E)
+        (:DEFINITION W3T::$M)
+        (:DEFINITION W3T::$SIZE)
+        (:DEFINITION W3T::$SIZENN)
+        (:DEFINITION W3T::$VSIZE)
+        (:DEFINITION W3T::$VSIZENN)
+        (:DEFINITION W3T::ADDR-P)
+        (:DEFINITION W3T::ARRAYADDR-P)
+        (:DEFINITION ATOM)
+        (:DEFINITION W3T::EXNADDR-P)
+        (:DEFINITION W3T::EXP-P)
+        (:DEFINITION W3T::FN-P)
+        (:DEFINITION W3T::FNMAG-P)
+        (:DEFINITION W3T::FNN-P)
+        (:DEFINITION W3T::FUNCADDR-P)
+        (:DEFINITION W3T::HOSTADDR-P)
+        (:DEFINITION W3T::IN-P)
+        (:DEFINITION W3T::INN-P)
+        (:DEFINITION W3T::M-P)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::NUMTYPE-P)
+        (:DEFINITION W3T::NUM_-P)
+        (:DEFINITION W3T::REF-P)
+        (:DEFINITION W3T::STRUCTADDR-P)
+        (:DEFINITION SYNP)
+        (:DEFINITION W3T::U31-P)
+        (:DEFINITION W3T::UN-P)
+        (:DEFINITION W3T::VAL-P)
+        (:DEFINITION W3T::VECTYPE-P)
+        (:DEFINITION W3T::VEC_-P)
+        (:DEFINITION W3T::VN-P)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART CAR)
+        (:EXECUTABLE-COUNTERPART CONS)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART EXPT)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART TRUE-LISTP)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE ACL2::|(equal 0 (len x))|)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:TYPE-PRESCRIPTION W3T::VAL-P))
+Time:  0.04 seconds (prove: 0.04, print: 0.00, other: 0.00)
+Prover steps counted:  19446
+ VAL-P-WHEN-REF-P
+WE !>Goal'
+Goal''
+
+Summary
+Form:  ( DEFTHM VALUE-HEAD-P-OF-CAR-WHEN-REF-P ...)
+Rules: ((:DEFINITION W3T::REF-P)
+        (:DEFINITION VALUE-HEAD-P)
+        (:EXECUTABLE-COUNTERPART CONS)
+        (:REWRITE ACL2::MEMBER-OF-CONS)
+        (:REWRITE ACL2::MEMBER-WHEN-ATOM))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  1057
+ VALUE-HEAD-P-OF-CAR-WHEN-REF-P
+WE !>
+Summary
+Form:  ( IN-THEORY (DISABLE ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ (:NUMBER-OF-ENABLED-RUNES 15019)
+WE !>
+Summary
+Form:  ( DEFUN CDR-N-INDUCT ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ CDR-N-INDUCT
+WE !>Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/2.5
+Subgoal *1/2.4
+Subgoal *1/2.4.3
+Subgoal *1/2.4.3'
+Subgoal *1/2.4.3''
+Subgoal *1/2.4.3'''
+Subgoal *1/2.4.3'4'
+Subgoal *1/2.4.2
+Subgoal *1/2.4.2'
+Subgoal *1/2.4.2''
+Subgoal *1/2.4.2'''
+Subgoal *1/2.4.1
+Subgoal *1/2.3
+Subgoal *1/2.2
+Subgoal *1/2.2'
+Subgoal *1/2.2''
+Subgoal *1/2.1
+Subgoal *1/2.1.6
+Subgoal *1/2.1.6'
+Subgoal *1/2.1.6''
+Subgoal *1/2.1.6'''
+Subgoal *1/2.1.6'4'
+Subgoal *1/2.1.5
+Subgoal *1/2.1.5'
+Subgoal *1/2.1.4
+Subgoal *1/2.1.4'
+Subgoal *1/2.1.4''
+Subgoal *1/2.1.4'''
+Subgoal *1/2.1.3
+Subgoal *1/2.1.2
+Subgoal *1/2.1.1
+Subgoal *1/1
+Subgoal *1/1'
+Subgoal *1/1''
+Subgoal *1/1'''
+
+Summary
+Form:  ( DEFTHM REDEX-SHAPE-P-OF-VALS-THEN-TAIL ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::ZP-COMPOUND-RECOGNIZER)
+        (:DEFINITION FIX)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION NTHCDR)
+        (:DEFINITION REDEX-SHAPE-P)
+        (:DEFINITION SYNP)
+        (:DEFINITION TAKE)
+        (:DEFINITION VALS-P)
+        (:ELIM CAR-CDR-ELIM)
+        (:EXECUTABLE-COUNTERPART <)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART CONSP)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART INTEGERP)
+        (:EXECUTABLE-COUNTERPART NATP)
+        (:EXECUTABLE-COUNTERPART NOT)
+        (:EXECUTABLE-COUNTERPART ACL2::REPEAT)
+        (:EXECUTABLE-COUNTERPART TAU-SYSTEM)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:EXECUTABLE-COUNTERPART VALS-P)
+        (:EXECUTABLE-COUNTERPART ZP)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-LINEAR-EQUALITIES NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING ACL2::NATP-FC-1)
+        (:INDUCTION CDR-N-INDUCT)
+        (:REWRITE ACL2::|(< 0 (len x))|)
+        (:REWRITE ACL2::<-+-NEGATIVE-0-1)
+        (:REWRITE ACL2::<-0-+-NEGATIVE-1)
+        (:REWRITE ACL2::APPEND-WHEN-NOT-CONSP)
+        (:REWRITE ASSOCIATIVITY-OF-+)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS)
+        (:REWRITE COMMUTATIVITY-OF-+)
+        (:REWRITE ACL2::FOLD-CONSTS-IN-+)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::LEN-WHEN-ATOM)
+        (:REWRITE ACL2::LIST-FIX-WHEN-LEN-ZERO)
+        (:REWRITE ACL2::NATP-POSP--1)
+        (:REWRITE ACL2::NTHCDR-OF-CDR)
+        (:REWRITE ACL2::NTHCDR-WHEN-ATOM)
+        (:REWRITE ACL2::OPEN-SMALL-NTHCDR)
+        (:REWRITE REDEX-SHAPE-P-WHEN-NOT-CONSP-CDR)
+        (:REWRITE ACL2::TAKE-OF-LEN-FREE)
+        (:REWRITE ACL2::TAKE-OF-TOO-MANY)
+        (:REWRITE ACL2::TAKE-OF-ZERO)
+        (:REWRITE UNICITY-OF-0)
+        (:REWRITE VALUE-HEAD-P-OF-CAR-WHEN-VAL-P)
+        (:REWRITE ACL2::ZP-OPEN)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION ACL2::REPEAT)
+        (:TYPE-PRESCRIPTION TAKE)
+        (:TYPE-PRESCRIPTION ACL2::TRUE-LISTP-APPEND)
+        (:TYPE-PRESCRIPTION W3T::VAL-P)
+        (:TYPE-PRESCRIPTION ACL2::|x < y  =>  0 < -x+y|))
+Time:  0.63 seconds (prove: 0.63, print: 0.00, other: 0.00)
+Prover steps counted:  329763
+ REDEX-SHAPE-P-OF-VALS-THEN-TAIL
+WE !>
+Summary
+Form:  ( IN-THEORY (DISABLE ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ (:NUMBER-OF-ENABLED-RUNES 15022)
+WE !>
+Summary
+Form:  ( DEFLABEL SHAPE-ANCHOR ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ SHAPE-ANCHOR
+WE !>
+Summary
+Form:  ( DEFTHEORY SHAPE-THEORY ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ 4016
+WE !>
+Summary
+Form:  ( DEFUN SHAPE-KW ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ SHAPE-KW
+WE !>
+Summary
+Form:  ( DEFUN SHAPE-NAME ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ SHAPE-NAME
+WE !>
+Summary
+Form:  ( DEFUN SHAPE-LEMMA ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ SHAPE-LEMMA
+WE !>
+Summary
+Form:  ( DEFUN SHAPE-LEMMAS ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ SHAPE-LEMMAS
+WE !> (PROOF-TREE PROVE
+             EVENT COMMON-LISP::WARNING WARNING!
+             OBSERVATION SUMMARY COMMON-LISP::ERROR)
+WE !>Goal'
+SHAPE W3T::STEP_PURE/R-UNREACHABLE
+Goal'
+SHAPE W3T::STEP_PURE/R-NOP
+Goal'
+SHAPE W3T::STEP_PURE/R-DROP
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_PURE/R-SELECT-TRUE
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_PURE/R-SELECT-FALSE
+Goal'
+SHAPE W3T::STEP_PURE/R-IF-TRUE
+Goal'
+SHAPE W3T::STEP_PURE/R-IF-FALSE
+Goal'
+SHAPE W3T::STEP_PURE/R-LABEL-VALS
+Goal'
+SHAPE W3T::STEP_PURE/R-BR-LABEL-ZERO
+Goal'
+SHAPE W3T::STEP_PURE/R-BR-LABEL-SUCC
+Goal'
+SHAPE W3T::STEP_PURE/R-BR-HANDLER
+Goal'
+SHAPE W3T::STEP_PURE/R-BR_IF-TRUE
+Goal'
+SHAPE W3T::STEP_PURE/R-BR_IF-FALSE
+Goal'
+SHAPE W3T::STEP_PURE/R-BR_TABLE-LT
+Goal'
+SHAPE W3T::STEP_PURE/R-BR_TABLE-GE
+Goal'
+SHAPE W3T::STEP_PURE/R-BR_ON_NULL-NULL
+Goal'
+SHAPE W3T::STEP_PURE/R-BR_ON_NULL-ADDR
+Goal'
+SHAPE W3T::STEP_PURE/R-BR_ON_NON_NULL-NULL
+Goal'
+SHAPE W3T::STEP_PURE/R-BR_ON_NON_NULL-ADDR
+Goal'
+SHAPE W3T::STEP_PURE/R-CALL_INDIRECT
+Goal'
+SHAPE W3T::STEP_PURE/R-RETURN_CALL_INDIRECT
+Goal'
+SHAPE W3T::STEP_PURE/R-FRAME-VALS
+Goal'
+SHAPE W3T::STEP_PURE/R-RETURN-FRAME
+Goal'
+SHAPE W3T::STEP_PURE/R-RETURN-LABEL
+Goal'
+SHAPE W3T::STEP_PURE/R-RETURN-HANDLER
+Goal'
+SHAPE W3T::STEP_PURE/R-HANDLER-VALS
+Goal'
+SHAPE W3T::STEP_PURE/R-TRAP-LABEL
+Goal'
+SHAPE W3T::STEP_PURE/R-TRAP-HANDLER
+Goal'
+SHAPE W3T::STEP_PURE/R-TRAP-FRAME
+Goal'
+SHAPE W3T::STEP_PURE/R-LOCAL.TEE
+Goal'
+SHAPE W3T::STEP_PURE/R-REF.I31
+Goal'
+SHAPE W3T::STEP_PURE/R-REF.IS_NULL-TRUE
+Goal'
+SHAPE W3T::STEP_PURE/R-REF.IS_NULL-FALSE
+Goal'
+SHAPE W3T::STEP_PURE/R-REF.AS_NON_NULL-NULL
+Goal'
+SHAPE W3T::STEP_PURE/R-REF.AS_NON_NULL-ADDR
+Goal'
+SHAPE W3T::STEP_PURE/R-REF.EQ-NULL
+Goal'
+SHAPE W3T::STEP_PURE/R-REF.EQ-TRUE
+Goal'
+SHAPE W3T::STEP_PURE/R-REF.EQ-FALSE
+Goal'
+SHAPE W3T::STEP_PURE/R-I31.GET-NULL
+Goal'
+SHAPE W3T::STEP_PURE/R-I31.GET-NUM
+Goal'
+SHAPE W3T::STEP_PURE/R-ARRAY.NEW
+Goal'
+SHAPE W3T::STEP_PURE/R-EXTERN.CONVERT_ANY-NULL
+Goal'
+SHAPE W3T::STEP_PURE/R-EXTERN.CONVERT_ANY-ADDR
+Goal'
+SHAPE W3T::STEP_PURE/R-ANY.CONVERT_EXTERN-NULL
+Goal'
+SHAPE W3T::STEP_PURE/R-ANY.CONVERT_EXTERN-ADDR
+Goal'
+SHAPE W3T::STEP_PURE/R-UNOP-VAL
+Goal'
+SHAPE W3T::STEP_PURE/R-UNOP-TRAP
+Goal'
+SHAPE W3T::STEP_PURE/R-BINOP-VAL
+Goal'
+SHAPE W3T::STEP_PURE/R-BINOP-TRAP
+Goal'
+SHAPE W3T::STEP_PURE/R-TESTOP
+Goal'
+SHAPE W3T::STEP_PURE/R-RELOP
+Goal'
+SHAPE W3T::STEP_PURE/R-CVTOP-VAL
+Goal'
+SHAPE W3T::STEP_PURE/R-CVTOP-TRAP
+Goal'
+SHAPE W3T::STEP_PURE/R-VVUNOP
+Goal'
+SHAPE W3T::STEP_PURE/R-VVBINOP
+Goal'
+SHAPE W3T::STEP_PURE/R-VVTERNOP
+Goal'
+SHAPE W3T::STEP_PURE/R-VVTESTOP
+Goal'
+SHAPE W3T::STEP_PURE/R-VUNOP-VAL
+Goal'
+SHAPE W3T::STEP_PURE/R-VUNOP-TRAP
+Goal'
+SHAPE W3T::STEP_PURE/R-VBINOP-VAL
+Goal'
+SHAPE W3T::STEP_PURE/R-VBINOP-TRAP
+Goal'
+SHAPE W3T::STEP_PURE/R-VTERNOP-VAL
+Goal'
+SHAPE W3T::STEP_PURE/R-VTERNOP-TRAP
+Goal'
+SHAPE W3T::STEP_PURE/R-VTESTOP
+Goal'
+SHAPE W3T::STEP_PURE/R-VRELOP
+Goal'
+SHAPE W3T::STEP_PURE/R-VSHIFTOP
+Goal'
+SHAPE W3T::STEP_PURE/R-VBITMASK
+Goal'
+SHAPE W3T::STEP_PURE/R-VSWIZZLOP
+Goal'
+SHAPE W3T::STEP_PURE/R-VSHUFFLE
+Goal'
+SHAPE W3T::STEP_PURE/R-VSPLAT
+Goal'
+SHAPE W3T::STEP_PURE/R-VEXTRACT_LANE-NUM
+Goal'
+SHAPE W3T::STEP_PURE/R-VEXTRACT_LANE-PACK
+Goal'
+SHAPE W3T::STEP_PURE/R-VREPLACE_LANE
+Goal'
+SHAPE W3T::STEP_PURE/R-VEXTUNOP
+Goal'
+SHAPE W3T::STEP_PURE/R-VEXTBINOP
+Goal'
+SHAPE W3T::STEP_PURE/R-VEXTTERNOP
+Goal'
+SHAPE W3T::STEP_PURE/R-VNARROW
+Goal'
+SHAPE W3T::STEP_PURE/R-VCVTOP
+Goal'
+SHAPE-FAILED W3T::STEP_READ/SPLIT/R-BLOCK
+Goal'
+Goal''
+Goal'''
+Goal'4'
+SHAPE-FAILED W3T::STEP_READ/SPLIT/R-LOOP
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-BR_ON_CAST-SUCCEED
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-BR_ON_CAST-FAIL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-BR_ON_CAST_FAIL-SUCCEED
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-BR_ON_CAST_FAIL-FAIL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-CALL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-RETURN_CALL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-RETURN_CALL_REF-LABEL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-RETURN_CALL_REF-HANDLER
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-RETURN_CALL_REF-FRAME-NULL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-RETURN_CALL_REF-FRAME-ADDR
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-THROW_REF-NULL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-THROW_REF-LABEL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-THROW_REF-FRAME
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-THROW_REF-HANDLER-EMPTY
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-THROW_REF-HANDLER-CATCH
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-THROW_REF-HANDLER-CATCH_REF
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-THROW_REF-HANDLER-CATCH_ALL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-THROW_REF-HANDLER-CATCH_ALL_REF
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-THROW_REF-HANDLER-NEXT
+Goal'
+SHAPE-FAILED W3T::STEP_READ/SPLIT/R-TRY_TABLE
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-LOCAL.GET
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-GLOBAL.GET
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.GET-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.GET-VAL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.SIZE
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.FILL-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.FILL-ZERO
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.FILL-SUCC
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.COPY-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.COPY-ZERO
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.COPY-LE
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.COPY-GT
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.INIT-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.INIT-ZERO
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-TABLE.INIT-SUCC
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-LOAD-NUM-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-LOAD-NUM-VAL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-LOAD-PACK-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-LOAD-PACK-VAL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-VLOAD-NUM-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-VLOAD-NUM-VAL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-VLOAD-PACK-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-VLOAD-PACK-VAL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-VLOAD-SPLAT-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-VLOAD-SPLAT-VAL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-VLOAD-ZERO-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-VLOAD-ZERO-VAL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-VLOAD_LANE-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-VLOAD_LANE-VAL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-MEMORY.SIZE
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-MEMORY.FILL-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-MEMORY.FILL-ZERO
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-MEMORY.FILL-SUCC
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-MEMORY.COPY-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-MEMORY.COPY-ZERO
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-MEMORY.COPY-LE
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-MEMORY.COPY-GT
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-MEMORY.INIT-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-MEMORY.INIT-ZERO
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-MEMORY.INIT-SUCC
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-REF.NULL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-REF.FUNC
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-REF.TEST-TRUE
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-REF.TEST-FALSE
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-REF.CAST-SUCCEED
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-REF.CAST-FAIL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-STRUCT.NEW_DEFAULT
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-STRUCT.GET-NULL
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-STRUCT.GET-STRUCT
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.NEW_DEFAULT
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.NEW_ELEM-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.NEW_ELEM-ALLOC
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.NEW_DATA-OOB
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.NEW_DATA-NUM
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.GET-NULL
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.GET-OOB
+Subgoal 4
+Subgoal 3
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.GET-ARRAY
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.LEN-NULL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.LEN-ARRAY
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.FILL-NULL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.FILL-OOB
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.FILL-ZERO
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.FILL-SUCC
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.COPY-NULL1
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.COPY-NULL2
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.COPY-OOB1
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.COPY-OOB2
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.COPY-ZERO
+Subgoal 4
+Subgoal 3
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.COPY-LE
+Subgoal 4
+Subgoal 3
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.COPY-GT
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.INIT_ELEM-NULL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.INIT_ELEM-OOB1
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.INIT_ELEM-OOB2
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.INIT_ELEM-ZERO
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.INIT_ELEM-SUCC
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.INIT_DATA-NULL
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.INIT_DATA-OOB1
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.INIT_DATA-OOB2
+Goal'
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.INIT_DATA-ZERO
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP_READ/SPLIT/R-ARRAY.INIT_DATA-NUM
+Goal'
+SHAPE W3T::STEP/R-CALL_REF-NULL
+Goal'
+SHAPE-FAILED W3T::STEP/R-CALL_REF-FUNC
+Goal'
+SHAPE-FAILED W3T::STEP/R-CALL_REF-HOSTFUNC-RES
+Goal'
+SHAPE-FAILED W3T::STEP/R-CALL_REF-HOSTFUNC-DIV
+Goal'
+SHAPE-FAILED W3T::STEP/R-THROW
+Goal'
+SHAPE W3T::STEP/R-LOCAL.SET
+Goal'
+SHAPE W3T::STEP/R-GLOBAL.SET
+Goal'
+SHAPE W3T::STEP/R-TABLE.SET-OOB
+Goal'
+SHAPE W3T::STEP/R-TABLE.SET-VAL
+Goal'
+SHAPE W3T::STEP/R-TABLE.GROW-SUCCEED
+Goal'
+SHAPE W3T::STEP/R-TABLE.GROW-FAIL
+Goal'
+SHAPE W3T::STEP/R-ELEM.DROP
+Goal'
+SHAPE W3T::STEP/R-STORE-NUM-OOB
+Goal'
+SHAPE W3T::STEP/R-STORE-NUM-VAL
+Goal'
+SHAPE W3T::STEP/R-STORE-PACK-OOB
+Goal'
+SHAPE W3T::STEP/R-STORE-PACK-VAL
+Goal'
+SHAPE W3T::STEP/R-VSTORE-OOB
+Goal'
+SHAPE W3T::STEP/R-VSTORE-VAL
+Goal'
+SHAPE W3T::STEP/R-VSTORE_LANE-OOB
+Goal'
+SHAPE W3T::STEP/R-VSTORE_LANE-VAL
+Goal'
+SHAPE W3T::STEP/R-MEMORY.GROW-SUCCEED
+Goal'
+SHAPE W3T::STEP/R-MEMORY.GROW-FAIL
+Goal'
+SHAPE W3T::STEP/R-DATA.DROP
+Goal'
+SHAPE-FAILED W3T::STEP/R-STRUCT.NEW
+Goal'
+SHAPE W3T::STEP/R-STRUCT.SET-NULL
+Goal'
+SHAPE W3T::STEP/R-STRUCT.SET-STRUCT
+Subgoal 2
+SHAPE-FAILED W3T::STEP/R-ARRAY.NEW_FIXED
+Goal'
+SHAPE W3T::STEP/R-ARRAY.SET-NULL
+Goal'
+SHAPE W3T::STEP/R-ARRAY.SET-OOB
+Subgoal 2
+Subgoal 1
+SHAPE W3T::STEP/R-ARRAY.SET-ARRAY
+ NIL
+WE !> (PROOF-TREE PROVE EVENT COMMON-LISP::WARNING
+             WARNING! OBSERVATION)
+WE !>
+Summary
+Form:  ( DEFUN MATCH-FN-P ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ MATCH-FN-P
+WE !>
+Summary
+Form:  ( DEFUN MATCH-FNS ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ MATCH-FNS
+WE !>
+Summary
+Form:  ( DEFUN MATCH-LEMMA ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ MATCH-LEMMA
+WE !>
+Summary
+Form:  ( DEFUN MATCH-LEMMAS ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ MATCH-LEMMAS
+WE !> 50000000
+WE !> (PROOF-TREE PROVE
+             EVENT COMMON-LISP::WARNING WARNING!
+             OBSERVATION SUMMARY COMMON-LISP::ERROR)
+WE !>Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP/MATCH254
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/3.2
+Subgoal *1/3.2'
+Subgoal *1/3.2''
+Subgoal *1/3.2'''
+Subgoal *1/3.2'4'
+Subgoal *1/3.2.3
+Subgoal *1/3.2.3'
+Subgoal *1/3.2.3''
+Subgoal *1/3.2.3'''
+Subgoal *1/3.2.2
+Subgoal *1/3.2.2'
+Subgoal *1/3.2.2''
+Subgoal *1/3.2.2'''
+Subgoal *1/3.2.1
+Subgoal *1/3.2.1'
+Subgoal *1/3.2.1''
+Subgoal *1/3.2.1'''
+Subgoal *1/3.1
+Subgoal *1/3.1'
+Subgoal *1/3.1''
+Subgoal *1/3.1'''
+Subgoal *1/3.1'4'
+Subgoal *1/3.1.3
+Subgoal *1/3.1.3'
+Subgoal *1/3.1.3''
+Subgoal *1/3.1.3'''
+Subgoal *1/3.1.2
+Subgoal *1/3.1.2'
+Subgoal *1/3.1.2''
+Subgoal *1/3.1.2'''
+Subgoal *1/3.1.1
+Subgoal *1/3.1.1'
+Subgoal *1/3.1.1''
+Subgoal *1/3.1.1'''
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH-FAILED W3T::STEP/MATCH248
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/3.2
+Subgoal *1/3.2'
+Subgoal *1/3.2''
+Subgoal *1/3.2'''
+Subgoal *1/3.2'4'
+Subgoal *1/3.2.3
+Subgoal *1/3.2.3'
+Subgoal *1/3.2.3''
+Subgoal *1/3.2.3'''
+Subgoal *1/3.2.2
+Subgoal *1/3.2.2'
+Subgoal *1/3.2.2''
+Subgoal *1/3.2.2'''
+Subgoal *1/3.2.1
+Subgoal *1/3.2.1'
+Subgoal *1/3.2.1''
+Subgoal *1/3.2.1'''
+Subgoal *1/3.1
+Subgoal *1/3.1'
+Subgoal *1/3.1''
+Subgoal *1/3.1'''
+Subgoal *1/3.1'4'
+Subgoal *1/3.1.3
+Subgoal *1/3.1.3'
+Subgoal *1/3.1.3''
+Subgoal *1/3.1.3'''
+Subgoal *1/3.1.2
+Subgoal *1/3.1.2'
+Subgoal *1/3.1.2''
+Subgoal *1/3.1.2'''
+Subgoal *1/3.1.1
+Subgoal *1/3.1.1'
+Subgoal *1/3.1.1''
+Subgoal *1/3.1.1'''
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH-FAILED W3T::STEP/MATCH232
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP/MATCH224
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP/MATCH105
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP/MATCH89
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP/MATCH71
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/3''
+Subgoal *1/3'''
+Subgoal *1/3'4'
+Subgoal *1/3'5'
+Subgoal *1/3'6'
+Subgoal *1/3'7'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH-FAILED W3T::STEP/MATCH58
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP/MATCH50
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP/MATCH13
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/3.2
+Subgoal *1/3.2'
+Subgoal *1/3.2''
+Subgoal *1/3.2'''
+Subgoal *1/3.2'4'
+Subgoal *1/3.2.3
+Subgoal *1/3.2.3'
+Subgoal *1/3.2.3''
+Subgoal *1/3.2.3'''
+Subgoal *1/3.2.2
+Subgoal *1/3.2.2'
+Subgoal *1/3.2.2''
+Subgoal *1/3.2.2'''
+Subgoal *1/3.2.1
+Subgoal *1/3.2.1'
+Subgoal *1/3.2.1''
+Subgoal *1/3.2.1'''
+Subgoal *1/3.1
+Subgoal *1/3.1'
+Subgoal *1/3.1''
+Subgoal *1/3.1'''
+Subgoal *1/3.1'4'
+Subgoal *1/3.1.3
+Subgoal *1/3.1.3'
+Subgoal *1/3.1.3''
+Subgoal *1/3.1.3'''
+Subgoal *1/3.1.2
+Subgoal *1/3.1.2'
+Subgoal *1/3.1.2''
+Subgoal *1/3.1.2'''
+Subgoal *1/3.1.1
+Subgoal *1/3.1.1'
+Subgoal *1/3.1.1''
+Subgoal *1/3.1.1'''
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH-FAILED W3T::STEP_READ/SPLIT/MATCH573
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/3.2
+Subgoal *1/3.2'
+Subgoal *1/3.2''
+Subgoal *1/3.2'''
+Subgoal *1/3.2'4'
+Subgoal *1/3.2.3
+Subgoal *1/3.2.3'
+Subgoal *1/3.2.3''
+Subgoal *1/3.2.3'''
+Subgoal *1/3.2.2
+Subgoal *1/3.2.2'
+Subgoal *1/3.2.2''
+Subgoal *1/3.2.2'''
+Subgoal *1/3.2.1
+Subgoal *1/3.2.1'
+Subgoal *1/3.2.1''
+Subgoal *1/3.2.1'''
+Subgoal *1/3.1
+Subgoal *1/3.1'
+Subgoal *1/3.1''
+Subgoal *1/3.1'''
+Subgoal *1/3.1'4'
+Subgoal *1/3.1.3
+Subgoal *1/3.1.3'
+Subgoal *1/3.1.3''
+Subgoal *1/3.1.3'''
+Subgoal *1/3.1.2
+Subgoal *1/3.1.2'
+Subgoal *1/3.1.2''
+Subgoal *1/3.1.2'''
+Subgoal *1/3.1.1
+Subgoal *1/3.1.1'
+Subgoal *1/3.1.1''
+Subgoal *1/3.1.1'''
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH-FAILED W3T::STEP_READ/SPLIT/MATCH554
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/SPLIT/MATCH198
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/SPLIT/MATCH127
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/SPLIT/MATCH106
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/SPLIT/MATCH102
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/SPLIT/MATCH84
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/SPLIT/MATCH69
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/SPLIT/MATCH54
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/SPLIT/MATCH16
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/SPLIT/MATCH3
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH858
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/3.2
+Subgoal *1/3.2'
+Subgoal *1/3.2''
+Subgoal *1/3.2'''
+Subgoal *1/3.2'4'
+Subgoal *1/3.2.3
+Subgoal *1/3.2.3'
+Subgoal *1/3.2.3''
+Subgoal *1/3.2.3'''
+Subgoal *1/3.2.2
+Subgoal *1/3.2.2'
+Subgoal *1/3.2.2''
+Subgoal *1/3.2.2'''
+Subgoal *1/3.2.1
+Subgoal *1/3.2.1'
+Subgoal *1/3.2.1''
+Subgoal *1/3.2.1'''
+Subgoal *1/3.1
+Subgoal *1/3.1'
+Subgoal *1/3.1''
+Subgoal *1/3.1'''
+Subgoal *1/3.1'4'
+Subgoal *1/3.1.3
+Subgoal *1/3.1.3'
+Subgoal *1/3.1.3''
+Subgoal *1/3.1.3'''
+Subgoal *1/3.1.2
+Subgoal *1/3.1.2'
+Subgoal *1/3.1.2''
+Subgoal *1/3.1.2'''
+Subgoal *1/3.1.1
+Subgoal *1/3.1.1'
+Subgoal *1/3.1.1''
+Subgoal *1/3.1.1'''
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH-FAILED W3T::STEP_READ/MATCH824
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/3.2
+Subgoal *1/3.2'
+Subgoal *1/3.2''
+Subgoal *1/3.2'''
+Subgoal *1/3.2'4'
+Subgoal *1/3.2.3
+Subgoal *1/3.2.3'
+Subgoal *1/3.2.3''
+Subgoal *1/3.2.3'''
+Subgoal *1/3.2.2
+Subgoal *1/3.2.2'
+Subgoal *1/3.2.2''
+Subgoal *1/3.2.2'''
+Subgoal *1/3.2.1
+Subgoal *1/3.2.1'
+Subgoal *1/3.2.1''
+Subgoal *1/3.2.1'''
+Subgoal *1/3.1
+Subgoal *1/3.1'
+Subgoal *1/3.1''
+Subgoal *1/3.1'''
+Subgoal *1/3.1'4'
+Subgoal *1/3.1.3
+Subgoal *1/3.1.3'
+Subgoal *1/3.1.3''
+Subgoal *1/3.1.3'''
+Subgoal *1/3.1.2
+Subgoal *1/3.1.2'
+Subgoal *1/3.1.2''
+Subgoal *1/3.1.2'''
+Subgoal *1/3.1.1
+Subgoal *1/3.1.1'
+Subgoal *1/3.1.1''
+Subgoal *1/3.1.1'''
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH-FAILED W3T::STEP_READ/MATCH805
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH797
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH254
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH215
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH201
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH158
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH133
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH129
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH110
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH93
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH76
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH20
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_READ/MATCH3
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH166
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH160
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH149
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH135
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH121
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH117
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH107
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH73
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH59
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH45
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH41
+Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+MATCH W3T::STEP_PURE/MATCH30
+ NIL
+WE !> (PROOF-TREE PROVE EVENT COMMON-LISP::WARNING
+             WARNING! OBSERVATION)
+WE !>
+Summary
+Form:  ( DEFUN SPEC-DEF-RUNES ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ SPEC-DEF-RUNES
+WE !>
+Summary
+Form:  ( DEFTHEORY SPEC-DEFS-THEORY ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ 2185
+WE !>
+Summary
+Form:  ( IN-THEORY (DISABLE ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ (:NUMBER-OF-ENABLED-RUNES 13079)
+WE !>Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/2.2
+Subgoal *1/2.2'
+Subgoal *1/2.2.2
+Subgoal *1/2.2.1
+Subgoal *1/2.2.1'
+Subgoal *1/2.1
+Subgoal *1/2.1.2
+Subgoal *1/2.1.1
+Subgoal *1/2.1.1'
+Subgoal *1/1
+Subgoal *1/1'
+Subgoal *1/1''
+
+Summary
+Form:  ( DEFTHM REDEX-SHAPE-P-OF-NTHCDR-1 ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::ZP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION FIX)
+        (:DEFINITION NOT)
+        (:DEFINITION NTH)
+        (:DEFINITION NTHCDR)
+        (:DEFINITION SYNP)
+        (:ELIM CAR-CDR-ELIM)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART NATP)
+        (:EXECUTABLE-COUNTERPART NOT)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART ZP)
+        (:FAKE-RUNE-FOR-LINEAR-EQUALITIES NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING LEN-CDR-CONSP)
+        (:FORWARD-CHAINING ACL2::NATP-FC-1)
+        (:INDUCTION CDR-N-INDUCT)
+        (:REWRITE COMMUTATIVITY-OF-+)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::LEFT-CANCELLATION-FOR-+)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-LEFT)
+        (:REWRITE ACL2::NATP-POSP--1)
+        (:REWRITE ACL2::NTH-WHEN-ZP)
+        (:REWRITE ACL2::NTHCDR-OF-CDR)
+        (:REWRITE ACL2::OPEN-SMALL-NTHCDR)
+        (:REWRITE REDEX-SHAPE-P-WHEN-NOT-CONSP-CDR)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION REDEX-SHAPE-P))
+Time:  0.04 seconds (prove: 0.04, print: 0.00, other: 0.00)
+Prover steps counted:  18484
+ REDEX-SHAPE-P-OF-NTHCDR-1
+WE !>Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/2.9
+Subgoal *1/2.9'
+Subgoal *1/2.9''
+Subgoal *1/2.9.2
+Subgoal *1/2.9.1
+Subgoal *1/2.9.1'
+Subgoal *1/2.8
+Subgoal *1/2.8.2
+Subgoal *1/2.8.2'
+Subgoal *1/2.8.2.2
+Subgoal *1/2.8.2.1
+Subgoal *1/2.8.2.1'
+Subgoal *1/2.8.1
+Subgoal *1/2.8.1'
+Subgoal *1/2.8.1.2
+Subgoal *1/2.8.1.1
+Subgoal *1/2.8.1.1'
+Subgoal *1/2.7
+Subgoal *1/2.7'
+Subgoal *1/2.7''
+Subgoal *1/2.7.2
+Subgoal *1/2.7.1
+Subgoal *1/2.7.1'
+Subgoal *1/2.6
+Subgoal *1/2.6'
+Subgoal *1/2.6.2
+Subgoal *1/2.6.1
+Subgoal *1/2.6.1'
+Subgoal *1/2.5
+Subgoal *1/2.5.2
+Subgoal *1/2.5.2'
+Subgoal *1/2.5.2.2
+Subgoal *1/2.5.2.1
+Subgoal *1/2.5.2.1'
+Subgoal *1/2.5.1
+Subgoal *1/2.5.1.2
+Subgoal *1/2.5.1.1
+Subgoal *1/2.5.1.1'
+Subgoal *1/2.4
+Subgoal *1/2.4'
+Subgoal *1/2.4''
+Subgoal *1/2.4.2
+Subgoal *1/2.4.1
+Subgoal *1/2.4.1'
+Subgoal *1/2.3
+Subgoal *1/2.2
+Subgoal *1/2.1
+Subgoal *1/1
+Subgoal *1/1'
+Subgoal *1/1''
+
+Summary
+Form:  ( DEFTHM REDEX-SHAPE-P-OF-NTHCDR-2 ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::ZP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION NOT)
+        (:DEFINITION NTH)
+        (:DEFINITION NTHCDR)
+        (:DEFINITION REDEX-SHAPE-P)
+        (:DEFINITION SYNP)
+        (:ELIM CAR-CDR-ELIM)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART CAR)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART NATP)
+        (:EXECUTABLE-COUNTERPART NOT)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART TAU-SYSTEM)
+        (:EXECUTABLE-COUNTERPART ZP)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-LINEAR-EQUALITIES NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING LEN-CDR-CONSP)
+        (:FORWARD-CHAINING ACL2::NATP-FC-1)
+        (:INDUCTION CDR-N-INDUCT)
+        (:REWRITE COMMUTATIVITY-OF-+)
+        (:REWRITE DEFAULT-CAR)
+        (:REWRITE DEFAULT-CDR)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::FOLD-CONSTS-IN-+)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::NATP-POSP--1)
+        (:REWRITE ACL2::NTH-WHEN-ZP)
+        (:REWRITE ACL2::NTHCDR-OF-CDR)
+        (:REWRITE ACL2::OPEN-SMALL-NTHCDR)
+        (:REWRITE REDEX-SHAPE-P-WHEN-CONSP-CDR)
+        (:REWRITE REDEX-SHAPE-P-WHEN-NOT-CONSP-CDR)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION REDEX-SHAPE-P)
+        (:TYPE-PRESCRIPTION VALUE-HEAD-P))
+Time:  0.23 seconds (prove: 0.23, print: 0.00, other: 0.00)
+Prover steps counted:  109931
+ REDEX-SHAPE-P-OF-NTHCDR-2
+WE !>
+Summary
+Form:  ( DEFMACRO TAIL-SHAPE-LEMMA ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ TAIL-SHAPE-LEMMA
+WE !>Goal'
+Goal''
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM STEP_READ/SPLIT/R-BLOCK-FAILS-WHEN-NOT-SHAPE ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION FIX)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP_READ/SPLIT/R-BLOCK)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART <)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART FIX)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART NFIX)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-WHEN-STEP_READ/SPLIT/MATCH3)
+        (:META ACL2::CANCEL_PLUS-LESSP-CORRECT)
+        (:REWRITE ACL2::<-+-NEGATIVE-0-1)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CAR-OF-NTHCDR)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::DISTRIBUTIVITY-OF-MINUS-OVER-+)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::LEN-OF-NTHCDR)
+        (:REWRITE ACL2::LEN-OF-TAKE)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-LEFT)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-RIGHT)
+        (:REWRITE ACL2::NATP-POSP--1)
+        (:REWRITE REDEX-SHAPE-P-OF-NTHCDR-1)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION POSP)
+        (:TYPE-PRESCRIPTION W3T::STEP_READ/SPLIT/MATCH3))
+Hint-events: ((:USE REDEX-SHAPE-P-OF-VALS-THEN-TAIL))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3329
+STEP_READ/SPLIT/R-BLOCK-FAILS-WHEN-NOT-SHAPE
+SHAPE W3T::STEP_READ/SPLIT/R-BLOCK
+NIL
+
+Summary
+Form:  ( PROGN (WITH-PROVER-STEP-LIMIT 2000000 ...) ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3329
+
+Summary
+Form:  ( MAKE-EVENT (QUOTE ...))
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3329
+ NIL
+WE !>Goal'
+Goal''
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM STEP_READ/SPLIT/R-LOOP-FAILS-WHEN-NOT-SHAPE ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION FIX)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP_READ/SPLIT/R-LOOP)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART <)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART FIX)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART NFIX)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-WHEN-STEP_READ/SPLIT/MATCH16)
+        (:META ACL2::CANCEL_PLUS-LESSP-CORRECT)
+        (:REWRITE ACL2::<-+-NEGATIVE-0-1)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CAR-OF-NTHCDR)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::DISTRIBUTIVITY-OF-MINUS-OVER-+)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::LEN-OF-NTHCDR)
+        (:REWRITE ACL2::LEN-OF-TAKE)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-LEFT)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-RIGHT)
+        (:REWRITE ACL2::NATP-POSP--1)
+        (:REWRITE REDEX-SHAPE-P-OF-NTHCDR-1)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION POSP)
+        (:TYPE-PRESCRIPTION W3T::STEP_READ/SPLIT/MATCH16))
+Hint-events: ((:USE REDEX-SHAPE-P-OF-VALS-THEN-TAIL))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3415
+STEP_READ/SPLIT/R-LOOP-FAILS-WHEN-NOT-SHAPE
+SHAPE W3T::STEP_READ/SPLIT/R-LOOP
+NIL
+
+Summary
+Form:  ( PROGN (WITH-PROVER-STEP-LIMIT 2000000 ...) ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3415
+
+Summary
+Form:  ( MAKE-EVENT (QUOTE ...))
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3415
+ NIL
+WE !>Goal'
+Goal''
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM STEP_READ/SPLIT/R-TRY_TABLE-FAILS-WHEN-NOT-SHAPE ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION FIX)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP_READ/SPLIT/R-TRY_TABLE)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART <)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART FIX)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART NFIX)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-WHEN-STEP_READ/SPLIT/MATCH198)
+        (:META ACL2::CANCEL_PLUS-LESSP-CORRECT)
+        (:REWRITE ACL2::<-+-NEGATIVE-0-1)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CAR-OF-NTHCDR)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::DISTRIBUTIVITY-OF-MINUS-OVER-+)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::LEN-OF-NTHCDR)
+        (:REWRITE ACL2::LEN-OF-TAKE)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-LEFT)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-RIGHT)
+        (:REWRITE ACL2::NATP-POSP--1)
+        (:REWRITE REDEX-SHAPE-P-OF-NTHCDR-1)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION POSP)
+        (:TYPE-PRESCRIPTION W3T::STEP_READ/SPLIT/MATCH198))
+Hint-events: ((:USE REDEX-SHAPE-P-OF-VALS-THEN-TAIL))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3689
+STEP_READ/SPLIT/R-TRY_TABLE-FAILS-WHEN-NOT-SHAPE
+SHAPE W3T::STEP_READ/SPLIT/R-TRY_TABLE
+NIL
+
+Summary
+Form:  ( PROGN (WITH-PROVER-STEP-LIMIT 2000000 ...) ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3689
+
+Summary
+Form:  ( MAKE-EVENT (QUOTE ...))
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3689
+ NIL
+WE !>Goal'
+Goal''
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM STEP/R-THROW-FAILS-WHEN-NOT-SHAPE ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION FIX)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP/R-THROW)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART <)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART FIX)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART NFIX)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-WHEN-STEP/MATCH105)
+        (:META ACL2::CANCEL_PLUS-LESSP-CORRECT)
+        (:REWRITE ACL2::<-+-NEGATIVE-0-1)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CAR-OF-NTHCDR)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::DISTRIBUTIVITY-OF-MINUS-OVER-+)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::LEN-OF-NTHCDR)
+        (:REWRITE ACL2::LEN-OF-TAKE)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-LEFT)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-RIGHT)
+        (:REWRITE ACL2::NATP-POSP--1)
+        (:REWRITE REDEX-SHAPE-P-OF-NTHCDR-1)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION POSP)
+        (:TYPE-PRESCRIPTION W3T::STEP/MATCH105))
+Hint-events: ((:USE REDEX-SHAPE-P-OF-VALS-THEN-TAIL))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3783
+STEP/R-THROW-FAILS-WHEN-NOT-SHAPE
+SHAPE W3T::STEP/R-THROW
+NIL
+
+Summary
+Form:  ( PROGN (WITH-PROVER-STEP-LIMIT 2000000 ...) ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3783
+
+Summary
+Form:  ( MAKE-EVENT (QUOTE ...))
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3783
+ NIL
+WE !>Goal'
+Goal''
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM STEP/R-STRUCT.NEW-FAILS-WHEN-NOT-SHAPE ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION FIX)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP/R-STRUCT.NEW)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART <)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART FIX)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART NFIX)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-WHEN-STEP/MATCH224)
+        (:META ACL2::CANCEL_PLUS-LESSP-CORRECT)
+        (:REWRITE ACL2::<-+-NEGATIVE-0-1)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CAR-OF-NTHCDR)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::DISTRIBUTIVITY-OF-MINUS-OVER-+)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::LEN-OF-NTHCDR)
+        (:REWRITE ACL2::LEN-OF-TAKE)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-LEFT)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-RIGHT)
+        (:REWRITE ACL2::NATP-POSP--1)
+        (:REWRITE REDEX-SHAPE-P-OF-NTHCDR-1)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION POSP)
+        (:TYPE-PRESCRIPTION W3T::STEP/MATCH224))
+Hint-events: ((:USE REDEX-SHAPE-P-OF-VALS-THEN-TAIL))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3255
+STEP/R-STRUCT.NEW-FAILS-WHEN-NOT-SHAPE
+SHAPE W3T::STEP/R-STRUCT.NEW
+NIL
+
+Summary
+Form:  ( PROGN (WITH-PROVER-STEP-LIMIT 2000000 ...) ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3255
+
+Summary
+Form:  ( MAKE-EVENT (QUOTE ...))
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3255
+ NIL
+WE !>Goal'
+Goal''
+Subgoal 4
+Subgoal 3
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM STEP/R-ARRAY.NEW_FIXED-FAILS-WHEN-NOT-SHAPE ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION FIX)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP/R-ARRAY.NEW_FIXED)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART <)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART FIX)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART NFIX)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-WHEN-STEP/MATCH254)
+        (:META ACL2::CANCEL_PLUS-LESSP-CORRECT)
+        (:REWRITE ACL2::<-+-NEGATIVE-0-1)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CAR-OF-NTHCDR)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::DISTRIBUTIVITY-OF-MINUS-OVER-+)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::LEN-OF-NTHCDR)
+        (:REWRITE ACL2::LEN-OF-TAKE)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-LEFT)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-RIGHT)
+        (:REWRITE ACL2::NATP-POSP--1)
+        (:REWRITE REDEX-SHAPE-P-OF-NTHCDR-1)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION POSP)
+        (:TYPE-PRESCRIPTION W3T::STEP/MATCH254))
+Hint-events: ((:USE REDEX-SHAPE-P-OF-VALS-THEN-TAIL))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  5237
+STEP/R-ARRAY.NEW_FIXED-FAILS-WHEN-NOT-SHAPE
+SHAPE W3T::STEP/R-ARRAY.NEW_FIXED
+NIL
+
+Summary
+Form:  ( PROGN (WITH-PROVER-STEP-LIMIT 2000000 ...) ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  5237
+
+Summary
+Form:  ( MAKE-EVENT (QUOTE ...))
+Rules: NIL
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  5237
+ NIL
+WE !>Goal'
+Goal''
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM STEP/R-CALL_REF-FUNC-FAILS-WHEN-NOT-SHAPE ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::ZP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION FIX)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP/R-CALL_REF-FUNC)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART FIX)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART NFIX)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:EXECUTABLE-COUNTERPART VALUE-HEAD-P)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-WHEN-STEP/MATCH50)
+        (:META ACL2::CANCEL_PLUS-LESSP-CORRECT)
+        (:REWRITE ACL2::<-+-NEGATIVE-0-1)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CAR-OF-NTHCDR)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::DISTRIBUTIVITY-OF-MINUS-OVER-+)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::LEN-OF-NTHCDR)
+        (:REWRITE ACL2::LEN-OF-TAKE)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-LEFT)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-RIGHT)
+        (:REWRITE ACL2::NTHCDR-WHEN-ZP)
+        (:REWRITE REDEX-SHAPE-P-OF-NTHCDR-2)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION NATP)
+        (:TYPE-PRESCRIPTION W3T::STEP/MATCH50))
+Hint-events: ((:USE REDEX-SHAPE-P-OF-VALS-THEN-TAIL))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  7871
+STEP/R-CALL_REF-FUNC-FAILS-WHEN-NOT-SHAPE
+SHAPE W3T::STEP/R-CALL_REF-FUNC
+NIL
+
+Summary
+Form:  ( PROGN (WITH-PROVER-STEP-LIMIT 2000000 ...) ...)
+Rules: NIL
+Time:  0.02 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  7871
+
+Summary
+Form:  ( MAKE-EVENT (QUOTE ...))
+Rules: NIL
+Time:  0.02 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  7871
+ NIL
+WE !>Goal'
+Goal''
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM STEP/R-CALL_REF-HOSTFUNC-RES-FAILS-WHEN-NOT-SHAPE ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::ZP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION FIX)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP/R-CALL_REF-HOSTFUNC-RES)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART FIX)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART NFIX)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:EXECUTABLE-COUNTERPART VALUE-HEAD-P)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-WHEN-STEP/MATCH71)
+        (:META ACL2::CANCEL_PLUS-LESSP-CORRECT)
+        (:REWRITE ACL2::|(< 0 (len x))|)
+        (:REWRITE ACL2::<-+-NEGATIVE-0-1)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CAR-OF-NTHCDR)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::DISTRIBUTIVITY-OF-MINUS-OVER-+)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::LEN-OF-NTHCDR)
+        (:REWRITE ACL2::LEN-OF-TAKE)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-LEFT)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-RIGHT)
+        (:REWRITE ACL2::NTHCDR-WHEN-ZP)
+        (:REWRITE REDEX-SHAPE-P-OF-NTHCDR-2)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION NATP)
+        (:TYPE-PRESCRIPTION W3T::STEP/MATCH71))
+Hint-events: ((:USE REDEX-SHAPE-P-OF-VALS-THEN-TAIL))
+Time:  0.02 seconds (prove: 0.02, print: 0.00, other: 0.00)
+Prover steps counted:  9262
+STEP/R-CALL_REF-HOSTFUNC-RES-FAILS-WHEN-NOT-SHAPE
+SHAPE W3T::STEP/R-CALL_REF-HOSTFUNC-RES
+NIL
+
+Summary
+Form:  ( PROGN (WITH-PROVER-STEP-LIMIT 2000000 ...) ...)
+Rules: NIL
+Time:  0.02 seconds (prove: 0.02, print: 0.00, other: 0.00)
+Prover steps counted:  9262
+
+Summary
+Form:  ( MAKE-EVENT (QUOTE ...))
+Rules: NIL
+Time:  0.02 seconds (prove: 0.02, print: 0.00, other: 0.00)
+Prover steps counted:  9262
+ NIL
+WE !>Goal'
+Goal''
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM STEP/R-CALL_REF-HOSTFUNC-DIV-FAILS-WHEN-NOT-SHAPE ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::ZP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION FIX)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP/R-CALL_REF-HOSTFUNC-DIV)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART FIX)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART NFIX)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:EXECUTABLE-COUNTERPART VALUE-HEAD-P)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-WHEN-STEP/MATCH89)
+        (:META ACL2::CANCEL_PLUS-LESSP-CORRECT)
+        (:REWRITE ACL2::|(< 0 (len x))|)
+        (:REWRITE ACL2::<-+-NEGATIVE-0-1)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CAR-OF-NTHCDR)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::DISTRIBUTIVITY-OF-MINUS-OVER-+)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::LEN-OF-NTHCDR)
+        (:REWRITE ACL2::LEN-OF-TAKE)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-LEFT)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-RIGHT)
+        (:REWRITE ACL2::NTHCDR-WHEN-ZP)
+        (:REWRITE REDEX-SHAPE-P-OF-NTHCDR-2)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION NATP)
+        (:TYPE-PRESCRIPTION W3T::STEP/MATCH89))
+Hint-events: ((:USE REDEX-SHAPE-P-OF-VALS-THEN-TAIL))
+Time:  0.02 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  7709
+STEP/R-CALL_REF-HOSTFUNC-DIV-FAILS-WHEN-NOT-SHAPE
+SHAPE W3T::STEP/R-CALL_REF-HOSTFUNC-DIV
+NIL
+
+Summary
+Form:  ( PROGN (WITH-PROVER-STEP-LIMIT 2000000 ...) ...)
+Rules: NIL
+Time:  0.02 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  7709
+
+Summary
+Form:  ( MAKE-EVENT (QUOTE ...))
+Rules: NIL
+Time:  0.02 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  7709
+ NIL
+WE !>Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/2.4
+Subgoal *1/2.3
+Subgoal *1/2.3'
+Subgoal *1/2.3''
+Subgoal *1/2.2
+Subgoal *1/2.1
+Subgoal *1/1
+Subgoal *1/1'
+Subgoal *1/1''
+Subgoal *1/1'''
+
+Summary
+Form:  ( DEFTHM PREFIX7-WHEN-VALS-THEN-NONVAL ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::ZP-COMPOUND-RECOGNIZER)
+        (:DEFINITION FIX)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION NTH)
+        (:DEFINITION W3T::STEP/PREFIX7)
+        (:DEFINITION TAKE)
+        (:DEFINITION VALS-P)
+        (:ELIM CAR-CDR-ELIM)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART NATP)
+        (:EXECUTABLE-COUNTERPART NOT)
+        (:EXECUTABLE-COUNTERPART TAU-SYSTEM)
+        (:EXECUTABLE-COUNTERPART W3T::VAL-P)
+        (:EXECUTABLE-COUNTERPART VALS-P)
+        (:EXECUTABLE-COUNTERPART ZP)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-LINEAR-EQUALITIES NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING ACL2::NATP-FC-1)
+        (:INDUCTION CDR-N-INDUCT)
+        (:REWRITE ACL2::|(< 0 (len x))|)
+        (:REWRITE ACL2::<-+-NEGATIVE-0-1)
+        (:REWRITE ASSOCIATIVITY-OF-+)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::MINUS-CANCELLATION-ON-LEFT)
+        (:REWRITE ACL2::NATP-POSP--1)
+        (:REWRITE ACL2::NTH-WHEN-TOO-LARGE-CHEAP)
+        (:REWRITE ACL2::NTH-WHEN-ZP)
+        (:REWRITE ACL2::TAKE-OF-TOO-MANY)
+        (:REWRITE ACL2::TAKE-OF-ZERO)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION ACL2::REPEAT)
+        (:TYPE-PRESCRIPTION TAKE)
+        (:TYPE-PRESCRIPTION ACL2::TRUE-LISTP-APPEND)
+        (:TYPE-PRESCRIPTION W3T::VAL-P))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  3511
+ PREFIX7-WHEN-VALS-THEN-NONVAL
+WE !>
+Summary
+Form:  ( DEFTHM NOT-VAL-P-WHEN-HEAD-NOT-VALUE ...)
+Rules: ((:FORWARD-CHAINING VAL-P-HEAD)
+        (:TYPE-PRESCRIPTION W3T::VAL-P))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ NOT-VAL-P-WHEN-HEAD-NOT-VALUE
+WE !>Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+Subgoal *1/1'
+Subgoal *1/1.2
+Subgoal *1/1.1
+
+Summary
+Form:  ( DEFTHM STEP_PURE/SEARCH171-GIVES-TRAP ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION EQ)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP_PURE/SEARCH171)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART TRUE-LISTP)
+        (:EXECUTABLE-COUNTERPART VALUE-HEAD-P)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-WHEN-STEP_PURE/MATCH166)
+        (:INDUCTION W3T::STEP_PURE/SEARCH171)
+        (:REWRITE ACL2::|(equal 0 (len x))|)
+        (:REWRITE ACL2::CAR-OF-NTHCDR)
+        (:REWRITE ACL2::CONSP-OF-NTHCDR)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE NOT-VAL-P-WHEN-HEAD-NOT-VALUE)
+        (:REWRITE PREFIX7-WHEN-VALS-THEN-NONVAL)
+        (:REWRITE ACL2::TAKE-OF-TOO-MANY)
+        (:TYPE-PRESCRIPTION W3T::STEP_PURE/MATCH166)
+        (:TYPE-PRESCRIPTION TAKE)
+        (:TYPE-PRESCRIPTION VALS-P))
+Time:  0.02 seconds (prove: 0.02, print: 0.00, other: 0.00)
+Prover steps counted:  7270
+ STEP_PURE/SEARCH171-GIVES-TRAP
+WE !>Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/2.6
+Subgoal *1/2.5
+Subgoal *1/2.4
+Subgoal *1/2.3
+Subgoal *1/2.2
+Subgoal *1/2.1
+Subgoal *1/1
+Subgoal *1/1'
+Subgoal *1/1''
+Subgoal *1/1'''
+Subgoal *1/1.2
+Subgoal *1/1.2'
+Subgoal *1/1.1
+
+Summary
+Form:  ( DEFTHM HEAD-OF-FIRST-NON-VALUE-WHEN-VALS-THEN-THROW_REF ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::POSP-COMPOUND-RECOGNIZER)
+        (:COMPOUND-RECOGNIZER ACL2::ZP-COMPOUND-RECOGNIZER)
+        (:DEFINITION FIX)
+        (:DEFINITION NOT)
+        (:DEFINITION NTH)
+        (:DEFINITION NTHCDR)
+        (:DEFINITION W3T::STEP/PREFIX7)
+        (:DEFINITION SYNP)
+        (:DEFINITION TAKE)
+        (:DEFINITION VALS-P)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART NATP)
+        (:EXECUTABLE-COUNTERPART NOT)
+        (:EXECUTABLE-COUNTERPART TAU-SYSTEM)
+        (:EXECUTABLE-COUNTERPART W3T::VAL-P)
+        (:EXECUTABLE-COUNTERPART VALS-P)
+        (:EXECUTABLE-COUNTERPART VALUE-HEAD-P)
+        (:EXECUTABLE-COUNTERPART ZP)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-LINEAR-EQUALITIES NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING ACL2::NATP-FC-1)
+        (:INDUCTION CDR-N-INDUCT)
+        (:REWRITE ACL2::<-0-+-NEGATIVE-1)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS)
+        (:REWRITE COMMUTATIVITY-OF-+)
+        (:REWRITE ACL2::FOLD-CONSTS-IN-+)
+        (:REWRITE ACL2::NATP-POSP--1)
+        (:REWRITE NOT-VAL-P-WHEN-HEAD-NOT-VALUE)
+        (:REWRITE ACL2::NTH-WHEN-ZP)
+        (:REWRITE ACL2::NTHCDR-OF-CDR)
+        (:REWRITE ACL2::OPEN-SMALL-NTHCDR)
+        (:REWRITE ACL2::TAKE-OF-ZERO)
+        (:REWRITE UNICITY-OF-0)
+        (:REWRITE ACL2::ZP-OPEN)
+        (:TYPE-PRESCRIPTION W3T::STEP/PREFIX7)
+        (:TYPE-PRESCRIPTION TAKE)
+        (:TYPE-PRESCRIPTION W3T::VAL-P))
+Time:  0.08 seconds (prove: 0.08, print: 0.00, other: 0.00)
+Prover steps counted:  36426
+ HEAD-OF-FIRST-NON-VALUE-WHEN-VALS-THEN-THROW_REF
+WE !>Subgoal *1/3
+Subgoal *1/3'
+Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+Subgoal *1/1'
+Subgoal *1/1.2
+Subgoal *1/1.1
+
+Summary
+Form:  ( DEFTHM STEP_READ/SPLIT/SEARCH134-GIVES-THROW_REF ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::NATP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION EQ)
+        (:DEFINITION NFIX)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP_READ/SPLIT/SEARCH134)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART CONS)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART SUBSETP-EQUAL)
+        (:EXECUTABLE-COUNTERPART TRUE-LISTP)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-WHEN-STEP_READ/SPLIT/MATCH127)
+        (:INDUCTION W3T::STEP_READ/SPLIT/SEARCH134)
+        (:REWRITE ACL2::|(equal 0 (len x))|)
+        (:REWRITE ACL2::CAR-OF-NTHCDR)
+        (:REWRITE ACL2::CONSP-OF-NTHCDR)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE HEAD-OF-FIRST-NON-VALUE-WHEN-VALS-THEN-THROW_REF)
+        (:REWRITE ACL2::MEMBER-OF-CONS)
+        (:REWRITE ACL2::MEMBER-WHEN-ATOM)
+        (:REWRITE ACL2::SUBSETP-MEMBER . 3)
+        (:REWRITE ACL2::TAKE-OF-TOO-MANY)
+        (:TYPE-PRESCRIPTION W3T::STEP_READ/SPLIT/MATCH127)
+        (:TYPE-PRESCRIPTION TAKE)
+        (:TYPE-PRESCRIPTION W3T::VAL-P)
+        (:TYPE-PRESCRIPTION VALS-P))
+Time:  0.05 seconds (prove: 0.04, print: 0.00, other: 0.00)
+Prover steps counted:  18184
+ STEP_READ/SPLIT/SEARCH134-GIVES-THROW_REF
+WE !>Goal'
+
+Summary
+Form:  ( DEFTHM STEP_PURE/R-TRAP-INSTRS-FAILS-WHEN-FIRST-INSTR-NOT-TRAP
+...)
+Rules: ((:DEFINITION NOT)
+        (:DEFINITION W3T::STEP_PURE/R-TRAP-INSTRS)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE STEP_PURE/SEARCH171-GIVES-TRAP)
+        (:TYPE-PRESCRIPTION W3T::STEP_PURE/SEARCH171))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  445
+ STEP_PURE/R-TRAP-INSTRS-FAILS-WHEN-FIRST-INSTR-NOT-TRAP
+WE !>Goal'
+Goal''
+
+Summary
+Form:  ( DEFTHM 
+STEP_READ/SPLIT/R-THROW_REF-INSTRS-FAILS-WHEN-FIRST-INSTR-NOT-THROW_REF
+...)
+Rules: ((:DEFINITION NOT)
+        (:DEFINITION W3T::STEP_READ/SPLIT/R-THROW_REF-INSTRS)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART CONS)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART SUBSETP-EQUAL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE ACL2::MEMBER-OF-CONS)
+        (:REWRITE ACL2::MEMBER-WHEN-ATOM)
+        (:REWRITE ACL2::SUBSETP-MEMBER . 3))
+Hint-events: ((:USE STEP_READ/SPLIT/SEARCH134-GIVES-THROW_REF))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  728
+ STEP_READ/SPLIT/R-THROW_REF-INSTRS-FAILS-WHEN-FIRST-INSTR-NOT-THROW_REF
+WE !>Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+Subgoal *1/1'
+Subgoal *1/1''
+Subgoal *1/1'''
+
+Summary
+Form:  ( DEFTHM PREFIX7-OF-APPEND-OF-VALS-AND-INSTR ...)
+Rules: ((:DEFINITION NOT)
+        (:DEFINITION W3T::STEP/PREFIX7)
+        (:DEFINITION VALS-P)
+        (:ELIM CAR-CDR-ELIM)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART NOT)
+        (:EXECUTABLE-COUNTERPART VALS-P)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-TRUE-LISTP)
+        (:INDUCTION LEN)
+        (:REWRITE ACL2::APPEND-WHEN-NOT-CONSP)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CAR-OF-APPEND)
+        (:REWRITE ACL2::CDR-OF-APPEND-WHEN-CONSP)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:TYPE-PRESCRIPTION BINARY-APPEND)
+        (:TYPE-PRESCRIPTION W3T::VAL-P)
+        (:TYPE-PRESCRIPTION VALS-P))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  1250
+ PREFIX7-OF-APPEND-OF-VALS-AND-INSTR
+WE !>Subgoal *1/2
+Subgoal *1/2'
+Subgoal *1/1
+Subgoal *1/1'
+
+Summary
+Form:  ( DEFTHM REDEX-SHAPE-P-OF-APPEND-OF-VALS-AND-INSTR ...)
+Rules: ((:CONGRUENCE ACL2::SET-EQUIV-IMPLIES-EQUAL-CONSP-1)
+        (:CONGRUENCE ACL2::SET-EQUIV-IMPLIES-SET-EQUIV-CONS-2)
+        (:DEFINITION ATOM)
+        (:DEFINITION NOT)
+        (:DEFINITION REDEX-SHAPE-P)
+        (:DEFINITION VALS-P)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART NOT)
+        (:EXECUTABLE-COUNTERPART VALS-P)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-TRUE-LISTP)
+        (:INDUCTION LEN)
+        (:REWRITE ACL2::APPEND-OF-CONS-UNDER-SET-EQUIV)
+        (:REWRITE ACL2::APPEND-WHEN-NOT-CONSP)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CAR-OF-APPEND)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CDR-OF-APPEND-WHEN-CONSP)
+        (:REWRITE ACL2::COMMUTATIVITY-OF-APPEND-UNDER-SET-EQUIV)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE REDEX-SHAPE-P-WHEN-CONSP-CDR)
+        (:REWRITE VALUE-HEAD-P-OF-CAR-WHEN-VAL-P)
+        (:TYPE-PRESCRIPTION W3T::VAL-P)
+        (:TYPE-PRESCRIPTION VALS-P))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  988
+ REDEX-SHAPE-P-OF-APPEND-OF-VALS-AND-INSTR
+WE !>
+Summary
+Form:  ( DEFTHM CONSP-WHEN-VALS-P-AND-NON-NIL ...)
+Rules: ((:FORWARD-CHAINING VALS-P-TRUE-LISTP)
+        (:TYPE-PRESCRIPTION VALS-P))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ CONSP-WHEN-VALS-P-AND-NON-NIL
+WE !>Goal'
+Goal''
+Goal'''
+
+Summary
+Form:  ( DEFTHM LEN-OF-APPEND-OF-CONS-NOT-1 ...)
+Rules: ((:DEFINITION ATOM)
+        (:DEFINITION FIX)
+        (:DEFINITION NOT)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:FAKE-RUNE-FOR-LINEAR-EQUALITIES NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:META ACL2::CANCEL_PLUS-EQUAL-CORRECT)
+        (:REWRITE ACL2::|(equal 0 (len x))|)
+        (:REWRITE COMMUTATIVITY-OF-+)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE ACL2::LEN-OF-APPEND)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:TYPE-PRESCRIPTION LEN))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  215
+ LEN-OF-APPEND-OF-CONS-NOT-1
+WE !>
+Summary
+Form:  ( DEFTHM STEP_PURE/R-NOP-FAILS-WHEN-NOT-ONE ...)
+Rules: ((:DEFINITION ATOM)
+        (:DEFINITION NOT)
+        (:DEFINITION W3T::STEP_PURE/R-NOP)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE EQUAL-OF-LEN-AND-CONSTANT)
+        (:REWRITE REDEX-SHAPE-P-WHEN-NOT-CONSP-CDR)
+        (:REWRITE STEP_PURE/R-NOP-FAILS-WHEN-NOT-SHAPE))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  171
+ STEP_PURE/R-NOP-FAILS-WHEN-NOT-ONE
+WE !>Goal'
+
+Summary
+Form:  ( DEFTHM STEP_PURE/R-NOP-OF-APPEND-OF-VALS-AND-INSTR ...)
+Rules: NIL
+Hint-events: ((:USE LEN-OF-APPEND-OF-CONS-NOT-1)
+              (:USE STEP_PURE/R-NOP-FAILS-WHEN-NOT-ONE))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ STEP_PURE/R-NOP-OF-APPEND-OF-VALS-AND-INSTR
+WE !> (PROOF-TREE PROVE EVENT COMMON-LISP::WARNING
+             WARNING! OBSERVATION)
+WE !>
+Summary
+Form:  ( DEFTHM STEP_PURE-OF-VALS-NOP-REST ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::ZP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION NFIX)
+        (:DEFINITION W3T::STEP_PURE)
+        (:EXECUTABLE-COUNTERPART CAR)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART W3T::VAL-P)
+        (:EXECUTABLE-COUNTERPART VALUE-HEAD-P)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-TRUE-LISTP)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE INVERSE-OF-+)
+        (:REWRITE ACL2::LOWER-BOUND-OF-LEN-WHEN-SUBLISTP)
+        (:REWRITE ACL2::NTH-OF-APPEND)
+        (:REWRITE ACL2::NTH-WHEN-ZP)
+        (:REWRITE PREFIX7-OF-APPEND-OF-VALS-AND-INSTR)
+        (:REWRITE ACL2::PREFIXP-WHEN-EQUAL-LENGTHS)
+        (:REWRITE REDEX-SHAPE-P-OF-APPEND-OF-VALS-AND-INSTR)
+        (:REWRITE STEP_PURE/R-ANY.CONVERT_EXTERN-ADDR-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-ANY.CONVERT_EXTERN-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-ARRAY.NEW-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BINOP-TRAP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BINOP-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BR-HANDLER-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BR-LABEL-SUCC-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BR-LABEL-ZERO-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BR_IF-FALSE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BR_IF-TRUE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BR_ON_NON_NULL-ADDR-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BR_ON_NON_NULL-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BR_ON_NULL-ADDR-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BR_ON_NULL-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BR_TABLE-GE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-BR_TABLE-LT-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-CALL_INDIRECT-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-CVTOP-TRAP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-CVTOP-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-DROP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-EXTERN.CONVERT_ANY-ADDR-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-EXTERN.CONVERT_ANY-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-FRAME-VALS-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-HANDLER-VALS-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-I31.GET-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-I31.GET-NUM-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-IF-FALSE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-IF-TRUE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-LABEL-VALS-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-LOCAL.TEE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-NOP-OF-APPEND-OF-VALS-AND-INSTR)
+        (:REWRITE STEP_PURE/R-REF.AS_NON_NULL-ADDR-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-REF.AS_NON_NULL-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-REF.EQ-FALSE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-REF.EQ-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-REF.EQ-TRUE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-REF.I31-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-REF.IS_NULL-FALSE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-REF.IS_NULL-TRUE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-RELOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-RETURN-FRAME-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-RETURN-HANDLER-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-RETURN-LABEL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-RETURN_CALL_INDIRECT-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-SELECT-FALSE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-SELECT-TRUE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-TESTOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-TRAP-FRAME-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-TRAP-HANDLER-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-TRAP-INSTRS-FAILS-WHEN-FIRST-INSTR-NOT-TRAP)
+        (:REWRITE STEP_PURE/R-TRAP-LABEL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-UNOP-TRAP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-UNOP-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-UNREACHABLE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VBINOP-TRAP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VBINOP-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VBITMASK-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VCVTOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VEXTBINOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VEXTRACT_LANE-NUM-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VEXTRACT_LANE-PACK-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VEXTTERNOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VEXTUNOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VNARROW-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VRELOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VREPLACE_LANE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VSHIFTOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VSHUFFLE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VSPLAT-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VSWIZZLOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VTERNOP-TRAP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VTERNOP-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VTESTOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VUNOP-TRAP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VUNOP-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VVBINOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VVTERNOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VVTESTOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_PURE/R-VVUNOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE ACL2::SUBLISTP-WHEN-PREFIXP)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION ACL2::LIST-EQUIV)
+        (:TYPE-PRESCRIPTION VALS-P))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  3634
+ STEP_PURE-OF-VALS-NOP-REST
+WE !>
+Summary
+Form:  ( DEFTHM STEP_READ/SPLIT-OF-VALS-NOP-REST ...)
+Rules: ((:COMPOUND-RECOGNIZER ACL2::ZP-COMPOUND-RECOGNIZER)
+        (:DEFINITION ATOM)
+        (:DEFINITION NFIX)
+        (:DEFINITION W3T::STEP_READ/SPLIT)
+        (:EXECUTABLE-COUNTERPART CAR)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART MEMBER-EQUAL)
+        (:EXECUTABLE-COUNTERPART W3T::VAL-P)
+        (:EXECUTABLE-COUNTERPART VALUE-HEAD-P)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-TRUE-LISTP)
+        (:REWRITE CAR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE INVERSE-OF-+)
+        (:REWRITE ACL2::LOWER-BOUND-OF-LEN-WHEN-SUBLISTP)
+        (:REWRITE ACL2::NTH-OF-APPEND)
+        (:REWRITE ACL2::NTH-WHEN-ZP)
+        (:REWRITE PREFIX7-OF-APPEND-OF-VALS-AND-INSTR)
+        (:REWRITE ACL2::PREFIXP-WHEN-EQUAL-LENGTHS)
+        (:REWRITE REDEX-SHAPE-P-OF-APPEND-OF-VALS-AND-INSTR)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.COPY-GT-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.COPY-LE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.COPY-NULL1-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.COPY-NULL2-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.COPY-OOB1-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.COPY-OOB2-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.COPY-ZERO-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.FILL-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.FILL-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.FILL-SUCC-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.FILL-ZERO-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.GET-ARRAY-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.GET-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.GET-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-ARRAY.INIT_DATA-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.INIT_DATA-NUM-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-ARRAY.INIT_DATA-OOB1-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-ARRAY.INIT_DATA-OOB2-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-ARRAY.INIT_DATA-ZERO-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-ARRAY.INIT_ELEM-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-ARRAY.INIT_ELEM-OOB1-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-ARRAY.INIT_ELEM-OOB2-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-ARRAY.INIT_ELEM-SUCC-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-ARRAY.INIT_ELEM-ZERO-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.LEN-ARRAY-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.LEN-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.NEW_DATA-NUM-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.NEW_DATA-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.NEW_DEFAULT-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-ARRAY.NEW_ELEM-ALLOC-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-ARRAY.NEW_ELEM-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-BLOCK-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-BR_ON_CAST-FAIL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-BR_ON_CAST-SUCCEED-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-BR_ON_CAST_FAIL-FAIL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-BR_ON_CAST_FAIL-SUCCEED-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-CALL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-GLOBAL.GET-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-LOAD-NUM-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-LOAD-NUM-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-LOAD-PACK-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-LOAD-PACK-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-LOCAL.GET-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-LOOP-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-MEMORY.COPY-GT-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-MEMORY.COPY-LE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-MEMORY.COPY-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-MEMORY.COPY-ZERO-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-MEMORY.FILL-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-MEMORY.FILL-SUCC-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-MEMORY.FILL-ZERO-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-MEMORY.INIT-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-MEMORY.INIT-SUCC-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-MEMORY.INIT-ZERO-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-MEMORY.SIZE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-REF.CAST-FAIL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-REF.CAST-SUCCEED-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-REF.FUNC-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-REF.NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-REF.TEST-FALSE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-REF.TEST-TRUE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-RETURN_CALL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+           STEP_READ/SPLIT/R-RETURN_CALL_REF-FRAME-ADDR-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+           STEP_READ/SPLIT/R-RETURN_CALL_REF-FRAME-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-RETURN_CALL_REF-HANDLER-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-RETURN_CALL_REF-LABEL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-STRUCT.GET-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-STRUCT.GET-STRUCT-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-STRUCT.NEW_DEFAULT-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.COPY-GT-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.COPY-LE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.COPY-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.COPY-ZERO-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.FILL-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.FILL-SUCC-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.FILL-ZERO-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.GET-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.GET-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.INIT-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.INIT-SUCC-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.INIT-ZERO-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TABLE.SIZE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-THROW_REF-FRAME-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-THROW_REF-HANDLER-CATCH-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+          STEP_READ/SPLIT/R-THROW_REF-HANDLER-CATCH_ALL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+         STEP_READ/SPLIT/R-THROW_REF-HANDLER-CATCH_ALL_REF-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+          STEP_READ/SPLIT/R-THROW_REF-HANDLER-CATCH_REF-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-THROW_REF-HANDLER-EMPTY-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+             STEP_READ/SPLIT/R-THROW_REF-HANDLER-NEXT-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE
+         STEP_READ/SPLIT/R-THROW_REF-INSTRS-FAILS-WHEN-FIRST-INSTR-NOT-THROW_REF)
+        (:REWRITE STEP_READ/SPLIT/R-THROW_REF-LABEL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-THROW_REF-NULL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-TRY_TABLE-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-VLOAD-NUM-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-VLOAD-NUM-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-VLOAD-PACK-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-VLOAD-PACK-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-VLOAD-SPLAT-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-VLOAD-SPLAT-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-VLOAD-ZERO-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-VLOAD-ZERO-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-VLOAD_LANE-OOB-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE STEP_READ/SPLIT/R-VLOAD_LANE-VAL-FAILS-WHEN-NOT-SHAPE)
+        (:REWRITE ACL2::SUBLISTP-WHEN-PREFIXP)
+        (:TYPE-PRESCRIPTION LEN)
+        (:TYPE-PRESCRIPTION ACL2::LIST-EQUIV)
+        (:TYPE-PRESCRIPTION VALS-P))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  4719
+ STEP_READ/SPLIT-OF-VALS-NOP-REST
+WE !>
+Summary
+Form:  ( DEFTHM STEP/R-PURE-OF-VALS-NOP-REST ...)
+Rules: ((:DEFINITION W3T::STEP/R-PURE)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-TRUE-LISTP)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE STEP_PURE-OF-VALS-NOP-REST)
+        (:REWRITE ACL2::TRUE-LISTP-OF-APPEND)
+        (:REWRITE ACL2::TRUE-LISTP-OF-CONS)
+        (:TYPE-PRESCRIPTION VALS-P))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  268
+ STEP/R-PURE-OF-VALS-NOP-REST
+WE !>
+Summary
+Form:  ( DEFTHM STEP/R-READ-OF-VALS-NOP-REST ...)
+Rules: ((:DEFINITION W3T::STEP/R-READ)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:FORWARD-CHAINING VALS-P-TRUE-LISTP)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS)
+        (:REWRITE ACL2::CONSP-UNDER-IFF-WHEN-TRUE-LISTP)
+        (:REWRITE ACL2::LEN-OF-CONS)
+        (:REWRITE STEP_READ/SPLIT-OF-VALS-NOP-REST)
+        (:REWRITE ACL2::TRUE-LISTP-OF-APPEND)
+        (:REWRITE ACL2::TRUE-LISTP-OF-CONS)
+        (:TYPE-PRESCRIPTION VALS-P))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  280
+ STEP/R-READ-OF-VALS-NOP-REST
+WE !>SPIKE-DONE
+ NIL
+WE !>Bye.

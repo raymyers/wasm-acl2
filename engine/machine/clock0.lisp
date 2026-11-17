@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; Constraint C2 of E3 for the clock-0 steps of the list machine (plan E11,
 ; S0 and every group): a step whose clock is 0 leaves MACHINE-ABS
 ; unchanged. These are the steps that move a value to the operand stack,

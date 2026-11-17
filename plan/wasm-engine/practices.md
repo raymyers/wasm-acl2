@@ -30,7 +30,7 @@ in `engine/`.
 | Packages: `package.lsp`, empty `portcullis.lisp`, `cert.acl2` | Followed | No change |
 | Certifiable books `.lisp`, scripts `.lsp` | Followed | No change |
 | "Avoid introducing new Makefiles", use `cert.pl` | One Makefile that calls `cert.pl` | No change |
-| Whitespace, comment and header rules | No license header in the books | V0 adds the header line pointing at `LICENSE` |
+| Whitespace, comment and header rules | The header line is in every book since V0 | A new book starts with the line pointing at `LICENSE` |
 
 Three rules of our own, from what the notes record:
 

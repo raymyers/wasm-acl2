@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; E7 Phase B, layer 4: towards the step theorem.
 ; (U) Per rule, one statement for every rule on STEP's path: unless the
 ; fast machine refuses (:refuse, a fallback result it cannot hold), the

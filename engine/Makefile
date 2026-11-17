@@ -10,7 +10,7 @@
 ACL2 ?= acl2
 CERT ?= $(ACL2_SYSTEM_BOOKS)/build/cert.pl
 JOBS ?= 4
-BOOKS := $(patsubst %.lisp,%,$(wildcard theorem/*.lisp machine/*.lisp rules/*.lisp fast/*.lisp))
+BOOKS := $(patsubst %.lisp,%,$(wildcard theorem/*.lisp lib/*.lisp machine/*.lisp rules/*.lisp fast/*.lisp))
 
 .PHONY: check certify no-skips clean slides
 

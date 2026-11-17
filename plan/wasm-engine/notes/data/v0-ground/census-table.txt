@@ -1,0 +1,41 @@
+rule function                                      slides  tex input.tex       tex deck
+STEP_PURE/R-BINOP-VAL                              771844        2619800       30980750
+STEP_READ/SPLIT/R-LOCAL.GET                        885827        2858723       30017749
+STEP_READ/SPLIT/R-BLOCK                             77067        2717431       29732201
+STEP_PURE/R-RELOP                                  162509        2449972       27227004
+STEP_PURE/R-LABEL-VALS                              58758        2432807       26408138
+STEP_READ/SPLIT/R-GLOBAL.GET                                     2383094       25289806
+STEP_READ/SPLIT/R-LOAD-NUM-VAL                        328        2090212       23324195
+STEP/R-LOCAL.SET                                   353119        1921359       20738412
+STEP_PURE/R-IF-TRUE                                              1443315       15219669
+STEP_PURE/R-LOCAL.TEE                              302750        1201696       13119431
+STEP_PURE/R-TESTOP                                  61827        1161547       12413749
+STEP_PURE/R-IF-FALSE                                             1034545       11665560
+STEP_READ/SPLIT/R-LOAD-PACK-VAL                    156989         708928        8888331
+STEP/R-STORE-NUM-VAL                               114196         641255        6617219
+STEP_PURE/R-SELECT-FALSE                              304         572969        6023918
+STEP/R-GLOBAL.SET                                                 287961        3075630
+STEP_PURE/R-BR-LABEL-SUCC                            4992         246167        3001648
+STEP_PURE/R-RETURN-LABEL                                          213973        2177757
+STEP_READ/SPLIT/R-LOOP                             139258         193163        1962524
+STEP/R-STORE-PACK-VAL                              135296         128816        1369332
+STEP_PURE/R-BR-LABEL-ZERO                          152601         129498        1243322
+STEP_READ/SPLIT/R-CALL                                 15         115567        1199820
+STEP_PURE/R-BR_IF-FALSE                             73713         109790        1183613
+STEP/R-CALL_REF-FUNC                                   26         111851        1136140
+STEP_PURE/R-RETURN-FRAME                                           98046        1002749
+STEP_PURE/R-BR_TABLE-LT                                 4          21584         265486
+STEP_PURE/R-BR_IF-TRUE                             150373          37274         230713
+STEP_PURE/R-FRAME-VALS                                 26          13805         133391
+STEP_READ/SPLIT/R-MEMORY.INIT-SUCC                  24800           1015           1015
+STEP_PURE/R-CVTOP-VAL                                                 22           1594
+STEP_PURE/R-UNOP-VAL                                                   5            459
+STEP_PURE/R-DROP                                                       3            310
+STEP_PURE/R-SELECT-TRUE                                41                              
+STEP/R-DATA.DROP                                        1             40             40
+STEP_READ/SPLIT/R-MEMORY.INIT-ZERO                      1             40             40
+STEP_PURE/R-BR_TABLE-GE                                30                              
+STEP_READ/SPLIT/R-REF.NULL                              1                              
+rule applications                                 3626696       27946273      305651715
+rule functions                                         28             34             34
+rule functions in the union: 37

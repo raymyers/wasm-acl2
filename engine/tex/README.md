@@ -24,6 +24,10 @@ with the engine books loaded and `tex.wasm` instantiated, about to call
 process, without saving an image. To view a DVI: `dvipdfmx` from TeX Live
 (`nix shell nixpkgs#texliveSmall`).
 
+`TEXCENSUS=plan/wasm-engine/notes/data/v0-ground/census.lisp` (an absolute
+path) with `run.sh` counts the rule functions the run applies; results of
+2026-11-17 are in `plan/wasm-engine/notes/V0-ground.md`.
+
 ## Measured (2026-11-16, `input.tex`)
 
 | | |

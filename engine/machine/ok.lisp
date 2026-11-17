@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; The invariant of the list machine and constraint C1 of E3 for it: a step
 ; keeps the invariant (plan/wasm-engine E6 item 2). The invariant is the
 ; one of notes/E5-machine.md: the operand stacks are true lists of values,

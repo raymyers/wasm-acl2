@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; Constraint C3 of E3 for the list machine: a machine state with a result
 ; (:done, :trap, :throw) and the invariant abstracts to a configuration
 ; that the specification does not step. From the facts about the spec in

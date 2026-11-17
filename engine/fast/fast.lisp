@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; E7: the fast machine. Logic mode, guards verified (it runs as compiled
 ; Lisp). Tested against the list machine of E6 at every step (fasttest.lsp);
 ; the refinement theorem comes next, from the lemmas of frame.lisp and

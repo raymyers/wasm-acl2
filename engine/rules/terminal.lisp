@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; Facts about the specification that constraint C3 of E3 needs (plan
 ; E3 item 2): the configurations the machine reports as results do not
 ; step, for any state Z.
