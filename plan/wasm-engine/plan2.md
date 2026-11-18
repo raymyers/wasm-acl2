@@ -46,7 +46,8 @@
   `fast-result-is-spec-result` (`engine/fast/spec-result.lisp`) has
   `(no-call-ref-run n (fm->ms fm))`, "the run has no `call_ref` at the
   head of its instructions". V7 removes it. F2 and F3 are not met yet
-- **Next action**: V7 (no excluded instruction)
+- **Next action**: V7 (no excluded instruction). Its frame lemmas are
+  now V7b, optional (user, 2026-11-18): V7 is `call_ref` only
 - **From V6, for later milestones**:
   - `fm-inv` (`fast/inv.lisp`) is `fmp`, `fast-inv-store` of the store
     and `machine-ok` of `fm->ms`. `fast-step-keeps-fm-inv` has two
@@ -355,7 +356,7 @@ W3T::STEP
    ^  V5 C2, functional instantiation                      => T1
 list machine
    ^  V6 invariant across a step, loader, run
-   ^  V7 call_ref, the last frame lemmas                   => T2
+   ^  V7 call_ref (V7b, optional: frame lemmas)            => T2
 fast machine
    ^  V8 engine-run, the drivers call it, host step        => T3
 the drivers
@@ -812,15 +813,36 @@ and 2.2 s; the largest proof is 439,049 prover steps
       unconditionally (P1 (a)'s host step) and the fact is not needed
 - [ ] `call_ref` of a wasm function: its place lemma, now that the
       place no longer holds an unproved rule
+- [ ] `no-call-ref-run` is removed from `fast-step-refines`,
+      `fast-op-step-keeps-fmp`, `fast-op-step-keeps-inv-store`, the run
+      lemmas and T2 ([V6-inv](notes/V6-inv.md) §7)
+- [ ] `*fallback-not-yet*`, `*u-not-yet*` and `*places-not-yet*` are
+      settled and their checks say so: each is empty, or what is left
+      is the two host rules together with a theorem that the fast
+      machine does not apply them. `*frame-not-yet*` is not part of
+      this: a rule on it takes the fallback, which is proved exact (V7b)
+
+**Exit**: T2 as written in §1. F2 and F3 met.
+
+### V7b (optional, not on the path to T2 or T3): frame lemmas
+
+Changed 2026-11-18 (user): these were items of V7. They are not needed
+for a theorem. A rule without a frame lemma takes the fallback, and the
+fallback is proved exact; a frame lemma makes the rule faster and, for
+`data.drop`, removes a shortcut of the TeX driver. To be done after V7,
+at any time, or not at all.
+
 - [ ] Frame lemmas for `data.drop`, `elem.drop` and `ref.cast-succeed`
       (the driver's shortcut for `data.drop` becomes a theorem and the
       `sb-int:encapsulate` in `texrun.lisp` is deleted), with the
       record lemmas they need; the slow ones (`table.grow` 1,152 s)
       stay on the fallback, which is proved exact
-- [ ] `*frame-not-yet*`, `*fallback-not-yet*`, `*u-not-yet*`,
-      `*places-not-yet*` are empty and their checks say so
+- [ ] `*frame-not-yet*` holds only rules that are left on the fallback
+      on purpose, each with its reason
 
-**Exit**: T2 as written in §1. F2 and F3 met.
+**Exit**: the TeX driver has no `data.drop` shortcut. Until then F5 for
+TeX has that shortcut as one more exception, and the README of
+`engine/tex` says so (V8).
 
 ### V8: the engine that runs is the engine in the theorem
 
@@ -861,7 +883,9 @@ and 2.2 s; the largest proof is 439,049 prover steps
       statement drifts)
 - [ ] `make -C engine check` also fails if: a book under `top.lisp`
       has a trust tag (`cert.pl` flags, `:ttags`); a `*-not-yet*`
-      constant is not `nil`; `top.lisp` does not certify. The existing
+      constant is not as V7 settled it (`*frame-not-yet*` excepted: it
+      lists rules on the proved fallback, V7b); `top.lisp` does not
+      certify. The existing
       `no-skips` grep stays, and is joined by a check of the
       certificates themselves (`skip-proofs` and `defaxiom` recorded
       by ACL2 in the `.cert`), since a macro can hide either from a
@@ -886,6 +910,7 @@ and 2.2 s; the largest proof is 439,049 prover steps
 V0 -> V1 -> V2 -> V3 -> V4 -> V5 (T1)
 V0 -> V6 -> V7 (T2)        V6's last step needs nothing from V1..V5
 V5, V7 -> V8 (T3) -> V9
+V7 -> V7b                  optional; nothing depends on it
 ```
 
 V1 to V5 and V6 to V7 are independent after V0 and can be worked in

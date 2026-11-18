@@ -7,6 +7,7 @@ Execute these steps:
 
 * Read PLAN "Current state", then the notes for the milestone you will work on.
 * Choose the next item (V0..V9, respecting PLAN "Order and dependencies"). V1..V5 and V6..V7 are independent after V0.
+  * V7b is optional and is not chosen while V7, V8 or V9 is open.
   * P1 and P3 are decided. P2 is the user's, after V5. Stop for the user only in the cases of plan.md "When a headless session stops".
 * Check `git status` and `git log`; you decide whether to finish or discard uncommitted changes.
 * Complete and verify the item. Gate: `make -C engine check`. It must stay green and must not be weakened. If `translate/` is touched (it should not be), its gates apply too.
@@ -35,6 +36,7 @@ Proof practice, for every book you write or touch (source, reasons and the state
 * Rules that loop together get a `theory-invariant`.
 * A rewrite rule about a head keyword is stated in both orientations, `(equal (car x) kw)` and `(equal kw (car x))`.
 * `defun`/`defthm` only; spaces, no tabs, no trailing whitespace; a header line pointing at `LICENSE`.
+A new lemma about the fast machine goes in a new book, not into `fast/refine-step.lisp` or `fast/refine-op.lisp`: their proofs depend on the order of their events (moving two lemmas cost a 6-hour run, PLAN V0). In those books change only a recorded constant and its check.
 Never open `W3T::STEP` with the rule definitions enabled. Reason about a rule function through its generated lemmas.
 A generator prints one line per lemma, gives each lemma a step limit, and ends with a check that the lemmas missing are exactly the recorded ones.
 The generated books are the specification. Never copy or edit them.
