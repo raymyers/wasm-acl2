@@ -20,7 +20,7 @@
 > see [../wasm3-translation/evidence.md](../wasm3-translation/evidence.md)),
 > and what a host function does. ACL2 and SBCL stay trusted.
 >
-> **Status**: written 2026-11-17 at `4f18f50`. V0 and V1 are complete
+> **Status**: written 2026-11-17 at `4f18f50`. V0, V1 and V2 are complete
 > (2026-11-17). P1 and P3 are decided, P2 is decided after V5 (§2).
 
 ---
@@ -29,12 +29,31 @@
 
 - **Last updated**: 2026-11-17
 - **Milestones complete**: V0 (ground work;
-  [V0-ground](notes/V0-ground.md)) and V1 (dispatch lemmas;
-  [V1-dispatch](notes/V1-dispatch.md)). The gate certifies 23 books
-- **Next action**: V2 (the flat block), or V6; they are independent. V2
-  starts from `rules/dispatch.lisp` and `rules/arity.lisp`: its first
-  lemma is `redex-shape-p` of the machine's own redex
-  `(rev-onto (take-n k vals) (list i))`
+  [V0-ground](notes/V0-ground.md)), V1 (dispatch lemmas;
+  [V1-dispatch](notes/V1-dispatch.md)) and V2 (the flat block;
+  [V2-flat](notes/V2-flat.md)). The gate certifies 25 books
+- **Next action**: V3 (contexts), or V6; they are independent. V3 starts
+  from `machine/op-flat.lisp`: the lemma to lift through the control
+  stack is `op-step-is-step-of-flat-block`, which has no hypothesis
+  about `ctrl`
+- **From V2, for later milestones**:
+  - `op-step-simulates-flat` is C2 for `op-step` with an empty control
+    stack. Its hypotheses besides `machine-ok`: the head is not
+    administrative, not `TRAP`, not `THROW_REF`, and `op-step` ends
+    `:run`. `throw_ref` under `ref.null` is V4 item 3
+  - for the induction step of V3's context lemma:
+    `step-of-admin-term-in-flat-block` (`STEP` of `v ++ (term) ++ r`
+    from `STEP` of the term alone, `v` or `r` not empty) and
+    `step/r-ctxt-{label,handler,frame}-fails-when-not-shape`
+  - `Step/ctxt-instrs` is `flat-search` on `x ++ (i) ++ r`
+    (`step/r-ctxt-instrs-becomes-flat-search`); V4 uses it to show that
+    a block does not step
+  - 12 rules have no `<R>-INSTRS-TRUE-LISTP` lemma (`*instrs-not-yet*`
+    in `rules/flat.lisp`): the pure and read rules that return what a
+    search found. Their redex is an administrative term or a whole
+    block, so V3's exit rules and V4 need the fact for them
+  - `machine-ok` did not change: a function reference among values names
+    a natural number, which is what `call_ref` needed from V1
 - **From V1, for later milestones**:
   - on a redex of head `kw`, `try-rules` over the pure, read and own
     rules of `(rules-for (head-place kw))` is `STEP_PURE`,
@@ -66,8 +85,9 @@
   (S0 to S3; H waits with P1)
 - **Waiting for the user**: nothing
 - **Theorem hypotheses so far**: those of plan.md "Current state". V1
-  added none to a theorem of §1; its lemma hypotheses are listed in
-  [V1-dispatch](notes/V1-dispatch.md) §4
+  and V2 added none to a theorem of §1; their lemma hypotheses are
+  listed in [V1-dispatch](notes/V1-dispatch.md) §4 and
+  [V2-flat](notes/V2-flat.md) §6
 
 ---
 
@@ -363,24 +383,43 @@ prover steps each; the three books certify in 4.5 s, 7.4 s and 3.9 s
 
 ### V2: the flat block
 
-- [ ] *Operand prefix*: for an instruction with arity `k`
+- [x] *Operand prefix*: for an instruction with arity `k`
       (`redex-arity`), `STEP` of `(z; u ++ (i))` is `nil` for every
       value list `u` shorter than `k`. From V1's shape lemmas. For the
       type-dependent arities, by the same spec function the machine
-      calls
-- [ ] *`ctxt-instrs`*: for values `v`, `w` with `(len w) = k`, `i` not
+      calls. **Done** in `rules/flat.lisp`: `no-step-below-arity`
+      (5,685 prover steps), by induction on the number of operands,
+      from "a rule that fires has `redex-arity` operands" per relation
+      (`step_pure-arity` 88,197, `step_read/split-arity` 94,638,
+      `step-own-arity` 45,866). `u` is the top of the machine's stack,
+      `(operands j vals)` ([V2-flat](notes/V2-flat.md) §2, §4)
+- [x] *`ctxt-instrs`*: for values `v`, `w` with `(len w) = k`, `i` not
       a value, `v` or `r` not empty, if `STEP` of `(z; w ++ (i))` is
       `(list (z'; is'))` then `STEP` of `(z; v ++ w ++ (i) ++ r)` is
       `(list (z'; v ++ is' ++ r))`. By induction on the search
       (`STEP/SEARCH21` counts down from the prefix length), with the
-      size check from V0
-- [ ] The same when the middle is one administrative term (arity 0)
-- [ ] `op-step` at the top level (`ctrl` empty): C2 for a state whose
-      head is an instruction with rules
+      size check from V0. **Done**: `step-of-flat-block` (31,917),
+      also for `v` and `r` empty; the search is rewritten once to
+      `flat-search` (`step/search21-becomes-flat-search`, 63,187)
+      ([V2-flat](notes/V2-flat.md) §1, §5)
+- [x] The same when the middle is one administrative term (arity 0).
+      **Done**: `step-of-admin-term-in-flat-block` (1,673)
+- [x] `op-step` at the top level (`ctrl` empty): C2 for a state whose
+      head is an instruction with rules. **Done** in
+      `machine/op-flat.lisp`: `op-step-is-step-of-flat-block` (155,593,
+      any `ctrl`) and `op-step-simulates-flat` (2,653). Needed two
+      generated families: the instructions of a pure or read rule are a
+      true list (170 of 182 rules; the other 12 are not rules of an
+      opcode) and the state of an own rule has the shape `(s; f)` (30
+      of 30) ([V2-flat](notes/V2-flat.md) §3, §6)
 
 **Exit**: `op-step-simulates-flat` certifies for every opcode with
 rules, not per opcode: the opcode enters only through V1's per-relation
-lemma.
+lemma. **Met**: one theorem for a symbolic head; hypotheses besides
+`machine-ok` and the empty `ctrl`: the head is not administrative, not
+`TRAP`, not `THROW_REF` (V4), and `op-step` ends `:run`. The two books
+certify in 6.2 s and 2.6 s; the largest proof is 200,185 prover steps
+(`try-rules-on-redex-is-step`).
 
 ### V3: contexts
 
@@ -591,7 +630,7 @@ separate sessions; they touch different directories (`rules/`,
 |---|---|---|
 | Proofs over a symbolic `v ++ (i) ++ r` blow up (the 35-minute lemma of E6). **Did not happen in V1**: the largest such proof is 31,304 prover steps | V1 exit: three opcodes, prover steps recorded | Keep every rule function closed and reason only through V1's shape lemmas; never open `STEP` with rule definitions enabled ([E3-theorem](notes/E3-theorem.md), attempt 2: 359 s of preprocessing) |
 | The `%SIZE` check in the context rules is hard to discharge for a symbolic body | V0 item 5, tried on one label first | Prove `%SIZE` monotone for the three administrative forms only, not in general |
-| The machine's choice of redex differs from `STEP`'s on some state the tests never reached | V2's operand-prefix lemma and V4's "body does not step" lemmas fail with a checkpoint that is a real state | That is a machine bug: fix the machine, re-run tests 1 and 2, record it (as test 3 did for several memories) |
+| The machine's choice of redex differs from `STEP`'s on some state the tests never reached. **Did not happen in V2**: no failed checkpoint was a machine state | V2's operand-prefix lemma and V4's "body does not step" lemmas fail with a checkpoint that is a real state | That is a machine bug: fix the machine, re-run tests 1 and 2, record it (as test 3 did for several memories) |
 | A type-dependent arity (`block`, `call_ref`, `throw`) cannot be related to the rule's own count. **Settled in V1**: it is related, for all eight rules; a function reference needs `(natp a)` | V1 item 3 | The machine computes the arity by the rule's own subterm; `redex-arity` changes, test 1 and 2 re-run |
 | The fallback's accepted results do not imply `fast-inv-store` | V6 item 2 | Strengthen the run-time check (`fallback-shape-ok`); the machine refuses more, the theorem is unchanged |
 | The logic-mode run loop is slower than the raw one for TeX | V8 item 3, measured | `fast-run` is already guard-verified and tail recursive; if the host check per step costs, dispatch on `call_ref` inside `fast-step` |

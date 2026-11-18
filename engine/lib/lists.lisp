@@ -190,4 +190,41 @@
            (equal (append (revappend (nthcdr k l) nil) (revappend (take k l) nil))
                   (revappend l nil))))
 
+; the top elements of a stack in the order of the configuration:
+; rev(l) from K on is rev(take (len l - k) l), and its first K are
+; rev(nthcdr (len l - k) l)
+(defthm nthcdr-of-revappend-nil
+  (implies (<= (nfix k) (len x))
+           (equal (nthcdr k (revappend x nil))
+                  (revappend (take (- (len x) (nfix k)) x) nil)))
+  :hints (("Goal" :induct (len x))))
+
+(defthm take-of-revappend-nil
+  (implies (<= (nfix k) (len x))
+           (equal (take k (revappend x nil))
+                  (revappend (nthcdr (- (len x) (nfix k)) x) nil)))
+  :hints (("Goal" :induct (len x))))
+
+(defthm take-of-take
+  (implies (<= (nfix j) (nfix m))
+           (equal (take j (take m x)) (take j x))))
+
+(defthm nth-of-take
+  (equal (nth n (take m x))
+         (if (< (nfix n) (nfix m)) (nth n x) nil)))
+
+; the last element of rev(l) is the top of the stack
+(defthm nth-of-revappend-nil
+  (implies (< (nfix n) (len x))
+           (equal (nth n (revappend x nil))
+                  (nth (- (len x) (+ 1 (nfix n))) x)))
+  :hints (("Goal" :induct (len x))))
+
+(defthm consp-of-take
+  (equal (consp (take n l)) (not (zp n))))
+
+(defthm take-of-1
+  (equal (take 1 l) (list (car l))))
+
+
 (in-theory (disable machine-lists))
