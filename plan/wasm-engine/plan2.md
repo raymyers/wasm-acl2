@@ -20,7 +20,7 @@
 > see [../wasm3-translation/evidence.md](../wasm3-translation/evidence.md)),
 > and what a host function does. ACL2 and SBCL stay trusted.
 >
-> **Status**: written 2026-11-17 at `4f18f50`. V0 is complete
+> **Status**: written 2026-11-17 at `4f18f50`. V0 and V1 are complete
 > (2026-11-17). P1 and P3 are decided, P2 is decided after V5 (§2).
 
 ---
@@ -29,12 +29,28 @@
 
 - **Last updated**: 2026-11-17
 - **Milestones complete**: V0 (ground work;
-  [V0-ground](notes/V0-ground.md)). The spike is a **go**: `STEP/R-PURE`
-  and `STEP/R-READ` return `nil` on `v ++ (nop) ++ r` in 3,634 and 4,719
-  prover steps for the two relations, with every rule function closed
-- **Next action**: V1 (start from `notes/data/v0-ground/spike-nop.lsp`:
-  it already has a lemma for each of the 212 rule functions), or V6;
-  they are independent
+  [V0-ground](notes/V0-ground.md)) and V1 (dispatch lemmas;
+  [V1-dispatch](notes/V1-dispatch.md)). The gate certifies 23 books
+- **Next action**: V2 (the flat block), or V6; they are independent. V2
+  starts from `rules/dispatch.lisp` and `rules/arity.lisp`: its first
+  lemma is `redex-shape-p` of the machine's own redex
+  `(rev-onto (take-n k vals) (list i))`
+- **From V1, for later milestones**:
+  - on a redex of head `kw`, `try-rules` over the pure, read and own
+    rules of `(rules-for (head-place kw))` is `STEP_PURE`,
+    `STEP_READ/SPLIT` and `step-own` (the rest of `STEP`'s body);
+    `try-rules-of-rules-for` splits the table's list into the three
+  - excluded there: head `TRAP` (pure) and head `THROW_REF` (read), where
+    a rule on a whole block can fire. They are V4's, with `throw_ref-null`
+  - `<R>-ARITY` for 89 rules: `redex-arity` of the last element is the
+    number of elements before it. The 51 heads without one are the heads
+    `redex-arity` refuses: V5 item 4's table
+  - the three `call_ref` arity lemmas for a function reference have the
+    hypothesis `(natp a)` for `(:ref.func_addr a)`: the rules match the
+    reference by shape, `redex-arity` asks a natural number. V2 gets it
+    from the operand being a value; if `machine-ok` does not say that
+    operands are values, the invariant gets that fact
+    ([V1-dispatch](notes/V1-dispatch.md) §5)
 - **From V0, for later milestones**: the demos apply 37 rule functions.
   `memory.init`, `data.drop` and `ref.null` run at every instantiation
   and are outside `*d5-opcodes*`: V5's table of proved opcodes must
@@ -49,7 +65,9 @@
 - **Decided by the user (2026-11-17)**: P3, the theorem covers D5
   (S0 to S3; H waits with P1)
 - **Waiting for the user**: nothing
-- **Theorem hypotheses so far**: those of plan.md "Current state"
+- **Theorem hypotheses so far**: those of plan.md "Current state". V1
+  added none to a theorem of §1; its lemma hypotheses are listed in
+  [V1-dispatch](notes/V1-dispatch.md) §4
 
 ---
 
@@ -289,30 +307,59 @@ before; the census and the spike's result are in a note.
 
 ### V1: dispatch lemmas (plan.md E4 item 4)
 
-- [ ] `first-nonval`: the index of the first element that is not a
+- [x] `first-nonval`: the index of the first element that is not a
       value, proved equal to `STEP/PREFIX7`; its value on
-      `v ++ (i) ++ r` is `(len v)` when `v` are values and `i` is not
-- [ ] Per rule function, generated (the generator of
+      `v ++ (i) ++ r` is `(len v)` when `v` are values and `i` is not.
+      **Done** in `rules/shape.lisp`: `step/prefix7-becomes-first-nonval`
+      (446 prover steps), `first-nonval-of-append-of-vals-and-instr`
+      ([V1-dispatch](notes/V1-dispatch.md) §1)
+- [x] Per rule function, generated (the generator of
       `rules/terminal.lisp`): "if `R` fires on `(z; l)` then `l` has
       `R`'s shape": for a fixed-shape rule, `l` is `k` values and one
       instruction with `R`'s opcode, so `(len l)` is `k + 1`. Stated as
       a forward-chaining rule and as the rewrite "`R` returns `nil`
-      when the last element's head is not `K`"
-- [ ] The rules without a fixed shape, by hand: `trap-instrs` and
+      when the last element's head is not `K`". **Done**: 201 rules,
+      three lemmas each (`-FAILS-WHEN-NOT-SHAPE`,
+      `-FAILS-WHEN-NOT-LENGTH`, `-SHAPE`), 1.7 s of proof time for the
+      603; the length is read from the rule's body
+      ([V1-dispatch](notes/V1-dispatch.md) §2)
+- [x] The rules without a fixed shape, by hand: `trap-instrs` and
       `throw_ref-instrs` (their searches stop at the first non-value),
       the rules whose list is one administrative term, `block`, `loop`,
       `try_table`, `call`, `call_ref`, `throw` (operand count from a
-      type)
-- [ ] Per relation: `STEP_PURE` and `STEP_READ` on a list are the
+      type). **Done**: the shape lemma for the nine rules with a count
+      from a type, with no hint; two facts each for the two block rules;
+      `<R>-ARITY` in `rules/arity.lisp` for 89 rules, of which
+      `block`, `loop`, `try_table`, `throw` (2,471 to 2,738 prover
+      steps) and the four `call_ref` rules (2,337 to 326,226) by hand:
+      `redex-arity` is the rule's own count, so `redex-arity` does not
+      change. `call` and the rules on an administrative term have a
+      fixed shape and are generated
+      ([V1-dispatch](notes/V1-dispatch.md) §3 to §5)
+- [x] Per relation: `STEP_PURE` and `STEP_READ` on a list are the
       result of the rules of the last element's opcode, tried in order
       (`try-rules` over `rules-for`). This is the statement that the
-      machine's table is `STEP`'s order
-- [ ] Census: every rule function of `*step-rules*` has its lemma
+      machine's table is `STEP`'s order. **Done** in
+      `rules/dispatch.lisp`, for a symbolic head: `try-rules-of-pure-rules`
+      (293,675 prover steps), `try-rules-of-read-rules` (995,909) and,
+      for `STEP`'s own rules, `try-rules-of-own-rules` (411,019), from
+      104 generated lemmas, one per relation and head; excluded: head `TRAP`
+      (pure) and `THROW_REF` (read)
+      ([V1-dispatch](notes/V1-dispatch.md) §6)
+- [x] Census: every rule function of `*step-rules*` has its lemma.
+      **Done**: each family ends with a check that fails its book: 212
+      rules, 210 shape lemmas (the other two are the block rules), 201
+      length lemmas, 89 arity lemmas (none for 97 rules of the 51 heads
+      `redex-arity` refuses and for 26 on an administrative term or a
+      block)
 
 **Exit**: for a symbolic `v ++ (i) ++ r` with `r` or the extra values
 not empty, "`STEP/R-PURE` and `STEP/R-READ` return `nil`" certifies for
 `nop`, `binop` and `local.get` (the test plan.md §5 asks for first),
-with prover steps recorded.
+with prover steps recorded. **Met**: six theorems
+`step/r-{pure,read}-of-vals-{nop,binop,local.get}-rest`, 254 to 5,098
+prover steps each; the three books certify in 4.5 s, 7.4 s and 3.9 s
+([V1-dispatch](notes/V1-dispatch.md) §7).
 
 ### V2: the flat block
 
@@ -542,10 +589,10 @@ separate sessions; they touch different directories (`rules/`,
 
 | Risk | What decides it | If it happens |
 |---|---|---|
-| Proofs over a symbolic `v ++ (i) ++ r` blow up (the 35-minute lemma of E6) | V1 exit: three opcodes, prover steps recorded | Keep every rule function closed and reason only through V1's shape lemmas; never open `STEP` with rule definitions enabled ([E3-theorem](notes/E3-theorem.md), attempt 2: 359 s of preprocessing) |
+| Proofs over a symbolic `v ++ (i) ++ r` blow up (the 35-minute lemma of E6). **Did not happen in V1**: the largest such proof is 31,304 prover steps | V1 exit: three opcodes, prover steps recorded | Keep every rule function closed and reason only through V1's shape lemmas; never open `STEP` with rule definitions enabled ([E3-theorem](notes/E3-theorem.md), attempt 2: 359 s of preprocessing) |
 | The `%SIZE` check in the context rules is hard to discharge for a symbolic body | V0 item 5, tried on one label first | Prove `%SIZE` monotone for the three administrative forms only, not in general |
 | The machine's choice of redex differs from `STEP`'s on some state the tests never reached | V2's operand-prefix lemma and V4's "body does not step" lemmas fail with a checkpoint that is a real state | That is a machine bug: fix the machine, re-run tests 1 and 2, record it (as test 3 did for several memories) |
-| A type-dependent arity (`block`, `call_ref`, `throw`) cannot be related to the rule's own count | V1 item 3 | The machine computes the arity by the rule's own subterm; `redex-arity` changes, test 1 and 2 re-run |
+| A type-dependent arity (`block`, `call_ref`, `throw`) cannot be related to the rule's own count. **Settled in V1**: it is related, for all eight rules; a function reference needs `(natp a)` | V1 item 3 | The machine computes the arity by the rule's own subterm; `redex-arity` changes, test 1 and 2 re-run |
 | The fallback's accepted results do not imply `fast-inv-store` | V6 item 2 | Strengthen the run-time check (`fallback-shape-ok`); the machine refuses more, the theorem is unchanged |
 | The logic-mode run loop is slower than the raw one for TeX | V8 item 3, measured | `fast-run` is already guard-verified and tail recursive; if the host check per step costs, dispatch on `call_ref` inside `fast-step` |
 | P1 (b) is too slow | measured on one host call with the 72 MB store | P1 (a) |

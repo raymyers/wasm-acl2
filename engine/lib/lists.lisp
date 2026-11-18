@@ -78,6 +78,18 @@
 (defthm len-of-append
   (equal (len (append a b)) (+ (len a) (len b))))
 
+(defthm len-when-not-consp
+  (implies (not (consp l)) (equal (len l) 0)))
+
+; a length that is a sum, against a constant: (equal (+ 1 (len v) (len r)) 1)
+(defthm equal-of-constant-plus-and-constant
+  (implies (and (syntaxp (quotep j)) (syntaxp (quotep k))
+                (acl2-numberp j) (acl2-numberp k))
+           (equal (equal (+ j x) k) (equal (fix x) (- k j)))))
+
+(defthm equal-of-sum-of-lens-and-0
+  (equal (equal (+ (len a) (len b)) 0) (and (atom a) (atom b))))
+
 (defthm consp-of-append
   (equal (consp (append a b)) (or (consp a) (consp b))))
 
@@ -134,6 +146,9 @@
 (defthm car-of-nthcdr
   (equal (car (nthcdr n l)) (nth n l)))
 
+(defthm consp-of-nthcdr
+  (equal (consp (nthcdr n l)) (< (nfix n) (len l))))
+
 (defthm take-of-len
   (implies (true-listp l) (equal (take (len l) l) l)))
 
@@ -143,6 +158,11 @@
 (defthm append-of-take-and-nthcdr
   (implies (<= (nfix n) (len l))
            (equal (append (take n l) (nthcdr n l)) l)))
+
+; MV-NTH is kept disabled by the proof books; a component of an explicit MV
+(defthm mv-nth-of-cons-and-constant
+  (implies (syntaxp (quotep n))
+           (equal (mv-nth n (cons a b)) (if (zp n) a (mv-nth (1- n) b)))))
 
 ; REVAPPEND: with an accumulator that is not NIL it is an APPEND, so
 ; (revappend x nil) is the one form that stays.
