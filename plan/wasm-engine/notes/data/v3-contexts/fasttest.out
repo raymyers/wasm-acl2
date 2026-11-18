@@ -1,0 +1,226 @@
+This is SBCL 2.6.6, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ + ACL2 Version 8.7                                                     +
+ +   built August 12, 2026  00:46:05.                                   +
+ + Copyright (C) 2026, Regents of the University of Texas.              +
+ + ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and   +
+ + you are welcome to redistribute it under certain conditions.  For    +
+ + details, see the LICENSE file distributed with ACL2.                 +
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>>>
+Summary
+Form:  ( INCLUDE-BOOK "../portcullis" ...)
+Rules: NIL
+Time:  0.03 seconds (prove: 0.00, print: 0.00, other: 0.03)
+ "/Users/Apple/dev/wasm-acl2/engine/portcullis.lisp"
+ACL2 !>>>Bye.
+ :EOF
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "fast" ...)
+Rules: NIL
+Time:  2.21 seconds (prove: 0.00, print: 0.00, other: 2.21)
+ "/Users/Apple/dev/wasm-acl2/engine/fast/fast.lisp"
+ACL2 !>> "WE"
+WE !>>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+WE !s>>>
+Project-dir-alist:
+((:SYSTEM
+  .
+  "/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+WE !s>>>> :REDUNDANT
+WE !s>>>>Bye.
+ :EOF
+WE !s>>> :REDUNDANT
+WE !s>>> "WE"
+WE !s>>>WE p!s>>> T
+WE p!s>>> READ-BYTES-LOOP
+WE p!s>>> READ-BYTES
+WE p!s>>> *S0*
+WE p!s>>> STEPN
+WE p!s>>> SPEC-RUN
+WE p!s>>> FIND-EXPORT
+WE p!s>>> STR-BYTES
+WE p!s>>> INVOKE-CONFIG
+WE p!s>>> DIFF-WALK
+WE p!s>>> DIFF1
+WE p!s>>> I32
+WE p!s>>> I64
+WE p!s>>> MRUN
+WE p!s>>> MCLOCKS
+WE p!s>>> RATE1
+WE p!s>>>Bye.
+ :EOF
+WE p!>> "WE"
+WE p!>>
+The event ( TABLE ACL2::ACL2-DEFAULTS-TABLE ...) is redundant.  See
+:DOC redundant-events.
+WE p!>> T
+WE p!>>
+Summary
+Form:  ( DEFUN LOCK-WALK ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ LOCK-WALK
+WE p!>>
+Summary
+Form:  ( DEFUN LOCK1 ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ LOCK1
+WE p!>>
+Summary
+Form:  ( DEFUN MS-OF ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ MS-OF
+WE p!>>
+Summary
+Form:  ( DEFUN RUN1 ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ RUN1
+WE p!>>Bye.
+ :EOF
+ACL2 p!> "WE"
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+LOCKSTEP count 200: steps 2823 disagreements 0 first-bad NIL status
+:DONE
+(<fm> <state>)
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+LOCKSTEP memloop 100: steps 2223 disagreements 0 first-bad NIL status
+:DONE
+(<fm> <state>)
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+LOCKSTEP nested 50: steps 1923 disagreements 0 first-bad NIL status
+:DONE
+(<fm> <state>)
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+LOCKSTEP throw 30: steps 1373 disagreements 0 first-bad NIL status
+:DONE
+(<fm> <state>)
+WE p!>LOCKSTEP fac rec 20: steps 553 disagreements 0 first-bad NIL status
+:DONE
+(<fm> <state>)
+WE p!>LOCKSTEP calls 20: steps 560 disagreements 0 first-bad NIL status :DONE
+(<fm> <state>)
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+LOCKSTEP div 7/0: steps 12 disagreements 0 first-bad NIL status :TRAP
+(<fm> <state>)
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+LOCKSTEP uncaught: steps 14 disagreements 0 first-bad NIL status :THROW
+(<fm> <state>)
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+RUN count 20000: equal T status :DONE list-ms 172 fast-ms 65 result
+((:CONST (:I32) 0))
+(<fm> <state>)
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+RUN memloop 10000, 1 page: equal T status :DONE list-ms 4530 fast-
+ms 66 result ((:CONST (:I32) 1))
+(<fm> <state>)
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+RUN memloop 10000, 16 pages: equal T status :DONE list-ms 70690 fast-
+ms 62 result ((:CONST (:I32) 1))
+(<fm> <state>)
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+RUN memloop 10000, 64 pages: equal T status :DONE list-ms 274296 fast-
+ms 67 result ((:CONST (:I32) 1))
+(<fm> <state>)
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+RUN nested 5000: equal T status :DONE list-ms 366 fast-ms 99 result
+((:CONST (:I32) 0))
+(<fm> <state>)
+WE p!>
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+RUN throw 3000: equal T status :DONE list-ms 203 fast-ms 149 result
+((:CONST (:I32) 4501500))
+(<fm> <state>)
+WE p!>Bye.

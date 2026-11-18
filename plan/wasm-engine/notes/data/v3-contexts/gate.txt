@@ -1,0 +1,22 @@
+== run 1: after the change of machine.lisp (fast/ and the old books)
+Built engine/fast/frame.cert (265.762s) at 17-Nov-2026 21:52:32.845
+Built engine/fast/memory.cert (387.222s) at 17-Nov-2026 21:59:00.100
+Built engine/fast/fast.cert (3.269s) at 17-Nov-2026 21:59:03.406
+Built engine/fast/refine-hot.cert (3.466s) at 17-Nov-2026 21:59:06.907
+Built engine/fast/refine.cert (154.416s) at 17-Nov-2026 22:01:37.860
+Built engine/fast/refine-mem.cert (39.840s) at 17-Nov-2026 22:02:17.751
+Built engine/fast/refine-step.cert (426.635s) at 17-Nov-2026 22:09:24.427
+Built engine/fast/refine-op.cert (8.334s) at 17-Nov-2026 22:09:32.836
+Built engine/fast/ctrl-kinds.cert (3.438s) at 17-Nov-2026 22:09:36.308
+engine: no skip-proofs, no defaxiom in 25 book(s)
+== run 2: with lib/lists changed and the two new books (certified by: make -C engine certify BOOKS=..., then make -C engine check)
+engine/lib/lists Time:  2.43 seconds (prove: 0.15, print: 0.01, other: 2.27)
+engine/rules/step-basics Time:  2.83 seconds (prove: 0.48, print: 0.02, other: 2.33)
+engine/rules/shape Time:  5.20 seconds (prove: 2.08, print: 0.03, other: 3.09)
+engine/rules/dispatch Time:  7.70 seconds (prove: 5.07, print: 0.02, other: 2.61)
+engine/rules/arity Time:  4.31 seconds (prove: 1.57, print: 0.01, other: 2.72)
+engine/rules/flat Time:  7.03 seconds (prove: 4.26, print: 0.05, other: 2.73)
+engine/rules/context Time:  4.26 seconds (prove: 1.33, print: 0.02, other: 2.91)
+engine/machine/op-flat Time:  3.24 seconds (prove: 0.47, print: 0.01, other: 2.77)
+engine/machine/op-context Time:  2.63 seconds (prove: 0.13, print: 0.00, other: 2.50)
+engine: no skip-proofs, no defaxiom in 27 book(s)

@@ -1,0 +1,22 @@
+== before the fix (machine.lisp of commit 4e6e5b0; session of 2026-11-17, machine-run 1, 2 and 5 steps)
+(:OK T
+     :SPEC-STEP NIL
+     :RUN1 (ST FR NIL ((:NOP))
+               ((:H 0 5 NIL NIL))
+               :RUN)
+     :CLOCK1 1
+     :RUN2 (ST FR NIL NIL ((:H 0 5 NIL NIL)) :RUN)
+     :RUN5 (ST FR NIL NIL ((:H 0 5 NIL NIL))
+               :STUCK)
+     :ABS5 (:|%;%| (:|%;%| ST FR)
+                   ((:HANDLER_%{%}% 0 5 NIL))))
+WE !>
+== after the fix (handler-bug.lsp)
+(:MACHINE-OK T
+             :SPEC-STEP NIL
+             :AFTER-1-STEP (ST FR NIL ((:HANDLER_%{%}% 0 5 ((:NOP))))
+                               NIL :STUCK)
+             :CLOCK-OF-STEP-2 0
+             :AFTER-2-STEPS (ST FR NIL ((:HANDLER_%{%}% 0 5 ((:NOP))))
+                                NIL :STUCK))
+

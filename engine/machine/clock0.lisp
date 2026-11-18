@@ -82,7 +82,7 @@
   (implies (consp (ms-is s))
            (equal (machine-abs (enter-step s)) (machine-abs s)))
   :hints (("Goal" :cases ((enterable-p (car (ms-is s))))
-                  :in-theory (disable enter-step))))
+                  :in-theory (disable enter-step enterable-p))))
 
 (defthm value-instr-head
   (implies (value-instr-p i)

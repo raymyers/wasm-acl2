@@ -29,6 +29,7 @@ Proof practice, for every book you write or touch (source, reasons and the state
 * No `"Subgoal"` hints: a case that needs one becomes a lemma. Few hints; before a `:use` or `:expand`, try the fact as a rewrite rule.
 * Step limits (`set-prover-step-limit`), never time limits.
 * A lemma proved by induction names it (`:induct`), with the opener rules of its function disabled. Left to the rewriter, one ran 229 s before its step limit stopped it (notes/V1-dispatch.md §8).
+* A lemma that needs the result of another step binds it, `(equal inner (w3t::step ...))`, and states its conclusion with the components of `inner`. A hypothesis that equates the step to a term with free variables is not used by the rewriter (notes/V3-contexts.md §7).
 * Names: `f-of-g`, `-when-hyp`, `-under-equiv`; never `lemma1`, `crock`. Generated lemmas are `<rule>-<property>`.
 * State lemmas with `mv-nth`, not `cadddr`; keep `mv-nth` disabled.
 * Rules that loop together get a `theory-invariant`.

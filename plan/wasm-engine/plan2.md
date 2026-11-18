@@ -20,7 +20,7 @@
 > see [../wasm3-translation/evidence.md](../wasm3-translation/evidence.md)),
 > and what a host function does. ACL2 and SBCL stay trusted.
 >
-> **Status**: written 2026-11-17 at `4f18f50`. V0, V1 and V2 are complete
+> **Status**: written 2026-11-17 at `4f18f50`. V0 to V3 are complete
 > (2026-11-17). P1 and P3 are decided, P2 is decided after V5 (§2).
 
 ---
@@ -30,12 +30,35 @@
 - **Last updated**: 2026-11-17
 - **Milestones complete**: V0 (ground work;
   [V0-ground](notes/V0-ground.md)), V1 (dispatch lemmas;
-  [V1-dispatch](notes/V1-dispatch.md)) and V2 (the flat block;
-  [V2-flat](notes/V2-flat.md)). The gate certifies 25 books
-- **Next action**: V3 (contexts), or V6; they are independent. V3 starts
-  from `machine/op-flat.lisp`: the lemma to lift through the control
-  stack is `op-step-is-step-of-flat-block`, which has no hypothesis
-  about `ctrl`
+  [V1-dispatch](notes/V1-dispatch.md)), V2 (the flat block;
+  [V2-flat](notes/V2-flat.md)) and V3 (contexts;
+  [V3-contexts](notes/V3-contexts.md)). The gate certifies 27 books
+- **Next action**: V4 (exits and propagation), or V6; they are
+  independent. V4 starts from `machine/op-context.lisp`: `step-under-ctrl`
+  lifts any step of the innermost block through the control stack
+- **From V3, for later milestones**:
+  - `op-step-simulates` is C2 for `op-step` under any control stack. Its
+    hypotheses besides `machine-ok`: the head is not administrative, not
+    `TRAP`, not `THROW_REF`, and `op-step` ends `:run` (those of V2
+    without the empty `ctrl`)
+  - `step-under-ctrl` asks of the innermost block `b`: a true list, it
+    steps, the state of the step has the shape `(s; f)`, and
+    `(not (exit-body-p b))`. For a block that is values, an instruction
+    whose head is not a value's, and a rest, the last follows from the
+    step (`not-exit-body-p-when-block-steps`); for values, an
+    administrative term and a rest it holds always. These are the blocks
+    of `anyprefix-step` and of the entry around an `exit-step`
+  - the 24 rules whose redex is an administrative term are all pure or
+    read: none comes after a context rule in `STEP`. So V4 item 1 has no
+    case where "the context rule must fail first"; what it needs is what
+    each rule returns and that `try-rules` picks it
+  - `step-of-vals-exit-instr-rest`: `(z; vals ++ (i) ++ r)` does not
+    step when the head of `i` is `br`, `return` or `return_call_ref`
+  - **the machine changed** (a bug, [V3-contexts](notes/V3-contexts.md)
+    §6): `enterable-p` and `entry-ok` ask that the catch clauses of a
+    handler are a true list, as `Step/ctxt-handler` does. `machine-ok` is
+    stronger by that conjunct. Tests 1, 2, 3, lockstep and the slides
+    were run again (V3 below)
 - **From V2, for later milestones**:
   - `op-step-simulates-flat` is C2 for `op-step` with an empty control
     stack. Its hypotheses besides `machine-ok`: the head is not
@@ -85,9 +108,15 @@
   (S0 to S3; H waits with P1)
 - **Waiting for the user**: nothing
 - **Theorem hypotheses so far**: those of plan.md "Current state". V1
-  and V2 added none to a theorem of §1; their lemma hypotheses are
-  listed in [V1-dispatch](notes/V1-dispatch.md) §4 and
-  [V2-flat](notes/V2-flat.md) §6
+  to V3 added none to a theorem of §1; their lemma hypotheses are
+  listed in [V1-dispatch](notes/V1-dispatch.md) §4,
+  [V2-flat](notes/V2-flat.md) §6 and
+  [V3-contexts](notes/V3-contexts.md) §4 and §5. `machine-ok`, the
+  hypothesis of T1, got one conjunct in V3: the third component of a
+  handler entry is a true list (it was asked of a label entry only).
+  Reason: `Step/ctxt-handler` does not step the body otherwise, so C2
+  was false for such a state. The loader's states have an empty control
+  stack, so T3 is not affected
 
 ---
 
@@ -423,37 +452,67 @@ certify in 6.2 s and 2.6 s; the largest proof is 200,185 prover steps
 
 ### V3: contexts
 
-- [ ] One entry: if `STEP` of `(z_in; b)` is `(list (z_in'; b'))` and
+- [x] One entry: if `STEP` of `(z_in; b)` is `(list (z_in'; b'))` and
       no exit rule fires on the term, then `STEP` of
       `(z; (list (admin-term k n x b)))` is the term with `b'`, for
       `:l`, `:h` and `:f` (`:f` changes the frame: `z_in` is the store
       with the entry's frame). Needs: the pure and read rules fail on a
       one-element list holding an administrative term whose body steps
       (V1), `ctxt-instrs` fails on it (no value, no rest), the size
-      check
-- [ ] *Exit rules do not fire on a body that steps*: `label-vals`,
+      check. **Done** in `rules/context.lisp`: `step-of-admin-term`
+      (1,641 prover steps) and, with values before and a rest after,
+      `step-of-admin-term-in-block` (4,250); the three context rules on
+      a body that steps in 1,746 to 3,997 steps each, the size check by
+      linear arithmetic ([V3-contexts](notes/V3-contexts.md) §4)
+- [x] *Exit rules do not fire on a body that steps*: `label-vals`,
       `br-label-*`, `trap-label`, `frame-vals`, `return-frame`, the
       handler rules, each need a body of a shape that does not step
       (values alone: `step-of-vals`; `TRAP` alone; values then `br` or
-      `return`). So: a body that steps has none of those shapes
-- [ ] *Context lemma*: by induction on `ctrl`, with `abs-ctrl`
+      `return`). So: a body that steps has none of those shapes.
+      **Done**: 24 rules, 24 generated lemmas
+      `<R>-FAILS-WHEN-NOT-EXIT-BODY` (4,127 to 7,842 steps) from 10
+      lemmas about their searches (4,317 to 52,018);
+      `step-of-vals-exit-instr-rest` (a block at `br`, `return` or
+      `return_call_ref` does not step); `not-exit-body-p-when-block-steps`
+      (2,009), for a block that is values, an instruction whose head is
+      not a value's, and a rest
+      ([V3-contexts](notes/V3-contexts.md) §1 to §3)
+- [x] *Context lemma*: by induction on `ctrl`, with `abs-ctrl`
       generalized over `cur` and the frame: if `STEP` of the innermost
       block is `(list (z'; cur'))` then `STEP` of
       `(abs-of store frame vals is ctrl)` is the abstraction with
       `cur'` and the store and frame of `z'`. Each induction step is
-      the one-entry lemma followed by V2's `ctxt-instrs`
-- [ ] `op-step` under any control stack: C2
+      the one-entry lemma followed by V2's `ctxt-instrs`. **Done** in
+      `machine/op-context.lisp`: `step-under-ctrl` (14,313 steps, no
+      hint but `:induct`); its hypothesis besides the step is that the
+      block is not the body of an exit
+      ([V3-contexts](notes/V3-contexts.md) §5)
+- [x] `op-step` under any control stack: C2. **Done**:
+      `op-step-simulates` (64,282 steps)
+- [x] Found on the way, a machine bug: a handler whose catch clauses
+      are not a true list was entered, and the specification does not
+      step under it. `enterable-p` and `entry-ok` changed; one old proof
+      (`enter-step-keeps-abs`) got a hint. Tests after the change:
+      test 1, 0 disagreements in 10 runs; test 2, 32,707 commands
+      agree and none has another result (24 end at the machine's own
+      fuel, where the spec, with the fuel it has since 2026-11-16,
+      finishes); lockstep, 0 disagreements in 8 runs; test 3, 32,659
+      commands equal, 0 different; slides 7 of 7 ([V3-contexts](notes/V3-contexts.md) §6, §8)
 
 **Exit**: `op-step-simulates` certifies for any `ctrl` with
 `ctrl-ok`. S3's handler form is in the same induction, not a later
-case.
+case. **Met**: one theorem for a symbolic head and a symbolic control
+stack; label, handler and frame entries in one induction. The two books
+certify in 4.3 s and 2.6 s; the largest proof is 74,636
+prover steps (`step_read/split/search118-shape`).
 
 ### V4: exits and propagation
 
 - [ ] `exit-step`: the redex is the administrative term itself. For the
       exit rules that are pure, V1 gives it. For those that come after
       the context rules in `STEP` (they read the store), the context
-      rule must fail first: the body does not step. Needs
+      rule must fail first: the body does not step. (V3 found that
+      there are none: all 24 are pure or read.) Needs
       "`(z; vals ++ (br l) ++ r)`, `(z; vals ++ (return) ++ r)` and
       `(z; (ref.exn_addr a) (throw_ref))` do not step", by the
       generator of `terminal.lisp` on those shapes
@@ -629,8 +688,8 @@ separate sessions; they touch different directories (`rules/`,
 | Risk | What decides it | If it happens |
 |---|---|---|
 | Proofs over a symbolic `v ++ (i) ++ r` blow up (the 35-minute lemma of E6). **Did not happen in V1**: the largest such proof is 31,304 prover steps | V1 exit: three opcodes, prover steps recorded | Keep every rule function closed and reason only through V1's shape lemmas; never open `STEP` with rule definitions enabled ([E3-theorem](notes/E3-theorem.md), attempt 2: 359 s of preprocessing) |
-| The `%SIZE` check in the context rules is hard to discharge for a symbolic body | V0 item 5, tried on one label first | Prove `%SIZE` monotone for the three administrative forms only, not in general |
-| The machine's choice of redex differs from `STEP`'s on some state the tests never reached. **Did not happen in V2**: no failed checkpoint was a machine state | V2's operand-prefix lemma and V4's "body does not step" lemmas fail with a checkpoint that is a real state | That is a machine bug: fix the machine, re-run tests 1 and 2, record it (as test 3 did for several memories) |
+| The `%SIZE` check in the context rules is hard to discharge for a symbolic body. **Did not happen in V3**: linear arithmetic after `%size-of-cons` | V0 item 5, tried on one label first | Prove `%SIZE` monotone for the three administrative forms only, not in general |
+| The machine's choice of redex differs from `STEP`'s on some state the tests never reached. **Did not happen in V2**: no failed checkpoint was a machine state. **Happened once in V3**: a handler whose catch clauses are not a true list; fixed, tests re-run | V2's operand-prefix lemma and V4's "body does not step" lemmas fail with a checkpoint that is a real state | That is a machine bug: fix the machine, re-run tests 1 and 2, record it (as test 3 did for several memories) |
 | A type-dependent arity (`block`, `call_ref`, `throw`) cannot be related to the rule's own count. **Settled in V1**: it is related, for all eight rules; a function reference needs `(natp a)` | V1 item 3 | The machine computes the arity by the rule's own subterm; `redex-arity` changes, test 1 and 2 re-run |
 | The fallback's accepted results do not imply `fast-inv-store` | V6 item 2 | Strengthen the run-time check (`fallback-shape-ok`); the machine refuses more, the theorem is unchanged |
 | The logic-mode run loop is slower than the raw one for TeX | V8 item 3, measured | `fast-run` is already guard-verified and tail recursive; if the host check per step costs, dispatch on `call_ref` inside `fast-step` |

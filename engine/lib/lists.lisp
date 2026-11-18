@@ -223,6 +223,15 @@
 (defthm consp-of-take
   (equal (consp (take n l)) (not (zp n))))
 
+; a stack reversed twice
+(defthm revappend-of-revappend-nil
+  (implies (true-listp x) (equal (revappend (revappend x nil) nil) x))
+  :hints (("Goal" :induct (len x))))
+
+(defthm nth-when-too-large
+  (implies (<= (len l) (nfix n)) (equal (nth n l) nil))
+  :hints (("Goal" :induct (nth n l) :in-theory (enable nth))))
+
 (defthm take-of-1
   (equal (take 1 l) (list (car l))))
 

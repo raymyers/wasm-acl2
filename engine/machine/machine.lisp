@@ -301,12 +301,15 @@
 ; Enter the administrative term at the head of IS: push its control entry.
 ; The machine enters only a term of the shape (kind n x body) that
 ; MACHINE-ABS rebuilds: N a natural, BODY a true list, and X (the label's
-; continuation) a true list; any other term makes it stuck.
+; continuation, the handler's catch clauses) a true list; any other term
+; makes it stuck. Step/ctxt-label and Step/ctxt-handler ask the same of X
+; before they step the body (plan2.md V3: a handler whose clauses were not a
+; true list was entered, and the specification does not step under it).
 (defun enterable-p (i)
   (declare (xargs :guard t))
   (and (admin-kind i) (true-listp i) (equal (len-t i) 4)
        (natp (entry-n i)) (true-listp (entry-v i))
-       (or (not (eq (admin-kind i) :l)) (true-listp (entry-x i)))))
+       (or (eq (admin-kind i) :f) (true-listp (entry-x i)))))
 
 (defun enter-step (s)
   (declare (xargs :guard t))

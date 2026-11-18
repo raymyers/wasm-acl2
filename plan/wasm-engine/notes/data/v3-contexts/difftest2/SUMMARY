@@ -1,0 +1,18 @@
+scripts 258  finished 250
+same 32707
+differ 24
+unsupported 24728
+spec-fuel 0
+not-invoke 11
+commands per class and group (S4 = outside D5; no group = printed on another line):
+     24 :DIFFER S0
+     11 :NOT-INVOKE S0
+  13861 :SAME S0
+  17989 :SAME S1
+    176 :SAME S2
+     66 :SAME S3
+    615 :SAME S4
+  24728 :UNSUPPORTED S4
+scripts with a difference: bulk-memory--memory_copy bulk-memory--memory_fill memory64--memory_copy64 memory64--memory_fill64 memory64--memory_grow64 memory_grow 
+scripts where the driver itself failed (ACL2 Error before the first command): 
+scripts not finished (D2-EXIT 137 or 124 is the time limit): bulk-memory--memory_copy(137) call(137) call_indirect(137) call_ref(137) memory64--memory_copy64(137) return_call(137) return_call_indirect(137) return_call_ref(137) 
