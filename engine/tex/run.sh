@@ -6,6 +6,7 @@
 # Needs build/dl and build/fs (sh fetch.sh) and the engine books certified
 # (make -C engine certify BOOKS=fast/stretch).
 # TEXNOCHECK=1: do not check the invariant at the start of every stretch.
+# TEXNOSHORTCUT=1: data.drop takes the engine's fallback (102 s more).
 set -e
 here=$(cd "$(dirname "$0")" && pwd)
 export TEXHOST=$here/build TEXDL=$here/build/dl

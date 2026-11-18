@@ -21,6 +21,7 @@
 (defvar *snap-file* nil)                 ; the open input.tex of a saved snapshot
 (defvar *snap-at* 0)                     ; where its snapshot line starts
 (defvar *check* t)                       ; check the invariant at the start of every stretch (not with TEXNOCHECK)
+(defvar *shortcut* (not (sb-ext:posix-getenv "TEXNOSHORTCUT"))) ; the data.drop shortcut (below); read when this file loads
 (defun configure ()                      ; read again when a saved image starts
   (setq *path* (let ((s (sb-ext:posix-getenv "TEXPATH")) (l nil)) ; colon-separated directories
                  (loop while (and s (plusp (length s)))
@@ -323,10 +324,13 @@
 ; a stretch in which it is taken is not a run of the function in the
 ; theorems. It is counted per stretch (*SHORTCUTS*); tex.wasm executes
 ; data.drop at instantiation only. Every other fallback is counted and runs
-; as the engine defines it.
+; as the engine defines it. TEXNOSHORTCUT=1 (at the load of this file, so for
+; the instantiation) turns the shortcut off: data.drop then takes the
+; engine's fallback. STATE-DIGEST, printed after the instantiation, is the
+; same with and without it (plan/wasm-engine/notes/V8-engine-run.md, section 9).
 (sb-int:encapsulate 'we::fast-apply-fallback 'count
   (lambda (f fn z redex fm)
-    (cond ((eq fn 'w3t::step/r-data.drop)
+    (cond ((and *shortcut* (eq fn 'w3t::step/r-data.drop))
            (incf *shortcuts*)
            (multiple-value-bind (ok z2 res) (we::apply-rule fn z redex)
              (values ok (if ok z2 z) res fm)))
@@ -336,6 +340,20 @@
 
 ; ---------------------------------------------------------------------------
 ; main
+
+; FNV-1a (64 bits) of the memory array, and of the printed store and frame:
+; to compare the state of two runs of this driver
+(defun fnv (h byte) (ldb (byte 64 0) (* (logxor h byte) 1099511628211)))
+(defun memory-digest ()
+  (let ((h 14695981039346656037))
+    (dotimes (k (we::fm-mem-length *fm*) h) (setq h (fnv h (we::fm-memi k *fm*))))))
+(defun state-digest ()
+  (let ((h 14695981039346656037) (*package* (find-package "ACL2")) (*print-pretty* nil)
+        (*print-length* nil) (*print-level* nil) (*print-circle* nil))
+    (loop for c across (prin1-to-string (list (we::fm-store *fm*) (we::fm-frame *fm*)
+                                              (we::fm-vals *fm*) (we::fm-is *fm*) (we::fm-ctrl *fm*)))
+          do (setq h (fnv h (logand 255 (char-code c)))))
+    h))
 
 (defun find-export (name exports)
   (let ((codes (map 'list #'char-code name)))
@@ -381,6 +399,8 @@
       (we::fm-set (we::ms-store s) (we::ms-frame s) (we::ms-vals s) (we::ms-is s) (we::ms-ctrl s) (we::ms-status s) *fm*)
       (run-engine "instantiate")
       (unless (eq (we::fm-status *fm*) :done) (error "instantiation stopped"))
+      (format t "STATE-DIGEST after instantiation: memory ~d, store and frame ~d, shortcut ~a~%"
+              (memory-digest) (state-digest) (if *shortcut* "on" "off"))
       ; 5. call main
       (let* ((inst (wrt::%get-field (we::fm-frame *fm*) :module))
              (addr (find-export "main" (wrt::%get-field inst :exports)))

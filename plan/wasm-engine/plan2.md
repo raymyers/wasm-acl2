@@ -60,6 +60,13 @@
   theorems: [engine/THEOREM.md](../../engine/THEOREM.md), script
   `engine/inspect.lsp`. V9's `top.lisp` should restate it beside T3
   ([V8-engine-run](notes/V8-engine-run.md) §8)
+- **Audit (2026-11-18, at the user's request)**: nothing gamed found in
+  the engine; the semantics' redex strategy and its three performance
+  changes of 2026-11-16 are argued, not proved, and the engine cannot
+  detect a fault in them; without the `data.drop` shortcut TeX exhausts
+  the default Lisp stack in the fallback (`len-t`, most likely), and
+  with a larger stack reaches the same state
+  ([V8-audit](notes/V8-audit.md))
 - **Next action**: V9 (the gate): `top.lisp`, the checks of
   `make -C engine check`, plan.md's L2. Its evidence.md item is done
   (2026-11-18). V7b is optional and is not chosen while V9 is open

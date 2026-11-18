@@ -57,11 +57,18 @@ Three choices in the construction carry much of the argument.
 
 - **The rule functions are the spec's.** The translator emits one ACL2
   function per reduction rule (212 of them, `*step-rules*`). Both
-  machines call these functions (`apply-rule`); neither contains a
-  second definition of what an instruction does. What the machines add
-  is structural: an explicit control stack in place of nested
-  `LABEL_`/`FRAME_`/`HANDLER_` terms, the choice of the redex, and (fast
-  machine) memory 0's bytes in an array.
+  machines call these functions (`apply-rule`). What the list machine
+  adds is structural: an explicit control stack in place of nested
+  `LABEL_`/`FRAME_`/`HANDLER_` terms, and the choice of the redex, for
+  which it has its own table of operand counts (`redex-arity`, proved to
+  be the rules' own counts). The fast machine does contain second
+  computations of what some instructions do: hand-written paths for six
+  instructions (`local.get`, `local.set`, `local.tee`, `binop`, `relop`,
+  `br_if`; they call the spec's `$binop_`, `$relop_`, `$local`,
+  `$with_local`) and versions of the 19 memory rules generated from the
+  rules' own bodies with the byte list replaced by an array. Each is
+  proved equal to the rule it stands for, for every state; none can
+  differ from the semantics on a state the theorems cover.
 - **Fast paths are proved, or exact.** The fast machine's shortcuts
   (memory rules reading the array, six hot instructions) each have a
   lemma that they equal the general path. A rule with no such lemma goes
@@ -235,6 +242,18 @@ functions.
 - **The theorem is about the generated semantics.** A translation error
   would be faithfully executed. Evidence there is the spec test suite
   and, for the demos, V8.
+- **Two parts of the semantics are argued, not proved, and the engine
+  shares them.** `Step` uses a hand-chosen redex strategy
+  (`:split ... :redex`), which the list machine mirrors, so no engine
+  theorem or test against the semantics can see a fault of it. And
+  three performance changes were made to the generated semantics on
+  2026-11-16, while the engine was being built (`:search-start`,
+  `:constant-iter`, `:tests-first`); the engine is proved against the
+  changed form ([V8-audit](notes/V8-audit.md) §3).
+- **The exact fallback does not run on a large memory with the default
+  Lisp stack** (it fails with a Lisp error, not a wrong result). TeX
+  avoids it with the `data.drop` shortcut, which was checked to change
+  no state on `tex.wasm` ([V8-audit](notes/V8-audit.md) §4).
 - **The theorem does not say the engine finishes.** A change that made
   the engine stop early would keep every book certified. The tests and
   the demos would show it.

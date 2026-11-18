@@ -45,9 +45,10 @@ In words:
 
 The specification is the generated WebAssembly 3.0 semantics, package
 `W3T`: `W3T::STEP` and `W3T::STEPS/%FUEL`, translated from the SpecTec
-source of the standard (`../translate`). The engine does not have its
-own semantics of an instruction; the theorem relates it to those two
-functions.
+source of the standard (`../translate`). The engine applies that
+semantics' own rule functions, with faster paths for some instructions
+that are proved equal to them; the theorem relates the whole to those
+two functions.
 
 ## 2. Reading the statement
 
