@@ -20,46 +20,73 @@
 > see [../wasm3-translation/evidence.md](../wasm3-translation/evidence.md)),
 > and what a host function does. ACL2 and SBCL stay trusted.
 >
-> **Status**: written 2026-11-17 at `4f18f50`. V0 to V6 are complete
-> (V5 and V6 on 2026-11-18): T1 certifies, and T2 with one hypothesis
-> that V7 removes (no `call_ref`). P1 and P3 are decided; P2 is now
-> the user's to decide (§2).
+> **Status**: written 2026-11-17 at `4f18f50`. V0 to V7 are complete
+> (V5, V6 and V7 on 2026-11-18): T1 and T2 certify as stated in §1.
+> P1 and P3 are decided; P2 is now the user's to decide (§2).
 
 ---
 
 ## Current state
 
-- **Last updated**: 2026-11-18 (V6)
+- **Last updated**: 2026-11-18 (V7)
 - **Milestones complete**: V0 (ground work;
   [V0-ground](notes/V0-ground.md)), V1 (dispatch lemmas;
   [V1-dispatch](notes/V1-dispatch.md)), V2 (the flat block;
   [V2-flat](notes/V2-flat.md)), V3 (contexts;
   [V3-contexts](notes/V3-contexts.md)), V4 (exits and propagation;
   [V4-exits](notes/V4-exits.md)), V5 (T1;
-  [V5-t1](notes/V5-t1.md)) and V6 (the fast machine's invariant,
-  loader and run; [V6-inv](notes/V6-inv.md)). The gate certifies 33
+  [V5-t1](notes/V5-t1.md)), V6 (the fast machine's invariant,
+  loader and run; [V6-inv](notes/V6-inv.md)) and V7 (`call_ref`;
+  [V7-call-ref](notes/V7-call-ref.md)). The gate certifies 34
   books
 - **T1 certifies**: `machine-result-is-spec-result`
   (`engine/machine/spec-result.lisp`), the statement of §1 word for
   word. F1 is met
-- **T2 certifies with one hypothesis more than §1**:
-  `fast-result-is-spec-result` (`engine/fast/spec-result.lisp`) has
-  `(no-call-ref-run n (fm->ms fm))`, "the run has no `call_ref` at the
-  head of its instructions". V7 removes it. F2 and F3 are not met yet
-- **Next action**: V7 (no excluded instruction). Its frame lemmas are
-  now V7b, optional (user, 2026-11-18): V7 is `call_ref` only
+- **T2 certifies**: `fast-result-is-spec-result`
+  (`engine/fast/spec-result.lisp`), the statement of §1 word for word.
+  F2 and F3 are met
+- **Next action**: V8 (the engine that runs is the engine in the
+  theorem). V7b is optional and is not chosen while V8 or V9 is open
+- **From V7, for later milestones**:
+  - **the fast machine changed** (P1): `fast-step` stops `:unsupported`
+    at a `call_ref` whose reference is a host function (`host-ref-p`,
+    `fast.lisp`; one clause). The stobj is otherwise as it was, so a
+    driver can make the host step and resume. The list machine did not
+    change. Lockstep, test 3, the slides and TeX on `input.tex` were run
+    again (V7 below)
+  - the step theorem with no hypothesis about the instruction is
+    `fast-step-is-machine-step` (`fast/call-ref.lisp`).
+    `fast-step-refines` of `refine-op.lisp` keeps its `call_ref`
+    hypothesis; that book was not edited
+  - the run lemmas of `inv.lisp` (`fast-run-is-machine-run`,
+    `fast-run-keeps-fm-inv`) have `fm-inv` and "the run does not end
+    `:unsupported`" and nothing else
+  - **for V8 item 3 (TeX)**: a stretch of a TeX run between two host
+    calls is a `fast-run` that ends `:unsupported`. T2 does not speak of
+    it (its hypothesis is a result) and the run lemmas ask "does not end
+    `:unsupported`". V8 has to state what it claims for a stretch
+    ([V7-call-ref](notes/V7-call-ref.md) §6)
+  - `*fallback-not-yet*`, `*u-not-yet*` and `*places-not-yet*` are the
+    two host rules and `(:op :call_ref)`; the last event of
+    `call-ref.lisp` fails otherwise. This is how V7 settled them (V9's
+    gate): no host rule fires in a step of the fast machine
+    (`fast-step-refuses-host-call`, `host-rule-fails-on-op-redex`)
+  - the slides on the fast machine are inside T2: `config-shape-p`,
+    `fm-inv` and a result on each of 12 runs (checked at run time), 7 of
+    7 identical to V8
+  - no command of the spec suite reaches a host call on the fast
+    machine: the refusal is tested by its theorem and by one hand-made
+    state, not by test 3
 - **From V6, for later milestones**:
   - `fm-inv` (`fast/inv.lisp`) is `fmp`, `fast-inv-store` of the store
-    and `machine-ok` of `fm->ms`. `fast-step-keeps-fm-inv` has two
-    hypotheses besides it: the head is not `call_ref`, and the step does
+    and `machine-ok` of `fm->ms`. `fast-step-keeps-fm-inv` has
+    one hypothesis besides it since V7: the step does
     not end `:unsupported`. `fast-run-is-machine-run` and
-    `fast-run-keeps-fm-inv` have `no-call-ref-run` and "the run does not
+    `fast-run-keeps-fm-inv` have "the run does not
     end `:unsupported`"
-  - V7 has to remove the `call_ref` hypothesis from three lemmas:
-    `fast-step-refines` (`refine-op.lisp`), `fast-op-step-keeps-fmp` and
-    `fast-op-step-keeps-inv-store` (`inv.lisp`). The last two need only
-    the place lemma of `(:op :call_ref)`; "a rule that fires and is not
-    refused leaves a fast store" is already proved for every rule
+  - (done in V7) the `call_ref` hypothesis of `fast-step-keeps-fm-inv`
+    and of the run lemmas is gone; "a rule that fires and is not
+    refused leaves a fast store" is proved for every rule
     (`fast-apply-rule-keeps-inv-store`)
   - the loader: `fm-inv-of-fm-load-ms` and `fm->ms-of-fm-load-ms` for a
     list state with `fm-loadable-p`; `machine-ok-of-ms-of-config`,
@@ -79,7 +106,7 @@
     two machines' proofs load together
   - the slides on the fast machine: `config-shape-p`, `fm-inv` and a
     result on each of 12 runs (checked at run time), 7 of 7 identical
-    to V8. They are not inside T2 until V7: every call is a `call_ref`
+    to V8. They are inside T2 since V7
 - **From V5, for later milestones**:
   - T1 has no hypothesis about an opcode: C2
     (`machine-step-simulates`) holds for every running state with
@@ -201,9 +228,8 @@
   `(machine-result-p (machine-run n s))`, `(natp fuel)` and
   `(< (machine-clocks n s) fuel)`. V1
   to V5 added none to a theorem of §1. V6 added one to T2,
-  `(no-call-ref-run n (fm->ms fm))`: `fast-step-refines` excludes
-  `call_ref` (its two host rules have no (U) lemma); V7 removes it.
-  T2's other hypotheses are those of §1: `(fm-inv fm)`,
+  `(no-call-ref-run n (fm->ms fm))`, and V7 removed it.
+  T2's hypotheses are those of §1: `(fm-inv fm)`,
   `(fast-result-p (fast-run n fm))`, `(natp fuel)`,
   `(< (fast-clocks n fm) fuel)`. The loader lemmas ask
   `(config-shape-p c)` and `(fmp fm)`; the first excludes a store with
@@ -276,8 +302,8 @@ executable and which the driver checks.
 | | Condition | Today (evidence.md) |
 |---|---|---|
 | F1 | T1 holds for every rule the machine can apply, not for a group | C2 open for clock-1 steps. **Met in V5 (2026-11-18)** |
-| F2 | T2 holds; the invariant is proved, not assumed | step theorem only. **V6 (2026-11-18)**: the invariant is proved (step, run, loader); T2 holds with a `call_ref` hypothesis |
-| F3 | No instruction is excluded by hypothesis | `call_ref` excluded |
+| F2 | T2 holds; the invariant is proved, not assumed | step theorem only. **V6 (2026-11-18)**: the invariant is proved (step, run, loader); T2 holds with a `call_ref` hypothesis. **Met in V7 (2026-11-18)** |
+| F3 | No instruction is excluded by hypothesis | `call_ref` excluded. **Met in V7 (2026-11-18)**: a host `call_ref` stops the fast machine `:unsupported`, which is not a result |
 | F4 | The loader is inside the theorem (T3) | not proved |
 | F5 | The code that runs is the function in the theorem | TeX: raw-Lisp loop, `data.drop` shortcut, host functions outside the hook |
 | F6 | A gate fails if any of F1 to F5 stops holding | `no-skips` only |
@@ -795,12 +821,23 @@ and 2.2 s; the largest proof is 439,049 prover steps
 
 ### V7: no excluded instruction
 
-- [ ] P1 as decided: `fast-step` stops `:unsupported` when the
+- [x] P1 as decided: `fast-step` stops `:unsupported` when the
       instruction is `call_ref` and the reference is a host function
       (the test the TeX driver's loop already makes), so the two host
       rules are never applied by the fast machine and need no lemma.
       Lockstep and test 3 re-run. The next item is then not done; it
-      is kept for when host calls matter
+      is kept for when host calls matter. **Done**: `host-ref-p` and
+      one clause of `fast-step` (`fast.lisp`); the test is the one the
+      two rules make, on the store. The five books above `fast.lisp`
+      certified again unedited (136 s, 40 s, 339 s, 3 s, 7 s). Lockstep:
+      8 runs, 0 disagreements. Test 3: 32,659 commands with equal final
+      states, 24,726 `:unsupported` on both, 13 out of fuel on both, 11
+      not invocations, 0 different; 251 of 258 scripts finished, the
+      same 7 stopped at 900 s as before. No command reaches a host
+      call, so the clause is tested by `fast-step-refuses-host-call`
+      and one hand-made state. Slides 7 of 7; TeX on `input.tex` the
+      same DVI in the same 55,065,266 steps
+      ([V7-call-ref](notes/V7-call-ref.md) §1, §7)
 - [ ] (Deferred with P1.) The two `call_ref` host rules (`*u-not-yet*`): they call
       `$hostcall` on the store, so nothing can be said about the hook's
       result. They go through the exact fallback (bytes put back, the
@@ -810,19 +847,42 @@ and 2.2 s; the largest proof is 439,049 prover steps
       `refine.lisp`). First item of work: read why that fact is
       needed and state it about the hook as an unknown function; if it
       is false for some hook, the host step calls the fallback
-      unconditionally (P1 (a)'s host step) and the fact is not needed
-- [ ] `call_ref` of a wasm function: its place lemma, now that the
-      place no longer holds an unproved rule
-- [ ] `no-call-ref-run` is removed from `fast-step-refines`,
+      unconditionally (P1 (a)'s host step) and the fact is not needed.
+      (Found in V7: where the rule does not fire, (U) needs neither
+      per-rule fact, `u-holds-when-fallback-rule-fails`; they are
+      needed only where a host rule fires)
+- [x] `call_ref` of a wasm function: its place lemma, now that the
+      place no longer holds an unproved rule. **Done** in
+      `fast/call-ref.lisp`: `fast-try-op-call_ref-is-try-rules` (10,110
+      prover steps, no hypothesis) and `all-u-holds-of-call_ref` (175),
+      under "the reference of the redex is not a host function"; the
+      host rules fail there (3,396 and 3,358), so they have (U) with
+      `$hostcall` closed; `fast-op-step-refines-call_ref` (112,302)
+      ([V7-call-ref](notes/V7-call-ref.md) §2)
+- [x] `no-call-ref-run` is removed from `fast-step-refines`,
       `fast-op-step-keeps-fmp`, `fast-op-step-keeps-inv-store`, the run
-      lemmas and T2 ([V6-inv](notes/V6-inv.md) §7)
-- [ ] `*fallback-not-yet*`, `*u-not-yet*` and `*places-not-yet*` are
+      lemmas and T2 ([V6-inv](notes/V6-inv.md) §7). **Done**: the
+      function is deleted. `fast-step-refines` itself is not changed
+      (`refine-op.lisp` is not edited): the step theorem without the
+      hypothesis is `fast-step-is-machine-step` (2,819), and `inv.lisp`
+      uses it ([V7-call-ref](notes/V7-call-ref.md) §3)
+- [x] `*fallback-not-yet*`, `*u-not-yet*` and `*places-not-yet*` are
       settled and their checks say so: each is empty, or what is left
       is the two host rules together with a theorem that the fast
       machine does not apply them. `*frame-not-yet*` is not part of
-      this: a rule on it takes the fallback, which is proved exact (V7b)
+      this: a rule on it takes the fallback, which is proved exact (V7b).
+      **Done**: what is left is the two host rules and their place; the
+      last event of `call-ref.lisp` fails otherwise. The theorem is
+      two: `fast-step-refuses-host-call` (1,185) and
+      `host-rule-fails-on-op-redex` (292). The machine still calls the
+      host rules at a `call_ref` that is not a host call; they do not
+      fire ([V7-call-ref](notes/V7-call-ref.md) §5)
 
-**Exit**: T2 as written in §1. F2 and F3 met.
+**Exit**: T2 as written in §1. F2 and F3 met. **Met**:
+`fast-result-is-spec-result` (2,454 prover steps) has the four
+hypotheses of §1. The new book certifies in 2.8 s, `inv.lisp` in 9.3 s,
+`spec-result.lisp` in 2.2 s; the largest new proof is 112,302 prover
+steps (`fast-op-step-refines-call_ref`).
 
 ### V7b (optional, not on the path to T2 or T3): frame lemmas
 

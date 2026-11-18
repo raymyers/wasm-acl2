@@ -1,0 +1,20 @@
+# the last 15 lines of: nix develop -c make -C engine check JOBS=6, after the change of fast.lisp alone
+Making /Users/Apple/dev/wasm-acl2/engine/fast/refine-mem.cert on 18-Nov-2026 11:14:45.780
+Built /Users/Apple/dev/wasm-acl2/engine/fast/refine-mem.cert (40.268s) at 18-Nov-2026 11:15:26.057
+Making /Users/Apple/dev/wasm-acl2/engine/fast/refine-step.cert on 18-Nov-2026 11:15:26.080
+Built /Users/Apple/dev/wasm-acl2/engine/fast/refine-step.cert (339.628s) at 18-Nov-2026 11:21:05.719
+Making /Users/Apple/dev/wasm-acl2/engine/fast/refine-op.cert on 18-Nov-2026 11:21:05.762
+Built /Users/Apple/dev/wasm-acl2/engine/fast/refine-op.cert (7.308s) at 18-Nov-2026 11:21:13.088
+Making /Users/Apple/dev/wasm-acl2/engine/fast/ctrl-kinds.cert on 18-Nov-2026 11:21:13.114
+Built /Users/Apple/dev/wasm-acl2/engine/fast/ctrl-kinds.cert (3.059s) at 18-Nov-2026 11:21:16.184
+Making /Users/Apple/dev/wasm-acl2/engine/fast/inv.cert on 18-Nov-2026 11:21:16.206
+Built /Users/Apple/dev/wasm-acl2/engine/fast/inv.cert (9.544s) at 18-Nov-2026 11:21:25.763
+Making /Users/Apple/dev/wasm-acl2/engine/fast/spec-result.cert on 18-Nov-2026 11:21:25.786
+Built /Users/Apple/dev/wasm-acl2/engine/fast/spec-result.cert (2.419s) at 18-Nov-2026 11:21:28.214
+make[1]: Leaving directory '/Users/Apple/dev/wasm-acl2/engine'
+engine: no skip-proofs, no defaxiom in 33 book(s)
+make: Leaving directory '/Users/Apple/dev/wasm-acl2/engine'
+nix develop -c make -C engine check JOBS=6 2>&1  574.20s user 18.04s system 108% cpu 9:05.18 total
+tail -15  0.00s user 0.00s system 0% cpu 9:05.18 total
+
+[exited with code 0]

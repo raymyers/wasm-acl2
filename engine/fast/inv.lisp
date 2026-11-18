@@ -12,8 +12,8 @@
 ;     with the invariant that stands for the list state it was given.
 ;   - MACHINE-ABS-OF-MS-OF-CONFIG: a configuration of the shape
 ;     CONFIG-SHAPE-P is the abstraction of the list state made from it.
-; One hypothesis is carried and is V7's to remove: the head instruction is
-; not call_ref (FAST-STEP-REFINES has it; NO-CALL-REF-RUN says it of a run).
+; No hypothesis about the instruction (V7): the step theorem is
+; FAST-STEP-IS-MACHINE-STEP of call-ref.lisp, which covers call_ref.
 ;
 ; Normal forms. The accessors and updaters of the stobj are enabled, as in
 ; the books below this one: a term about a field is (NTH k FM) and
@@ -22,6 +22,7 @@
 ; books that say CADDDR are restated.
 (in-package "WE")
 (include-book "ctrl-kinds")
+(include-book "call-ref")
 
 (set-prover-step-limit 2000000)
 
@@ -35,7 +36,8 @@
                     redex-arity entry-kind entry-n entry-x entry-v entry-r admin-term
                     fast-step fast-op-step fast-exit-step fast-anyprefix-step
                     fast-enter-step fast-hot-step
-                    fast-step-refines))
+                    host-ref-p
+                    fast-step-refines fast-step-is-machine-step))
 
 ; ---------------------------------------------------------------------------
 ; 1. The stobj stays well formed
@@ -356,15 +358,13 @@
   :hints (("Goal" :in-theory (e/d (fast-enter-step) (enterable-p admin-kind)))))
 
 (defthm fast-op-step-keeps-fmp
-  (implies (and (fmp fm)
-                (not (equal (entry-kind (car (fm-is fm))) :call_ref)))
+  (implies (fmp fm)
            (fmp (fast-op-step fm)))
   :hints (("Goal" :in-theory (e/d (fast-op-step) (fast-try-op op-has-rules rules-for))
                   :do-not-induct t)))
 
 (defthm fast-op-step-keeps-inv-store
-  (implies (and (fast-inv-store (fm-store fm))
-                (not (equal (entry-kind (car (fm-is fm))) :call_ref)))
+  (implies (fast-inv-store (fm-store fm))
            (fast-inv-store (nth *fm-store* (fast-op-step fm))))
   :hints (("Goal" :in-theory (e/d (fast-op-step) (fast-try-op op-has-rules rules-for))
                   :do-not-induct t)))
@@ -413,16 +413,9 @@
   :hints (("Goal" :use hot-step-declined-keeps-fm
                   :in-theory (e/d (mv-nth mv-nth-1-2-3) (hot-step-declined-keeps-fm)))))
 
-; a hot instruction is not call_ref
-(defthm entry-kind-when-hot
-  (implies (sym-member (car i) '(:local.get :local.set :local.tee :binop :relop :br_if))
-           (not (equal (entry-kind i) :call_ref)))
-  :hints (("Goal" :in-theory (enable entry-kind sym-member))))
-
 (defthm fast-step-keeps-fmp
   (implies (and (fmp fm)
-                (ctrl-kinds-ok (fm-ctrl fm))
-                (not (equal (entry-kind (car (fm-is fm))) :call_ref)))
+                (ctrl-kinds-ok (fm-ctrl fm)))
            (fmp (fast-step fm)))
   :hints (("Goal" :in-theory (e/d (fast-step) (fast-val-p exit-instr-p admin-kind ctrl-kinds-ok
                                                (:e sym-member)))
@@ -431,8 +424,7 @@
 (defthm fast-step-keeps-inv-store
   (implies (and (fmp fm)
                 (fast-inv-store (fm-store fm))
-                (ctrl-kinds-ok (fm-ctrl fm))
-                (not (equal (entry-kind (car (fm-is fm))) :call_ref)))
+                (ctrl-kinds-ok (fm-ctrl fm)))
            (fast-inv-store (nth *fm-store* (fast-step fm))))
   :hints (("Goal" :in-theory (e/d (fast-step) (fast-val-p exit-instr-p admin-kind ctrl-kinds-ok
                                                (:e sym-member)))
@@ -453,37 +445,29 @@
   :hints (("Goal" :use ((:instance ctrl-kinds-ok-of-ms-ctrl-when-machine-ok (s (fm->ms fm))))
                   :in-theory (disable ctrl-kinds-ok-of-ms-ctrl-when-machine-ok))))
 
-(defthm fast-step-when-not-running
-  (implies (not (equal (fm-status fm) :run))
-           (equal (fast-step fm) fm))
-  :hints (("Goal" :in-theory (enable fast-step))))
-
 (defthm machine-ok-of-fast-step
   (implies (and (fm-inv fm)
-                (not (equal (entry-kind (car (fm-is fm))) :call_ref))
                 (not (equal (fm-status (fast-step fm)) :unsupported)))
            (machine-ok (fm->ms (fast-step fm))))
   :hints (("Goal" :cases ((equal (fm-status fm) :run))
-                  :in-theory (enable fast-step-refines machine-running)
+                  :in-theory (enable fast-step-is-machine-step machine-running)
                   :do-not-induct t)))
 
 (defthm fast-step-keeps-fm-inv
   (implies (and (fm-inv fm)
-                (not (equal (entry-kind (car (fm-is fm))) :call_ref))
                 (not (equal (fm-status (fast-step fm)) :unsupported)))
            (fm-inv (fast-step fm)))
   :hints (("Goal" :use machine-ok-of-fast-step
                   :in-theory (disable machine-ok-of-fast-step)
                   :do-not-induct t)))
 
-; FAST-STEP-REFINES of refine-op.lisp, from the invariant
+; FAST-STEP-IS-MACHINE-STEP of call-ref.lisp, from the invariant
 (defthm fm->ms-of-fast-step
   (implies (and (fm-inv fm)
-                (not (equal (entry-kind (car (fm-is fm))) :call_ref))
                 (not (equal (fm-status (fast-step fm)) :unsupported)))
            (equal (fm->ms (fast-step fm))
                   (machine-step (fm->ms fm))))
-  :hints (("Goal" :in-theory (enable fast-step-refines)
+  :hints (("Goal" :in-theory (enable fast-step-is-machine-step)
                   :do-not-induct t)))
 
 ; ---------------------------------------------------------------------------
@@ -507,21 +491,6 @@
            (fast-run-supported n fm))
   :hints (("Goal" :induct (fast-run n fm))))
 
-; the hypothesis that V7 removes: the list machine's run of N steps has no
-; call_ref at the head of its instructions
-(defun no-call-ref-run (n s)
-  (declare (xargs :guard (natp n) :measure (nfix n)))
-  (or (zp n)
-      (not (machine-running s))
-      (and (not (equal (entry-kind (car-t (ms-is s))) :call_ref))
-           (no-call-ref-run (1- n) (machine-step s)))))
-
-(defthm no-call-ref-run-when-running
-  (implies (and (not (zp n)) (machine-running s))
-           (equal (no-call-ref-run n s)
-                  (and (not (equal (entry-kind (car-t (ms-is s))) :call_ref))
-                       (no-call-ref-run (1- n) (machine-step s))))))
-
 (defthm machine-run-when-running
   (implies (and (not (zp n)) (machine-running s))
            (equal (machine-run n s)
@@ -529,7 +498,6 @@
 
 (defthm fast-run-is-machine-run-when-supported
   (implies (and (fm-inv fm)
-                (no-call-ref-run n (fm->ms fm))
                 (fast-run-supported n fm))
            (and (equal (fm->ms (fast-run n fm))
                        (machine-run n (fm->ms fm)))
@@ -539,14 +507,12 @@
 
 (defthm fast-run-is-machine-run
   (implies (and (fm-inv fm)
-                (no-call-ref-run n (fm->ms fm))
                 (not (equal (fm-status (fast-run n fm)) :unsupported)))
            (equal (fm->ms (fast-run n fm))
                   (machine-run n (fm->ms fm)))))
 
 (defthm fast-run-keeps-fm-inv
   (implies (and (fm-inv fm)
-                (no-call-ref-run n (fm->ms fm))
                 (not (equal (fm-status (fast-run n fm)) :unsupported)))
            (fm-inv (fast-run n fm))))
 
@@ -614,5 +580,5 @@
   :hints (("Goal" :use machine-ok-of-ms-of-config
                   :in-theory (disable machine-ok-of-ms-of-config mem0-shape-ok store-fields-p))))
 
-(in-theory (disable fm-inv fm-loadable-p config-shape-p no-call-ref-run fast-run-supported
+(in-theory (disable fm-inv fm-loadable-p config-shape-p fast-run-supported
                     ms-of-config fm-load-ms fast-run))

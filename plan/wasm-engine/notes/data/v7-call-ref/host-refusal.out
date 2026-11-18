@@ -1,0 +1,2 @@
+WE !>HOST-REFUSAL host ref: status :UNSUPPORTED, the rest unchanged T
+WE !>HOST-REFUSAL wasm ref (function 1): host-ref-p NIL, status :STUCK

@@ -21,9 +21,10 @@
 ; and of its loader lemmas (FAST-RESULT-IS-SPEC-RESULT, fast/spec-result.lisp;
 ; FM-INV-OF-FM-LOAD-MS, fast/inv.lisp; plan2.md V6): the configuration has
 ; CONFIG-SHAPE-P, the loaded stobj has FM-INV, and the run ends with a result.
-; T2 has one more hypothesis until V7, that the run executes no call_ref,
-; which these runs do not meet (every call of the module is a call_ref): the
-; fast machine's runs are not inside a theorem yet.
+; When all hold, T2 says that the spec's STEPS/%FUEL returns, from that
+; configuration, the final state the pixels are read from. T2 has no
+; hypothesis about an instruction since V7 of plan2.md: every call of the
+; module is a call_ref of a wasm function, which the step theorem covers.
 (ld "../fast/cert.acl2")
 (include-book "../fast/spec-result")
 (in-package "WE")

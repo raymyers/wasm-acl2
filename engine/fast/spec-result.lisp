@@ -1,7 +1,7 @@
 ; License: MIT. See the file LICENSE at the top of the repository.
 ;
-; T2, the theorem of the fast machine (plan/wasm-engine/plan2.md V6, last
-; item): when FAST-RUN ends with a result, the specification's STEPS/%FUEL,
+; T2, the theorem of the fast machine (plan/wasm-engine/plan2.md V6 and V7):
+; when FAST-RUN ends with a result, the specification's STEPS/%FUEL,
 ; started from the configuration the first stobj stands for with enough
 ; fuel, returns the configuration the last stobj stands for.
 ;
@@ -9,9 +9,9 @@
 ; stobj, with the run lemma of inv.lisp: a fast run that ends with a result
 ; did not end :unsupported, so it is the list machine's run.
 ;
-; One hypothesis is not in the statement of plan2.md section 1 and is V7's
-; to remove: NO-CALL-REF-RUN, the run has no call_ref at the head of its
-; instructions (the step theorem FAST-STEP-REFINES excludes call_ref).
+; It is the statement of plan2.md section 1: no hypothesis about an
+; instruction. At a call_ref of a host function the fast machine stops
+; :unsupported (plan2.md P1), which is not a result.
 (in-package "WE")
 (include-book "inv")
 (include-book "../machine/spec-result")
@@ -48,7 +48,6 @@
 ; the list machine's run ends with the result of the fast run
 (defthm machine-result-p-of-machine-run-of-fm->ms
   (implies (and (fm-inv fm)
-                (no-call-ref-run n (fm->ms fm))
                 (fast-result-p (fast-run n fm)))
            (machine-result-p (machine-run n (fm->ms fm))))
   :hints (("Goal" :use (fast-run-is-machine-run
@@ -56,13 +55,12 @@
                   :in-theory (disable fast-run-is-machine-run machine-result-p-of-fm->ms)
                   :do-not-induct t)))
 
-; T2, with the call_ref hypothesis
+; T2
 (defthm fast-result-is-spec-result
   (implies (and (fm-inv fm)
                 (fast-result-p (fast-run n fm))
                 (natp fuel)
-                (< (fast-clocks n fm) fuel)
-                (no-call-ref-run n (fm->ms fm)))
+                (< (fast-clocks n fm) fuel))
            (equal (w3t::steps/%fuel fuel (machine-abs (fm->ms fm)))
                   (list (machine-abs (fm->ms (fast-run n fm))))))
   :hints (("Goal" :use ((:instance machine-result-is-spec-result (s (fm->ms fm))))
