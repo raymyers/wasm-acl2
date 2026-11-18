@@ -51,6 +51,15 @@
   statement of §1 with the hypothesis `(fmp fm)`. F4 is met; F5 is met
   for the slides, and for TeX up to the host step, TeX's loader and the
   `data.drop` shortcut
+- **"Follows the specification or stops" certifies** (added after V8,
+  2026-11-18, at the user's request): `engine-run-is-spec-steps`
+  (`engine/run.lisp`): for a configuration with `config-shape-p` and
+  `(fmp fm)`, however the run ends, `(engine-config (engine-run n c fm))`
+  is `stepn` of some number of steps from `c`. With T3 it is the result
+  the user named as the one wanted. A guide for inspecting the two
+  theorems: [engine/THEOREM.md](../../engine/THEOREM.md), script
+  `engine/inspect.lsp`. V9's `top.lisp` should restate it beside T3
+  ([V8-engine-run](notes/V8-engine-run.md) §8)
 - **Next action**: V9 (the gate). V7b is optional and is not chosen
   while V9 is open
 - **From V8, for later milestones**:
@@ -960,7 +969,7 @@ TeX has that shortcut as one more exception, and the README of
       `engine-run`, `engine-result-p`, `engine-config` and the checks
       `config-shape-p` and `fmp`, and reads only the configuration
       `engine-config` returns; 12 runs, the hypotheses of T3 true on
-      each, 7 of 7 identical to V8, 112 to 447 ms per slide
+      each, 7 of 7 identical to V8, 110 to 437 ms per slide
       ([V8-engine-run](notes/V8-engine-run.md) §2)
 - [x] TeX with P1 as decided: the driver's loop calls `fast-run` between
       host calls (it resumes after each `:unsupported` stop at a host
@@ -970,7 +979,7 @@ TeX has that shortcut as one more exception, and the README of
       P1. **Done**, with one correction: T2 does not cover a stretch
       (it ends `:unsupported`, not with a result); what covers it is
       new, `fast-stretch-is-spec-steps` and `fast-run-is-spec-steps`
-      (`engine/fast/stretch.lisp`, 24 theorems, 8.1 s; largest proof
+      (`engine/fast/stretch.lisp`, 26 theorems, 8.0 s; largest proof
       876,167 prover steps, `fast-step-when-refused`): from `fm-inv` at
       its start, a stretch is so many steps of `STEP` and ends with
       `fm-inv`. The driver checks `fm-inv` at every stretch. Measured:

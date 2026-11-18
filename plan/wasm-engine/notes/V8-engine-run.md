@@ -33,7 +33,7 @@
 - **The TeX driver has no Lisp loop over instructions any more** (§3). A
   run is a sequence of stretches, each one call of `fast-run`; the driver
   makes the host step between two. What a stretch stands for is proved in
-  the new book `engine/fast/stretch.lisp` (8.1 s, 24 theorems): for a
+  the new book `engine/fast/stretch.lisp` (8.0 s, 26 theorems with §8): for a
   stretch that starts with `fm-inv`, the configuration it stops in is the
   one the specification reaches in a stated number of steps. The driver
   checks `fm-inv` at the start of every stretch: 63,712 of 63,712 for the
@@ -110,7 +110,7 @@ One line per run: `ENGINE-T3 config-shape <a> fmp <b> result <c>`.
 theorem.
 
 `make -C engine slides` (`data/v8-engine-run/slides-fast.txt`): 12 runs,
-`T T T` on each; 7 of 7 slides identical to V8; 112 to 447 ms per slide.
+`T T T` on each; 7 of 7 slides identical to V8; 110 to 437 ms per slide.
 The caption of the viewer reads "inside the proved subset: theorem T3
 (engine-run-is-spec-run) holds for all 12 runs, its hypotheses checked at
 run time".
@@ -339,6 +339,39 @@ Hints: `run.lisp` 1 `:use`; `stretch.lisp` 7 `:use`, 6 `:induct`, no
   loader, the `data.drop` shortcut in the instantiation stretch). The
   README of `engine/tex` lists them.
 
+### 8. Added the same day: "follows the specification or stops" as one theorem
+
+Asked by the user after the commit of V8: has it been shown that the
+fast engine matches the semantics or stops? The parts were there (§3)
+but not composed for `engine-run`. Now, in `run.lisp`:
+
+```lisp
+(defthm engine-run-is-spec-steps                  ; 2,259 prover steps
+  (implies (and (config-shape-p c) (fmp fm))
+           (equal (stepn (engine-steps n c fm) c)
+                  (list (engine-config (engine-run n c fm))))))
+```
+
+- No hypothesis about how the run ends. `engine-steps` (not executable)
+  is `machine-clocks` over `fast-run-steps`: the `n` steps, or, for a run
+  that ends `:unsupported`, the steps before the refused one.
+- From `fast-run-is-spec-steps-or-refused` (`stretch.lisp`, 15,172), the
+  two stretch theorems as one, with
+  `machine-abs-of-fm->ms-of-update-fm-status` (15): the abstraction does
+  not read the status, so the refused step is not seen in the
+  configuration. `run.lisp` now includes `fast/stretch`.
+- **It does not say the engine makes progress** (0 steps satisfy it),
+  and it is one direction: where the engine stops without a result the
+  specification may step on (P2).
+- `engine/THEOREM.md` is a guide for a reader who wants to inspect the
+  two theorems; `engine/inspect.lsp` is its script: the statements
+  printed from the logical world, 67 books under `run` with none flagged
+  for a skipped proof, an axiom or a trust tag, and both sides of both
+  theorems evaluated on `fac-1.wasm`, `run(5)`, at 14 values of `n`
+  (`data/v8-engine-run/inspect.txt`: `same T` on every line; 89 engine
+  steps are 46 spec steps; the result is 120 after 60).
+- The gate still certifies 36 books; the slides were run again, 7 of 7.
+
 ## Open questions
 
 - V9 restates T3 "verbatim": the statement is the one of §1, with
@@ -364,4 +397,5 @@ Hints: `run.lisp` 1 `:use`; `stretch.lisp` 7 `:use`, 6 `:induct`, no
 certificates), `gate.txt` (`make -C engine check`, 36 books),
 `modes.lsp`, `modes.txt`, `slides-fast.txt`, `slides-list.txt`,
 `tex-input.txt`, `tex-deck.txt`, `tex-deck-nocheck.txt`,
-`tex-deck-quiet.txt`, `ref-input.txt`, `ref-deck.txt`.
+`tex-deck-quiet.txt`, `ref-input.txt`, `ref-deck.txt`, `inspect.txt`;
+`engine/THEOREM.md`, `engine/inspect.lsp` (§8).

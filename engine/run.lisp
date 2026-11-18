@@ -7,7 +7,15 @@
 ;   - ENGINE-RUN-IS-SPEC-RUN: when ENGINE-RUN ends with a result, the
 ;     specification's STEPS/%FUEL, started from the configuration with
 ;     enough fuel, returns the configuration of the last stobj.
-; It is T2 (fast/spec-result.lisp) with the loader lemmas of fast/inv.lisp:
+;   - ENGINE-RUN-IS-SPEC-STEPS: whatever way ENGINE-RUN ends, the
+;     configuration of the last stobj is one the specification reaches from
+;     the configuration it was given, in ENGINE-STEPS steps of STEP. So the
+;     engine follows the specification or stops: it is never in a
+;     configuration the specification does not reach. (The converse is not
+;     claimed: where the engine stops without a result, the specification
+;     may step on.)
+; How to inspect the two theorems: THEOREM.md and inspect.lsp.
+; T3 is T2 (fast/spec-result.lisp) with the loader lemmas of fast/inv.lisp:
 ; the invariant FM-INV of T2 is no longer a hypothesis. What is asked of the
 ; input is its shape, CONFIG-SHAPE-P, which is executable: ((s; f); instr*)
 ; with a store that has every field and a memory 0 with a byte list. A store
@@ -24,7 +32,7 @@
 ; in logic mode. $instantiate is in program mode (it calls the validation
 ; relation Module_ok), so there is no such statement from a module.
 (in-package "WE")
-(include-book "fast/spec-result")
+(include-book "fast/stretch")
 
 (set-prover-step-limit 2000000)
 
@@ -74,3 +82,32 @@
            (equal (w3t::steps/%fuel fuel (w3t::$invoke s a vals))
                   (list (engine-config (engine-run n (w3t::$invoke s a vals) fm)))))
   :hints (("Goal" :in-theory (disable w3t::$invoke (:e tau-system)))))
+
+; ---------------------------------------------------------------------------
+; The engine follows the specification or stops.
+
+(defthm fm-status-of-fm-load-ms-of-ms-of-config
+  (equal (nth *fm-status* (fm-load-ms (ms-of-config c) fm)) :run)
+  :hints (("Goal" :in-theory (enable fm-load-ms ms-of-config))))
+
+; The steps of the specification that the run stands for: those of the list
+; machine's run over the machine steps the engine took, the refused one not
+; counted (FAST-RUN-STEPS, fast/stretch.lisp). Not executable: the theorem
+; says that such a number exists, and this is it.
+(defun-nx engine-steps (n c fm)
+  (machine-clocks (fast-run-steps n (fm-load-ms (ms-of-config c) fm))
+                  (ms-of-config c)))
+
+; STEPN (theorem/simulation.lisp) is exactly K steps of W3T::STEP.
+(defthm engine-run-is-spec-steps
+  (implies (and (config-shape-p c)
+                (fmp fm))
+           (equal (stepn (engine-steps n c fm) c)
+                  (list (engine-config (engine-run n c fm)))))
+  :hints (("Goal" :use ((:instance fast-run-is-spec-steps-or-refused
+                                   (fm (fm-load-ms (ms-of-config c) fm))))
+                  :in-theory (e/d (engine-run engine-config)
+                                  (fast-run-is-spec-steps-or-refused machine-abs stepn fmp))
+                  :do-not-induct t)))
+
+(in-theory (disable engine-steps))

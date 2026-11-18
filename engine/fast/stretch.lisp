@@ -17,6 +17,8 @@
 ;     (STEPN, theorem/simulation.lisp);
 ;   - FAST-RUN-IS-SPEC-STEPS: the same for a run that does not end
 ;     :unsupported (it ended with a result, :stuck, or its fuel);
+;   - FAST-RUN-IS-SPEC-STEPS-OR-REFUSED: the two as one statement, for any
+;     run from a state with the invariant;
 ;   - FAST-RUN-FUEL: FAST-RUN that also returns the fuel it did not use, for
 ;     a driver that counts steps;
 ;   - FM-INV-CHECK: FM-INV without building the list state (MACHINE-OK does
@@ -253,6 +255,35 @@
                                    machine-abs-of-state-variable))
                   :do-not-induct t))
   :rule-classes nil)
+
+; Both claims as one: whatever the status of the last stobj, the
+; configuration it stands for is the one the specification reaches from the
+; first in FAST-RUN-STEPS machine steps' worth of spec steps. A refused step
+; is not counted: it changed only the status, which MACHINE-ABS does not
+; read.
+(defun-nx fast-run-steps (n fm)
+  (if (equal (fm-status (fast-run n fm)) :unsupported)
+      (fast-supported-steps n fm)
+    n))
+
+(defthm machine-abs-of-fm->ms-of-update-fm-status
+  (equal (machine-abs (fm->ms (update-fm-status st fm)))
+         (machine-abs (fm->ms fm)))
+  :hints (("Goal" :in-theory (e/d (fm->ms-of-update-fm-status) (update-fm-status)))))
+
+(defthm fast-run-is-spec-steps-or-refused
+  (implies (and (fm-inv fm)
+                (not (equal (fm-status fm) :unsupported)))
+           (equal (stepn (machine-clocks (fast-run-steps n fm) (fm->ms fm))
+                         (machine-abs (fm->ms fm)))
+                  (list (machine-abs (fm->ms (fast-run n fm))))))
+  :hints (("Goal" :use (fast-stretch-is-spec-steps fast-run-is-spec-steps)
+                  :in-theory (e/d (fast-clocks)
+                                  (machine-abs stepn update-fm-status
+                                   machine-abs-of-state-variable))
+                  :do-not-induct t)))
+
+(in-theory (disable fast-run-steps))
 
 ; ---------------------------------------------------------------------------
 ; 5. FAST-RUN with the fuel that is left

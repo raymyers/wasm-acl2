@@ -1,6 +1,8 @@
 == prover steps, run, every defthm, in the order of the book
-ENGINE-RUN-IS-SPEC-RUN 4622
-ENGINE-INVOKE-IS-SPEC-RUN 219
+ENGINE-RUN-IS-SPEC-RUN 4626
+ENGINE-INVOKE-IS-SPEC-RUN 221
+FM-STATUS-OF-FM-LOAD-MS-OF-MS-OF-CONFIG 424
+ENGINE-RUN-IS-SPEC-STEPS 2259
 == prover steps, fast/stretch, every defthm, in the order of the book
 FAST-APPLY-FALLBACK-STOBJ-WHEN-NOT-FIRED 3469
 FAST-APPLY-RULE-STOBJ-WHEN-NOT-FIRED 10406
@@ -23,15 +25,17 @@ FAST-RUN-RESUMED 13082
 MACHINE-RUN-IS-SPEC-STEPS 1345
 FAST-STRETCH-IS-SPEC-STEPS 2674
 FAST-RUN-IS-SPEC-STEPS 2797
+MACHINE-ABS-OF-FM->MS-OF-UPDATE-FM-STATUS 15
+FAST-RUN-IS-SPEC-STEPS-OR-REFUSED 15172
 FAST-RUN-FUEL-IS-FAST-RUN 9375
 FUEL-LEFT-OF-FAST-RUN-FUEL 3535
 FM-INV-IS-FM-INV-CHECK 25659
 == certification times
-run Time:  2.51 seconds (prove: 0.03, print: 0.00, other: 2.48)
-fast/stretch Time:  8.13 seconds (prove: 5.73, print: 0.01, other: 2.39)
+run Time:  2.52 seconds (prove: 0.05, print: 0.00, other: 2.47)
+fast/stretch Time:  7.96 seconds (prove: 5.65, print: 0.01, other: 2.30)
 == hints
-run :use 1 :cases 0 :expand 0 :induct 0 Subgoal 0
-fast/stretch :use 7 :cases 0 :expand 0 :induct 6 Subgoal 0
+run :use 2 :cases 0 :expand 0 :induct 0 Subgoal 0
+fast/stretch :use 8 :cases 0 :expand 0 :induct 6 Subgoal 0
 == trust tags, skip-proofs, defaxiom in the two certificates
 run ttags 0 skip-proofs 0 defaxiom 0
 fast/stretch ttags 0 skip-proofs 0 defaxiom 0
