@@ -20,22 +20,46 @@
 > see [../wasm3-translation/evidence.md](../wasm3-translation/evidence.md)),
 > and what a host function does. ACL2 and SBCL stay trusted.
 >
-> **Status**: written 2026-11-17 at `4f18f50`. V0 to V3 are complete
-> (2026-11-17). P1 and P3 are decided, P2 is decided after V5 (§2).
+> **Status**: written 2026-11-17 at `4f18f50`. V0 to V4 are complete
+> (V4 on 2026-11-18). P1 and P3 are decided, P2 is decided after V5 (§2).
 
 ---
 
 ## Current state
 
-- **Last updated**: 2026-11-17
+- **Last updated**: 2026-11-18
 - **Milestones complete**: V0 (ground work;
   [V0-ground](notes/V0-ground.md)), V1 (dispatch lemmas;
   [V1-dispatch](notes/V1-dispatch.md)), V2 (the flat block;
-  [V2-flat](notes/V2-flat.md)) and V3 (contexts;
-  [V3-contexts](notes/V3-contexts.md)). The gate certifies 27 books
-- **Next action**: V4 (exits and propagation), or V6; they are
-  independent. V4 starts from `machine/op-context.lisp`: `step-under-ctrl`
-  lifts any step of the innermost block through the control stack
+  [V2-flat](notes/V2-flat.md)), V3 (contexts;
+  [V3-contexts](notes/V3-contexts.md)) and V4 (exits and propagation;
+  [V4-exits](notes/V4-exits.md)). The gate certifies 29 books
+- **Next action**: V5 (T1), or V6; they are independent. V5 item 1 is
+  the case split of `machine-step` with the four step theorems of V3
+  and V4 ([V4-exits](notes/V4-exits.md) §5)
+- **From V4, for later milestones**:
+  - C2 holds for every clock-1 case of `machine-step`:
+    `exit-step-simulates` (hypotheses besides `machine-ok`: `ctrl` not
+    empty, the step ends `:run`), `anyprefix-step-simulates` (the head
+    is `TRAP` or `THROW_REF`, the step ends `:run`),
+    `op-step-simulates-throw_ref-null` (the head is `THROW_REF`, the
+    top of the stack has the head `:ref.null_addr`, `op-step` ends
+    `:run`) and V3's `op-step-simulates`. Each hypothesis is a test
+    `machine-step` makes before the call
+  - `block-step-simulates` (`machine/exit-steps.lisp`): a step of the
+    innermost block that keeps the control stack is C2 for the two
+    states
+  - every pure and every read rule returns a true list (182 of 182
+    `<R>-INSTRS-TRUE-LISTP`); `*instrs-not-yet*` of `rules/flat.lisp`
+    is covered by `rules/exits.lisp`
+  - **the machines changed** (a bug, [V4-exits](notes/V4-exits.md) §6):
+    `machine-step` and `fast-step` test the head `:ref.null_addr` (it
+    was `:ref.null`, which no value has) before they give `throw_ref`
+    to `op-step`. `machine-ok` did not change. Tests 1, 2, 3, lockstep
+    and the slides were run again (V4 below)
+  - "a block at `br` or `return` does not step" is not used by C2 (the
+    rules of an administrative term come before the context rules in
+    `STEP`); it is there for V10
 - **From V3, for later milestones**:
   - `op-step-simulates` is C2 for `op-step` under any control stack. Its
     hypotheses besides `machine-ok`: the head is not administrative, not
@@ -108,10 +132,11 @@
   (S0 to S3; H waits with P1)
 - **Waiting for the user**: nothing
 - **Theorem hypotheses so far**: those of plan.md "Current state". V1
-  to V3 added none to a theorem of §1; their lemma hypotheses are
+  to V4 added none to a theorem of §1; their lemma hypotheses are
   listed in [V1-dispatch](notes/V1-dispatch.md) §4,
-  [V2-flat](notes/V2-flat.md) §6 and
-  [V3-contexts](notes/V3-contexts.md) §4 and §5. `machine-ok`, the
+  [V2-flat](notes/V2-flat.md) §6,
+  [V3-contexts](notes/V3-contexts.md) §4 and §5 and
+  [V4-exits](notes/V4-exits.md) §5. `machine-ok`, the
   hypothesis of T1, got one conjunct in V3: the third component of a
   handler entry is a true list (it was asked of a label entry only).
   Reason: `Step/ctxt-handler` does not step the body otherwise, so C2
@@ -508,21 +533,63 @@ prover steps (`step_read/split/search118-shape`).
 
 ### V4: exits and propagation
 
-- [ ] `exit-step`: the redex is the administrative term itself. For the
+- [x] `exit-step`: the redex is the administrative term itself. For the
       exit rules that are pure, V1 gives it. For those that come after
       the context rules in `STEP` (they read the store), the context
       rule must fail first: the body does not step. (V3 found that
       there are none: all 24 are pure or read.) Needs
       "`(z; vals ++ (br l) ++ r)`, `(z; vals ++ (return) ++ r)` and
       `(z; (ref.exn_addr a) (throw_ref))` do not step", by the
-      generator of `terminal.lisp` on those shapes
-- [ ] `anyprefix-step`: `trap-instrs` and `throw_ref-instrs` on the
-      whole block; both are pure, so they are first in `STEP`
-- [ ] `THROW_REF-NULL` (the one `op-step` reached through
-      `throw_ref`)
-- [ ] Both lifted by V3's context lemma
+      generator of `terminal.lisp` on those shapes. **Done** in
+      `rules/exits.lisp`: `step-of-admin-term-when-rule-fires` (6,322
+      prover steps) and, with values before and a rest after,
+      `step-of-exit-term` (16,250). The three "do not step" facts are
+      not needed: `STEP` tries the pure and the read rules before every
+      context rule, so a rule of the term that fires is `STEP`'s
+      whatever the body is. What was needed instead: the 12 rules that
+      return what a search found return a true list (12 of 12, 50 to
+      404 steps, from 13 search lemmas of 2,326 to 10,427); all 182
+      pure and read rules have that lemma now
+      ([V4-exits](notes/V4-exits.md) §1, §2)
+- [x] `anyprefix-step`: `trap-instrs` and `throw_ref-instrs` on the
+      whole block; both are pure, so they are first in `STEP`.
+      **Done**: `step-of-block-rule` (27,225). `throw_ref-instrs` is a
+      read rule and `throw_ref-null` stands before it in the relation;
+      where the first fires the second fails, since the first needs an
+      exception reference before the `THROW_REF`
+      (`step_read/split/search134-fails-when-not-exn-before-throw`,
+      44,042) ([V4-exits](notes/V4-exits.md) §3)
+- [x] `THROW_REF-NULL` (the one `op-step` reached through
+      `throw_ref`). **Done**: `step-of-null-throw_ref-block` (5,626),
+      V2's flat block for the head V2 excludes, with V2's search lemmas
+      as they are ([V4-exits](notes/V4-exits.md) §4)
+- [x] Both lifted by V3's context lemma. **Done** in
+      `machine/exit-steps.lisp`: `block-step-simulates` (13,545) lifts a
+      step of the innermost block; `exit-step` lifts the step of the
+      block around the innermost entry through the rest of the control
+      stack ([V4-exits](notes/V4-exits.md) §5)
+- [x] Found on the way, a machine bug: `machine-step` and `fast-step`
+      tested the head `:ref.null` on the operand stack, which no value
+      has (a null reference is `(:ref.null_addr)`), so `throw_ref-null`
+      was never applied and the machine ended `:stuck` where the
+      specification steps to `TRAP`. One token changed in each machine;
+      no old proof changed. Tests after the change:
+      test 1, 0 disagreements in 10 runs; test 2, 32,706 commands agree
+      and none has another result (24 end at the machine's own fuel);
+      lockstep, 0 disagreements in 8 runs; test 3, 32,648 commands
+      equal, 0 different; slides 7 of 7; the three configurations of
+      the bug end `:trap` as the specification
+      ([V4-exits](notes/V4-exits.md) §6, §8)
 
-**Exit**: `exit-step-simulates`, `anyprefix-step-simulates`.
+**Exit**: `exit-step-simulates`, `anyprefix-step-simulates`. **Met**:
+`exit-step-simulates` (43,762 prover steps; hypotheses besides
+`machine-ok`: `ctrl` not empty, the step ends `:run`),
+`anyprefix-step-simulates` (93,769; the head is `TRAP` or `THROW_REF`,
+the step ends `:run`) and `op-step-simulates-throw_ref-null` (69,546;
+the head is `THROW_REF`, the top of the stack has the head
+`:ref.null_addr`, the step ends `:run`). The two books certify in
+2.9 s and 2.4 s; the largest proof is 197,944 prover
+steps (`first-nonval-when-vals-then-exn-throw`).
 
 ### V5: T1
 
@@ -689,7 +756,7 @@ separate sessions; they touch different directories (`rules/`,
 |---|---|---|
 | Proofs over a symbolic `v ++ (i) ++ r` blow up (the 35-minute lemma of E6). **Did not happen in V1**: the largest such proof is 31,304 prover steps | V1 exit: three opcodes, prover steps recorded | Keep every rule function closed and reason only through V1's shape lemmas; never open `STEP` with rule definitions enabled ([E3-theorem](notes/E3-theorem.md), attempt 2: 359 s of preprocessing) |
 | The `%SIZE` check in the context rules is hard to discharge for a symbolic body. **Did not happen in V3**: linear arithmetic after `%size-of-cons` | V0 item 5, tried on one label first | Prove `%SIZE` monotone for the three administrative forms only, not in general |
-| The machine's choice of redex differs from `STEP`'s on some state the tests never reached. **Did not happen in V2**: no failed checkpoint was a machine state. **Happened once in V3**: a handler whose catch clauses are not a true list; fixed, tests re-run | V2's operand-prefix lemma and V4's "body does not step" lemmas fail with a checkpoint that is a real state | That is a machine bug: fix the machine, re-run tests 1 and 2, record it (as test 3 did for several memories) |
+| The machine's choice of redex differs from `STEP`'s on some state the tests never reached. **Did not happen in V2**: no failed checkpoint was a machine state. **Happened once in V3**: a handler whose catch clauses are not a true list; fixed, tests re-run. **V4**: no failed checkpoint was a machine state; one bug of the other direction was found by reading a rule (the machine was stuck at `throw_ref` under a null reference, where the spec steps); fixed, tests re-run | V2's operand-prefix lemma and V4's "body does not step" lemmas fail with a checkpoint that is a real state | That is a machine bug: fix the machine, re-run tests 1 and 2, record it (as test 3 did for several memories) |
 | A type-dependent arity (`block`, `call_ref`, `throw`) cannot be related to the rule's own count. **Settled in V1**: it is related, for all eight rules; a function reference needs `(natp a)` | V1 item 3 | The machine computes the arity by the rule's own subterm; `redex-arity` changes, test 1 and 2 re-run |
 | The fallback's accepted results do not imply `fast-inv-store` | V6 item 2 | Strengthen the run-time check (`fallback-shape-ok`); the machine refuses more, the theorem is unchanged |
 | The logic-mode run loop is slower than the raw one for TeX | V8 item 3, measured | `fast-run` is already guard-verified and tail recursive; if the host check per step costs, dispatch on `call_ref` inside `fast-step` |

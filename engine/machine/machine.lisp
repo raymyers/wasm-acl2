@@ -375,7 +375,7 @@
           (cond ((value-instr-p i)
                  (ms (ms-store s) (ms-frame s) (cons i vals) (cdr-t is) ctrl :run))
                 ((admin-kind i) (enter-step s))
-                ((and (eq (entry-kind i) :throw_ref) (eq (entry-kind (car-t vals)) :ref.null))
+                ((and (eq (entry-kind i) :throw_ref) (eq (entry-kind (car-t vals)) :ref.null_addr))
                  (op-step s))                ; THROW_REF-NULL: val^1 throw_ref
                 ((and (sym-member (entry-kind i) '(:trap :throw_ref))
                       (or (consp (cdr-t is))

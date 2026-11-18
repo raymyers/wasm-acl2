@@ -501,7 +501,7 @@
                 ((fast-val-p i)
                  (let* ((fm (update-fm-vals (cons i vals) fm))) (update-fm-is (cdr is) fm)))
                 ((admin-kind i) (fast-enter-step fm))
-                ((and (eq (entry-kind i) :throw_ref) (eq (entry-kind (car-t vals)) :ref.null))
+                ((and (eq (entry-kind i) :throw_ref) (eq (entry-kind (car-t vals)) :ref.null_addr))
                  (fast-op-step fm))
                 ((and (sym-member (entry-kind i) '(:trap :throw_ref))
                       (or (consp (cdr is))
