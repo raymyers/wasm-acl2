@@ -3,7 +3,8 @@
 # on the engine, compare with V8, and write the viewer.
 #   sh run.sh [DECK.txt] [OUTDIR]      (inside nix develop; defaults: deck.txt build)
 # ENGINE=list runs the list machine, whose runs are inside theorem T1
-# (plan2.md V5); the default is the fast machine.
+# (plan2.md V5); the default is the fast machine through ENGINE-RUN, whose
+# runs are inside theorem T3 (plan2.md V8).
 # OUTDIR/view/index.html shows the engine's slides; the script fails unless
 # every slide is identical to V8's.
 set -e

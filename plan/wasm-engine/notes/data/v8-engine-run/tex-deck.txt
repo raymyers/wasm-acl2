@@ -1,0 +1,81 @@
+
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+This is e-TeX, Version 3.14159265-2.6 (preloaded format=latex 2022.5.1)
+**entering extended mode
+(deck.tex
+LaTeX2e <2020-02-02> patch level 2
+(slides.tex
+[main: 20 M steps, 6. s, 3.29 M steps/s, 411 host calls, 0 fallbacks]
+[main: 40 M steps, 12. s, 3.29 M steps/s, 565 host calls, 0 fallbacks]
+) (figdims.tex) ("deck.aux")
+[main: 60 M steps, 18. s, 3.28 M steps/s, 5141 host calls, 0 fallbacks]
+ ABD: EveryShipout initializing macros
+[main: 80 M steps, 24. s, 3.28 M steps/s, 6551 host calls, 0 fallbacks]
+ [1]
+[main: 100 M steps, 31. s, 3.27 M steps/s, 9235 host calls, 0 fallbacks]
+ [2]
+[main: 120 M steps, 37. s, 3.27 M steps/s, 13574 host calls, 0 fallbacks]
+
+[3] [4]
+[main: 140 M steps, 43. s, 3.26 M steps/s, 15706 host calls, 0 fallbacks]
+ [5]
+[main: 160 M steps, 49. s, 3.26 M steps/s, 18702 host calls, 0 fallbacks]
+[main: 180 M steps, 55. s, 3.25 M steps/s, 29246 host calls, 0 fallbacks]
+ [6] [7]
+[main: 200 M steps, 62. s, 3.25 M steps/s, 30390 host calls, 0 fallbacks]
+ [8]
+[main: 220 M steps, 68. s, 3.25 M steps/s, 32500 host calls, 0 fallbacks]
+ [9] [10]
+[main: 240 M steps, 74. s, 3.25 M steps/s, 34616 host calls, 0 fallbacks]
+[main: 260 M steps, 80. s, 3.24 M steps/s, 37965 host calls, 0 fallbacks]
+[main: 280 M steps, 86. s, 3.24 M steps/s, 40569 host calls, 0 fallbacks]
+ [11]
+[main: 300 M steps, 93. s, 3.24 M steps/s, 44708 host calls, 0 fallbacks]
+[main: 320 M steps, 99. s, 3.24 M steps/s, 44708 host calls, 0 fallbacks]
+ [12]
+[main: 340 M steps, 105. s, 3.24 M steps/s, 47456 host calls, 0 fallbacks]
+[main: 360 M steps, 111. s, 3.24 M steps/s, 47479 host calls, 0 fallbacks]
+ [13]
+[main: 380 M steps, 117. s, 3.24 M steps/s, 48715 host calls, 0 fallbacks]
+[main: 400 M steps, 124. s, 3.22 M steps/s, 48736 host calls, 0 fallbacks]
+ [14] [15]
+[main: 420 M steps, 130. s, 3.22 M steps/s, 51170 host calls, 0 fallbacks]
+ [16]
+[main: 440 M steps, 136. s, 3.23 M steps/s, 51997 host calls, 0 fallbacks]
+ [17]
+[main: 460 M steps, 143. s, 3.23 M steps/s, 52425 host calls, 0 fallbacks]
+ [18]
+[19]
+[main: 480 M steps, 149. s, 3.23 M steps/s, 53262 host calls, 0 fallbacks]
+ [20]
+[main: 500 M steps, 155. s, 3.23 M steps/s, 54083 host calls, 0 fallbacks]
+ [21]
+[main: 520 M steps, 161. s, 3.23 M steps/s, 57091 host calls, 0 fallbacks]
+ [22] [23]
+[main: 540 M steps, 167. s, 3.23 M steps/s, 57924 host calls, 0 fallbacks]
+ [24] [25] [26] [27] [28] [29]
+[main: 560 M steps, 173. s, 3.23 M steps/s, 59200 host calls, 0 fallbacks]
+ [30] [31]
+[main: 580 M steps, 180. s, 3.23 M steps/s, 59650 host calls, 0 fallbacks]
+ [32] [33]
+SLIDES 33
+[main: 600 M steps, 186. s, 3.22 M steps/s, 62517 host calls, 0 fallbacks]
+(deck.aux) )
+Output written on deck.dvi (33 pages, 20992 bytes).
+Transcript written on deck.log.
+main: status :DONE after 606866720 steps, 188.3 s (3.22 M steps/s), 63681 host calls, 0 fallbacks
+main: 63712 stretches of FAST-RUN, 63712 started with FM-INV; data.drop shortcut taken 0 times
+HOST calls: (("get" . 39627) ("printChar" . 23234) ("inputln" . 593)
+             ("printNewline" . 58) ("close" . 41) ("erstat" . 41)
+             ("reset" . 39) ("eof" . 32) ("printString" . 7) ("rewrite" . 4)
+             ("tex_final_end" . 1) ("getCurrentYear" . 1)
+             ("getCurrentMonth" . 1) ("getCurrentDay" . 1)
+             ("getCurrentMinutes" . 1))
+WROTE /Users/Apple/.claude/jobs/2f6ab9ca/tmp/deck2/deck.log (1929 bytes, from deck.log)
+WROTE /Users/Apple/.claude/jobs/2f6ab9ca/tmp/deck2/deck.aux (8 bytes, from deck.aux)
+WROTE /Users/Apple/.claude/jobs/2f6ab9ca/tmp/deck2/deck.dvi (20992 bytes, from deck.dvi)
+TOTAL 606874026 steps, final-end T, 188.3 s
+STRETCHES 63713, 63713 started with FM-INV, data.drop shortcuts 40

@@ -1,0 +1,51 @@
+warning: Git tree '/Users/Apple/dev/wasm-acl2' has uncommitted changes
+wasm-acl2 dev shell
+  make all      certify top + proofs + tests
+  make top      certify just the library
+  make proofs / make tests
+  (cd tests/oracle && bash check-all.sh)   Node.js oracle
+make: Entering directory '/Users/Apple/dev/wasm-acl2/engine'
+/nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books/build/cert.pl --acl2 /nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/bin/acl2 -j 4 portcullis theorem/simulation lib/lists lib/records machine/clock0 machine/exit-steps machine/machine machine/ok machine/op-context machine/op-flat machine/opcodes machine/spec-result machine/terminal-ok rules/arity rules/context rules/dispatch rules/exits rules/first-lemmas rules/flat rules/if-true rules/shape rules/step-basics rules/terminal fast/call-ref fast/ctrl-kinds fast/fast fast/frame fast/inv fast/memory fast/refine-hot fast/refine-mem fast/refine-op fast/refine-step fast/refine fast/spec-result fast/stretch run
+System books directory is /nix/store/gncdh9fw7lwg9m34j30726gaxbwpzwj1-acl2-with-wasm-books-8.7/share/acl2/books
+make[1]: Entering directory '/Users/Apple/dev/wasm-acl2/engine'
+make[1]: Nothing to be done for 'all-cert-pl-certs'.
+make[1]: Leaving directory '/Users/Apple/dev/wasm-acl2/engine'
+sh slides/run.sh
+warning: Git tree '/Users/Apple/dev/wasm-acl2' has uncommitted changes
+deck: deck.txt sha256 b03cf3beb886b5b9c38a95a75eff7822e0209d88a21f164dee9da94ecaf0f87a
+clang: clang version 21.1.8
+sha256 sent.wasm: 92de41b9703f0e72e1d49d5216e48fb26b81fc2e26c314b3a459e90c65317ee6
+WE p!>ENGINE-T3 config-shape T fmp T result T
+
+ENGINE-T3 config-shape T fmp T result T
+ENGINE-T3 config-shape T fmp T result T
+ENGINE-T3 config-shape T fmp T result T
+ENGINE-T3 config-shape T fmp T result T
+ENGINE-DECK machine :FAST instantiate :DONE slides 7 framebuffer 25824
+size 1280 x 720 ((:DONE :DONE :DONE :DONE))
+ENGINE-T3 config-shape T fmp T result T
+ENGINE-SLIDE 0 status :DONE scale 2 ms 447
+ENGINE-T3 config-shape T fmp T result T
+ENGINE-SLIDE 1 status :DONE scale 1 ms 323
+ENGINE-T3 config-shape T fmp T result T
+ENGINE-SLIDE 2 status :DONE scale 1 ms 112
+ENGINE-T3 config-shape T fmp T result T
+ENGINE-SLIDE 3 status :DONE scale 1 ms 146
+ENGINE-T3 config-shape T fmp T result T
+ENGINE-SLIDE 4 status :DONE scale 1 ms 137
+ENGINE-T3 config-shape T fmp T result T
+ENGINE-SLIDE 5 status :DONE scale 2 ms 391
+ENGINE-T3 config-shape T fmp T result T
+ENGINE-SLIDE 6 status :DONE scale 4 ms 293
+(<fm> <state>)
+SLIDE 0 SAME engine c4c908f3ad8296e0fff1097ab079a3989229742b2976a810b8d1aa3ca20b90ba v8 c4c908f3ad8296e0fff1097ab079a3989229742b2976a810b8d1aa3ca20b90ba
+SLIDE 1 SAME engine c5b09bc0ceec82a272a635713d7e0b3d167b7597cb0f33b7c3ef8e47bba1e2cf v8 c5b09bc0ceec82a272a635713d7e0b3d167b7597cb0f33b7c3ef8e47bba1e2cf
+SLIDE 2 SAME engine 8f3e837610f9c8e15d682dfbe440677c085ef6605786bf6fe2fc4feaaa90eb5a v8 8f3e837610f9c8e15d682dfbe440677c085ef6605786bf6fe2fc4feaaa90eb5a
+SLIDE 3 SAME engine 207ea3010267327dbc2b0a4ad22d1b29394e3182a45c3e77fdc42b5a5f76b6b2 v8 207ea3010267327dbc2b0a4ad22d1b29394e3182a45c3e77fdc42b5a5f76b6b2
+SLIDE 4 SAME engine df3ba68e345b706ea3e67b1893ec78e9dc2f40fd50fe031748ecb6c39e80fe97 v8 df3ba68e345b706ea3e67b1893ec78e9dc2f40fd50fe031748ecb6c39e80fe97
+SLIDE 5 SAME engine b4d5711d2a9be7a3fbdd7815ab196af3102ca0ba2275f7a02a29f1f04dcf3253 v8 b4d5711d2a9be7a3fbdd7815ab196af3102ca0ba2275f7a02a29f1f04dcf3253
+SLIDE 6 SAME engine b46b96a59f642cfd3bbcd86abee723c2f338b23678cdc2b2ef23dde0bd38bc12 v8 b46b96a59f642cfd3bbcd86abee723c2f338b23678cdc2b2ef23dde0bd38bc12
+PROVED inside the proved subset: theorem T3 (engine-run-is-spec-run) holds for all 12 runs, its hypotheses checked at run time
+TOTAL 7 of 7 slides identical to V8; module sha256 92de41b9703f0e72e1d49d5216e48fb26b81fc2e26c314b3a459e90c65317ee6
+slides: all 7 identical to V8; viewer: /Users/Apple/dev/wasm-acl2/engine/slides/build/view/index.html
+make: Leaving directory '/Users/Apple/dev/wasm-acl2/engine'

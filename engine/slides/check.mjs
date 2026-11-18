@@ -31,12 +31,12 @@ const machine = /machine :LIST/.test(log) ? 'list machine' : 'fast machine';
 // machine prints one line ENGINE-T1 per run (render.lsp): the hypotheses of
 // T1 (machine-result-is-spec-result) checked on that run.
 const t1 = log.match(/ENGINE-T1 .*$/gm) || [], t1ok = t1.filter(l => /abs T result T$/.test(l)).length;
-// The fast machine prints one line ENGINE-T2 per run: the hypotheses of T2
-// (fast-result-is-spec-result) and of its loader lemmas checked on that run.
-const t2 = log.match(/ENGINE-T2 .*$/gm) || [], t2ok = t2.filter(l => /config-shape T fm-inv T result T$/.test(l)).length;
+// The fast machine is called through engine-run and prints one line ENGINE-T3
+// per run: the hypotheses of T3 (engine-run-is-spec-run) checked on that run.
+const t3 = log.match(/ENGINE-T3 .*$/gm) || [], t3ok = t3.filter(l => /config-shape T fmp T result T$/.test(l)).length;
 const proved = machine !== 'list machine'
-  ? (t2.length > 0 && t2ok === t2.length ? `inside the proved subset: theorem T2 (fast-result-is-spec-result) holds for all ${t2.length} runs, hypotheses checked at run time`
-     : `NOT inside the proved subset: T2 hypotheses hold for ${t2ok} of ${t2.length} runs`)
+  ? (t3.length > 0 && t3ok === t3.length ? `inside the proved subset: theorem T3 (engine-run-is-spec-run) holds for all ${t3.length} runs, its hypotheses checked at run time`
+     : `NOT inside the proved subset: T3 hypotheses hold for ${t3ok} of ${t3.length} runs`)
   : t1.length > 0 && t1ok === t1.length ? `inside the proved subset: theorem T1 (machine-result-is-spec-result) holds for all ${t1.length} runs, hypotheses checked at run time`
   : `NOT inside the proved subset: T1 hypotheses hold for ${t1ok} of ${t1.length} runs`;
 let same = 0;

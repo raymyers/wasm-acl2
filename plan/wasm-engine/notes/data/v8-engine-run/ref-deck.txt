@@ -1,0 +1,4 @@
+V8REF deck.tex: 20992 bytes of DVI in 0.056230917 s -> /Users/Apple/dev/wasm-acl2/engine/tex/build/ref-deck.dvi
+engine b95d451fcf68b6273053cee1eff312e1a6cf8bda04c8d2ec26c7b27202606ca1 20992 bytes  /Users/Apple/.claude/jobs/2f6ab9ca/tmp/deck2/deck.dvi
+V8     b95d451fcf68b6273053cee1eff312e1a6cf8bda04c8d2ec26c7b27202606ca1 20992 bytes  /Users/Apple/dev/wasm-acl2/engine/tex/build/ref-deck.dvi
+DVI: identical, byte for byte

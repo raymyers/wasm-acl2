@@ -1,32 +1,33 @@
 ; E12 (L0): render the slides of a sent-format deck on the engine.
-; (assign engine :list) runs the list machine of E6; otherwise the fast
-; machine of E7 (engine/fast/fast.lisp) runs, and its final state is read
-; back through FM->MS.
 ; The module (build.sh) goes through the generated decoder (GRAM/BMODULE)
-; and the spec's $instantiate; the instantiation configuration and every
-; call of render(n) are run by the list machine of E6 (MACHINE-RUN), not by
-; the spec's STEP. Each slide's framebuffer is read from the machine's final
-; store and written as OUTDIR/slide-N.pbm (P4: its pixel data is exactly the
-; framebuffer bytes, 1 = black). From engine/slides, inside nix develop:
+; and the spec's $instantiate. The instantiation configuration and every
+; configuration the spec's $invoke builds (slide_count, framebuffer, width,
+; height, render(n)) are run by the engine, not by the spec's STEP. Each
+; slide's framebuffer is read from the store of the engine's final
+; configuration and written as OUTDIR/slide-N.pbm (P4: its pixel data is
+; exactly the framebuffer bytes, 1 = black). From engine/slides, inside nix
+; develop:
 ;   (echo '(assign wasm-file "build/sent.wasm")' '(assign out-dir "build/engine")'; \
 ;    cat render.lsp) | acl2
-; On the list machine every run is checked against the hypotheses of T1
-; (MACHINE-RESULT-IS-SPEC-RESULT, machine/spec-result.lisp; plan2.md V5): the
-; loaded state has MACHINE-OK, its MACHINE-ABS is the configuration the
-; spec's $instantiate or $invoke returned, and the run ends with a result.
-; One line ENGINE-T1 per run says so; when all hold, the theorem says that
-; the spec's STEPS/%FUEL returns, from that configuration, the final state
-; the pixels are read from.
-; On the fast machine one line ENGINE-T2 per run gives three hypotheses of T2
-; and of its loader lemmas (FAST-RESULT-IS-SPEC-RESULT, fast/spec-result.lisp;
-; FM-INV-OF-FM-LOAD-MS, fast/inv.lisp; plan2.md V6): the configuration has
-; CONFIG-SHAPE-P, the loaded stobj has FM-INV, and the run ends with a result.
-; When all hold, T2 says that the spec's STEPS/%FUEL returns, from that
-; configuration, the final state the pixels are read from. T2 has no
-; hypothesis about an instruction since V7 of plan2.md: every call of the
-; module is a call_ref of a wasm function, which the step theorem covers.
+; The engine is ENGINE-RUN (engine/run.lisp; plan2.md V8), and this driver
+; calls nothing else of the fast machine: ENGINE-RUN loads the configuration
+; and runs, ENGINE-RESULT-P says whether the run ended with a result,
+; ENGINE-CONFIG gives the final configuration, which is all the driver reads
+; (the store, the module instance of the frame, the result values).
+; One line ENGINE-T3 per run gives the hypotheses of T3
+; (ENGINE-RUN-IS-SPEC-RUN) that depend on the run: the configuration has
+; CONFIG-SHAPE-P, the stobj is a stobj (FMP), the run ended with a result.
+; When all hold, T3 says that the spec's STEPS/%FUEL returns, from that
+; configuration, the configuration the pixels are read from. The invariant
+; of the fast machine is not checked: for a loaded configuration it is a
+; theorem (fast/inv.lisp).
+; (assign engine :list) runs the list machine of E6 instead. Every run is
+; then checked against the hypotheses of T1 (MACHINE-RESULT-IS-SPEC-RESULT,
+; machine/spec-result.lisp; plan2.md V5): the loaded state has MACHINE-OK,
+; its MACHINE-ABS is the configuration, and the run ends with a result. One
+; line ENGINE-T1 per run says so.
 (ld "../fast/cert.acl2")
-(include-book "../fast/spec-result")
+(include-book "../run")
 (in-package "WE")
 (program)
 (set-state-ok t)
@@ -56,7 +57,21 @@
         ((equal (wrt::%get-field (car exs) :name) field) (wrt::%get-field (car exs) :addr))
         (t (find-export field (cdr exs)))))
 
-; run configuration C on the chosen machine: (mv status final-list-state fm)
+; the parts of a configuration ((store; frame); instrs)
+(defun config-store (c) (cadr (cadr c)))
+(defun config-frame (c) (caddr (cadr c)))
+(defun config-instrs (c) (caddr c))
+
+; what a final configuration is, for the printed line: values, a trap, or an
+; uncaught exception; :no-result when the run did not end with a result
+(defun result-kind (resultp c)
+  (let ((is (config-instrs c)))
+    (cond ((not resultp) :no-result)
+          ((equal is '((:trap))) :trap)
+          ((equal (car (last is)) '(:throw_ref)) :throw)
+          (t :done))))
+
+; run configuration C on the engine: (mv result-kind final-configuration fm)
 (defun mrun (c fm state)
   (declare (xargs :stobjs (fm state)))
   (if (eq (and (boundp-global 'acl2::engine state) (@ acl2::engine)) :list)
@@ -64,23 +79,24 @@
              (hyp (and (machine-ok s0) (equal (machine-abs s0) c)))
              (s (machine-run *fuel* s0)))
         (prog2$ (cw "ENGINE-T1 machine-ok and abs ~x0 result ~x1~%" hyp (machine-result-p s))
-                (mv (ms-status s) s fm)))
+                (mv (result-kind (machine-result-p s) (machine-abs s)) (machine-abs s) fm)))
     (let* ((shape (config-shape-p c))
-           (fm (fm-load-ms (ms-of-config c) fm))
-           (inv (fm-inv fm))
-           (fm (fast-run *fuel* fm)))
-      (prog2$ (cw "ENGINE-T2 config-shape ~x0 fm-inv ~x1 result ~x2~%" shape inv (fast-result-p fm))
-              (mv (fm-status fm) (fm->ms fm) fm)))))
+           (stobjp (fmp fm))
+           (fm (engine-run *fuel* c fm))
+           (resultp (engine-result-p fm))
+           (c2 (engine-config fm)))
+      (prog2$ (cw "ENGINE-T3 config-shape ~x0 fmp ~x1 result ~x2~%" shape stobjp resultp)
+              (mv (result-kind resultp c2) c2 fm)))))
 
-; call export FIELD of instance INST in STORE with ARGS on the machine:
-; (mv status result-instrs final-state)
+; call export FIELD of instance INST in STORE with ARGS on the engine:
+; (mv result-kind result-instrs final-configuration)
 (defun call-export (store inst field args fm state)
   (declare (xargs :stobjs (fm state)))
   (let* ((addr (find-export (str-bytes (coerce field 'list)) (wrt::%get-field inst :exports)))
          (c (and addr (w3t::$invoke store (cadr addr) args))))
     (if (null c) (mv :no-call nil nil fm)
-      (mv-let (st s fm) (mrun c fm state)
-        (mv st (caddr (machine-abs s)) s fm)))))
+      (mv-let (st c2 fm) (mrun c fm state)
+        (mv st (config-instrs c2) c2 fm)))))
 
 (defun i32 (n) (list :const '(:i32) n))
 (defun result-int (instrs) (caddr (car instrs)))
@@ -93,7 +109,7 @@
     (mv-let (t0 state) (read-run-time state)
       (mv-let (st res s fm) (call-export store inst "render" (list (i32 i)) fm state)
         (mv-let (t1 state) (read-run-time state)
-          (let* ((store2 (ms-store s))
+          (let* ((store2 (config-store s))
                  (bytes (take (* (/ w 8) h) (nthcdr fb (mem0-bytes store2))))
                  (header (str-bytes (coerce (concatenate 'string "P4" (string #\Newline)
                                                           (coerce (explode-atom w 10) 'string) " "
@@ -114,8 +130,8 @@
            (c0 (and m (w3t::$instantiate *s0* m nil))))
       (if (null c0) (prog2$ (cw "ENGINE-ERROR decode or instantiate failed~%") (mv fm state))
         (mv-let (st s fm) (mrun c0 fm state)
-          (let* ((store (ms-store s))
-                 (inst (wrt::%get-field (ms-frame s) :module)))
+          (let* ((store (config-store s))
+                 (inst (wrt::%get-field (config-frame s) :module)))
             (mv-let (st1 r1 s1 fm) (call-export store inst "slide_count" nil fm state)
               (declare (ignore s1))
               (mv-let (st2 r2 s2 fm) (call-export store inst "framebuffer" nil fm state)

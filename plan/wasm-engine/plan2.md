@@ -20,15 +20,16 @@
 > see [../wasm3-translation/evidence.md](../wasm3-translation/evidence.md)),
 > and what a host function does. ACL2 and SBCL stay trusted.
 >
-> **Status**: written 2026-11-17 at `4f18f50`. V0 to V7 are complete
-> (V5, V6 and V7 on 2026-11-18): T1 and T2 certify as stated in §1.
-> P1 and P3 are decided; P2 is now the user's to decide (§2).
+> **Status**: written 2026-11-17 at `4f18f50`. V0 to V8 are complete
+> (V5 to V8 on 2026-11-18): T1 and T2 certify as stated in §1, T3 with
+> one hypothesis more, `(fmp fm)`. P1 and P3 are decided; P2 is now the
+> user's to decide (§2).
 
 ---
 
 ## Current state
 
-- **Last updated**: 2026-11-18 (V7)
+- **Last updated**: 2026-11-18 (V8)
 - **Milestones complete**: V0 (ground work;
   [V0-ground](notes/V0-ground.md)), V1 (dispatch lemmas;
   [V1-dispatch](notes/V1-dispatch.md)), V2 (the flat block;
@@ -36,17 +37,49 @@
   [V3-contexts](notes/V3-contexts.md)), V4 (exits and propagation;
   [V4-exits](notes/V4-exits.md)), V5 (T1;
   [V5-t1](notes/V5-t1.md)), V6 (the fast machine's invariant,
-  loader and run; [V6-inv](notes/V6-inv.md)) and V7 (`call_ref`;
-  [V7-call-ref](notes/V7-call-ref.md)). The gate certifies 34
-  books
+  loader and run; [V6-inv](notes/V6-inv.md)), V7 (`call_ref`;
+  [V7-call-ref](notes/V7-call-ref.md)) and V8 (`engine-run`, T3, the
+  drivers; [V8-engine-run](notes/V8-engine-run.md)). The gate certifies
+  36 books
 - **T1 certifies**: `machine-result-is-spec-result`
   (`engine/machine/spec-result.lisp`), the statement of §1 word for
   word. F1 is met
 - **T2 certifies**: `fast-result-is-spec-result`
   (`engine/fast/spec-result.lisp`), the statement of §1 word for word.
   F2 and F3 are met
-- **Next action**: V8 (the engine that runs is the engine in the
-  theorem). V7b is optional and is not chosen while V8 or V9 is open
+- **T3 certifies**: `engine-run-is-spec-run` (`engine/run.lisp`), the
+  statement of §1 with the hypothesis `(fmp fm)`. F4 is met; F5 is met
+  for the slides, and for TeX up to the host step, TeX's loader and the
+  `data.drop` shortcut
+- **Next action**: V9 (the gate). V7b is optional and is not chosen
+  while V9 is open
+- **From V8, for later milestones**:
+  - **T3 has `(fmp fm)`**: the loader lemma needs it and `engine-run`
+    cannot discharge it for an arbitrary object. It is true of the live
+    stobj. V9's `top.lisp` restates T3 with it
+    ([V8-engine-run](notes/V8-engine-run.md) §1)
+  - `engine/run.lisp` is a book of the gate (`BOOKS` of the Makefile);
+    the slides driver includes it and calls `engine-run`,
+    `engine-result-p`, `engine-config` and the two checks
+    `config-shape-p` and `fmp`, nothing else of the fast machine
+  - **the machines did not change**; no differential test was run again
+  - `engine/fast/stretch.lisp`: a step that ends `:unsupported` changes
+    only the status (`fast-step-when-refused`, any reason of refusal);
+    `fast-stretch-is-spec-steps` and `fast-run-is-spec-steps` say what a
+    `fast-run` stands for when it did not end with a result (`stepn`,
+    exactly so many steps of `STEP`); `fast-run-fuel` returns the unused
+    fuel; `fm-inv-check` is `fm-inv` without copying the memory
+  - **TeX is still outside the proved subset** (P1). Its driver calls
+    `fast-run` once per stretch between host calls and checks `fm-inv`
+    at the start of every stretch (63,712 of 63,712 for the deck). Not
+    proved: the host step, `fm-inv` after it, TeX's loader, the
+    `data.drop` shortcut (taken in the instantiation stretch only,
+    counted)
+  - `$invoke` is `:logic` (`engine-invoke-is-spec-run`); `$instantiate`
+    and the decoder are `:program`, so no theorem starts from a module
+  - the DVI comparison was made with V8 and TikZJax's `library.js`, not
+    with a native e-TeX: identical for `input.tex` and the deck
+    (`sh engine/tex/ref.sh`). evidence.md (V9) should say which
 - **From V7, for later milestones**:
   - **the fast machine changed** (P1): `fast-step` stops `:unsupported`
     at a `call_ref` whose reference is a host function (`host-ref-p`,
@@ -233,7 +266,12 @@
   `(fast-result-p (fast-run n fm))`, `(natp fuel)`,
   `(< (fast-clocks n fm) fuel)`. The loader lemmas ask
   `(config-shape-p c)` and `(fmp fm)`; the first excludes a store with
-  no memory. The lemma hypotheses of V1 to V5 are
+  no memory. V8: T3's hypotheses are `(config-shape-p c)`, `(fmp fm)`,
+  `(engine-result-p (engine-run n c fm))`, `(natp fuel)`,
+  `(< (engine-clocks n c) fuel)`. `(fmp fm)` is not in §1 as first
+  written; reason: `fm-inv-of-fm-load-ms` needs a stobj, and in a
+  theorem `fm` is any object. The stretch theorems of V8 ask `fm-inv`
+  at the start of the stretch. The lemma hypotheses of V1 to V5 are
   listed in [V1-dispatch](notes/V1-dispatch.md) §4,
   [V2-flat](notes/V2-flat.md) §6,
   [V3-contexts](notes/V3-contexts.md) §4 and §5 and
@@ -285,6 +323,7 @@ the shape the spec's `$invoke` returns,
 ```lisp
 (defthm engine-run-is-spec-run
   (implies (and (config-shape-p c)
+                (fmp fm)
                 (engine-result-p (engine-run n c fm))
                 (natp fuel)
                 (< (engine-clocks n c) fuel))
@@ -295,7 +334,10 @@ the shape the spec's `$invoke` returns,
 `engine-run` loads `c` into the stobj and calls `fast-run`. It is the
 function the drivers call. `fm-inv` has become a fact proved about the
 loader, so the only hypothesis about the input is its shape, which is
-executable and which the driver checks.
+executable and which the driver checks. `(fmp fm)` was added in V8
+(2026-11-18): `fm` is a stobj of the machine, which ACL2 guarantees of
+the live stobj and which a theorem has to ask of a variable
+([V8-engine-run](notes/V8-engine-run.md) §1).
 
 **"Fully" then means all of**:
 
@@ -304,8 +346,8 @@ executable and which the driver checks.
 | F1 | T1 holds for every rule the machine can apply, not for a group | C2 open for clock-1 steps. **Met in V5 (2026-11-18)** |
 | F2 | T2 holds; the invariant is proved, not assumed | step theorem only. **V6 (2026-11-18)**: the invariant is proved (step, run, loader); T2 holds with a `call_ref` hypothesis. **Met in V7 (2026-11-18)** |
 | F3 | No instruction is excluded by hypothesis | `call_ref` excluded. **Met in V7 (2026-11-18)**: a host `call_ref` stops the fast machine `:unsupported`, which is not a result |
-| F4 | The loader is inside the theorem (T3) | not proved |
-| F5 | The code that runs is the function in the theorem | TeX: raw-Lisp loop, `data.drop` shortcut, host functions outside the hook |
+| F4 | The loader is inside the theorem (T3) | not proved. **Met in V8 (2026-11-18)** |
+| F5 | The code that runs is the function in the theorem | TeX: raw-Lisp loop, `data.drop` shortcut, host functions outside the hook. **V8 (2026-11-18)**: met for the slides (`engine-run`). TeX: every instruction runs in `fast-run`, no Lisp loop; the host step, TeX's loader and the `data.drop` shortcut are outside |
 | F6 | A gate fails if any of F1 to F5 stops holding | `no-skips` only |
 
 Instantiation and decoding are the spec's own functions, run as they
@@ -906,17 +948,39 @@ TeX has that shortcut as one more exception, and the README of
 
 ### V8: the engine that runs is the engine in the theorem
 
-- [ ] `engine/run.lisp`: `engine-run` (load, `fast-run`), `engine-config`
+- [x] `engine/run.lisp`: `engine-run` (load, `fast-run`), `engine-config`
       (the abstraction of the final stobj), `engine-clocks`; logic
-      mode, guards verified. T3 from T2 and V6's loader lemmas
-- [ ] The slides driver calls `engine-run` and nothing else of the
-      engine. `make -C engine slides` still 7 of 7
-- [ ] TeX with P1 as decided: the driver's loop calls `fast-run` between
+      mode, guards verified. T3 from T2 and V6's loader lemmas.
+      **Done**: `engine-run-is-spec-run` (4,622 prover steps, one
+      `:use`), with the hypothesis `(fmp fm)` besides those of §1; the
+      book certifies in 2.5 s
+      ([V8-engine-run](notes/V8-engine-run.md) §1)
+- [x] The slides driver calls `engine-run` and nothing else of the
+      engine. `make -C engine slides` still 7 of 7. **Done**: it calls
+      `engine-run`, `engine-result-p`, `engine-config` and the checks
+      `config-shape-p` and `fmp`, and reads only the configuration
+      `engine-config` returns; 12 runs, the hypotheses of T3 true on
+      each, 7 of 7 identical to V8, 112 to 447 ms per slide
+      ([V8-engine-run](notes/V8-engine-run.md) §2)
+- [x] TeX with P1 as decided: the driver's loop calls `fast-run` between
       host calls (it resumes after each `:unsupported` stop at a host
       `call_ref`), so every stretch of wasm instructions is a run T2
       covers; the host steps and the resuming are outside. The README
       of `engine/tex` says this. The next two items are deferred with
-      P1
+      P1. **Done**, with one correction: T2 does not cover a stretch
+      (it ends `:unsupported`, not with a result); what covers it is
+      new, `fast-stretch-is-spec-steps` and `fast-run-is-spec-steps`
+      (`engine/fast/stretch.lisp`, 24 theorems, 8.1 s; largest proof
+      876,167 prover steps, `fast-step-when-refused`): from `fm-inv` at
+      its start, a stretch is so many steps of `STEP` and ends with
+      `fm-inv`. The driver checks `fm-inv` at every stretch. Measured:
+      `input.tex`, the same DVI in the same 55,065,266 steps, 17.6 s
+      (17.4 s with the raw loop), 3,720 stretches, all with `fm-inv`;
+      the deck, 606,866,720 steps in 188.3 s (3.22 M steps/s; the raw
+      loop 3.10 on 2026-11-16), 63,681 host calls, 63,712 stretches,
+      all with `fm-inv`, 0 `data.drop` shortcuts in `main` and 40 in
+      the instantiation stretch. Every TeX run is outside the proved
+      subset ([V8-engine-run](notes/V8-engine-run.md) §3)
 - [ ] (Deferred.) The TeX driver's loop becomes `fast-run` (or
       `engine-run`) alone: no Lisp loop. Its rate measured against the
       195 s of the raw loop
@@ -925,16 +989,36 @@ TeX has that shortcut as one more exception, and the README of
       installs the fast host functions under a trust tag in
       `texrun.lisp`, and the README of `engine/tex` states the one
       trusted sentence
-- [ ] If `$instantiate` and `$invoke` are `:logic` (check the mode
+- [x] If `$instantiate` and `$invoke` are `:logic` (check the mode
       manifest): T3 stated from a decoded module and an export name.
       If not, recorded as outside, with the functions that are
-      `:program`
-- [ ] DVI comparison with a native e-TeX of the same revision, byte
+      `:program`. **Done**: `$invoke` is `:logic`:
+      `engine-invoke-is-spec-run` (219 prover steps), T3 for the
+      configuration `$invoke` builds. `$instantiate` is `:program` and
+      reaches 96 program-mode functions (`Module_ok` and its relations,
+      `$free_*`, `$evalexprss`), the decoder is `:program`: a statement
+      from a module is recorded as outside
+      ([V8-engine-run](notes/V8-engine-run.md) §4)
+- [x] DVI comparison with a native e-TeX of the same revision, byte
       for byte (evidence.md §7 item 2): the test for what P1 leaves
-      trusted
+      trusted. **Done against another reference**: the same `tex.wasm`
+      and `core.dump` on V8 (node) with TikZJax's own `library.js`
+      (npm `node-tikzjax` 1.0.5, unmodified), which is the original of
+      the 18 host functions. `input.tex`: 860 bytes, identical. The
+      deck: 20,992 bytes, 33 pages, identical
+      (`sh engine/tex/ref.sh`). A native e-TeX of the same sources was
+      not built: this compares the host functions and the engine, not
+      `tex.wasm` with TeX
+      ([V8-engine-run](notes/V8-engine-run.md) §5)
 
 **Exit**: T3 certifies; both drivers run through it. F4 and F5 met
-(F5 for TeX up to the sentence of P1).
+(F5 for TeX up to the sentence of P1). **Met as far as P1 (c) allows**:
+T3 certifies and the slides run through `engine-run`. The TeX driver
+does not run through `engine-run` (a host call is not a result, and its
+loader is its own): it runs through `fast-run`, one call per stretch.
+F4 is met. F5 is met for the slides; for TeX the host step, the loader
+and the `data.drop` shortcut (V7b) are outside, and the README of
+`engine/tex` says so. The gate certifies 36 books.
 
 ### V9: the gate
 
@@ -988,7 +1072,7 @@ separate sessions; they touch different directories (`rules/`,
 | The machine's choice of redex differs from `STEP`'s on some state the tests never reached. **Did not happen in V2**: no failed checkpoint was a machine state. **Happened once in V3**: a handler whose catch clauses are not a true list; fixed, tests re-run. **V4**: no failed checkpoint was a machine state; one bug of the other direction was found by reading a rule (the machine was stuck at `throw_ref` under a null reference, where the spec steps); fixed, tests re-run | V2's operand-prefix lemma and V4's "body does not step" lemmas fail with a checkpoint that is a real state | That is a machine bug: fix the machine, re-run tests 1 and 2, record it (as test 3 did for several memories) |
 | A type-dependent arity (`block`, `call_ref`, `throw`) cannot be related to the rule's own count. **Settled in V1**: it is related, for all eight rules; a function reference needs `(natp a)` | V1 item 3 | The machine computes the arity by the rule's own subterm; `redex-arity` changes, test 1 and 2 re-run |
 | The fallback's accepted results do not imply `fast-inv-store`. **Did not happen in V6**: `fast-apply-fallback-keeps-inv-store`, with `fallback-shape-ok` as it was | V6 item 2 | Strengthen the run-time check (`fallback-shape-ok`); the machine refuses more, the theorem is unchanged |
-| The logic-mode run loop is slower than the raw one for TeX | V8 item 3, measured | `fast-run` is already guard-verified and tail recursive; if the host check per step costs, dispatch on `call_ref` inside `fast-step` |
+| The logic-mode run loop is slower than the raw one for TeX. **Did not happen in V8**: the deck at 3.22 M steps/s (188.3 s), the raw loop at 3.10 on 2026-11-16 | V8 item 3, measured | `fast-run` is already guard-verified and tail recursive; if the host check per step costs, dispatch on `call_ref` inside `fast-step` |
 | P1 (b) is too slow | measured on one host call with the 72 MB store | P1 (a) |
 
 A headless session stops in the cases of plan.md "When a headless
@@ -1002,3 +1086,8 @@ implementations of the standard (they are the semantics, so not the
 engine's to prove); for TeX with P1 (a), that the 18 host functions
 are a function of their arguments and the store. Nothing else of the
 engine.
+
+With P1 as decided, (c), TeX is outside T3 altogether; what a TeX run
+rests on beyond the stretch theorems (the host step, its loader, the
+`data.drop` shortcut) is listed in `engine/tex/README.md`
+([V8-engine-run](notes/V8-engine-run.md) §3).
