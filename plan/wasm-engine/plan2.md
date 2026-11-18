@@ -20,26 +20,65 @@
 > see [../wasm3-translation/evidence.md](../wasm3-translation/evidence.md)),
 > and what a host function does. ACL2 and SBCL stay trusted.
 >
-> **Status**: written 2026-11-17 at `4f18f50`. V0 to V5 are complete
-> (V5 on 2026-11-18): T1 certifies. P1 and P3 are decided; P2 is now
+> **Status**: written 2026-11-17 at `4f18f50`. V0 to V6 are complete
+> (V5 and V6 on 2026-11-18): T1 certifies, and T2 with one hypothesis
+> that V7 removes (no `call_ref`). P1 and P3 are decided; P2 is now
 > the user's to decide (§2).
 
 ---
 
 ## Current state
 
-- **Last updated**: 2026-11-18
+- **Last updated**: 2026-11-18 (V6)
 - **Milestones complete**: V0 (ground work;
   [V0-ground](notes/V0-ground.md)), V1 (dispatch lemmas;
   [V1-dispatch](notes/V1-dispatch.md)), V2 (the flat block;
   [V2-flat](notes/V2-flat.md)), V3 (contexts;
   [V3-contexts](notes/V3-contexts.md)), V4 (exits and propagation;
-  [V4-exits](notes/V4-exits.md)) and V5 (T1;
-  [V5-t1](notes/V5-t1.md)). The gate certifies 31 books
+  [V4-exits](notes/V4-exits.md)), V5 (T1;
+  [V5-t1](notes/V5-t1.md)) and V6 (the fast machine's invariant,
+  loader and run; [V6-inv](notes/V6-inv.md)). The gate certifies 33
+  books
 - **T1 certifies**: `machine-result-is-spec-result`
   (`engine/machine/spec-result.lisp`), the statement of §1 word for
   word. F1 is met
-- **Next action**: V6 (the fast machine's invariant, loader and run)
+- **T2 certifies with one hypothesis more than §1**:
+  `fast-result-is-spec-result` (`engine/fast/spec-result.lisp`) has
+  `(no-call-ref-run n (fm->ms fm))`, "the run has no `call_ref` at the
+  head of its instructions". V7 removes it. F2 and F3 are not met yet
+- **Next action**: V7 (no excluded instruction)
+- **From V6, for later milestones**:
+  - `fm-inv` (`fast/inv.lisp`) is `fmp`, `fast-inv-store` of the store
+    and `machine-ok` of `fm->ms`. `fast-step-keeps-fm-inv` has two
+    hypotheses besides it: the head is not `call_ref`, and the step does
+    not end `:unsupported`. `fast-run-is-machine-run` and
+    `fast-run-keeps-fm-inv` have `no-call-ref-run` and "the run does not
+    end `:unsupported`"
+  - V7 has to remove the `call_ref` hypothesis from three lemmas:
+    `fast-step-refines` (`refine-op.lisp`), `fast-op-step-keeps-fmp` and
+    `fast-op-step-keeps-inv-store` (`inv.lisp`). The last two need only
+    the place lemma of `(:op :call_ref)`; "a rule that fires and is not
+    refused leaves a fast store" is already proved for every rule
+    (`fast-apply-rule-keeps-inv-store`)
+  - the loader: `fm-inv-of-fm-load-ms` and `fm->ms-of-fm-load-ms` for a
+    list state with `fm-loadable-p`; `machine-ok-of-ms-of-config`,
+    `machine-abs-of-ms-of-config` and `fm-loadable-p-of-ms-of-config`
+    for a configuration with `config-shape-p`, which is defined in
+    `inv.lisp` (executable, guard `t`). V8's `engine-run` is
+    `fast-run` of `fm-load-ms` of `ms-of-config`
+  - **a store with no memory is outside T2's loader and T3**:
+    `config-shape-p` asks that memory 0 is a record with a byte list
+    (`fast-inv-store` needs a memory). A store with several memories is
+    inside ([V6-inv](notes/V6-inv.md) §4)
+  - `fast-clocks n fm` is `(machine-clocks n (fm->ms fm))`, not
+    executable. It is a bound on the specification's fuel only
+  - **the machines did not change**; `fallback-shape-ok` was not
+    strengthened. One old book changed: the generator `length-lemma` of
+    `rules/shape.lisp` is `not-length-lemma`, so that the books of the
+    two machines' proofs load together
+  - the slides on the fast machine: `config-shape-p`, `fm-inv` and a
+    result on each of 12 runs (checked at run time), 7 of 7 identical
+    to V8. They are not inside T2 until V7: every call is a `call_ref`
 - **From V5, for later milestones**:
   - T1 has no hypothesis about an opcode: C2
     (`machine-step-simulates`) holds for every running state with
@@ -160,7 +199,14 @@
   which for T1 are `(machine-ok s)`,
   `(machine-result-p (machine-run n s))`, `(natp fuel)` and
   `(< (machine-clocks n s) fuel)`. V1
-  to V5 added none to a theorem of §1; their lemma hypotheses are
+  to V5 added none to a theorem of §1. V6 added one to T2,
+  `(no-call-ref-run n (fm->ms fm))`: `fast-step-refines` excludes
+  `call_ref` (its two host rules have no (U) lemma); V7 removes it.
+  T2's other hypotheses are those of §1: `(fm-inv fm)`,
+  `(fast-result-p (fast-run n fm))`, `(natp fuel)`,
+  `(< (fast-clocks n fm) fuel)`. The loader lemmas ask
+  `(config-shape-p c)` and `(fmp fm)`; the first excludes a store with
+  no memory. The lemma hypotheses of V1 to V5 are
   listed in [V1-dispatch](notes/V1-dispatch.md) §4,
   [V2-flat](notes/V2-flat.md) §6,
   [V3-contexts](notes/V3-contexts.md) §4 and §5 and
@@ -229,7 +275,7 @@ executable and which the driver checks.
 | | Condition | Today (evidence.md) |
 |---|---|---|
 | F1 | T1 holds for every rule the machine can apply, not for a group | C2 open for clock-1 steps. **Met in V5 (2026-11-18)** |
-| F2 | T2 holds; the invariant is proved, not assumed | step theorem only |
+| F2 | T2 holds; the invariant is proved, not assumed | step theorem only. **V6 (2026-11-18)**: the invariant is proved (step, run, loader); T2 holds with a `call_ref` hypothesis |
 | F3 | No instruction is excluded by hypothesis | `call_ref` excluded |
 | F4 | The loader is inside the theorem (T3) | not proved |
 | F5 | The code that runs is the function in the theorem | TeX: raw-Lisp loop, `data.drop` shortcut, host functions outside the hook |
@@ -677,35 +723,74 @@ loader lemma that removes the check is V6's.
 
 ### V6: the fast machine's invariant, loader and run
 
-- [ ] `fm-inv`: `fmp`, `fast-inv-store`, `machine-ok (fm->ms fm)` (which
-      gives `ctrl-kinds-ok`). One predicate, executable, guard `t`
-- [ ] *A step keeps it*, when the step does not refuse. Parts: the
+- [x] `fm-inv`: `fmp`, `fast-inv-store`, `machine-ok (fm->ms fm)` (which
+      gives `ctrl-kinds-ok`). One predicate, executable, guard `t`.
+      **Done** in `fast/inv.lisp`: a function of the stobj, guards
+      verified ([V6-inv](notes/V6-inv.md) §1)
+- [x] *A step keeps it*, when the step does not refuse. Parts: the
       array stays a byte list (proved); `fast-inv-store` after a
       frame-safe rule (proved), after a memory rule (the store is
       unchanged or has its own bytes field empty), after the fallback
       (the machine already refuses a result it cannot hold:
       `fallback-shape-ok`; prove that what it accepts satisfies
-      `fast-inv-store`); `machine-ok` from `fast-step-refines` and C1
-- [ ] `:unsupported`, `:stuck`, `:done`, `:trap`, `:throw` are
-      absorbing for `fast-step`
-- [ ] *Run*: `(fm->ms (fast-run n fm))` is
+      `fast-inv-store`); `machine-ok` from `fast-step-refines` and C1.
+      **Done**: `fast-step-keeps-fm-inv` (742 prover steps), with "the
+      head is not `call_ref`" besides. The store part is one lemma for
+      any rule, `fast-apply-rule-keeps-inv-store` (440), from 9
+      generated per-rule lemmas (the 5 frame-safe rules that return a
+      configuration, 513 to 180,753; the 4 store rules of the fast
+      path, 133,211 to 439,049), `fast-apply-fallback-keeps-inv-store`
+      (3,399) and "a pure or read rule returns its state" (6,035). What
+      `fallback-shape-ok` accepts is enough
+      ([V6-inv](notes/V6-inv.md) §2, §3)
+- [x] `:unsupported`, `:stuck`, `:done`, `:trap`, `:throw` are
+      absorbing for `fast-step`. **Done**: `fast-step-when-not-running`
+      (116) and `fast-run-when-not-running` (123), for every status but
+      `:run`
+- [x] *Run*: `(fm->ms (fast-run n fm))` is
       `(machine-run n (fm->ms fm))` when the fast run does not end
-      `:unsupported`; by induction on `n`
-- [ ] *Loader*: `(fm-inv (fm-load-ms s fm))` and
+      `:unsupported`; by induction on `n`. **Done**:
+      `fast-run-is-machine-run` (984) and `fast-run-keeps-fm-inv`
+      (856), from two inductions (1,313 and 6,803); hypotheses `fm-inv`,
+      `no-call-ref-run`, and the run does not end `:unsupported`
+- [x] *Loader*: `(fm-inv (fm-load-ms s fm))` and
       `(fm->ms (fm-load-ms s fm)) = s` for a list state `s` whose store
       has memory 0 a record with a byte list and all fields
       (`list-to-mem` then `mem-to-list` is the identity on a byte
       list). `ms-of-config`: `machine-ok` and
-      `(machine-abs (ms-of-config c)) = c` under `config-shape-p`
-- [ ] Stores with no memory, or several: either the invariant covers
+      `(machine-abs (ms-of-config c)) = c` under `config-shape-p`.
+      **Done**: `fm-inv-of-fm-load-ms` (365; it asks `(fmp fm)` and
+      `(fm-loadable-p s)`), `fm->ms-of-fm-load-ms` (175),
+      `machine-ok-of-ms-of-config` (1,495),
+      `machine-abs-of-ms-of-config` (1,600),
+      `fm-loadable-p-of-ms-of-config` (835); `config-shape-p` is defined
+      here ([V6-inv](notes/V6-inv.md) §5)
+- [x] Stores with no memory, or several: either the invariant covers
       them (the run-time check `fast-one-memory-p` already sends them
       to the fallback) or the loader refuses them. Decide by what the
-      proof of the previous item needs; record it
-- [ ] T2 with `call_ref` still a hypothesis of the step, carried as
-      "the run executes no `call_ref`" (removed by V7)
+      proof of the previous item needs; record it. **Decided**: several
+      memories are inside (the invariant asks of memory 0 only; the
+      memory rules take the fallback, which is covered). No memory is
+      outside: `fast-inv-store` needs a memory, and `config-shape-p`,
+      the executable hypothesis the driver checks, says so; `fm-load-ms`
+      did not change ([V6-inv](notes/V6-inv.md) §4)
+- [x] T2 with `call_ref` still a hypothesis of the step, carried as
+      "the run executes no `call_ref`" (removed by V7). **Done** in
+      `fast/spec-result.lisp`: `fast-result-is-spec-result` (2,080),
+      from T1 for `(fm->ms fm)` and the run lemma; the hypothesis is
+      `(no-call-ref-run n (fm->ms fm))`. `fast-clocks` is
+      `machine-clocks` of `fm->ms`
+- [x] The slides on the fast machine print, per run, `config-shape-p`
+      of the configuration, `fm-inv` of the loaded stobj and
+      `fast-result-p` of the last one: true on each of 12 runs; 7 of 7
+      identical to V8. The caption says that the runs are not inside a
+      theorem until V7 ([V6-inv](notes/V6-inv.md) §8)
 
 **Exit**: T2 certifies with that one hypothesis. Lockstep and test 3
-re-run if `fast.lisp` changed.
+re-run if `fast.lisp` changed. **Met**: the two books certify in 9.1 s
+and 2.2 s; the largest proof is 439,049 prover steps
+(`fast-apply-rule-of-step/r-store-pack-val-keeps-inv-store`).
+`fast.lisp` did not change, so lockstep and test 3 were not run again.
 
 ### V7: no excluded instruction
 
@@ -817,7 +902,7 @@ separate sessions; they touch different directories (`rules/`,
 | The `%SIZE` check in the context rules is hard to discharge for a symbolic body. **Did not happen in V3**: linear arithmetic after `%size-of-cons` | V0 item 5, tried on one label first | Prove `%SIZE` monotone for the three administrative forms only, not in general |
 | The machine's choice of redex differs from `STEP`'s on some state the tests never reached. **Did not happen in V2**: no failed checkpoint was a machine state. **Happened once in V3**: a handler whose catch clauses are not a true list; fixed, tests re-run. **V4**: no failed checkpoint was a machine state; one bug of the other direction was found by reading a rule (the machine was stuck at `throw_ref` under a null reference, where the spec steps); fixed, tests re-run | V2's operand-prefix lemma and V4's "body does not step" lemmas fail with a checkpoint that is a real state | That is a machine bug: fix the machine, re-run tests 1 and 2, record it (as test 3 did for several memories) |
 | A type-dependent arity (`block`, `call_ref`, `throw`) cannot be related to the rule's own count. **Settled in V1**: it is related, for all eight rules; a function reference needs `(natp a)` | V1 item 3 | The machine computes the arity by the rule's own subterm; `redex-arity` changes, test 1 and 2 re-run |
-| The fallback's accepted results do not imply `fast-inv-store` | V6 item 2 | Strengthen the run-time check (`fallback-shape-ok`); the machine refuses more, the theorem is unchanged |
+| The fallback's accepted results do not imply `fast-inv-store`. **Did not happen in V6**: `fast-apply-fallback-keeps-inv-store`, with `fallback-shape-ok` as it was | V6 item 2 | Strengthen the run-time check (`fallback-shape-ok`); the machine refuses more, the theorem is unchanged |
 | The logic-mode run loop is slower than the raw one for TeX | V8 item 3, measured | `fast-run` is already guard-verified and tail recursive; if the host check per step costs, dispatch on `call_ref` inside `fast-step` |
 | P1 (b) is too slow | measured on one host call with the 72 MB store | P1 (a) |
 

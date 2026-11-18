@@ -261,7 +261,7 @@
                  (value-triple (cw "SHAPE ~x0~%" ',fn)))
           (value-triple (cw "SHAPE-FAILED ~x0~%" ',fn)))))
 
-(defun length-lemma (fn wrld)
+(defun not-length-lemma (fn wrld)
   (declare (xargs :mode :program))
   `(make-event
     '(:or (progn (with-prover-step-limit 100000
@@ -294,7 +294,7 @@
   (cond ((endp fns) nil)
         ((or (member-eq (car fns) *variable-shape-rules*) (member-eq (car fns) *block-rules*))
          (fixed-shape-lemmas (cdr fns) wrld))
-        (t (list* (shape-lemma (car fns)) (length-lemma (car fns) wrld) (fc-lemma (car fns) wrld)
+        (t (list* (shape-lemma (car fns)) (not-length-lemma (car fns) wrld) (fc-lemma (car fns) wrld)
                   (fixed-shape-lemmas (cdr fns) wrld)))))
 
 ; one top-level event: its step limit is the sum over the lemmas

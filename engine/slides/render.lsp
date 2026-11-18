@@ -16,10 +16,16 @@
 ; spec's $instantiate or $invoke returned, and the run ends with a result.
 ; One line ENGINE-T1 per run says so; when all hold, the theorem says that
 ; the spec's STEPS/%FUEL returns, from that configuration, the final state
-; the pixels are read from. The fast machine has no such theorem yet (T2).
+; the pixels are read from.
+; On the fast machine one line ENGINE-T2 per run gives three hypotheses of T2
+; and of its loader lemmas (FAST-RESULT-IS-SPEC-RESULT, fast/spec-result.lisp;
+; FM-INV-OF-FM-LOAD-MS, fast/inv.lisp; plan2.md V6): the configuration has
+; CONFIG-SHAPE-P, the loaded stobj has FM-INV, and the run ends with a result.
+; T2 has one more hypothesis until V7, that the run executes no call_ref,
+; which these runs do not meet (every call of the module is a call_ref): the
+; fast machine's runs are not inside a theorem yet.
 (ld "../fast/cert.acl2")
-(include-book "../fast/fast")
-(include-book "../machine/ok")
+(include-book "../fast/spec-result")
 (in-package "WE")
 (program)
 (set-state-ok t)
@@ -58,9 +64,12 @@
              (s (machine-run *fuel* s0)))
         (prog2$ (cw "ENGINE-T1 machine-ok and abs ~x0 result ~x1~%" hyp (machine-result-p s))
                 (mv (ms-status s) s fm)))
-    (let* ((fm (fm-load-ms (ms-of-config c) fm))
+    (let* ((shape (config-shape-p c))
+           (fm (fm-load-ms (ms-of-config c) fm))
+           (inv (fm-inv fm))
            (fm (fast-run *fuel* fm)))
-      (mv (fm-status fm) (fm->ms fm) fm))))
+      (prog2$ (cw "ENGINE-T2 config-shape ~x0 fm-inv ~x1 result ~x2~%" shape inv (fast-result-p fm))
+              (mv (fm-status fm) (fm->ms fm) fm)))))
 
 ; call export FIELD of instance INST in STORE with ARGS on the machine:
 ; (mv status result-instrs final-state)
