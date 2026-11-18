@@ -10,8 +10,16 @@
 ; framebuffer bytes, 1 = black). From engine/slides, inside nix develop:
 ;   (echo '(assign wasm-file "build/sent.wasm")' '(assign out-dir "build/engine")'; \
 ;    cat render.lsp) | acl2
+; On the list machine every run is checked against the hypotheses of T1
+; (MACHINE-RESULT-IS-SPEC-RESULT, machine/spec-result.lisp; plan2.md V5): the
+; loaded state has MACHINE-OK, its MACHINE-ABS is the configuration the
+; spec's $instantiate or $invoke returned, and the run ends with a result.
+; One line ENGINE-T1 per run says so; when all hold, the theorem says that
+; the spec's STEPS/%FUEL returns, from that configuration, the final state
+; the pixels are read from. The fast machine has no such theorem yet (T2).
 (ld "../fast/cert.acl2")
 (include-book "../fast/fast")
+(include-book "../machine/ok")
 (in-package "WE")
 (program)
 (set-state-ok t)
@@ -45,7 +53,11 @@
 (defun mrun (c fm state)
   (declare (xargs :stobjs (fm state)))
   (if (eq (and (boundp-global 'acl2::engine state) (@ acl2::engine)) :list)
-      (let ((s (machine-run *fuel* (ms-of-config c)))) (mv (ms-status s) s fm))
+      (let* ((s0 (ms-of-config c))
+             (hyp (and (machine-ok s0) (equal (machine-abs s0) c)))
+             (s (machine-run *fuel* s0)))
+        (prog2$ (cw "ENGINE-T1 machine-ok and abs ~x0 result ~x1~%" hyp (machine-result-p s))
+                (mv (ms-status s) s fm)))
     (let* ((fm (fm-load-ms (ms-of-config c) fm))
            (fm (fast-run *fuel* fm)))
       (mv (fm-status fm) (fm->ms fm) fm))))

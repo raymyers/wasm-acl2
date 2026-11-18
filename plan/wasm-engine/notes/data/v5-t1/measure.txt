@@ -1,0 +1,23 @@
+== prover steps, machine/spec-result
+MACHINE-CLOCK-IS-0-OR-1 none counted
+MACHINE-STEP-RUNS-WHEN-CLOCK-1 5192
+MACHINE-STEP-CLOCK-1-CASES 7473
+MACHINE-CLOCK-1-SIMULATES 31884
+MACHINE-STEP-SIMULATES 927
+MACHINE-RESULT-NOT-RUNNING 51
+MACHINE-RESULT-IS-SPEC-RESULT 551
+MACHINE-CLOCKS (defun) 135
+== prover steps, machine/opcodes
+OP-STEP-OUTSIDE-PROVED-OPCODES 8793
+MACHINE-STEP-OUTSIDE-PROVED-OPCODES 219009
+== census line
+PROVED-OPCODES-CENSUS 48 opcodes; D5 missing NIL; instantiation missing
+== certification times
+machine/spec-result Time:  2.27 seconds (prove: 0.09, print: 0.00, other: 2.17)
+machine/opcodes Time:  3.01 seconds (prove: 1.13, print: 0.00, other: 1.88)
+== hints
+machine/spec-result :use 3 :cases 0 :expand 0 Subgoal 0
+machine/opcodes :use 0 :cases 0 :expand 0 Subgoal 0
+== trust tags, skip-proofs, defaxiom in the two certificates
+machine/spec-result ttags 0 skip-proofs 0 defaxiom 0
+machine/opcodes ttags 0 skip-proofs 0 defaxiom 0

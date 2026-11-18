@@ -1,0 +1,5 @@
+Making /Users/Apple/dev/wasm-acl2/engine/machine/opcodes.cert on 18-Nov-2026 09:26:48.542
+Making /Users/Apple/dev/wasm-acl2/engine/machine/spec-result.cert on 18-Nov-2026 09:26:48.542
+Built /Users/Apple/dev/wasm-acl2/engine/machine/spec-result.cert (2.535s) at 18-Nov-2026 09:26:51.087
+Built /Users/Apple/dev/wasm-acl2/engine/machine/opcodes.cert (3.245s) at 18-Nov-2026 09:26:51.796
+engine: no skip-proofs, no defaxiom in 31 book(s)

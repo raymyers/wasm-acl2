@@ -20,8 +20,9 @@
 > see [../wasm3-translation/evidence.md](../wasm3-translation/evidence.md)),
 > and what a host function does. ACL2 and SBCL stay trusted.
 >
-> **Status**: written 2026-11-17 at `4f18f50`. V0 to V4 are complete
-> (V4 on 2026-11-18). P1 and P3 are decided, P2 is decided after V5 (§2).
+> **Status**: written 2026-11-17 at `4f18f50`. V0 to V5 are complete
+> (V5 on 2026-11-18): T1 certifies. P1 and P3 are decided; P2 is now
+> the user's to decide (§2).
 
 ---
 
@@ -32,11 +33,32 @@
   [V0-ground](notes/V0-ground.md)), V1 (dispatch lemmas;
   [V1-dispatch](notes/V1-dispatch.md)), V2 (the flat block;
   [V2-flat](notes/V2-flat.md)), V3 (contexts;
-  [V3-contexts](notes/V3-contexts.md)) and V4 (exits and propagation;
-  [V4-exits](notes/V4-exits.md)). The gate certifies 29 books
-- **Next action**: V5 (T1), or V6; they are independent. V5 item 1 is
-  the case split of `machine-step` with the four step theorems of V3
-  and V4 ([V4-exits](notes/V4-exits.md) §5)
+  [V3-contexts](notes/V3-contexts.md)), V4 (exits and propagation;
+  [V4-exits](notes/V4-exits.md)) and V5 (T1;
+  [V5-t1](notes/V5-t1.md)). The gate certifies 31 books
+- **T1 certifies**: `machine-result-is-spec-result`
+  (`engine/machine/spec-result.lisp`), the statement of §1 word for
+  word. F1 is met
+- **Next action**: V6 (the fast machine's invariant, loader and run)
+- **From V5, for later milestones**:
+  - T1 has no hypothesis about an opcode: C2
+    (`machine-step-simulates`) holds for every running state with
+    `machine-ok`. `machine-clocks` is defined in `spec-result.lisp`
+    (the model for `fast-clocks`)
+  - **the machine did not change.** The proved set is the supported
+    set: `*proved-opcodes*` (`machine/opcodes.lisp`, 48 opcodes,
+    computed from the rule table and `redex-arity`) with
+    `op-step-outside-proved-opcodes` and
+    `machine-step-outside-proved-opcodes`. It has the 33 opcodes of D5
+    that head an `op-step` redex, `memory.init`, `data.drop`,
+    `ref.null` and 12 more; `*d5-opcodes*` of `fast/frame.lisp` is
+    smaller, which is V7's to settle
+    ([V5-t1](notes/V5-t1.md) §4, open questions)
+  - bulk memory is clock 1, as every instruction that is not a value
+    and not an administrative term; `machine-clock` did not change
+  - the slides driver on the list machine (`ENGINE=list`) checks at
+    run time that the loaded state has `machine-ok` and abstracts to
+    the configuration; V6's loader lemma makes that a theorem
 - **From V4, for later milestones**:
   - C2 holds for every clock-1 case of `machine-step`:
     `exit-step-simulates` (hypotheses besides `machine-ok`: `ctrl` not
@@ -130,9 +152,15 @@
   theorem for now (the easy option); P2 is decided after V5
 - **Decided by the user (2026-11-17)**: P3, the theorem covers D5
   (S0 to S3; H waits with P1)
-- **Waiting for the user**: nothing
-- **Theorem hypotheses so far**: those of plan.md "Current state". V1
-  to V4 added none to a theorem of §1; their lemma hypotheses are
+- **Waiting for the user**: P2 (should `:stuck` carry a claim, V10).
+  It was left for after V5; what is known about its cost is in
+  [V5-t1](notes/V5-t1.md) §6. It blocks nothing: V6 to V9 do not
+  depend on it
+- **Theorem hypotheses so far**: those of plan.md "Current state",
+  which for T1 are `(machine-ok s)`,
+  `(machine-result-p (machine-run n s))`, `(natp fuel)` and
+  `(< (machine-clocks n s) fuel)`. V1
+  to V5 added none to a theorem of §1; their lemma hypotheses are
   listed in [V1-dispatch](notes/V1-dispatch.md) §4,
   [V2-flat](notes/V2-flat.md) §6,
   [V3-contexts](notes/V3-contexts.md) §4 and §5 and
@@ -200,7 +228,7 @@ executable and which the driver checks.
 
 | | Condition | Today (evidence.md) |
 |---|---|---|
-| F1 | T1 holds for every rule the machine can apply, not for a group | C2 open for clock-1 steps |
+| F1 | T1 holds for every rule the machine can apply, not for a group | C2 open for clock-1 steps. **Met in V5 (2026-11-18)** |
 | F2 | T2 holds; the invariant is proved, not assumed | step theorem only |
 | F3 | No instruction is excluded by hypothesis | `call_ref` excluded |
 | F4 | The loader is inside the theorem (T3) | not proved |
@@ -246,7 +274,9 @@ are; they need no theorem. Whether `$instantiate` and `$invoke` are
     each call builds the store from the array (72 MB for TeX). Likely
     too slow to typeset the deck; to be measured before choosing.
   - **(c)** Leave TeX outside: T3 is claimed for the slides only.
-- **P2 (user, 2026-11-17: decide later, after V5): should `:stuck`
+- **P2 (user, 2026-11-17: decide later, after V5; V5 is complete,
+  so this is open for the user now; see
+  [V5-t1](notes/V5-t1.md) §6): should `:stuck`
   carry a claim?** Today the
   theorem is one direction: a result of the machine is a result of the
   spec. `STEPS/%FUEL` also returns a configuration on which `STEP`
@@ -593,28 +623,57 @@ steps (`first-nonval-when-vals-then-exn-throw`).
 
 ### V5: T1
 
-- [ ] `machine-step-simulates`: C2 for every running state with
+- [x] `machine-step-simulates`: C2 for every running state with
       `machine-ok`, from `machine-clock-0-simulates`, V3 and V4, by the
       case split of `machine-step` (each case a lemma, definitions
-      closed)
-- [ ] The instance: `machine-result-is-spec-result` by
+      closed). **Done** in `machine/spec-result.lisp`:
+      `machine-step-clock-1-cases` (7,473 prover steps; four disjuncts,
+      each a step function with the tests made before it),
+      `machine-clock-1-simulates` (31,884), `machine-step-simulates`
+      (927) ([V5-t1](notes/V5-t1.md) §1)
+- [x] The instance: `machine-result-is-spec-result` by
       `:functional-instance` of `ENGINE-RESULT-IS-SPEC-RESULT` with C1
-      (`ok.lisp`), C2, C3 (`terminal-ok.lisp`), C4
-- [ ] Bulk memory: check that `memory.fill`, `memory.copy` and
+      (`ok.lisp`), C2, C3 (`terminal-ok.lisp`), C4. **Done**: 551
+      prover steps, no hint but the instance; C4 is
+      `machine-result-not-running` (51); `machine-clocks` defined with
+      its guard verified ([V5-t1](notes/V5-t1.md) §2)
+- [x] Bulk memory: check that `memory.fill`, `memory.copy` and
       `memory.init` are clock 1 in this machine (the rule functions
       rewrite to smaller instructions; E5 expected a larger clock). If
-      not, `machine-clock` is corrected and test 1 re-run
-- [ ] P3: the generated table of proved opcodes; an opcode outside it
+      not, `machine-clock` is corrected and test 1 re-run. **Done**:
+      clock 1; their 10 rules are read rules and C2 is proved with no
+      hypothesis about the head. `machine-clock` did not change
+      ([V5-t1](notes/V5-t1.md) §3)
+- [x] P3: the generated table of proved opcodes; an opcode outside it
       stops the machine `:unsupported` before any rule is tried. Test 2
       re-run: the agreeing commands do not change for D5. The table
       must contain `memory.init`, `data.drop` and `ref.null`, which
-      every instantiation runs ([V0-ground](notes/V0-ground.md) §1)
-- [ ] The slides: `render.lsp` on the list machine is inside T1; say so
-      in the viewer caption (plan.md D8)
+      every instantiation runs ([V0-ground](notes/V0-ground.md) §1).
+      **Done, without a change of the machine** in
+      `machine/opcodes.lisp`: `*proved-opcodes*`, 48 opcodes, by
+      `make-event` from the rule table and `redex-arity`;
+      `op-step-outside-proved-opcodes` (8,793 prover steps) and
+      `machine-step-outside-proved-opcodes` (219,009); the book's last
+      event fails unless the table has 48 opcodes, D5's and the three
+      of instantiation. C2 was proved for a symbolic head, so the
+      proved set is the supported set and the machine already refused
+      the rest; test 2 was not run again, no machine function changed
+      ([V5-t1](notes/V5-t1.md) §4)
+- [x] The slides: `render.lsp` on the list machine is inside T1; say so
+      in the viewer caption (plan.md D8). **Done**: `ENGINE=list sh
+      engine/slides/run.sh`: 12 runs, the hypotheses of T1 true on
+      each (checked at run time), 7 of 7 slides identical to V8, 40.5
+      to 115.8 s per slide; the caption says which machine ran and
+      whether its runs are inside a theorem
+      ([V5-t1](notes/V5-t1.md) §5)
 
 **Exit**: T1 certifies. F1 met. The slide deck is rendered by a
 machine with an end-to-end theorem (the list machine; the fast one
-after V6).
+after V6). **Met**: the two books certify in 2.3 s and 3.0 s; the
+largest proof is 219,009 prover steps
+(`machine-step-outside-proved-opcodes`). "End-to-end" for the slides
+is T1 with its `machine-ok` hypothesis checked on each run; the
+loader lemma that removes the check is V6's.
 
 ### V6: the fast machine's invariant, loader and run
 

@@ -2,6 +2,8 @@
 # L0 (plan/wasm-engine E12): build the renderer for DECK, render every slide
 # on the engine, compare with V8, and write the viewer.
 #   sh run.sh [DECK.txt] [OUTDIR]      (inside nix develop; defaults: deck.txt build)
+# ENGINE=list runs the list machine, whose runs are inside theorem T1
+# (plan2.md V5); the default is the fast machine.
 # OUTDIR/view/index.html shows the engine's slides; the script fails unless
 # every slide is identical to V8's.
 set -e
@@ -9,7 +11,7 @@ here=$(cd "$(dirname "$0")" && pwd); deck=${1:-$here/deck.txt}; out=${2:-$here/b
 sh "$here/build.sh" "$deck" "$out"
 out=$(cd "$out" && pwd); mkdir -p "$out/engine"
 sh "$here/../../plan/wasm-engine/notes/data/e1-mupdf/census.sh" "$out/sent.wasm" > "$out/census.txt"
-cd "$here" && { echo "(assign wasm-file \"$out/sent.wasm\")"; echo "(assign out-dir \"$out/engine\")"; cat render.lsp; } \
+cd "$here" && { [ "$ENGINE" = list ] && echo "(assign engine :list)"; echo "(assign wasm-file \"$out/sent.wasm\")"; echo "(assign out-dir \"$out/engine\")"; cat render.lsp; } \
   | acl2 > "$out/engine/render.out" 2>&1
 grep -a "ENGINE-" -A1 "$out/engine/render.out" | grep -v "^--"
 node "$here/check.mjs" "$out/sent.wasm" "$out/engine" "$out/view" | tee "$out/check.out"

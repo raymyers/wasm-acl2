@@ -25,7 +25,15 @@ function png(fb, scale) {
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
 }
 const ro = `${engDir}/render.out`;
-const machine = existsSync(ro) && /machine :LIST/.test(readFileSync(ro, 'latin1')) ? 'list machine' : 'fast machine';
+const log = existsSync(ro) ? readFileSync(ro, 'latin1') : '';
+const machine = /machine :LIST/.test(log) ? 'list machine' : 'fast machine';
+// Plan D8: say whether the runs are inside the proved subset. The list
+// machine prints one line ENGINE-T1 per run (render.lsp): the hypotheses of
+// T1 (machine-result-is-spec-result) checked on that run.
+const t1 = log.match(/ENGINE-T1 .*$/gm) || [], t1ok = t1.filter(l => /abs T result T$/.test(l)).length;
+const proved = machine !== 'list machine' ? 'fast machine: no theorem for it yet (T2)'
+  : t1.length > 0 && t1ok === t1.length ? `inside the proved subset: theorem T1 (machine-result-is-spec-result) holds for all ${t1.length} runs, hypotheses checked at run time`
+  : `NOT inside the proved subset: T1 hypotheses hold for ${t1ok} of ${t1.length} runs`;
 let same = 0;
 for (let i = 0; i < n; i++) {
   e.render(i);
@@ -38,12 +46,13 @@ for (let i = 0; i < n; i++) {
   console.log('SLIDE', i, ok ? 'SAME' : 'DIFFERENT', 'engine', sha(pix), 'v8', sha(v8));
   writeFileSync(`${viewDir}/slide-${i}.png`, png(pix, 1));
 }
+console.log('PROVED', proved);
 console.log('TOTAL', same, 'of', n, 'slides identical to V8; module sha256', sha(readFileSync(wasmFile)));
 writeFileSync(`${viewDir}/index.html`, `<!doctype html><meta charset="utf-8"><title>Engine slides</title>
 <style>html,body{margin:0;height:100%;background:#fff}img{width:100vw;height:100vh;object-fit:contain;image-rendering:pixelated}
 #cap{position:fixed;bottom:4px;left:8px;font:12px sans-serif;color:#888}</style>
 <img id="s"><div id="cap"></div><script>
 const n=${n};let i=0;const s=document.getElementById('s'),cap=document.getElementById('cap');
-function show(){s.src='slide-'+i+'.png';cap.textContent='slide '+(i+1)+'/'+n+' rendered by the ${machine} of the WebAssembly engine in ACL2; pixels identical to V8: ${same}/${n}; module not yet inside the proved subset (E11)';}
+function show(){s.src='slide-'+i+'.png';cap.textContent='slide '+(i+1)+'/'+n+' rendered by the ${machine} of the WebAssembly engine in ACL2; pixels identical to V8: ${same}/${n}; ${proved}';}
 document.onkeydown=e=>{if(e.key==='ArrowRight'||e.key===' ')i=Math.min(n-1,i+1);else if(e.key==='ArrowLeft')i=Math.max(0,i-1);else if(e.key==='f')document.documentElement.requestFullscreen();show();};show();
 </script>`);
