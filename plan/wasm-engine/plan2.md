@@ -60,8 +60,9 @@
   theorems: [engine/THEOREM.md](../../engine/THEOREM.md), script
   `engine/inspect.lsp`. V9's `top.lisp` should restate it beside T3
   ([V8-engine-run](notes/V8-engine-run.md) §8)
-- **Next action**: V9 (the gate). V7b is optional and is not chosen
-  while V9 is open
+- **Next action**: V9 (the gate): `top.lisp`, the checks of
+  `make -C engine check`, plan.md's L2. Its evidence.md item is done
+  (2026-11-18). V7b is optional and is not chosen while V9 is open
 - **From V8, for later milestones**:
   - **T3 has `(fmp fm)`**: the loader lemma needs it and `engine-run`
     cannot discharge it for an arbitrary object. It is true of the live
@@ -1043,8 +1044,12 @@ and the `data.drop` shortcut (V7b) are outside, and the README of
       certificates themselves (`skip-proofs` and `defaxiom` recorded
       by ACL2 in the `.cert`), since a macro can hide either from a
       grep
-- [ ] evidence.md rewritten from the new state: its table of §1 with
-      "Proved" in every row that is the engine's
+- [x] evidence.md rewritten from the new state: its table of §1 with
+      "Proved" in every row that is the engine's. **Done ahead of the
+      rest of V9** (2026-11-18, at the user's request), from the state
+      after V8: layers A, B and C are "Proved" in full; the driver rows
+      say what is read, checked and trusted; the top README's paragraph
+      on the engine says the same. To be read again when V9 closes
 - [ ] plan.md "Milestones for the test": L2 points here
 
 **Exit**: F6 met.
