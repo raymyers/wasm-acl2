@@ -1,0 +1,13 @@
+scripts 2  finished 2
+same 123
+differ 12
+unsupported 0
+spec-fuel 0
+not-invoke 0
+commands per class and group (S4 = outside D5; no group = printed on another line):
+     12 :DIFFER S0
+    119 :SAME S0
+      4 :SAME S1
+scripts with a difference: memory64--memory_grow64 memory_grow 
+scripts where the driver itself failed (ACL2 Error before the first command): 
+scripts not finished (D2-EXIT 137 or 124 is the time limit): 

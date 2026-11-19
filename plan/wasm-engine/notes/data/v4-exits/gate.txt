@@ -1,0 +1,28 @@
+== run 1: after the change of machine.lisp and fast.lisp (every book that was in the gate)
+Built engine/machine/machine.cert (2.684s) at 17-Nov-2026 23:23:26.054
+Built engine/lib/lists.cert (2.642s) at 17-Nov-2026 23:23:28.733
+Built engine/rules/step-basics.cert (2.909s) at 17-Nov-2026 23:23:31.678
+Built engine/rules/shape.cert (5.217s) at 17-Nov-2026 23:23:36.933
+Built engine/rules/arity.cert (4.928s) at 17-Nov-2026 23:23:41.898
+Built engine/rules/dispatch.cert (8.209s) at 17-Nov-2026 23:23:45.179
+Built engine/machine/ok.cert (20.071s) at 17-Nov-2026 23:23:46.162
+Built engine/machine/terminal-ok.cert (2.453s) at 17-Nov-2026 23:23:48.650
+Built engine/machine/clock0.cert (4.065s) at 17-Nov-2026 23:23:50.262
+Built engine/rules/flat.cert (7.122s) at 17-Nov-2026 23:23:52.344
+Built engine/machine/op-flat.cert (3.093s) at 17-Nov-2026 23:23:55.473
+Built engine/rules/context.cert (3.962s) at 17-Nov-2026 23:23:56.345
+Built engine/machine/op-context.cert (2.727s) at 17-Nov-2026 23:23:59.108
+Built engine/fast/frame.cert (269.252s) at 17-Nov-2026 23:27:55.343
+Built engine/fast/memory.cert (381.330s) at 17-Nov-2026 23:34:16.708
+Built engine/fast/fast.cert (3.442s) at 17-Nov-2026 23:34:20.191
+Built engine/fast/refine-hot.cert (3.717s) at 17-Nov-2026 23:34:23.951
+Built engine/fast/refine.cert (145.324s) at 17-Nov-2026 23:36:45.561
+Built engine/fast/refine-mem.cert (40.624s) at 17-Nov-2026 23:37:26.222
+Built engine/fast/refine-step.cert (377.315s) at 17-Nov-2026 23:43:43.597
+Built engine/fast/refine-op.cert (7.486s) at 17-Nov-2026 23:43:51.136
+Built engine/fast/ctrl-kinds.cert (3.115s) at 17-Nov-2026 23:43:54.286
+engine: no skip-proofs, no defaxiom in 27 book(s)
+== run 2: the two new books (certified by: make -C engine certify BOOKS="rules/exits machine/exit-steps", then make -C engine check)
+engine/rules/exits Time:  2.93 seconds (prove: 0.72, print: 0.01, other: 2.21)
+engine/machine/exit-steps Time:  2.43 seconds (prove: 0.30, print: 0.00, other: 2.12)
+engine: no skip-proofs, no defaxiom in 29 book(s)

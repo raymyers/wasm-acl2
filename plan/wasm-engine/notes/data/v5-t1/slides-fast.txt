@@ -1,0 +1,18 @@
+ENGINE-DECK machine :FAST instantiate :DONE slides 7 framebuffer 25824
+ENGINE-SLIDE 0 status :DONE scale 2 ms 422
+ENGINE-SLIDE 1 status :DONE scale 1 ms 139
+ENGINE-SLIDE 2 status :DONE scale 1 ms 109
+ENGINE-SLIDE 3 status :DONE scale 1 ms 269
+ENGINE-SLIDE 4 status :DONE scale 1 ms 129
+ENGINE-SLIDE 5 status :DONE scale 2 ms 380
+ENGINE-SLIDE 6 status :DONE scale 4 ms 280
+SLIDE 0 SAME engine c4c908f3ad8296e0fff1097ab079a3989229742b2976a810b8d1aa3ca20b90ba v8 c4c908f3ad8296e0fff1097ab079a3989229742b2976a810b8d1aa3ca20b90ba
+SLIDE 1 SAME engine c5b09bc0ceec82a272a635713d7e0b3d167b7597cb0f33b7c3ef8e47bba1e2cf v8 c5b09bc0ceec82a272a635713d7e0b3d167b7597cb0f33b7c3ef8e47bba1e2cf
+SLIDE 2 SAME engine 8f3e837610f9c8e15d682dfbe440677c085ef6605786bf6fe2fc4feaaa90eb5a v8 8f3e837610f9c8e15d682dfbe440677c085ef6605786bf6fe2fc4feaaa90eb5a
+SLIDE 3 SAME engine 207ea3010267327dbc2b0a4ad22d1b29394e3182a45c3e77fdc42b5a5f76b6b2 v8 207ea3010267327dbc2b0a4ad22d1b29394e3182a45c3e77fdc42b5a5f76b6b2
+SLIDE 4 SAME engine df3ba68e345b706ea3e67b1893ec78e9dc2f40fd50fe031748ecb6c39e80fe97 v8 df3ba68e345b706ea3e67b1893ec78e9dc2f40fd50fe031748ecb6c39e80fe97
+SLIDE 5 SAME engine b4d5711d2a9be7a3fbdd7815ab196af3102ca0ba2275f7a02a29f1f04dcf3253 v8 b4d5711d2a9be7a3fbdd7815ab196af3102ca0ba2275f7a02a29f1f04dcf3253
+SLIDE 6 SAME engine b46b96a59f642cfd3bbcd86abee723c2f338b23678cdc2b2ef23dde0bd38bc12 v8 b46b96a59f642cfd3bbcd86abee723c2f338b23678cdc2b2ef23dde0bd38bc12
+PROVED fast machine: no theorem for it yet (T2)
+TOTAL 7 of 7 slides identical to V8; module sha256 92de41b9703f0e72e1d49d5216e48fb26b81fc2e26c314b3a459e90c65317ee6
+nix develop -c make -C engine slides  10.03s user 0.72s system 99% cpu 10.843 total

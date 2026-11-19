@@ -3,7 +3,8 @@
 ; write the DVI it produces.
 ;
 ; What runs where:
-;  - every WebAssembly instruction of tex.wasm: the engine (WE::FAST-STEP);
+;  - every WebAssembly instruction of tex.wasm: the engine (WE::FAST-RUN,
+;    one call for each stretch between two calls of a host function);
 ;  - the 18 imported functions (files, printing, date): this file, a port of
 ;    TikZJax's library.js. It is trusted, not proved, and it bypasses the
 ;    spec's $hostcall hook (it reads and writes the engine's memory array);
@@ -19,6 +20,8 @@
 (defvar *snap* nil)                      ; TEXSNAP: where to save an image at the snapshot line
 (defvar *snap-file* nil)                 ; the open input.tex of a saved snapshot
 (defvar *snap-at* 0)                     ; where its snapshot line starts
+(defvar *check* t)                       ; check the invariant at the start of every stretch (not with TEXNOCHECK)
+(defvar *shortcut* (not (sb-ext:posix-getenv "TEXNOSHORTCUT"))) ; the data.drop shortcut (below); read when this file loads
 (defun configure ()                      ; read again when a saved image starts
   (setq *path* (let ((s (sb-ext:posix-getenv "TEXPATH")) (l nil)) ; colon-separated directories
                  (loop while (and s (plusp (length s)))
@@ -26,6 +29,7 @@
                  (nreverse l))
         *snap* (sb-ext:posix-getenv "TEXSNAP")
         *quiet* (sb-ext:posix-getenv "TEXQUIET")
+        *check* (not (sb-ext:posix-getenv "TEXNOCHECK"))
         *input* (or (sb-ext:posix-getenv "TEXINPUT") (concatenate 'string *dir* "/input.tex"))
         *out* (or (sb-ext:posix-getenv "TEXOUT") (concatenate 'string *dir* "/out"))
         *max-steps* (let ((s (sb-ext:posix-getenv "TEXMAXSTEPS"))) (if s (parse-integer s) 20000000000))
@@ -218,12 +222,29 @@
         (list "tex_final_end" 0 (lambda () (setq *final-end* t) nil))))
 
 ; ---------------------------------------------------------------------------
-; the run loop: the engine's FAST-STEP, except at a call of a host function
+; the run loop: the engine's FAST-RUN between two calls of a host function
+;
+; A run of tex.wasm is a sequence of stretches. A stretch is one call of
+; WE::FAST-RUN-FUEL (FAST-RUN that also returns the fuel it did not use,
+; engine/fast/stretch.lisp): the fast machine runs until it stops. It stops
+; :unsupported at a call_ref of a host function (WE::HOST-REF-P, plan2.md
+; P1). The driver then sets the status back to :run, makes the host step
+; (HOST-STEP: the arguments off the operand stack, the Lisp function, the
+; results pushed, the call_ref dropped) and starts the next stretch.
+; What a theorem says: FAST-STRETCH-IS-SPEC-STEPS and FAST-RUN-IS-SPEC-STEPS
+; of stretch.lisp, for a stretch that starts with the invariant WE::FM-INV.
+; The driver checks the invariant at the start of every stretch
+; (WE::FM-INV-CHECK, proved equal to it) and counts the stretches that have
+; it. What no theorem says: the host step, and that the invariant holds
+; after it (it is checked, not proved).
 
 (defparameter *host-by-addr* nil)        ; vector: function address -> entry of *host-table*, or nil
 (defparameter *steps* 0)
 (defparameter *host-calls* 0)
 (defparameter *fallbacks* 0)
+(defparameter *shortcuts* 0)             ; data.drop applied without the fallback (see below)
+(defparameter *stretches* 0)
+(defparameter *stretches-inv* 0)         ; stretches that started with WE::FM-INV
 
 (defun flush-console ()
   (let ((s (get-output-stream-string *console*)))
@@ -241,39 +262,56 @@
                           *fm*)
       (we::update-fm-is (cdr (we::fm-is *fm*)) *fm*))))
 
+; the host function the machine stopped at: the head is call_ref and the
+; reference on the stack is a host function of the store (the engine's own
+; test); nil when it stopped :unsupported for another reason
+(defun host-entry (fm hosts)
+  (let ((i (car (we::fm-is fm))) (v (car (we::fm-vals fm))))
+    (and (consp i) (eq (car i) :call_ref)
+         (we::host-ref-p v (we::fm-store fm))
+         (or (and (integerp (cadr v)) (< -1 (cadr v) (length hosts)) (aref hosts (cadr v)))
+             (error "host function ~s has no entry in the host table" v)))))
+
 (defun run-engine (label)
-  (let ((t0 (get-internal-real-time)) (n 0) (fm *fm*) (hosts *host-by-addr*))
-    (declare (fixnum n))
+  (let ((t0 (get-internal-real-time)) (n 0) (fm *fm*) (hosts *host-by-addr*)
+        (period (if *quiet* 100000000 20000000)) (stretches 0) (inv 0) (shortcuts0 *shortcuts*))
+    (declare (fixnum n period))
     (catch 'snapshot
      (loop
       (unless (eq (we::fm-status fm) :run) (return))
       (when (>= n *max-steps*) (format t "~a: step limit~%" label) (return))
-      (let* ((i (car (we::fm-is fm)))
-             (v (and (consp i) (eq (car i) :call_ref) (car (we::fm-vals fm))))
-             (entry (and (consp v) (eq (car v) :ref.func_addr) (integerp (cadr v)) (< (cadr v) (length hosts))
-                         (aref hosts (cadr v)))))
-        (if entry (host-step entry) (we::fast-step fm)))
-      (incf n)
-      (when (and *quiet* (zerop (mod n 100000000)))
-        (flush-console)
-        (format t "~&[~d M WebAssembly instructions, ~d s]~%" (floor n 1000000)
-                (round (- (get-internal-real-time) t0) internal-time-units-per-second))
-        (finish-output))
-      (when (and (not *quiet*) (zerop (mod n 20000000)))
+      ; one stretch, cut at the next progress line
+      (incf stretches)
+      (when (and *check* (we::fm-inv-check fm)) (incf inv))
+      (let ((chunk (min (- *max-steps* n) (- period (mod n period)))))
+        (incf n (- chunk (we::fast-run-fuel chunk fm))))
+      (when (eq (we::fm-status fm) :unsupported)
+        (let ((entry (host-entry fm hosts)))
+          (when entry
+            (we::update-fm-status :run fm)
+            (host-step entry))))
+      (when (zerop (mod n period))
         (flush-console)
         (let ((s (/ (- (get-internal-real-time) t0) internal-time-units-per-second 1.0)))
-          (format t "~&[~a: ~d M steps, ~,0f s, ~,2f M steps/s, ~d host calls, ~d fallbacks]~%"
-                  label (floor n 1000000) s (/ n 1000000.0 (max s 0.001)) *host-calls* *fallbacks*)
-          (finish-output)))))
+          (if *quiet*
+              (format t "~&[~d M WebAssembly instructions, ~d s]~%" (floor n 1000000) (round s))
+            (format t "~&[~a: ~d M steps, ~,0f s, ~,2f M steps/s, ~d host calls, ~d fallbacks]~%"
+                    label (floor n 1000000) s (/ n 1000000.0 (max s 0.001)) *host-calls* *fallbacks*)))
+        (finish-output))))
     (flush-console)
-    (incf *steps* n)
+    (incf *steps* n) (incf *stretches* stretches) (incf *stretches-inv* inv)
     (let ((s (/ (- (get-internal-real-time) t0) internal-time-units-per-second 1.0)))
       (if *quiet*
           (format t "~&~a: ~:d WebAssembly instructions in ~,1f s (~,2f M/s), ~:d host calls~%"
                   (if (eq (we::fm-status fm) :done) "tex.wasm returned" (format nil "tex.wasm stopped (~s)" (we::fm-status fm)))
                   n s (/ n 1000000.0 (max s 0.001)) *host-calls*)
-        (format t "~&~a: status ~s after ~d steps, ~,1f s (~,2f M steps/s), ~d host calls, ~d fallbacks~%"
-                label (we::fm-status fm) n s (/ n 1000000.0 (max s 0.001)) *host-calls* *fallbacks*))
+        (progn
+          (format t "~&~a: status ~s after ~d steps, ~,1f s (~,2f M steps/s), ~d host calls, ~d fallbacks~%"
+                  label (we::fm-status fm) n s (/ n 1000000.0 (max s 0.001)) *host-calls* *fallbacks*)
+          (format t "~a: ~d stretches of FAST-RUN, ~a; data.drop shortcut taken ~d times~%"
+                  label stretches
+                  (if *check* (format nil "~d started with FM-INV" inv) "FM-INV not checked (TEXNOCHECK)")
+                  (- *shortcuts* shortcuts0))))
       (unless (member (we::fm-status fm) '(:done))
         (format t "  at ~a~%  vals ~a~%" (short (car (we::fm-is fm))) (short (we::fm-vals fm))))
       (finish-output))))
@@ -282,11 +320,18 @@
 ; data.drop takes it only because the engine has no frame lemma for that rule
 ; yet; the rule does not read or write memory bytes. Here the spec's rule
 ; function is applied to the state without the bytes, as the engine does for
-; its frame-safe rules. This shortcut is assumed, not proved. Every other
-; fallback is counted and runs as the engine defines it.
+; its frame-safe rules. This shortcut is assumed, not proved (plan2.md V7b):
+; a stretch in which it is taken is not a run of the function in the
+; theorems. It is counted per stretch (*SHORTCUTS*); tex.wasm executes
+; data.drop at instantiation only. Every other fallback is counted and runs
+; as the engine defines it. TEXNOSHORTCUT=1 (at the load of this file, so for
+; the instantiation) turns the shortcut off: data.drop then takes the
+; engine's fallback. STATE-DIGEST, printed after the instantiation, is the
+; same with and without it (plan/wasm-engine/notes/V8-engine-run.md, section 9).
 (sb-int:encapsulate 'we::fast-apply-fallback 'count
   (lambda (f fn z redex fm)
-    (cond ((eq fn 'w3t::step/r-data.drop)
+    (cond ((and *shortcut* (eq fn 'w3t::step/r-data.drop))
+           (incf *shortcuts*)
            (multiple-value-bind (ok z2 res) (we::apply-rule fn z redex)
              (values ok (if ok z2 z) res fm)))
           (t (incf *fallbacks*)
@@ -295,6 +340,20 @@
 
 ; ---------------------------------------------------------------------------
 ; main
+
+; FNV-1a (64 bits) of the memory array, and of the printed store and frame:
+; to compare the state of two runs of this driver
+(defun fnv (h byte) (ldb (byte 64 0) (* (logxor h byte) 1099511628211)))
+(defun memory-digest ()
+  (let ((h 14695981039346656037))
+    (dotimes (k (we::fm-mem-length *fm*) h) (setq h (fnv h (we::fm-memi k *fm*))))))
+(defun state-digest ()
+  (let ((h 14695981039346656037) (*package* (find-package "ACL2")) (*print-pretty* nil)
+        (*print-length* nil) (*print-level* nil) (*print-circle* nil))
+    (loop for c across (prin1-to-string (list (we::fm-store *fm*) (we::fm-frame *fm*)
+                                              (we::fm-vals *fm*) (we::fm-is *fm*) (we::fm-ctrl *fm*)))
+          do (setq h (fnv h (logand 255 (char-code c)))))
+    h))
 
 (defun find-export (name exports)
   (let ((codes (map 'list #'char-code name)))
@@ -340,6 +399,8 @@
       (we::fm-set (we::ms-store s) (we::ms-frame s) (we::ms-vals s) (we::ms-is s) (we::ms-ctrl s) (we::ms-status s) *fm*)
       (run-engine "instantiate")
       (unless (eq (we::fm-status *fm*) :done) (error "instantiation stopped"))
+      (format t "STATE-DIGEST after instantiation: memory ~d, store and frame ~d, shortcut ~a~%"
+              (memory-digest) (state-digest) (if *shortcut* "on" "off"))
       ; 5. call main
       (let* ((inst (wrt::%get-field (we::fm-frame *fm*) :module))
              (addr (find-export "main" (wrt::%get-field inst :exports)))
@@ -359,7 +420,7 @@
         (setq *snap-file* nil *snap* nil)))
     (when *quiet*                        ; no ACL2 warnings (one guard-checking note) among TeX's output
       (acl2::f-put-global 'acl2::inhibit-output-lst '(acl2::warning acl2::observation) acl2::*the-live-state*)
-      (format t "~a: WebAssembly engine WE::FAST-STEP (certified book engine/fast/fast)~%running tex.wasm (~:d bytes) on ~a~%"
+      (format t "~a: WebAssembly engine WE::FAST-RUN (certified book engine/fast/fast)~%running tex.wasm (~:d bytes) on ~a~%"
               (acl2::f-get-global 'acl2::acl2-version acl2::*the-live-state*) *wasm-bytes* *job*)
       (finish-output))
     (run-engine "main")
@@ -375,9 +436,15 @@
                (if *quiet*
                    (format t "wrote ~a (~:d bytes)~%" (file-namestring path) (length (hf-content f)))
                  (format t "WROTE ~a (~d bytes, from ~a)~%" path (length (hf-content f)) (hf-name f)))))
+    (when (fboundp (quote census-report))
+      (format t "CENSUS-HOST ~d host calls (call_ref of a host function, stepped by the driver)~%" *host-calls*)
+      (funcall (quote census-report)))
     (unless *quiet*
       (format t "TOTAL ~d steps, final-end ~s, ~,1f s~%" *steps* *final-end*
-              (/ (- (get-internal-real-time) t0) internal-time-units-per-second 1.0)))))
+              (/ (- (get-internal-real-time) t0) internal-time-units-per-second 1.0))
+      (format t "STRETCHES ~d, ~a, data.drop shortcuts ~d~%" *stretches*
+              (if *check* (format nil "~d started with FM-INV" *stretches-inv*) "FM-INV not checked")
+              *shortcuts*))))
 
 (declaim (ftype function toplevel-run))
 (defmacro with-driver-errors (&body body)
@@ -389,6 +456,11 @@
   (with-driver-errors (run-tex))
   (finish-output)
   (sb-ext:exit))
+
+; TEXCENSUS=FILE: load FILE (plan/wasm-engine/notes/data/v0-ground/census.lisp)
+; before the run; it counts the rule functions the run applies and RUN-TEX
+; prints the counts.
+(let ((c (sb-ext:posix-getenv "TEXCENSUS"))) (when (and c (plusp (length c))) (load c)))
 
 ; TEXMODE=build: prepare, then save an image that starts at the call of main
 ; (acl2-wasm-tex in the build directory, an executable: SBCL's runtime, this

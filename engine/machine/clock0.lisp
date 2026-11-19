@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; Constraint C2 of E3 for the clock-0 steps of the list machine (plan E11,
 ; S0 and every group): a step whose clock is 0 leaves MACHINE-ABS
 ; unchanged. These are the steps that move a value to the operand stack,
@@ -80,7 +82,7 @@
   (implies (consp (ms-is s))
            (equal (machine-abs (enter-step s)) (machine-abs s)))
   :hints (("Goal" :cases ((enterable-p (car (ms-is s))))
-                  :in-theory (disable enter-step))))
+                  :in-theory (disable enter-step enterable-p))))
 
 (defthm value-instr-head
   (implies (value-instr-p i)

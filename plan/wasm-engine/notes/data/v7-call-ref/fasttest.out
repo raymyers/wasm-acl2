@@ -1,0 +1,28 @@
+LOCKSTEP count 200: steps 2823 disagreements 0 first-bad NIL status
+:DONE
+LOCKSTEP memloop 100: steps 2223 disagreements 0 first-bad NIL status
+:DONE
+LOCKSTEP nested 50: steps 1923 disagreements 0 first-bad NIL status
+:DONE
+LOCKSTEP throw 30: steps 1373 disagreements 0 first-bad NIL status
+:DONE
+WE p!>LOCKSTEP fac rec 20: steps 553 disagreements 0 first-bad NIL status
+:DONE
+WE p!>LOCKSTEP calls 20: steps 560 disagreements 0 first-bad NIL status :DONE
+(<fm> <state>)
+LOCKSTEP div 7/0: steps 12 disagreements 0 first-bad NIL status :TRAP
+(<fm> <state>)
+LOCKSTEP uncaught: steps 14 disagreements 0 first-bad NIL status :THROW
+(<fm> <state>)
+RUN count 20000: equal T status :DONE list-ms 158 fast-ms 52 result
+((:CONST (:I32) 0))
+RUN memloop 10000, 1 page: equal T status :DONE list-ms 4069 fast-
+ms 58 result ((:CONST (:I32) 1))
+RUN memloop 10000, 16 pages: equal T status :DONE list-ms 64537 fast-
+ms 59 result ((:CONST (:I32) 1))
+RUN memloop 10000, 64 pages: equal T status :DONE list-ms 256606 fast-
+ms 60 result ((:CONST (:I32) 1))
+RUN nested 5000: equal T status :DONE list-ms 191 fast-ms 84 result
+((:CONST (:I32) 0))
+RUN throw 3000: equal T status :DONE list-ms 169 fast-ms 127 result
+((:CONST (:I32) 4501500))

@@ -4,7 +4,10 @@
 ; on the list machine (MACHINE-RUN) and on the fast machine (FAST-RUN), and
 ; the final states are compared, store and memory included (FM->MS). The
 ; script continues from the list machine's state (the list machine agrees
-; with the spec on these scripts: E6, differential test 2). Run from
+; with the spec on these scripts: E6, differential test 2). A command at
+; which the fast machine stops :unsupported at a call_ref of a host function
+; (plan2.md V7), after agreeing with the list machine at every step before,
+; is counted apart (:host-refused). Run from
 ; translate/tests/spec by difftest3-all.sh, which prepends
 ; (assign t7-name "NAME").
 (ld "t7-lib-3.0.acl2")
@@ -27,6 +30,7 @@
                   :list-is (acl2::take 3 (we::ms-is s2)) :fast-is (acl2::take 3 (we::fm-is we::fm))
                   :list-vals (acl2::take 3 (we::ms-vals s2)) :fast-vals (acl2::take 3 (we::fm-vals we::fm))
                   :list-status (we::ms-status s2) :fast-status (we::fm-status we::fm)
+                  :host (we::host-ref-p (car (we::ms-vals s)) (we::ms-store s))
                   :same-store (equal (we::ms-store s2) (we::ms-store (we::fm->ms we::fm)))
                   :same-rest (equal (we::put-mem0-bytes (we::ms-store s2) nil) (we::fm-store we::fm))
                   :list-window (acl2::take 8 (nthcdr 28 (we::mem0-of-store (we::ms-store s2))))
@@ -55,7 +59,16 @@
                   (mv-let (where we::fm)
                     (if same (mv nil we::fm)
                       (let ((we::fm (we::fm-load-ms s0 we::fm))) (d3-lock s0 100000 0 we::fm)))
-                   (mv (cond ((not same) :differ)
+                   (mv (cond ((and (not same) (consp where)
+                                   ; plan2.md V7: the fast machine stops
+                                   ; :unsupported at a call_ref of a host
+                                   ; function. Up to that step the two agreed.
+                                   (eq (cadr (member-eq :fast-status where)) :unsupported)
+                                   (consp (cadr (member-eq :instr where)))
+                                   (eq (car (cadr (member-eq :instr where))) :call_ref)
+                                   (cadr (member-eq :host where)))
+                              :host-refused)
+                             ((not same) :differ)
                              ((member-eq st '(:done :trap :throw)) :same)
                              (t st))
                        (list st (caddr (we::machine-abs s)) where)

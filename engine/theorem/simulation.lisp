@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; The engine's theorem, stated once for any machine (plan/wasm-engine E3).
 ;
 ; A machine is six functions: a state invariant, "still running", "stopped

@@ -1,0 +1,35 @@
+ACL2 Version 8.7: WebAssembly engine WE::FAST-RUN (certified book engine/fast/fast)
+running tex.wasm (517,692 bytes) on deck.tex
+This is e-TeX, Version 3.14159265-2.6 (preloaded format=latex 2022.5.1)
+**entering extended mode
+(deck.tex
+LaTeX2e <2020-02-02> patch level 2
+(slides.tex
+) (figdims.tex) ("deck.aux") ABD: EveryShipout initializing macros [1]
+[100 M WebAssembly instructions, 31 s]
+ [2]
+[3] [4] [5] [6] [7]
+[200 M WebAssembly instructions, 63 s]
+ [8] [9] [10] [11]
+[300 M WebAssembly instructions, 98 s]
+ [12] [13]
+[400 M WebAssembly instructions, 133 s]
+ [14] [15] [16] [17] [18]
+[19] [20]
+[500 M WebAssembly instructions, 164 s]
+ [21] [22] [23] [24] [25] [26] [27] [28] [29] [30] [31] [32] [33]
+SLIDES 33
+[600 M WebAssembly instructions, 195 s]
+(deck.aux) )
+Output written on deck.dvi (33 pages, 20992 bytes).
+Transcript written on deck.log.
+tex.wasm returned: 606,866,720 WebAssembly instructions in 197.5 s (3.07 M/s), 63,681 host calls
+wrote deck.log (1,929 bytes)
+wrote deck.aux (8 bytes)
+wrote deck.dvi (20,992 bytes)
+
+real	3m29.335s
+user	3m13.282s
+sys	0m1.361s
+b95d451fcf68b6273053cee1eff312e1a6cf8bda04c8d2ec26c7b27202606ca1  deck.dvi
+57c0aab1ca6bc3e07b3f9a4da7542ff983dabcdee3eed37a2dca7b59f257024b  /Users/Apple/dev/wasm-acl2/engine/tex/deck/deck.dvi

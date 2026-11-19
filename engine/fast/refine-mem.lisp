@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; E7 Phase B, the memory rules: the generated fast versions (FAST-<rule> in
 ; fast.lisp) on the fast store and the array agree with the spec's rules on
 ; the full store. One memory (ONE-MEMORY-P), the fast store invariant, and

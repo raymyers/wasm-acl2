@@ -1,0 +1,39 @@
+* HOST functions at ((0 . "printInteger") (1 . "printChar") (2 . "printString")
+                   (3 . "printNewline") (4 . "reset") (5 . "inputln")
+                   (6 . "rewrite") (7 . "get") (8 . "put") (9 . "eof")
+                   (10 . "eoln") (11 . "erstat") (12 . "close")
+                   (13 . "getCurrentMinutes") (14 . "getCurrentDay")
+                   (15 . "getCurrentMonth") (16 . "getCurrentYear")
+                   (17 . "tex_final_end"))
+MEMORY 72089600 bytes, core dump 72089600 bytes
+instantiate: status :DONE after 7306 steps, 0.0 s (1.42 M steps/s), 0 host calls, 0 fallbacks
+instantiate: 1 stretches of FAST-RUN, 1 started with FM-INV; data.drop shortcut taken 40 times
+MAIN at (:FUNC 373)
+
+ACL2 Warning [Guards] in TOP-LEVEL:  Guard-checking will be inhibited
+for some recursive calls, including WRT::%TAG-LO1; see :DOC guard-
+checking-inhibited.
+
+This is e-TeX, Version 3.14159265-2.6 (preloaded format=latex 2022.5.1)
+**entering extended mode
+(input.tex
+LaTeX2e <2020-02-02> patch level 2
+No file input.aux.
+ABD: EveryShipout initializing macros
+[main: 20 M steps, 6. s, 3.14 M steps/s, 1162 host calls, 0 fallbacks]
+[main: 40 M steps, 13. s, 3.12 M steps/s, 2460 host calls, 0 fallbacks]
+ [1] [2] (input.aux) )
+Output written on input.dvi (2 pages, 860 bytes).
+Transcript written on input.log.
+main: status :DONE after 55065266 steps, 17.6 s (3.12 M steps/s), 3717 host calls, 0 fallbacks
+main: 3720 stretches of FAST-RUN, 3720 started with FM-INV; data.drop shortcut taken 0 times
+HOST calls: (("printChar" . 2338) ("get" . 1296) ("printNewline" . 39)
+             ("inputln" . 9) ("erstat" . 7) ("printString" . 7) ("close" . 6)
+             ("reset" . 5) ("rewrite" . 4) ("tex_final_end" . 1) ("eof" . 1)
+             ("getCurrentYear" . 1) ("getCurrentMonth" . 1)
+             ("getCurrentDay" . 1) ("getCurrentMinutes" . 1))
+WROTE /Users/Apple/dev/wasm-acl2/engine/tex/build/out.log (1325 bytes, from input.log)
+WROTE /Users/Apple/dev/wasm-acl2/engine/tex/build/out.aux (8 bytes, from input.aux)
+WROTE /Users/Apple/dev/wasm-acl2/engine/tex/build/out.dvi (860 bytes, from input.dvi)
+TOTAL 55072572 steps, final-end T, 17.6 s
+STRETCHES 3721, 3721 started with FM-INV, data.drop shortcuts 40

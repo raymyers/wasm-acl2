@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; E7 Phase B: the fast machine refines the list machine.
 ; Built bottom-up: (1) the array as a list; (2) per rule, the direct call
 ; in the generated dispatch agrees with APPLY-RULE on the full store; (3)

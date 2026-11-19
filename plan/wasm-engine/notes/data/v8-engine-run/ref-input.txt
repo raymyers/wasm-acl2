@@ -1,0 +1,4 @@
+V8REF input.tex: 860 bytes of DVI in 0.018027083 s -> /Users/Apple/dev/wasm-acl2/engine/tex/build/ref-input.dvi
+engine 91c83590acd0e7cea9a7ee75b450c3efc5729d938163a7ab31866cb1e62b8adc 860 bytes  engine/tex/build/out.dvi
+V8     91c83590acd0e7cea9a7ee75b450c3efc5729d938163a7ab31866cb1e62b8adc 860 bytes  /Users/Apple/dev/wasm-acl2/engine/tex/build/ref-input.dvi
+DVI: identical, byte for byte

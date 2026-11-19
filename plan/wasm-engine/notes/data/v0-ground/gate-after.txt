@@ -1,0 +1,24 @@
+# make -C engine check with the V0 changes, 2026-11-17, all engine books certified again, -j 4
+Built engine/portcullis.cert (0.206s) at 17-Nov-2026 15:11:16.017
+Built engine/lib/records.cert (0.290s) at 17-Nov-2026 15:11:16.342
+Built engine/theorem/simulation.cert (2.418s) at 17-Nov-2026 15:11:18.471
+Built engine/rules/if-true.cert (2.358s) at 17-Nov-2026 15:11:18.735
+Built engine/machine/machine.cert (2.881s) at 17-Nov-2026 15:11:18.936
+Built engine/rules/first-lemmas.cert (2.961s) at 17-Nov-2026 15:11:19.013
+Built engine/lib/lists.cert (2.539s) at 17-Nov-2026 15:11:21.511
+Built engine/machine/ok.cert (18.846s) at 17-Nov-2026 15:11:37.819
+Built engine/machine/clock0.cert (3.777s) at 17-Nov-2026 15:11:41.630
+Built engine/rules/terminal.cert (125.793s) at 17-Nov-2026 15:13:24.844
+Built engine/machine/terminal-ok.cert (2.298s) at 17-Nov-2026 15:13:27.177
+Built engine/rules/step-basics.cert (2.798s) at 17-Nov-2026 15:13:27.678
+Built engine/fast/frame.cert (269.556s) at 17-Nov-2026 15:15:48.528
+Built engine/fast/memory.cert (378.521s) at 17-Nov-2026 15:22:07.082
+Built engine/fast/fast.cert (3.202s) at 17-Nov-2026 15:22:10.320
+Built engine/fast/refine-hot.cert (3.556s) at 17-Nov-2026 15:22:13.912
+Built engine/fast/refine.cert (140.603s) at 17-Nov-2026 15:24:30.961
+Built engine/fast/refine-mem.cert (39.934s) at 17-Nov-2026 15:25:11.368
+Built engine/fast/refine-step.cert (345.811s) at 17-Nov-2026 15:30:57.222
+Built engine/fast/refine-op.cert (6.764s) at 17-Nov-2026 15:31:04.036
+Built engine/fast/ctrl-kinds.cert (2.785s) at 17-Nov-2026 15:31:06.852
+engine: no skip-proofs, no defaxiom in 20 book(s)
+nix develop -c make -C engine check  1375.83s user 27.81s system 117% cpu 19:53.93 total

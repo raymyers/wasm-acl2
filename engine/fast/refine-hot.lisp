@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; E7 Phase B, the fast paths: when FAST-HOT-STEP handles an instruction
 ; (local.get, local.set, local.tee, binop, relop, br_if), the state it gives
 ; is the state the general path (FAST-OP-STEP) gives. And the value test of

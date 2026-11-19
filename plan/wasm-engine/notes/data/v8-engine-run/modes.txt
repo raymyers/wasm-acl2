@@ -1,0 +1,86 @@
+Form:  ( DEFUN MODES ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ MODES
+WE p!>MODES 
+((W3T::GRAM/BMODULE :PROGRAM)
+ (W3T::$INSTANTIATE :PROGRAM)
+ (W3T::$INVOKE :IDEAL)
+ (W3T::STEPS/%FUEL :IDEAL)
+ (W3T::STEP :IDEAL)
+ (ENGINE-RUN :COMMON-LISP-COMPLIANT)
+ (ENGINE-CONFIG :COMMON-LISP-COMPLIANT)
+ (ENGINE-RESULT-P :COMMON-LISP-COMPLIANT)
+ (ENGINE-CLOCKS :COMMON-LISP-COMPLIANT)
+ (CONFIG-SHAPE-P :COMMON-LISP-COMPLIANT))
+
+NIL
+WE p!>PROGRAM-MODE functions reached from $INSTANTIATE: 96
+(W3T::$EVALEXPRSS W3T::MO-MAP W3T::GLOBAL_OK/R0
+                  W3T::GLOBAL_OK W3T::GLOBALS_OK/R-CONS
+                  W3T::GLOBALS_OK W3T::TABLE_OK/R0
+                  W3T::TABLE_OK W3T::MODULE_OK/W/MAP43
+                  W3T::DATAMODE_OK/R-ACTIVE
+                  W3T::DATAMODE_OK W3T::DATA_OK/R0
+                  W3T::DATA_OK W3T::MODULE_OK/W/MAP48
+                  W3T::ELEMMODE_OK/R-ACTIVE
+                  W3T::ELEMMODE_OK
+                  W3T::EXPR_OK_CONST/R0 W3T::EXPR_OK_CONST
+                  W3T::ELEM_OK/ALL1 W3T::ELEM_OK/R0
+                  W3T::ELEM_OK W3T::MODULE_OK/W/MAP51
+                  W3T::INSTR_OK/OUT2/R-BLOCK
+                  W3T::INSTR_OK/OUT2/R-LOOP
+                  W3T::INSTR_OK/OUT2/R-IF
+                  W3T::INSTR_OK/OUT2/R-TRY_TABLE
+                  W3T::INSTR_OK/OUT2
+                  W3T::SEQ-PROPOSE W3T::INSTR_OK/R-BLOCK
+                  W3T::INSTR_OK/R-LOOP W3T::INSTR_OK/R-IF
+                  W3T::INSTR_OK/R-TRY_TABLE
+                  W3T::INSTR_OK/%M
+                  W3T::INSTR_OK W3T::SEQ-RUN
+                  W3T::INSTRS_OK W3T::EXPR_OK/R0
+                  W3T::EXPR_OK W3T::FUNC_OK/R0
+                  W3T::FUNC_OK W3T::MODULE_OK/W/ALL46
+                  W3T::$FREE_EXTERNTYPE W3T::$FREE_IMPORT
+                  W3T::$FREE_MODULE/ITER19
+                  W3T::$FREE_ELEMMODE
+                  W3T::$FREE_ELEM/ITER1
+                  W3T::$FREE_ELEM W3T::$FREE_MODULE/ITER18
+                  W3T::$FREE_DATAMODE
+                  W3T::$FREE_DATA W3T::$FREE_MODULE/ITER17
+                  W3T::$FREE_LOCAL W3T::$FREE_FUNC/ITER1
+                  W3T::$FREE_FUNC W3T::$FREE_MODULE/ITER16
+                  W3T::$FREE_TABLETYPE W3T::$FREE_TABLE
+                  W3T::$FREE_MODULE/ITER15
+                  W3T::$FREE_INSTR/ITER1
+                  W3T::$FREE_BLOCK/ITER0 W3T::$FREE_BLOCK
+                  W3T::$FREE_BLOCKTYPE W3T::$FREE_INSTR
+                  W3T::$FREE_EXPR/ITER0 W3T::$FREE_EXPR
+                  W3T::$FREE_GLOBALTYPE W3T::$FREE_GLOBAL
+                  W3T::$FREE_MODULE/ITER13
+                  W3T::$FREE_TAGTYPE
+                  W3T::$FREE_TAG W3T::$FREE_MODULE/ITER12
+                  W3T::$FREE_COMPTYPE/ITER1
+                  W3T::$FREE_STORAGETYPE
+                  W3T::$FREE_FIELDTYPE W3T::$FREE_HEAPTYPE
+                  W3T::$FREE_REFTYPE W3T::$FREE_VALTYPE
+                  W3T::$FREE_RESULTTYPE/ITER0
+                  W3T::$FREE_RESULTTYPE
+                  W3T::$FREE_COMPTYPE
+                  W3T::$FREE_DEFTYPE W3T::$FREE_TYPEUSE
+                  W3T::$FREE_SUBTYPE/ITER2
+                  W3T::$FREE_SUBTYPE
+                  W3T::$FREE_RECTYPE/ITER1
+                  W3T::$FREE_RECTYPE
+                  W3T::$FREE_TYPE W3T::$FREE_MODULE/ITER11
+                  W3T::$FREE_MODULE W3T::$FUNCIDX_MODULE
+                  W3T::$FUNCIDX_NONFUNCS
+                  W3T::MODULE_OK/W/SEARCH57
+                  W3T::MODULE_OK/W/R0 W3T::MODULE_OK/W
+                  W3T::MODULE_OK W3T::$INSTANTIATE)
+
+NIL
+WE p!>PROGRAM-MODE functions reached from $INVOKE: 0
+NIL
+NIL
+WE p!>Bye.

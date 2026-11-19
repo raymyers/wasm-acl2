@@ -1,3 +1,5 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; E7: the fast machine. Logic mode, guards verified (it runs as compiled
 ; Lisp). Tested against the list machine of E6 at every step (fasttest.lsp);
 ; the refinement theorem comes next, from the lemmas of frame.lisp and
@@ -485,6 +487,17 @@
          (mv nil fm)))
       (otherwise (mv nil fm)))))
 
+; A call_ref whose reference is a host function (plan2.md P1, V7): the fast
+; machine does not make host calls. FAST-STEP stops :unsupported there, so the
+; two host rules of call_ref never fire in a step it takes. REF is the top of
+; the operand stack; the test is the one the two rules make (the code of the
+; function at the reference's address is (:_hostfunc hf)).
+(defun host-ref-p (ref store)
+  (declare (xargs :guard t))
+  (and (eq (entry-kind ref) :ref.func_addr)
+       (eq (entry-kind (wrt::%get-field (nth-t (entry-n ref) (wrt::%get-field store :funcs)) :code))
+           :_hostfunc)))
+
 (defun fast-step (fm)
   (declare (xargs :stobjs fm))
   (if (not (eq (fm-status fm) :run)) fm
@@ -499,7 +512,7 @@
                 ((fast-val-p i)
                  (let* ((fm (update-fm-vals (cons i vals) fm))) (update-fm-is (cdr is) fm)))
                 ((admin-kind i) (fast-enter-step fm))
-                ((and (eq (entry-kind i) :throw_ref) (eq (entry-kind (car-t vals)) :ref.null))
+                ((and (eq (entry-kind i) :throw_ref) (eq (entry-kind (car-t vals)) :ref.null_addr))
                  (fast-op-step fm))
                 ((and (sym-member (entry-kind i) '(:trap :throw_ref))
                       (or (consp (cdr is))
@@ -510,6 +523,8 @@
                  (update-fm-status :throw fm))
                 ((and (exit-instr-p i) (consp ctrl)) (fast-exit-step fm))
                 ((exit-instr-p i) (update-fm-status :stuck fm))
+                ((and (eq (entry-kind i) :call_ref) (host-ref-p (car-t vals) (fm-store fm)))
+                 (update-fm-status :unsupported fm))
                 (t (fast-op-step fm))))))))
 
 (defun fast-run (n fm)                   ; at most N steps

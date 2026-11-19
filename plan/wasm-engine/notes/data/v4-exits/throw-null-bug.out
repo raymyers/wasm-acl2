@@ -1,0 +1,38 @@
+== machine of commit f8c3d9f (before the fix)
+WE !>(:SPEC-STEP ((:|%;%| (:|%;%| NIL NIL) ((:TRAP))))
+            :MACHINE-STATUS :STUCK
+            :MACHINE-ABS (:|%;%| (:|%;%| NIL NIL)
+                                 ((:REF.NULL_ADDR) (:THROW_REF))))
+WE !>
+(:SPEC-STEP ((:|%;%| (:|%;%| NIL NIL)
+                     ((:REF.NULL_ADDR) (:TRAP) (:NOP))))
+            :MACHINE-STATUS :STUCK
+            :MACHINE-ABS (:|%;%| (:|%;%| NIL NIL)
+                                 ((:REF.NULL_ADDR)
+                                  (:REF.NULL_ADDR)
+                                  (:THROW_REF)
+                                  (:NOP))))
+WE !>
+(:SPEC-STEP
+  ((:|%;%| (:|%;%| NIL NIL)
+           ((:LABEL_%{%}% 0 NIL ((:TRAP))))))
+  :MACHINE-STATUS :STUCK
+  :MACHINE-ABS (:|%;%| (:|%;%| NIL NIL)
+                       ((:LABEL_%{%}% 0
+                                      NIL ((:REF.NULL_ADDR) (:THROW_REF))))))
+WE !>Bye.
+== machine after the fix
+WE !>(:SPEC-STEP ((:|%;%| (:|%;%| NIL NIL) ((:TRAP))))
+            :MACHINE-STATUS :TRAP
+            :MACHINE-ABS (:|%;%| (:|%;%| NIL NIL) ((:TRAP))))
+WE !>
+(:SPEC-STEP ((:|%;%| (:|%;%| NIL NIL)
+                     ((:REF.NULL_ADDR) (:TRAP) (:NOP))))
+            :MACHINE-STATUS :TRAP
+            :MACHINE-ABS (:|%;%| (:|%;%| NIL NIL) ((:TRAP))))
+WE !>
+(:SPEC-STEP ((:|%;%| (:|%;%| NIL NIL)
+                     ((:LABEL_%{%}% 0 NIL ((:TRAP))))))
+            :MACHINE-STATUS :TRAP
+            :MACHINE-ABS (:|%;%| (:|%;%| NIL NIL) ((:TRAP))))
+WE !>Bye.

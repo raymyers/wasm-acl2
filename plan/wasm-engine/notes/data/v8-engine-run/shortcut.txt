@@ -1,0 +1,17 @@
+== shortcut on (sh engine/tex/run.sh)
+instantiate: status :DONE after 7306 steps, 0.0 s (1.47 M steps/s), 0 host calls, 0 fallbacks
+instantiate: 1 stretches of FAST-RUN, 1 started with FM-INV; data.drop shortcut taken 40 times
+STATE-DIGEST after instantiation: memory 5368768714199100771, store and frame 14344681081273627535, shortcut on
+main: status :DONE after 55065266 steps, 17.7 s (3.11 M steps/s), 3717 host calls, 0 fallbacks
+main: 3720 stretches of FAST-RUN, 3720 started with FM-INV; data.drop shortcut taken 0 times
+91c83590acd0e7cea9a7ee75b450c3efc5729d938163a7ab31866cb1e62b8adc  -
+== shortcut off, default control stack of 64 MB (TEXNOSHORTCUT=1 sh engine/tex/run.sh)
+FALLBACK W3T::STEP/R-DATA.DROP on (:DATA.DROP 0)
+  Control stack exhausted (no more space for function call frames).
+== shortcut off, SBCL_USER_ARGS='--control-stack-size 8000'
+instantiate: status :DONE after 7306 steps, 105.9 s (0.00 M steps/s), 0 host calls, 40 fallbacks
+instantiate: 1 stretches of FAST-RUN, 1 started with FM-INV; data.drop shortcut taken 0 times
+STATE-DIGEST after instantiation: memory 5368768714199100771, store and frame 14344681081273627535, shortcut off
+main: status :DONE after 55065266 steps, 18.6 s (2.96 M steps/s), 3717 host calls, 40 fallbacks
+main: 3720 stretches of FAST-RUN, 3720 started with FM-INV; data.drop shortcut taken 0 times
+91c83590acd0e7cea9a7ee75b450c3efc5729d938163a7ab31866cb1e62b8adc  -

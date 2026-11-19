@@ -1,0 +1,18 @@
+INSPECT books 67 flagged NIL
+INSPECT skip-proofs-seen NIL
+<no ttags seen>
+INSPECT steps 0 hyps T status :RUN spec-steps 0 same T
+INSPECT steps 1 hyps T status :RUN spec-steps 0 same T
+INSPECT steps 2 hyps T status :RUN spec-steps 0 same T
+INSPECT steps 3 hyps T status :RUN spec-steps 1 same T
+INSPECT steps 5 hyps T status :RUN spec-steps 1 same T
+INSPECT steps 8 hyps T status :RUN spec-steps 3 same T
+INSPECT steps 13 hyps T status :RUN spec-steps 5 same T
+INSPECT steps 21 hyps T status :RUN spec-steps 9 same T
+INSPECT steps 34 hyps T status :RUN spec-steps 17 same T
+INSPECT steps 55 hyps T status :RUN spec-steps 28 same T
+INSPECT steps 89 hyps T status :RUN spec-steps 46 same T
+INSPECT steps 144 hyps T status :DONE spec-steps 60 same T
+INSPECT steps 233 hyps T status :DONE spec-steps 60 same T
+INSPECT steps 1000 hyps T status :DONE spec-steps 60 same T
+INSPECT result T fuel 61 same T instrs ((:CONST (:I64) 120))

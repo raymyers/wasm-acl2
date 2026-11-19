@@ -1,8 +1,11 @@
+; License: MIT. See the file LICENSE at the top of the repository.
+;
 ; The invariant of the list machine and constraint C1 of E3 for it: a step
 ; keeps the invariant (plan/wasm-engine E6 item 2). The invariant is the
 ; one of notes/E5-machine.md: the operand stacks are true lists of values,
 ; the instruction lists are true lists, and every control entry has one of
-; the three shapes with a natural arity. Nothing about types.
+; the three shapes with a natural arity, and a true list for a label's
+; continuation and a handler's catch clauses. Nothing about types.
 (in-package "WE")
 (include-book "machine")
 
@@ -15,7 +18,7 @@
   (and (true-listp e) (equal (len-t e) 5)
        (sym-member (entry-kind e) '(:l :h :f))
        (natp (entry-n e))
-       (or (not (eq (entry-kind e) :l)) (true-listp (entry-x e)))
+       (or (eq (entry-kind e) :f) (true-listp (entry-x e)))
        (val-list-p (entry-v e))
        (true-listp (entry-r e))))
 
@@ -104,7 +107,8 @@
                 (val-list-p (entry-v (car c)))
                 (true-listp (entry-r (car c)))
                 (natp (entry-n (car c)))
-                (implies (equal (entry-kind (car c)) :l) (true-listp (entry-x (car c)))))))
+                (implies (equal (entry-kind (car c)) :l) (true-listp (entry-x (car c))))
+                (implies (equal (entry-kind (car c)) :h) (true-listp (entry-x (car c)))))))
 
 (in-theory (disable entry-kind entry-n entry-x entry-v entry-r))
 

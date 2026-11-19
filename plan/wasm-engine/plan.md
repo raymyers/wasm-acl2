@@ -51,6 +51,11 @@
 
 ## Current state
 
+- **Continued in [plan2.md](plan2.md) (2026-11-17)**: the open proof
+  items (E11, the rest of E7 Phase B, E4 items 3 to 5) are now its
+  milestones V0 to V9, with the procedure [step2.md](step2.md). A new
+  session starts there. This file stays for the decisions D1 to D10,
+  the architecture and the record of E0 to E12
 - **Last updated**: 2026-11-17
 - **What we can say about the engine against the semantics** (proofs,
   tests, construction, gaps): [evidence.md](evidence.md)

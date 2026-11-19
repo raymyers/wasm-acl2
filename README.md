@@ -32,9 +32,9 @@ Plans and notes, with the measurements behind every number: [wasm1-translation](
 
 ## Verified engine for WASM 3.0 (work in progress)
 
-`engine/` is a second, faster definition of WASM 3.0 execution in ACL2, with the generated `translate/gen/wasm-3.0` as its specification. The fast machine is proved equal to a list machine step by step. That the list machine's step is a spec step is proved in part and tested for the rest. There is no end-to-end theorem yet; [evidence.md](plan/wasm-engine/evidence.md) states what is proved, what is only tested, and what is neither. `make -C engine check` certifies every engine book and fails if one contains `skip-proofs` or `defaxiom`. It needs `make -C translate check-3.0` first. Plan: [plan/wasm-engine/plan.md](plan/wasm-engine/plan.md).
+`engine/` is a second, faster definition of WASM 3.0 execution in ACL2, with the generated `translate/gen/wasm-3.0` as its specification. It is proved, for a configuration run by the function the drivers call, that the engine follows that specification or stops, and that a result of the engine is the specification's result. Host calls are outside: the engine stops at one. [engine/THEOREM.md](engine/THEOREM.md) is a guide for inspecting the theorems; [evidence.md](plan/wasm-engine/evidence.md) states what is proved, what is only tested, and what is neither. `make -C engine check` certifies every engine book and fails if one contains `skip-proofs` or `defaxiom`. It needs `make -C translate check-3.0` first. Plans: [plan.md](plan/wasm-engine/plan.md), [plan2.md](plan/wasm-engine/plan2.md).
 
-The engine's target workload is the workshop talk's slides: `make -C engine slides` renders them with a bitmap renderer and compares each slide with V8, and [engine/tex/](engine/tex/README.md) runs TeX (`tex.wasm`) to typeset the deck (not part of `check`). The LaTeX source of the talk is `latex-slides/`.
+The engine's target workload is the workshop talk's slides: `make -C engine slides` renders them with a bitmap renderer and compares each slide with V8, inside the theorem, and [engine/tex/](engine/tex/README.md) runs TeX (`tex.wasm`) to typeset the deck (not part of `check`; outside the theorem, since TeX calls host functions). The LaTeX source of the talk is `latex-slides/`.
 
 ## Browser demo
 

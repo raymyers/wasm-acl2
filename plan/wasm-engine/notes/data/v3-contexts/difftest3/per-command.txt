@@ -1,0 +1,13 @@
+ 329 D3-CMD :ACTION :SAME
+  16 D3-CMD :ACTION :UNSUPPORTED
+  16 D3-CMD :ASSERT_EXCEPTION :SAME
+   2 D3-CMD :ASSERT_EXCEPTION :UNSUPPORTED
+  11 D3-CMD :ASSERT_RETURN :NOT-INVOKE
+  13 D3-CMD :ASSERT_RETURN :RUN
+27557 D3-CMD :ASSERT_RETURN :SAME
+24559 D3-CMD :ASSERT_RETURN :UNSUPPORTED
+4757 D3-CMD :ASSERT_TRAP :SAME
+ 149 D3-CMD :ASSERT_TRAP :UNSUPPORTED
+D3-DIFF lines: 0
+scripts finished: 251 of 258
+not finished: bulk-memory--memory_fill bulk-memory--memory_copy call_indirect memory_grow memory64--memory_fill64 memory64--memory_copy64 memory64--memory_grow64 
